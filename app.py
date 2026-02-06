@@ -1,0 +1,403 @@
+import streamlit as st
+from datetime import date
+import pandas as pd
+from io import BytesIO
+
+from schema import LancamentoFinanceiro
+from validator import validar_lancamento, SchemaValidationError
+from repository import salvar_lancamento
+from deduplicator import gerar_hash_deduplicacao
+
+from project_repository import listar_projetos_ativos
+from project_service import criar_projeto
+
+from enums import (
+    TipoOrigem,
+    Natureza,
+    FormaPagamento,
+    MeioPagamento,
+)
+
+from csv_importer import importar_arquivo
+from services.parcelamento import expandir_lancamento_em_parcelas
+
+
+# =========================================================
+# Configuração da página
+# =========================================================
+st.set_page_config(
+    page_title="Projeto Financeiro",
+    page_icon="💰",
+    layout="centered",
+)
+
+st.markdown(
+    """
+    <style>
+    button[data-testid="baseButton-primary"],
+    button[data-testid="baseButton-secondary"] {
+        background-color: #f57c00 !important;
+        color: white !important;
+        border-radius: 8px;
+        font-weight: 600;
+        height: 3rem;
+        border: none;
+    }
+
+    button[data-testid="baseButton-primary"]:hover,
+    button[data-testid="baseButton-secondary"]:hover {
+        background-color: #ef6c00 !important;
+        color: white !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.title("💰 Projeto Financeiro | Pessoal")
+st.caption("Input rápido de despesas / receitas")
+
+
+# =========================================================
+# Projeto
+# =========================================================
+st.subheader("Seleção de Projeto e Modo de Entrada")
+
+with st.expander("➕ Criar novo projeto"):
+    nome_completo = st.text_input(
+        "Nome completo do projeto / cliente",
+        placeholder="Ex: Jonathan Santos",
+    )
+
+    if st.button("➕ Criar projeto", use_container_width=False):
+        try:
+            criar_projeto(
+                nome_exibicao=nome_completo,
+                nome_completo=nome_completo,
+            )
+            st.success("✔ Projeto criado com sucesso")
+            st.rerun()
+        except Exception as e:
+            st.error(str(e))
+
+
+projetos = listar_projetos_ativos()
+
+if not projetos:
+    st.warning("Nenhum projeto cadastrado.")
+    st.stop()
+
+mapa_label_para_slug = {p["label"]: p["slug"] for p in projetos}
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+projeto_label = st.selectbox(
+    "Selecione o Projeto Financeiro",
+    options=list(mapa_label_para_slug.keys()),
+    index=None,
+    placeholder="Selecione um projeto...",
+)
+
+st.markdown("<br>", unsafe_allow_html=True)
+if projeto_label is None:
+    st.info("ℹ️ Selecione um projeto para continuar")
+else:
+    projeto = mapa_label_para_slug[projeto_label]
+
+
+# =========================================================
+# Modo de entrada
+# =========================================================
+modo_input = st.radio(
+    "Selecione o Modo de Entrada",
+    [
+        "Lançamento manual (Em tela)",
+        "Importação via arquivo (XLSX)",
+        "Integração por API (Em construção)",
+    ],
+)
+
+if modo_input == "Integração por API (Em construção)":
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(
+        """
+        <div style="
+            background-color: #e8f2ff;
+            border-left: 6px solid #1f77ff;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            color: #0b3c74;
+            font-size: 15px;
+        ">
+            <strong>👷‍♂️🚧 Integração por API - Módulo em fase de construção 👷‍♂️🚧</strong>
+            <br><br>
+            Estamos trabalhando para liberar essa funcionalidade em breve.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.divider()
+
+
+# =========================================================
+# ===================== MODO MANUAL =======================
+# =========================================================
+if modo_input == "Lançamento manual (Em tela)":
+    st.divider()
+    st.subheader("Origem do lançamento")
+
+    tipo_origem_label = st.radio(
+        "Tipo de origem",
+        options=[e.label for e in TipoOrigem],
+    )
+
+    tipo_origem = TipoOrigem.from_label(tipo_origem_label).value
+
+    origem = st.text_input(
+        "Origem (Banco / Instituição)",
+        placeholder="Ex: Bradesco, C6, Nubank",
+    )
+
+    cartao_nome = None
+    if tipo_origem == TipoOrigem.CARTAO.value:
+        cartao_nome = st.text_input(
+            "Nome do cartão",
+            placeholder="Ex: C6 Platinum",
+        )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.subheader("Dados do lançamento")
+
+    data_competencia = st.date_input(
+        "Data de competência",
+        value=date.today(),
+    )
+
+    descricao = st.text_input(
+        "Descrição",
+        placeholder="Ex: Mercado, Uber, Padaria",
+    )
+
+    valor = st.number_input(
+        "Valor",
+        min_value=0.01,
+        step=0.01,
+        format="%.2f",
+    )
+
+    natureza_label = st.selectbox(
+        "Natureza",
+        options=[e.label for e in Natureza],
+    )
+
+    natureza = Natureza.from_label(natureza_label).value
+
+    tipo_custo = st.radio(
+        "Tipo de custo",
+        options=["Fixo", "Variável"],
+    )
+
+    tipo_de_custo = "fixo" if tipo_custo == "Fixo" else "variavel"
+
+    fixo_ate = None
+    if tipo_de_custo == "fixo":
+        fixo_ate = st.text_input(
+            "Custo fixo válido até (YYYY-MM)",
+            placeholder="Ex: 2026-12",
+        )
+
+    forma_pagamento = None
+    meio_pagamento = None
+    parcelas_total = None
+    parcela_atual = None
+    fatura_mes = None
+
+    if tipo_origem == TipoOrigem.CARTAO.value:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.subheader("Pagamento (Cartão)")
+
+        # 🔒 REGRA: custo fixo no cartão = parcelado obrigatório
+        if tipo_de_custo == "fixo":
+            st.info("ℹ️ Custos fixos no cartão devem ser parcelados")
+
+            forma_pagamento = FormaPagamento.PARCELADO.value
+            st.selectbox(
+                "Forma de pagamento",
+                options=[FormaPagamento.PARCELADO.label],
+                disabled=True,
+            )
+
+            parcelas_total = st.number_input(
+                "Total de parcelas",
+                min_value=2,
+                step=1,
+            )
+            parcela_atual = st.number_input(
+                "Parcela atual",
+                min_value=1,
+                step=1,
+            )
+
+        else:
+            forma_label = st.selectbox(
+                "Forma de pagamento",
+                options=[e.label for e in FormaPagamento],
+            )
+            forma_pagamento = FormaPagamento.from_label(forma_label).value
+
+            if forma_pagamento == FormaPagamento.PARCELADO.value:
+                parcelas_total = st.number_input(
+                    "Total de parcelas",
+                    min_value=2,
+                    step=1,
+                )
+                parcela_atual = st.number_input(
+                    "Parcela atual",
+                    min_value=1,
+                    step=1,
+                )
+
+        fatura_mes = st.text_input(
+            "Fatura (YYYY-MM)",
+            placeholder="Ex: 2026-01",
+        )
+
+
+    if tipo_origem == TipoOrigem.CONTA_CORRENTE.value:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.subheader("Pagamento (Conta corrente)")
+
+        meio_label = st.selectbox(
+            "Meio de pagamento",
+            options=[e.label for e in MeioPagamento],
+        )
+
+        meio_pagamento = MeioPagamento.from_label(meio_label).value
+        forma_pagamento = FormaPagamento.AVISTA.value
+
+    st.divider()
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    if st.button("💾 Salvar lançamento", use_container_width=True):
+        try:
+            lancamento_base = LancamentoFinanceiro(
+                projeto=projeto,
+                tipo_origem=tipo_origem,
+                origem=origem,
+                cartao_nome=cartao_nome,
+                data_competencia=data_competencia,
+                descricao=descricao,
+                valor=valor,
+                natureza=natureza,
+                tipo_de_custo=tipo_de_custo,
+                fixo_ate=fixo_ate,
+                forma_pagamento=forma_pagamento,
+                meio_pagamento=meio_pagamento,
+                parcelas_total=parcelas_total,
+                parcela_atual=parcela_atual,
+                fatura_mes=fatura_mes,
+                origem_input="manual",
+            )
+
+            validar_lancamento(lancamento_base)
+            lancamentos = expandir_lancamento_em_parcelas(lancamento_base)
+
+            inseridos = 0
+            duplicados = 0
+
+            for lancamento in lancamentos:
+                lancamento.hash_deduplicacao = gerar_hash_deduplicacao(lancamento)
+                if salvar_lancamento(lancamento):
+                    inseridos += 1
+                else:
+                    duplicados += 1
+
+            if inseridos:
+                st.success(f"✔ {inseridos} lançamentos salvos com sucesso")
+            if duplicados:
+                st.warning(f"⚠ {duplicados} lançamentos duplicados ignorados")
+
+        except Exception as e:
+            st.error(f"Erro: {e}")
+
+
+# =========================================================
+# ================= IMPORTAR ARQUIVO ======================
+# =========================================================
+st.markdown("<br>", unsafe_allow_html=True)
+
+if modo_input == "Importação via arquivo (XLSX)":
+    st.subheader("📂 Importação de arquivo (Cartão de Crédito)")
+
+    st.markdown(
+        """
+        Para realizar a importação, seu arquivo deve conter **exatamente**
+        as colunas abaixo. Cada linha representa **uma compra**. Baixe o **modelo Excel**,
+        preencha-o e importe-o para visualização dos dados consolidados.
+        """
+    )
+
+    df_modelo = pd.DataFrame(
+        [
+            {
+                "banco": "C6 Bank",
+                "nome_cartao": "Platinum",
+                "fatura_mes": "Janeiro/2026",
+                "data_compra": "23/09/2025",
+                "descricao": "VIDRACARIA AMADOS",
+                "valor": 500,
+                "natureza": "Despesa",
+                "parcelamento_compra": "sim",
+                "parcela_atual": 1,
+                "parcelas_totais": 4,
+                "tipo_de_custo": "variavel",
+            }
+        ]
+    )
+
+    # Preview do modelo
+    st.dataframe(df_modelo, use_container_width=True)
+
+    from io import BytesIO
+
+    buffer = BytesIO()
+
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        df_modelo.to_excel(
+            writer,
+            index=False,
+            sheet_name="modelo_importacao"
+        )
+
+    buffer.seek(0)
+
+    st.download_button(
+        label="⬇️ Baixar modelo Excel (.xlsx)",
+        data=buffer,
+        file_name="modelo_importacao_cartao.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    arquivo_excel = st.file_uploader(
+        "Selecione o arquivo Excel (.xlsx ou .xls)",
+        type=["xlsx", "xls"],
+    )
+
+    if arquivo_excel:
+        try:
+            resultado = importar_arquivo(
+                arquivo_excel=arquivo_excel,
+                projeto=projeto,
+            )
+
+            st.success(f"{resultado['inseridos']} lançamentos importados")
+            st.warning(f"{resultado['duplicados']} duplicados ignorados")
+            st.info(f"Total lidos: {resultado['total_lidos']}")
+
+        except Exception as e:
+            st.error(f"Erro na importação: {e}")

@@ -1,0 +1,25 @@
+{
+  "projects": [
+    {
+      "slug": "danilo-amado",
+      "label": "Danilo Amado",
+      "nome_completo": "Danilo Amado",
+      "folder": "danilo-amado",
+      "ativo": true
+    },
+    {
+      "slug": "jonathan-santos",
+      "label": "Jonathan Santos",
+      "nome_completo": "Jonathan Santos",
+      "folder": "jonathan-santos",
+      "ativo": true
+    },
+    {
+      "slug": "maite-amado",
+      "label": "Maitê Amado",
+      "nome_completo": "Maitê Amado",
+      "folder": "maite-amado",
+      "ativo": true
+    }
+  ]
+}
