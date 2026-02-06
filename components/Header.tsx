@@ -13,7 +13,7 @@ export function Header() {
 
         {/* LINK PARA O STREAMLIT */}
         <a
-          href="http://localhost:8501"
+          href="https://nucleobase.streamlit.app/"
           className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
         >
           Acessar
