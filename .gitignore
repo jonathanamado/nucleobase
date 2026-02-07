@@ -1,7 +1,9 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# =========================================================
+# CONTROLE FINANCEIRO - GITIGNORE COMPLETO
+# =========================================================
 
-# dependencies
-/node_modules
+# --- Dependências e Build (Next.js / Node) ---
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -9,33 +11,60 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-
-# testing
-/coverage
-
-# next.js
 /.next/
 /out/
-
-# production
 /build
+.vercel
 
-# misc
-.DS_Store
-*.pem
-
-# debug
+# --- Debug e Logs ---
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+/coverage
+.DS_Store
+*.pem
 
-# env files (can opt-in for committing if needed)
+# --- Ambiente e Typescript ---
 .env*
-
-# vercel
-.vercel
-
-# typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# =========================================================
+# CONFIGURAÇÕES STREAMLIT E SEGURANÇA (CRÍTICO)
+# =========================================================
+
+# 🔒 Ignora segredos locais (Senhas do Banco e Supabase)
+.streamlit/secrets.toml
+
+# Ignora configurações locais do Streamlit
+.streamlit/config.toml
+
+# =========================================================
+# PYTHON E ARQUIVOS TEMPORÁRIOS
+# =========================================================
+
+# Ignora arquivos compilados do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+
+# Ignora ambientes virtuais locais (caso existam)
+venv/
+.venv/
+env/
+
+# =========================================================
+# DADOS LOCAIS E BACKUPS (MANTÉM O REPOSITÓRIO LIMPO)
+# =========================================================
+
+# 📂 Ignora arquivos de dados locais (JSON e pastas de projetos)
+data/*.json
+data/*.csv
+projetos/
+
+# Ignora arquivos temporários do Excel/Word (os que começam com ~$)
+~$*.xlsx
+~$*.xls

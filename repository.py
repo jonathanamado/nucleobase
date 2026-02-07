@@ -1,3 +1,18 @@
+"""
+⚠️ REPOSITORY LEGADO ⚠️
+
+Este repositório persiste lançamentos em Excel local.
+NÃO deve ser usado pelo app principal nem por importações.
+
+Uso permitido apenas para:
+- exportações locais
+- backups manuais
+- ferramentas auxiliares
+
+Repositório oficial:
+👉 repository_db.py (Supabase)
+"""
+
 from excel_writer import salvar_lancamento_excel
 from path_resolver import obter_caminho_excel
 from deduplicator import gerar_hash_deduplicacao

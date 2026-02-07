@@ -27,7 +27,7 @@ def validar_lancamento(l: LancamentoFinanceiro) -> LancamentoFinanceiro:
     erros = []
 
     # =====================================================
-    # Campos obrigatórios gerais
+    # Campos obrigatórios gerais (COM LIMPEZA)
     # =====================================================
     if not l.projeto:
         erros.append("Campo 'projeto' é obrigatório.")
@@ -35,17 +35,21 @@ def validar_lancamento(l: LancamentoFinanceiro) -> LancamentoFinanceiro:
     if l.tipo_origem not in [e.value for e in TipoOrigem]:
         erros.append(f"tipo_origem inválido: {l.tipo_origem}")
 
-    if not l.origem:
+    # Garante que origem e descrição não sejam apenas espaços ou "nan"
+    l.origem = str(l.origem).strip() if l.origem else ""
+    if not l.origem or l.origem.lower() == "nan":
         erros.append("Campo 'origem' é obrigatório.")
 
     if not l.data_competencia:
         erros.append("Campo 'data_competencia' é obrigatório.")
 
-    if not l.descricao:
+    l.descricao = str(l.descricao).strip() if l.descricao else ""
+    if not l.descricao or l.descricao.lower() == "nan":
         erros.append("Campo 'descricao' é obrigatório.")
 
     if l.valor is None or not isinstance(l.valor, (int, float)) or l.valor <= 0:
         erros.append("Campo 'valor' deve ser numérico e maior que zero.")
+
 
     # =====================================================
     # Natureza (TEXTO LIVRE — canônica)

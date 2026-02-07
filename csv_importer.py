@@ -1,6 +1,6 @@
 from deduplicator import gerar_hash_deduplicacao
 from parsers.excel_manual import parse_excel_manual
-from repository import salvar_lancamento
+from repository_db import salvar_lancamento
 from validator import validar_lancamento, SchemaValidationError
 from services.parcelamento import expandir_lancamento_em_parcelas
 
@@ -69,12 +69,14 @@ def importar_arquivo(
                         gerar_hash_deduplicacao(lancamento)
                     )
 
-                    salvo = salvar_lancamento(lancamento)
+                    salvo, motivo = salvar_lancamento(lancamento)
 
                     if salvo:
                         inseridos += 1
-                    else:
+                    elif motivo == "duplicado":
                         duplicados += 1
+                    else:
+                        erros += 1
 
                 # 🔥 ERRO FATAL → SOBE
                 except PermissionError:

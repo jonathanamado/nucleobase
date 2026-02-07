@@ -1,60 +1,95 @@
-import json
 import os
 from typing import List, Dict
+import streamlit as st
+import psycopg2
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, "data")
-PROJECTS_FILE = os.path.join(DATA_DIR, "projects.json")
-
-
-def _garantir_estrutura():
-    os.makedirs(DATA_DIR, exist_ok=True)
-
-    if not os.path.exists(PROJECTS_FILE):
-        with open(PROJECTS_FILE, "w", encoding="utf-8") as f:
-            json.dump({"projects": []}, f, ensure_ascii=False, indent=2)
-
-
-def carregar_projetos() -> List[Dict]:
-    _garantir_estrutura()
-
-    with open(PROJECTS_FILE, "r", encoding="utf-8") as f:
-        data = json.load(f)
-
-    return data.get("projects", [])
-
-
-def salvar_projetos(projetos: List[Dict]) -> None:
-    _garantir_estrutura()
-
-    with open(PROJECTS_FILE, "w", encoding="utf-8") as f:
-        json.dump(
-            {"projects": projetos},
-            f,
-            ensure_ascii=False,
-            indent=2
-        )
-
+# Importamos a conexão centralizada para manter o padrão do projeto
+from repository_db import get_conn
 
 def obter_projeto_por_slug(slug: str) -> Dict | None:
-    projetos = carregar_projetos()
-    return next((p for p in projetos if p["slug"] == slug), None)
-
+    """Busca um projeto específico no Supabase pelo slug e pelo dono."""
+    user_id = st.session_state.user.id
+    conn = get_conn()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            "SELECT label, slug, ativo FROM projetos WHERE slug = %s AND user_id = %s", 
+            (slug, user_id)
+        )
+        row = cur.fetchone()
+        if row:
+            return {
+                "label": row[0],
+                "slug": row[1],
+                "ativo": row[2]
+            }
+        return None
+    finally:
+        cur.close()
+        conn.close()
 
 def slug_existe(slug: str) -> bool:
+    """Verifica se um slug já está cadastrado para o usuário logado."""
     return obter_projeto_por_slug(slug) is not None
 
-
 def listar_projetos_ativos() -> List[Dict]:
-    projetos = carregar_projetos()
-    return [p for p in projetos if p.get("ativo", True)]
-
+    """Lista apenas os projetos do usuário logado."""
+    user_id = st.session_state.user.id
+    conn = get_conn()
+    cur = conn.cursor()
+    try:
+        # 🔒 Filtro de user_id adicionado
+        cur.execute(
+            "SELECT label, slug FROM projetos WHERE ativo = TRUE AND user_id = %s ORDER BY label",
+            (user_id,)
+        )
+        rows = cur.fetchall()
+        return [{"label": r[0], "slug": r[1]} for r in rows]
+    finally:
+        cur.close()
+        conn.close()
 
 def adicionar_projeto(projeto: Dict) -> None:
-    projetos = carregar_projetos()
+    """Insere um novo projeto vinculado ao usuário logado."""
+    user_id = st.session_state.user.id
+    conn = get_conn()
+    cur = conn.cursor()
+    
+    try:
+        cur.execute(
+            """
+            INSERT INTO projetos (label, slug, ativo, user_id)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (
+                projeto["label"],
+                projeto["slug"],
+                projeto.get("ativo", True),
+                user_id # 🔒 Registro vinculado ao dono
+            )
+        )
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        cur.close()
+        conn.close()
 
-    if slug_existe(projeto["slug"]):
-        raise ValueError(f"Projeto já existe: {projeto['slug']}")
-
-    projetos.append(projeto)
-    salvar_projetos(projetos)
+def desativar_projeto(slug: str) -> None:
+    """Muda o status do projeto para inativo (apenas se pertencer ao usuário)."""
+    user_id = st.session_state.user.id
+    conn = get_conn()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            "UPDATE projetos SET ativo = FALSE WHERE slug = %s AND user_id = %s",
+            (slug, user_id)
+        )
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        cur.close()
+        conn.close()

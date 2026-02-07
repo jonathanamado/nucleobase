@@ -5,7 +5,7 @@ from io import BytesIO
 
 from schema import LancamentoFinanceiro
 from validator import validar_lancamento, SchemaValidationError
-from repository import salvar_lancamento
+from repository_db import salvar_lancamento
 from deduplicator import gerar_hash_deduplicacao
 
 from project_repository import listar_projetos_ativos
@@ -54,9 +54,61 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# ... (mantenha os imports e a config da página)
+
+st.set_page_config(
+    page_title="Projeto Financeiro",
+    page_icon="💰",
+    layout="centered",
+)
+
+# --- INSERIR O CONTROLE DE ESTADO E LOGIN AQUI ---
+
+if "user" not in st.session_state:
+    st.subheader("Acesso ao Sistema")
+    with st.form("login_form"):
+        email = st.text_input("Email", placeholder="seu@email.com")
+        senha = st.text_input("Senha", type="password")
+        entrar = st.form_submit_button("Entrar", use_container_width=True)
+
+        if entrar:
+            # Aqui chamaremos a função de login que criaremos no auth_service.py
+            from auth_service import fazer_login
+            res = fazer_login(email, senha)
+            if res:
+                st.session_state.user = res.user
+                st.success("Login realizado com sucesso!")
+                st.rerun()
+            else:
+                st.error("Usuário ou senha incorretos.")
+    
+    st.stop() # 🔒 TRAVA CRÍTICA: Nada abaixo disso executa se não logar
+
+# --- INSERIR O LOGOUT NA SIDEBAR AQUI ---
+with st.sidebar:
+    st.markdown(f"### 👤 Usuário")
+    st.caption(f"Logado como: \n**{st.session_state.user.email}**")
+    
+    if st.button("🚪 Sair do Sistema", use_container_width=True):
+        from auth_service import fazer_logout
+        fazer_logout()
+    
+    st.divider()
+# ----------------------------------------
+
+# Exemplo de busca de nome no app.py
+def obter_nome_usuario(user_id):
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT nome_completo FROM usuarios WHERE id = %s", (user_id,))
+    res = cur.fetchone()
+    cur.close()
+    conn.close()
+    return res[0] if res and res[0] else "Usuário"
+
+
 st.title("💰 Projeto Financeiro | Pessoal")
 st.caption("Input rápido de despesas / receitas")
-
 
 # =========================================================
 # Projeto
@@ -89,6 +141,9 @@ if not projetos:
 
 mapa_label_para_slug = {p["label"]: p["slug"] for p in projetos}
 
+# --- AJUSTE AQUI: Inicialização preventiva ---
+projeto = None  
+
 st.markdown("<br>", unsafe_allow_html=True)
 
 projeto_label = st.selectbox(
@@ -99,11 +154,27 @@ projeto_label = st.selectbox(
 )
 
 st.markdown("<br>", unsafe_allow_html=True)
-if projeto_label is None:
-    st.info("ℹ️ Selecione um projeto para continuar")
-else:
-    projeto = mapa_label_para_slug[projeto_label]
 
+# --- AJUSTE AQUI: Atribuição segura + Gestão de Projeto ---
+if projeto_label is not None:
+    projeto = mapa_label_para_slug[projeto_label]
+    
+    # Adicionamos um expansor logo abaixo da seleção para gerenciar o projeto
+    with st.expander(f"⚙️ Gerenciar Projeto: {projeto_label}"):
+        st.warning("Arquivar um projeto o removerá desta lista, mas manterá os dados no banco.")
+        
+        # Botão de arquivamento
+        if st.button(f"🚫 Arquivar '{projeto_label}'", use_container_width=True):
+            from project_service import arquivar_projeto # Import local para evitar conflito
+            try:
+                arquivar_projeto(projeto)
+                st.success("Projeto arquivado! Recarregando lista...")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Erro ao arquivar: {e}")
+else:
+    st.info("ℹ️ Selecione um projeto para continuar")
+# ---------------------------------------------------------
 
 # =========================================================
 # Modo de entrada
@@ -139,7 +210,6 @@ if modo_input == "Integração por API (Em construção)":
     )
 
     st.markdown("<br><br>", unsafe_allow_html=True)
-    st.divider()
 
 
 # =========================================================
@@ -281,15 +351,26 @@ if modo_input == "Lançamento manual (Em tela)":
     st.divider()
     st.markdown("<br>", unsafe_allow_html=True)
 
+    # --- INÍCIO DO BLOCO SUBSTITUÍDO ---
     if st.button("💾 Salvar lançamento", use_container_width=True):
+        # 1. Validação Visual Preventiva (Evita erros de 'nan' ou vazio no schema)
+        if not descricao or descricao.strip() == "":
+            st.error("❌ O campo 'Descrição' é obrigatório.")
+            st.stop()
+        
+        if projeto is None:
+            st.error("❌ Selecione um projeto antes de salvar.")
+            st.stop()
+
         try:
+            # 2. Montagem do objeto com limpeza de strings (.strip())
             lancamento_base = LancamentoFinanceiro(
                 projeto=projeto,
                 tipo_origem=tipo_origem,
-                origem=origem,
-                cartao_nome=cartao_nome,
+                origem=origem.strip() if origem else "Não informado",
+                cartao_nome=cartao_nome.strip() if cartao_nome else None,
                 data_competencia=data_competencia,
-                descricao=descricao,
+                descricao=descricao.strip(),  # <--- CRÍTICO: Garante que não vá vazio
                 valor=valor,
                 natureza=natureza,
                 tipo_de_custo=tipo_de_custo,
@@ -302,26 +383,47 @@ if modo_input == "Lançamento manual (Em tela)":
                 origem_input="manual",
             )
 
+            # 3. Validação lógica via schema/validator
             validar_lancamento(lancamento_base)
+            
+            # 4. Processamento de parcelas
             lancamentos = expandir_lancamento_em_parcelas(lancamento_base)
 
             inseridos = 0
             duplicados = 0
+            erros = 0
 
             for lancamento in lancamentos:
-                lancamento.hash_deduplicacao = gerar_hash_deduplicacao(lancamento)
-                if salvar_lancamento(lancamento):
-                    inseridos += 1
-                else:
-                    duplicados += 1
+                try:
+                    # Tenta salvar no banco (repository_db.py)
+                    salvo = salvar_lancamento(lancamento)
 
+                    if salvo:
+                        inseridos += 1
+                    else:
+                        duplicados += 1
+
+                except Exception as e:
+                    erros += 1
+                    st.error(f"Erro ao salvar parcela individual: {e}")
+
+            # 5. Feedback para o usuário
             if inseridos:
-                st.success(f"✔ {inseridos} lançamentos salvos com sucesso")
+                st.success(f"✔ {inseridos} lançamentos inseridos com sucesso")
+
             if duplicados:
-                st.warning(f"⚠ {duplicados} lançamentos duplicados ignorados")
+                st.warning(f"⚠ {duplicados} lançamentos ignorados (já existem no banco)")
+
+            if erros:
+                st.error(f"❌ {erros} lançamentos apresentaram erro técnico")
+
+        except SchemaValidationError as e:
+            # Captura o erro que você estava recebendo anteriormente
+            st.error(f"❌ Dados inválidos detectados pelo validador: {e}")
 
         except Exception as e:
-            st.error(f"Erro: {e}")
+            st.error(f"Erro inesperado no processamento: {e}")
+    # --- FIM DO BLOCO SUBSTITUÍDO ---
 
 
 # =========================================================
