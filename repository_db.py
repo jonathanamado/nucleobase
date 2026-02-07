@@ -8,35 +8,27 @@ from deduplicator import gerar_hash_deduplicacao
 # =========================
 def get_conn():
     """
-    Estabelece conexão com o Supabase utilizando Secrets do Streamlit.
-    Compatível com Streamlit Cloud e com SSL obrigatório.
+    Estabelece conexão com o Supabase via Pooler (IPv4),
+    compatível com Streamlit Cloud e SSL obrigatório.
     """
 
     try:
         db = st.secrets["database"]
 
-        user = db["user"]
-        password = db["password"]
-        host = db["host"]
-        port = db["port"]
-        dbname = db["dbname"]
+        return psycopg2.connect(
+            host=db["host"],
+            port=db["port"],
+            dbname=db["dbname"],
+            user=db["user"],
+            password=db["password"],
+            sslmode="require",
+            connect_timeout=10,
+        )
 
-    except KeyError:
-        st.error("❌ Configuração de banco não encontrada em st.secrets['database']")
+    except KeyError as e:
+        st.error(f"❌ Chave ausente em st.secrets['database']: {e}")
         st.stop()
 
-    # Montagem da Connection String (URI)
-    conn_uri = (
-        f"postgresql://{user}:{password}@{host}:{port}/{dbname}"
-        "?sslmode=require"
-    )
-
-    try:
-        return psycopg2.connect(
-            conn_uri,
-            connect_timeout=30,
-            sslmode="require"
-        )
     except Exception as e:
         st.error("❌ Falha ao conectar ao banco de dados")
         st.exception(e)
@@ -52,7 +44,6 @@ def salvar_lancamento(lancamento):
         raise PermissionError("Usuário não autenticado para realizar lançamentos.")
 
     user_id = st.session_state.user.id
-
     hash_deduplicacao = gerar_hash_deduplicacao(lancamento)
 
     # Tratamento de data: YYYY-MM → YYYY-MM-01
