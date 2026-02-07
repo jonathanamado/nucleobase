@@ -13,7 +13,7 @@ def get_conn():
         user=st.secrets["database"]["user"],
         password=st.secrets["database"]["password"],
         port=st.secrets["database"]["port"],
-        connect_timeout=10,
+        connect_timeout=20,
         sslmode="require"
     )
 
