@@ -7,15 +7,21 @@ from deduplicator import gerar_hash_deduplicacao
 # Conexão com o banco
 # =========================
 def get_conn():
-    return psycopg2.connect(
-        host=st.secrets["database"]["host"],
-        database=st.secrets["database"]["dbname"],
-        user=st.secrets["database"]["user"],
-        password=st.secrets["database"]["password"],
-        port=st.secrets["database"]["port"],
-        connect_timeout=30,
-        sslmode="require"
-    )
+    """
+    Estabelece conexão com o Supabase utilizando URI de conexão.
+    Este formato é recomendado para evitar erros de OperationalError no Streamlit Cloud.
+    """
+    user = st.secrets["database"]["user"]
+    password = st.secrets["database"]["password"]
+    host = st.secrets["database"]["host"]
+    port = st.secrets["database"]["port"]
+    dbname = st.secrets["database"]["dbname"]
+    
+    # Montagem da Connection String (URI)
+    # Formato: postgresql://usuario:senha@host:port/dbname?sslmode=require
+    conn_uri = f"postgresql://{user}:{password}@{host}:{port}/{dbname}?sslmode=require"
+    
+    return psycopg2.connect(conn_uri, connect_timeout=30)
 
 # =========================
 # Persistência
