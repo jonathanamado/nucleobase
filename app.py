@@ -84,9 +84,38 @@ if "user" not in st.session_state:
     
     st.stop() # 🔒 TRAVA CRÍTICA: Nada abaixo disso executa se não logar
 
+
+col1, col2, col3 = st.columns([6, 3, 1])
+
+with col2:
+    st.markdown(
+        f"""
+        <div style="
+            text-align: right;
+            font-size: 0.85rem;
+        ">
+            🔐 <b>{st.session_state.user.email}</b>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+with col3:
+    if st.button("🚪 Sair"):
+        from auth_service import fazer_logout
+        fazer_logout()
+
+
+st.set_page_config(
+    page_title="Nucleobase",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+
 # --- INSERIR O LOGOUT NA SIDEBAR AQUI ---
 with st.sidebar:
-    st.markdown(f"### 👤 Usuário")
+    st.markdown(f"### 🔐 Usuário")
     st.caption(f"Logado como: \n**{st.session_state.user.email}**")
     
     if st.button("🚪 Sair do Sistema", use_container_width=True):
@@ -99,12 +128,16 @@ with st.sidebar:
 # Exemplo de busca de nome no app.py
 def obter_nome_usuario(user_id):
     conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("SELECT nome_completo FROM usuarios WHERE id = %s", (user_id,))
-    res = cur.fetchone()
-    cur.close()
-    conn.close()
-    return res[0] if res and res[0] else "Usuário"
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT nome_completo FROM usuarios WHERE id = %s",
+                (user_id,)
+            )
+            res = cur.fetchone()
+            return res[0] if res and res[0] else "Usuário"
+    finally:
+        conn.close()
 
 
 st.title("💰 Projeto Financeiro | Pessoal")
