@@ -8,87 +8,107 @@ from deduplicator import gerar_hash_deduplicacao
 # =========================
 def get_conn():
     """
-    Estabelece conexão com o Supabase utilizando URI de conexão.
-    Este formato é recomendado para evitar erros de OperationalError no Streamlit Cloud.
+    Estabelece conexão com o Supabase utilizando Secrets do Streamlit.
+    Compatível com Streamlit Cloud e com SSL obrigatório.
     """
-    user = st.secrets["database"]["user"]
-    password = st.secrets["database"]["password"]
-    host = st.secrets["database"]["host"]
-    port = st.secrets["database"]["port"]
-    dbname = st.secrets["database"]["dbname"]
-    
+
+    try:
+        db = st.secrets["database"]
+
+        user = db["user"]
+        password = db["password"]
+        host = db["host"]
+        port = db["port"]
+        dbname = db["dbname"]
+
+    except KeyError:
+        st.error("❌ Configuração de banco não encontrada em st.secrets['database']")
+        st.stop()
+
     # Montagem da Connection String (URI)
-    # Formato: postgresql://usuario:senha@host:port/dbname?sslmode=require
-    conn_uri = f"postgresql://{user}:{password}@{host}:{port}/{dbname}?sslmode=require"
-    
-    return psycopg2.connect(conn_uri, connect_timeout=30)
+    conn_uri = (
+        f"postgresql://{user}:{password}@{host}:{port}/{dbname}"
+        "?sslmode=require"
+    )
+
+    try:
+        return psycopg2.connect(
+            conn_uri,
+            connect_timeout=30,
+            sslmode="require"
+        )
+    except Exception as e:
+        st.error("❌ Falha ao conectar ao banco de dados")
+        st.exception(e)
+        st.stop()
+
 
 # =========================
 # Persistência
 # =========================
 def salvar_lancamento(lancamento):
-    # 🔒 SEGURANÇA: Obtém o ID do usuário logado na sessão
-    if "user" not in st.session_state:
+    # 🔒 Segurança: exige usuário autenticado
+    if "user" not in st.session_state or not st.session_state.user:
         raise PermissionError("Usuário não autenticado para realizar lançamentos.")
-    
+
     user_id = st.session_state.user.id
-    
-    conn = get_conn()
-    cur = conn.cursor()
 
     hash_deduplicacao = gerar_hash_deduplicacao(lancamento)
-    
-    # TRATAMENTO DE DATA: Transforma "YYYY-MM" em "YYYY-MM-01" para o Postgres DATE
+
+    # Tratamento de data: YYYY-MM → YYYY-MM-01
     fixo_ate_valido = lancamento.fixo_ate
     if fixo_ate_valido and len(str(fixo_ate_valido)) == 7:
         fixo_ate_valido = f"{fixo_ate_valido}-01"
 
+    conn = get_conn()
+
     try:
-        cur.execute(
-            """
-            INSERT INTO lancamentos (
-                projeto,
-                tipo_origem,
-                origem,
-                cartao_nome,
-                data_competencia,
-                descricao,
-                valor,
-                natureza,
-                tipo_de_custo,
-                fixo_ate,
-                forma_pagamento,
-                meio_pagamento,
-                parcelas_total,
-                parcela_atual,
-                fatura_mes,
-                origem_input,
-                hash_deduplicacao,
-                user_id  -- 🔒 Nova coluna de segurança
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO lancamentos (
+                    projeto,
+                    tipo_origem,
+                    origem,
+                    cartao_nome,
+                    data_competencia,
+                    descricao,
+                    valor,
+                    natureza,
+                    tipo_de_custo,
+                    fixo_ate,
+                    forma_pagamento,
+                    meio_pagamento,
+                    parcelas_total,
+                    parcela_atual,
+                    fatura_mes,
+                    origem_input,
+                    hash_deduplicacao,
+                    user_id
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    lancamento.projeto,
+                    lancamento.tipo_origem,
+                    lancamento.origem,
+                    lancamento.cartao_nome,
+                    lancamento.data_competencia,
+                    lancamento.descricao,
+                    lancamento.valor,
+                    lancamento.natureza,
+                    lancamento.tipo_de_custo,
+                    fixo_ate_valido,
+                    lancamento.forma_pagamento,
+                    lancamento.meio_pagamento,
+                    lancamento.parcelas_total,
+                    lancamento.parcela_atual,
+                    lancamento.fatura_mes,
+                    lancamento.origem_input,
+                    hash_deduplicacao,
+                    user_id,
+                ),
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """,
-            (
-                lancamento.projeto,
-                lancamento.tipo_origem,
-                lancamento.origem,
-                lancamento.cartao_nome,
-                lancamento.data_competencia,
-                lancamento.descricao,
-                lancamento.valor,
-                lancamento.natureza,
-                lancamento.tipo_de_custo,
-                fixo_ate_valido,
-                lancamento.forma_pagamento,
-                lancamento.meio_pagamento,
-                lancamento.parcelas_total,
-                lancamento.parcela_atual,
-                lancamento.fatura_mes,
-                lancamento.origem_input,
-                hash_deduplicacao,
-                user_id, # 🔒 Vincula o dado ao usuário
-            ),
-        )
 
         conn.commit()
         return True, None
@@ -97,10 +117,9 @@ def salvar_lancamento(lancamento):
         conn.rollback()
         return False, "duplicado"
 
-    except Exception as e:
+    except Exception:
         conn.rollback()
-        raise e
+        raise
 
     finally:
-        cur.close()
         conn.close()
