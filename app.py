@@ -54,14 +54,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ... (mantenha os imports e a config da página)
-
-st.set_page_config(
-    page_title="Projeto Financeiro",
-    page_icon="💰",
-    layout="centered",
-)
-
 # --- INSERIR O CONTROLE DE ESTADO E LOGIN AQUI ---
 
 if "user" not in st.session_state:
@@ -105,24 +97,6 @@ with col3:
         from auth_service import fazer_logout
         fazer_logout()
 
-
-st.set_page_config(
-    page_title="Nucleobase",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
-
-
-# --- INSERIR O LOGOUT NA SIDEBAR AQUI ---
-with st.sidebar:
-    st.markdown(f"### 🔐 Usuário")
-    st.caption(f"Logado como: \n**{st.session_state.user.email}**")
-    
-    if st.button("🚪 Sair do Sistema", use_container_width=True):
-        from auth_service import fazer_logout
-        fazer_logout()
-    
-    st.divider()
 # ----------------------------------------
 
 # Exemplo de busca de nome no app.py
