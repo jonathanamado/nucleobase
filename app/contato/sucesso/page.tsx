@@ -1,0 +1,1 @@
+"Obrigado! Recebemos sua mensagem e retornaremos em breve!".
