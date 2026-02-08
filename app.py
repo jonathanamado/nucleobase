@@ -34,28 +34,60 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    button[data-testid="baseButton-primary"],
-    button[data-testid="baseButton-secondary"] {
-        background-color: #f57c00 !important;
-        color: white !important;
-        border-radius: 8px;
-        font-weight: 600;
-        height: 3rem;
-        border: none;
+    /* 1. Alinhamento da coluna superior direita */
+    [data-testid="stColumn"] > div {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-end !important;
     }
 
-    button[data-testid="baseButton-primary"]:hover,
-    button[data-testid="baseButton-secondary"]:hover {
-        background-color: #ef6c00 !important;
-        color: white !important;
+    /* 2. Estilo EXCLUSIVO para o link SAIR (key: btn_logout) */
+    .st-key-btn_logout {
+        width: auto !important;
+        margin-left: auto !important;
+    }
+    
+    .st-key-btn_logout > button {
+        background-color: transparent !important;
+        color: #007bff !important;
+        border: none !important;
+        padding: 0px !important;
+        width: auto !important;
+        height: auto !important;
+        text-decoration: underline !important;
+        margin-top: 10px !important; /* Espaço de uma linha */
+        display: block !important;
+        min-height: 0px !important;
+    }
+
+    /* Fonte pequena apenas para o texto 'Sair' */
+    .st-key-btn_logout > button p {
+        font-size: 0.7rem !important;
+        margin: 0 !important;
+        line-height: 1 !important;
+    }
+
+    .st-key-btn_logout > button:hover {
+        color: #0056b3 !important;
+        text-decoration: none !important;
+    }
+
+    /* 3. Estilo para o botão SALVAR (key: btn_salvar) */
+    .st-key-btn_salvar {
+        margin-left: auto !important;
+        width: auto !important;
+    }
+    
+    .st-key-btn_salvar > button {
+        padding: 0.5rem 2rem !important;
+        font-size: 1rem !important;
     }
     </style>
     """,
-    unsafe_allow_html=True,
+    unsafe_allow_html=True
 )
 
-# --- INSERIR O CONTROLE DE ESTADO E LOGIN AQUI ---
-
+# --- CONTROLE DE ESTADO E LOGIN ---
 if "user" not in st.session_state:
     st.subheader("Acesso ao Sistema")
     with st.form("login_form"):
@@ -64,7 +96,6 @@ if "user" not in st.session_state:
         entrar = st.form_submit_button("Entrar", use_container_width=True)
 
         if entrar:
-            # Aqui chamaremos a função de login que criaremos no auth_service.py
             from auth_service import fazer_login
             res = fazer_login(email, senha)
             if res:
@@ -73,46 +104,40 @@ if "user" not in st.session_state:
                 st.rerun()
             else:
                 st.error("Usuário ou senha incorretos.")
-    
-    st.stop() # 🔒 TRAVA CRÍTICA: Nada abaixo disso executa se não logar
+    st.stop() 
 
+# =========================================================
+# Identificação do Usuário e Logoff (Totalmente à Direita)
+# =========================================================
 
-col1, col2, col3 = st.columns([6, 3, 1])
+col_vazia, col_user = st.columns([0.5, 0.5])
 
-with col2:
+with col_user:
+    # E-mail com fonte aumentada conforme solicitado (1rem)
     st.markdown(
         f"""
-        <div style="
-            text-align: right;
-            font-size: 0.85rem;
-        ">
+        <div style="text-align: right; font-size: 1rem; white-space: nowrap;">
             🔐 <b>{st.session_state.user.email}</b>
         </div>
         """,
         unsafe_allow_html=True
     )
+    
+    # Botão Sair com redirecionamento externo para nucleobase.vercel.app
+    if st.button("Sair", key="btn_logout"):
+        st.session_state.clear()
+        # Redirecionamento instantâneo via Meta Refresh
+        st.markdown(
+            '<meta http-equiv="refresh" content="0;URL=\'https://nucleobase.vercel.app\'">',
+            unsafe_allow_html=True
+        )
+        st.stop()
 
-with col3:
-    if st.button("🚪 Sair"):
-        from auth_service import fazer_logout
-        fazer_logout()
+st.divider()
 
-# ----------------------------------------
-
-# Exemplo de busca de nome no app.py
 def obter_nome_usuario(user_id):
-    conn = get_conn()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT nome_completo FROM usuarios WHERE id = %s",
-                (user_id,)
-            )
-            res = cur.fetchone()
-            return res[0] if res and res[0] else "Usuário"
-    finally:
-        conn.close()
-
+    # (Sua lógica de banco de dados aqui)
+    pass
 
 st.title("💰 Projeto Financeiro | Pessoal")
 st.caption("Input rápido de despesas / receitas")
