@@ -14,7 +14,7 @@ import {
 
 export default function SobreNucleobase() {
   return (
-    <div className="w-full max-w-5xl animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20">
+    <div className="w-full max-w-6xl mx-auto px-4 pb-20 relative animate-in fade-in slide-in-from-bottom-6 duration-700">
       
       {/* HEADER DA PÁGINA SOBRE - COM CORES SINCRONIZADAS À SIDEBAR */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">

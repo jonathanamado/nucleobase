@@ -139,12 +139,12 @@ export default function IndiquePage() {
   return (
     <div className="w-full max-w-5xl animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 px-6">
       {/* HEADER */}
-      <div className="mb-10 mt-2">
+      <div className="mb-4 mt-0">
         <div className="flex items-center gap-2 text-blue-600 mb-2">
           <Megaphone size={18} className="-rotate-12" />
           <span className="text-[9px] font-black uppercase tracking-[0.3em]">Indique e Ganhe</span>
         </div>
-        <h1 className="text-4xl font-bold text-gray-900 mb-3 tracking-tight">
+        <h1 className="text-4xl font-bold text-gray-900 mb-1 tracking-tight">
           Sua gestão vale ouro<span className="text-blue-600">.</span> ✨
         </h1>
         <p className="text-gray-500 text-base max-w-xl leading-relaxed">
@@ -154,30 +154,40 @@ export default function IndiquePage() {
 
       {userId ? (
         <div className="space-y-6 mb-12">
-          {/* LINK E CARD DE CONTAGEM */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-white rounded-[2.5rem] border border-gray-100 p-8 shadow-sm flex flex-col justify-between relative overflow-hidden">
+          {/* LINK E CARD DE CONTAGEM - VERSÃO COMPACTA */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+            <div className="lg:col-span-2 bg-white rounded-[2rem] border border-gray-100 px-5 pt-3 pb-5 shadow-sm flex flex-col justify-start relative overflow-hidden">
               <div className="relative z-10">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Share2 className="text-blue-600" size={20} /> Indique através do seu link exclusivo
+                <h3 className="text-base font-bold text-gray-900 mb-2 flex items-center gap-4">
+                  <Share2 className="text-blue-600" size={18} /> Link exclusivo
                 </h3>
-                <div className="flex flex-col sm:flex-row gap-2 items-center bg-gray-50 p-2 rounded-2xl border border-gray-100">
-                  <code className="flex-1 text-xs font-mono text-gray-500 px-3 py-2 break-all">
+                <div className="flex flex-col sm:flex-row gap-2 items-center bg-gray-50 p-1.5 rounded-xl border border-gray-100">
+                  <code className="flex-1 text-[10px] font-mono text-gray-400 px-2 py-1 break-all truncate">
                     {linkIndicacao}
                   </code>
-                  <button onClick={handleCopy} className={`w-full sm:w-auto px-6 py-3 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${copiado ? "bg-emerald-500 text-white" : "bg-gray-900 text-white hover:bg-black"}`}>
-                    {copiado ? <Check size={14} /> : <Copy size={14} />}
-                    {copiado ? "Copiado" : "Copiar Link"}
+                  <button onClick={handleCopy} className={`w-full sm:w-auto px-4 py-2.5 rounded-lg font-bold text-[9px] uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${copiado ? "bg-emerald-500 text-white" : "bg-gray-900 text-white hover:bg-black"}`}>
+                    {copiado ? <Check size={12} /> : <Copy size={12} />}
+                    {copiado ? "Copiado" : "Copiar"}
                   </button>
                 </div>
-                <p className="mt-6 text-[11px] text-gray-400">* Benefícios contabilizados no ato do cadastro do indicado.</p>
+                <p className="mt-1 text-[11px] text-gray-600 font-medium italic">* Ativação imediata pós-cadastro.</p>
               </div>
             </div>
-            <div className="bg-blue-600 rounded-[2.5rem] p-8 text-white flex flex-col justify-center items-center text-center shadow-lg">
-              <Users size={32} className="mb-3 opacity-40" />
-              <h4 className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-70">Cadastros</h4>
-              <span className="text-5xl font-black mb-1 tracking-tighter">{contagem.toString().padStart(2, '0')}</span>
-              <p className="text-[10px] font-medium text-blue-100 opacity-80">{contagem < 5 ? `Faltam ${5 - contagem} para o próximo nível` : "Nível Embaixador!"}</p>
+
+            <div className="bg-blue-600 rounded-[2rem] p-5 text-white flex flex-row lg:flex-col justify-around lg:justify-center items-center text-center shadow-lg relative overflow-hidden">
+              {/* Ícone de fundo sutil para preencher espaço no mobile */}
+              <Users size={60} className="absolute -left-4 -bottom-4 opacity-10 lg:hidden" />
+              
+              <div className="flex flex-col items-center">
+                <h4 className="text-[8px] font-black uppercase tracking-widest mb-0.5 opacity-70">Cadastros</h4>
+                <span className="text-4xl font-black leading-none tracking-tighter">{contagem.toString().padStart(2, '0')}</span>
+              </div>
+              
+              <div className="h-8 w-px bg-white/20 lg:h-px lg:w-12 lg:my-3"></div>
+              
+              <p className="text-[9px] font-bold text-blue-100 uppercase tracking-tighter max-w-[80px] lg:max-w-none">
+                {contagem < 5 ? `Faltam ${5 - contagem} p/ nível 2` : "Embaixador!"}
+              </p>
             </div>
           </div>
 
@@ -213,22 +223,54 @@ export default function IndiquePage() {
               </div>
             </div>
 
-            {/* WHATSAPP */}
-            <div className="bg-emerald-50/30 rounded-[2.5rem] border border-emerald-100 p-8 relative overflow-hidden group flex flex-col justify-center">
-              <div className="absolute -top-10 -right-10 text-emerald-100/50 group-hover:text-emerald-100 transition-colors">
-                <MessageCircle size={150} />
+            {/* WHATSAPP - INOVAÇÃO VISUAL */}
+            <div className="relative rounded-[2.5rem] p-8 overflow-hidden group transition-all duration-500 hover:shadow-[0_20px_50px_rgba(16,185,129,0.15)] bg-white border border-emerald-300 flex flex-col justify-center min-h-[220px]">
+              
+              {/* Círculo de Luz de Fundo (Aura) */}
+              <div className="absolute -right-4 -bottom-4 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all duration-500" />
+              
+              {/* Ícone Flutuante em Perspectiva */}
+              <div className="absolute -top-6 -right-6 text-emerald-500/5 opacity-[0.08] group-hover:opacity-20 group-hover:-rotate-12 group-hover:scale-110 transition-all duration-700">
+                <MessageCircle size={180} strokeWidth={1} />
               </div>
+
               <div className="relative z-10">
-                <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
-                  <MessageCircle className="text-emerald-600" size={18} /> Indique via WhatsApp
-                </h3>
-                <p className="text-xs text-gray-500 mb-6 font-medium">Envie rapidamente para seus contatos ou grupos.</p>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 bg-emerald-500 rounded-xl text-white shadow-lg shadow-emerald-700 group-hover:rotate-12 transition-transform duration-300">
+                    <MessageCircle size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-gray-900 leading-none">
+                      Invite via <span className="text-emerald-600">Zap</span>
+                    </h3>
+                    <span className="text-[10px] text-emerald-500/70 font-bold uppercase tracking-widest">Efeito Viral</span>
+                  </div>
+                </div>
+
+                <p className="text-xs text-gray-500 mb-6 leading-relaxed max-w-[200px]">
+                  Compartilhe sua experiência e ajude sua rede a <strong className="text-gray-700">evoluir</strong>.
+                </p>
+
                 <button 
                   onClick={handleWhatsAppInvite}
-                  className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest hover:bg-emerald-700 transition-all flex items-center justify-center gap-2 shadow-md"
+                  className="relative w-full overflow-hidden py-4 bg-gray-900 text-white rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] transition-all duration-300 hover:bg-emerald-600 hover:shadow-[0_10px_25px_rgba(16,185,129,0.3)] active:scale-95 group/btn"
                 >
-                  <MessageCircle size={18} /> Compartilhar no Zap
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    Enviar Convite 
+                    <ArrowUpRight size={14} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
+                  </span>
+                  
+                  {/* Brilho interno do botão no hover */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </button>
+              </div>
+
+              {/* Tag de Destaque */}
+              <div className="absolute top-6 right-8">
+                <div className="flex items-center gap-1 bg-emerald-100/50 px-2 py-1 rounded-full border border-emerald-200/50">
+                  <div className="w-1 h-1 bg-emerald-600 rounded-full animate-ping" />
+                  <span className="text-[12px] font-black text-emerald-700 uppercase">Instantâneo</span>
+                </div>
               </div>
             </div>
           </div>
