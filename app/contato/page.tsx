@@ -22,7 +22,7 @@ export default function ContatoPage() {
         <div className="flex flex-col gap-4">
           {/* INSTAGRAM - Ajustado com barra final, z-index e pointer-events p/ Mobile */}
           <a 
-            href="https://www.instagram.com/nucleobase.app/" 
+            href="https://www.instagram.com/_u/nucleobase.app/" 
             target="_blank" 
             rel="noopener noreferrer"
             className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4 hover:shadow-md transition group cursor-pointer relative z-20 active:bg-gray-50"
