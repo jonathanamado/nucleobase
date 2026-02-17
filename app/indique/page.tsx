@@ -1,15 +1,23 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Share2, Gift, Users, Trophy, Copy, Check, Megaphone, Stars, Rocket, ShieldCheck, Heart, ArrowUpRight } from "lucide-react";
+import { 
+  Share2, Gift, Users, Trophy, Copy, Check, Megaphone, 
+  Stars, Rocket, ShieldCheck, Heart, ArrowUpRight, 
+  Mail, Send, Loader2, MessageCircle
+} from "lucide-react";
 import { supabase } from "@/lib/supabase"; 
 import AuthModal from "@/components/AuthModal"; 
 
 export default function IndiquePage() {
   const [copiado, setCopiado] = useState(false);
   const [userId, setUserId] = useState<string>("");
+  const [userName, setUserName] = useState<string>("Um amigo");
   const [contagem, setContagem] = useState(0); 
   const [baseUrl, setBaseUrl] = useState("");
   const [loading, setLoading] = useState(true);
+  
+  const [emailInvite, setEmailInvite] = useState("");
+  const [inviteEnviado, setInviteEnviado] = useState(false);
 
   const getDadosIndicacao = async () => {
     setLoading(true);
@@ -17,6 +25,7 @@ export default function IndiquePage() {
     
     if (user) {
       setUserId(user.id);
+      setUserName(user.user_metadata?.full_name || user.email?.split('@')[0] || "Um amigo");
       const { count } = await supabase
         .from("indicacoes")
         .select('*', { count: 'exact', head: true })
@@ -34,7 +43,6 @@ export default function IndiquePage() {
     getDadosIndicacao();
   }, []);
 
-  // Melhoria 1: Scroll para o topo quando o userId é definido (pós-login)
   useEffect(() => {
     if (userId) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -48,6 +56,55 @@ export default function IndiquePage() {
     navigator.clipboard.writeText(linkIndicacao);
     setCopiado(true);
     setTimeout(() => setCopiado(false), 2000);
+  };
+
+  // LÓGICA DE E-MAIL (mailto)
+  const handleSendInvite = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailInvite) return;
+
+    // Extrai o nome antes do @ para a saudação (ex: "fulano@email.com" vira "fulano")
+    const saudacao = emailInvite.split('@')[0];
+    
+    // Define a URL base (Mantive dinâmico, mas em produção será nucleobase.vercel.app)
+    const linkFinal = linkIndicacao;
+
+    const subject = encodeURIComponent(`${userName} convidou você para a Nucleobase`);
+    
+    // TEXTO AJUSTADO CONFORME SOLICITADO
+    const body = encodeURIComponent(
+      `Olá ${saudacao},\n\n` +
+      `Seu contato ${userName} está utilizando a Nucleobase como plataforma digital para controlar seu orçamento doméstico e acredita que essa ferramenta também poderá ser útil para você.\n\n` +
+      `Acesse a Nucleobase:\n` +
+      `${linkFinal}\n\n` +
+      `Esperamos por você!\n` +
+      `Equipe Nucleobase.`
+    );
+
+    // Lógica de abertura: Gmail para Desktop, Mailto para Mobile
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${emailInvite}&su=${subject}&body=${body}`;
+    const mailtoUrl = `mailto:${emailInvite}?subject=${subject}&body=${body}`;
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      window.location.href = mailtoUrl;
+    } else {
+      window.open(gmailUrl, '_blank');
+    }
+    
+    setInviteEnviado(true);
+    setTimeout(() => {
+        setInviteEnviado(false);
+        setEmailInvite("");
+    }, 4000);
+  };
+
+  // LÓGICA DE WHATSAPP
+  const handleWhatsAppInvite = () => {
+    const text = encodeURIComponent(
+        `Olá! Estou usando a Nucleobase para organizar minha vida financeira e acho que você vai curtir também. Se cadastrando pelo meu link você ganha benefícios: ${linkIndicacao}`
+    );
+    window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
   const recompensas = [
@@ -95,34 +152,89 @@ export default function IndiquePage() {
         </p>
       </div>
 
-      {/* ÁREA DO LINK / LOGIN */}
       {userId ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
-          <div className="lg:col-span-2 bg-white rounded-[2.5rem] border border-gray-100 p-8 shadow-sm flex flex-col justify-between relative overflow-hidden">
-            <div className="relative z-10">
-              <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Share2 className="text-blue-600" size={20} /> Seu link exclusivo
-              </h3>
-              <div className="flex flex-col sm:flex-row gap-2 items-center bg-gray-50 p-2 rounded-2xl border border-gray-100">
-                <code className="flex-1 text-xs font-mono text-gray-500 px-3 py-2 break-all">
-                  {linkIndicacao}
-                </code>
-                <button onClick={handleCopy} className={`w-full sm:w-auto px-6 py-3 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${copiado ? "bg-emerald-500 text-white" : "bg-gray-900 text-white hover:bg-black"}`}>
-                  {copiado ? <Check size={14} /> : <Copy size={14} />}
-                  {copiado ? "Copiado" : "Copiar Link"}
-                </button>
+        <div className="space-y-6 mb-12">
+          {/* LINK E CARD DE CONTAGEM */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-white rounded-[2.5rem] border border-gray-100 p-8 shadow-sm flex flex-col justify-between relative overflow-hidden">
+              <div className="relative z-10">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Share2 className="text-blue-600" size={20} /> Indique através do seu link exclusivo
+                </h3>
+                <div className="flex flex-col sm:flex-row gap-2 items-center bg-gray-50 p-2 rounded-2xl border border-gray-100">
+                  <code className="flex-1 text-xs font-mono text-gray-500 px-3 py-2 break-all">
+                    {linkIndicacao}
+                  </code>
+                  <button onClick={handleCopy} className={`w-full sm:w-auto px-6 py-3 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${copiado ? "bg-emerald-500 text-white" : "bg-gray-900 text-white hover:bg-black"}`}>
+                    {copiado ? <Check size={14} /> : <Copy size={14} />}
+                    {copiado ? "Copiado" : "Copiar Link"}
+                  </button>
+                </div>
+                <p className="mt-6 text-[11px] text-gray-400">* Benefícios contabilizados no ato do cadastro do indicado.</p>
               </div>
-              <p className="mt-6 text-[11px] text-gray-400">* Benefícios contabilizados no ato do cadastro do indicado.</p>
+            </div>
+            <div className="bg-blue-600 rounded-[2.5rem] p-8 text-white flex flex-col justify-center items-center text-center shadow-lg">
+              <Users size={32} className="mb-3 opacity-40" />
+              <h4 className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-70">Cadastros</h4>
+              <span className="text-5xl font-black mb-1 tracking-tighter">{contagem.toString().padStart(2, '0')}</span>
+              <p className="text-[10px] font-medium text-blue-100 opacity-80">{contagem < 5 ? `Faltam ${5 - contagem} para o próximo nível` : "Nível Embaixador!"}</p>
             </div>
           </div>
-          <div className="bg-blue-600 rounded-[2.5rem] p-8 text-white flex flex-col justify-center items-center text-center shadow-lg">
-            <Users size={32} className="mb-3 opacity-40" />
-            <h4 className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-70">Cadastros</h4>
-            <span className="text-5xl font-black mb-1 tracking-tighter">{contagem.toString().padStart(2, '0')}</span>
-            <p className="text-[10px] font-medium text-blue-100 opacity-80">{contagem < 5 ? `Faltam ${5 - contagem} para o próximo nível` : "Nível Embaixador!"}</p>
+
+          {/* CONVITE POR E-MAIL E WHATSAPP */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* E-MAIL */}
+            <div className="bg-gray-50 rounded-[2.5rem] border border-gray-100 p-8 shadow-inner relative overflow-hidden group">
+              <div className="absolute -top-10 -right-10 text-gray-100 group-hover:text-blue-50 transition-colors">
+                <Mail size={150} />
+              </div>
+              <div className="relative z-10">
+                <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <Mail className="text-blue-600" size={18} /> Indique via E-mail
+                </h3>
+                <p className="text-xs text-gray-500 mb-6 font-medium">Abriremos seu e-mail com o convite pronto.</p>
+                <form onSubmit={handleSendInvite} className="flex flex-col gap-3">
+                  <input 
+                    type="email" 
+                    required
+                    value={emailInvite}
+                    onChange={(e) => setEmailInvite(e.target.value)}
+                    placeholder="E-mail do seu contato"
+                    className="w-full bg-white border border-gray-200 rounded-2xl py-3 px-5 text-sm focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                  />
+                  <button 
+                    type="submit"
+                    className={`w-full py-3 rounded-2xl font-bold text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-sm ${inviteEnviado ? "bg-emerald-500 text-white" : "bg-blue-600 text-white hover:bg-blue-700"}`}
+                  >
+                    {inviteEnviado ? <Check size={16} /> : <Send size={16} />}
+                    {inviteEnviado ? "Pronto!" : "Preparar Convite"}
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            {/* WHATSAPP */}
+            <div className="bg-emerald-50/30 rounded-[2.5rem] border border-emerald-100 p-8 relative overflow-hidden group flex flex-col justify-center">
+              <div className="absolute -top-10 -right-10 text-emerald-100/50 group-hover:text-emerald-100 transition-colors">
+                <MessageCircle size={150} />
+              </div>
+              <div className="relative z-10">
+                <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <MessageCircle className="text-emerald-600" size={18} /> Indique via WhatsApp
+                </h3>
+                <p className="text-xs text-gray-500 mb-6 font-medium">Envie rapidamente para seus contatos ou grupos.</p>
+                <button 
+                  onClick={handleWhatsAppInvite}
+                  className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest hover:bg-emerald-700 transition-all flex items-center justify-center gap-2 shadow-md"
+                >
+                  <MessageCircle size={18} /> Compartilhar no Zap
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       ) : (
+        /* LOGIN MODAL */
         <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden mb-12">
           <div className="p-10 bg-gray-50/50 border-b border-gray-100 text-center">
              <h2 className="text-3xl font-bold text-gray-900 mb-3 tracking-tight">Gere seu link para realizar indicações<span className="text-blue-600">.</span></h2>
@@ -157,17 +269,15 @@ export default function IndiquePage() {
         </div>
       </div>
 
-      {/* Melhoria 2: Destaque de Crescimento Orgânico */}
+      {/* FOOTER SECTION */}
       <section className="relative mt-24">
         <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400 mb-12 flex items-center gap-4">
           Crescimento Coletivo <div className="h-px bg-gray-100 flex-1"></div>
         </h3>
-        
         <div className="bg-gray-900 rounded-[3rem] p-12 text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-10">
             <Heart size={180} strokeWidth={1} />
           </div>
-          
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full border border-blue-500/30 mb-6">
@@ -178,13 +288,12 @@ export default function IndiquePage() {
                 Crescemos quando você compartilha clareza.
               </h3>
               <p className="text-gray-400 text-lg mb-8 leading-relaxed">
-                Diferente de grandes corporações, a <strong>Nucleobase</strong> foca em pessoas. Cada indicação fortalece nossa infraestrutura e garante que continuemos independentes e focados na sua privacidade.
+                Cada indicação fortalece nossa infraestrutura e garante que continuemos independentes e focados na sua privacidade.
               </p>
               <div className="flex items-center gap-4 text-sm font-bold text-blue-400 uppercase tracking-widest group cursor-default">
                 Impulsionando o Amanhã <ArrowUpRight size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
               </div>
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-sm">
                 <span className="block text-2xl font-bold mb-1">92%</span>
@@ -193,11 +302,6 @@ export default function IndiquePage() {
               <div className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-sm">
                 <span className="block text-2xl font-bold mb-1">0%</span>
                 <span className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Venda de Dados</span>
-              </div>
-              <div className="col-span-2 bg-blue-600/10 border border-blue-600/20 p-6 rounded-2xl">
-                <p className="text-xs text-blue-200 leading-relaxed italic">
-                  "O melhor marketing é feito por quem realmente utiliza e confia na ferramenta todos os dias."
-                </p>
               </div>
             </div>
           </div>

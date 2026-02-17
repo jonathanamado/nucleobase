@@ -99,7 +99,7 @@ export default function CadastroPage() {
         </div>
 
         {/* Depoimento com a foto real alinhada com a lógica da página de depoimentos */}
-        <div className="relative z-10 p-6 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-sm max-w-sm mb-4">
+        <div className="relative mt-5 z-10 p-6 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-sm max-w-sm mb-4">
             <div className="flex gap-1 mb-4">
                 {[...Array(5)].map((_, i) => <Star key={i} size={12} className="fill-blue-500 text-blue-500" />)}
             </div>
