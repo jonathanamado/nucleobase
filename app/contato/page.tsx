@@ -20,17 +20,17 @@ export default function ContatoPage() {
         
         {/* COLUNA DE LINKS RÁPIDOS */}
         <div className="flex flex-col gap-4">
-          {/* INSTAGRAM - Ajustado com barra final e rel p/ Mobile */}
+          {/* INSTAGRAM - Ajustado com barra final, z-index e pointer-events p/ Mobile */}
           <a 
             href="https://www.instagram.com/nucleobase.app/" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4 hover:shadow-md transition group cursor-pointer"
+            className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4 hover:shadow-md transition group cursor-pointer relative z-20 active:bg-gray-50"
           >
-            <div className="bg-pink-50 p-3 rounded-xl text-pink-600 group-hover:bg-pink-100 transition">
+            <div className="bg-pink-50 p-3 rounded-xl text-pink-600 group-hover:bg-pink-100 transition pointer-events-none">
               <Instagram size={24} />
             </div>
-            <div>
+            <div className="pointer-events-none">
               <h3 className="font-bold text-gray-900">Instagram</h3>
               <p className="text-xs text-gray-500">Novidades e Direct</p>
               <span className="text-pink-600 text-xs font-medium hover:underline">
@@ -44,12 +44,12 @@ export default function ContatoPage() {
             href={whatsappLink} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4 hover:shadow-md transition group cursor-pointer"
+            className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4 hover:shadow-md transition group cursor-pointer relative z-20 active:bg-gray-50"
           >
-            <div className="bg-green-50 p-3 rounded-xl text-green-600 group-hover:bg-green-100 transition">
+            <div className="bg-green-50 p-3 rounded-xl text-green-600 group-hover:bg-green-100 transition pointer-events-none">
               <MessageCircle size={24} />
             </div>
-            <div>
+            <div className="pointer-events-none">
               <h3 className="font-bold text-gray-900">WhatsApp</h3>
               <p className="text-xs text-gray-500">Atendimento ágil</p>
               <span className="text-green-600 text-xs font-medium hover:underline">
@@ -61,12 +61,12 @@ export default function ContatoPage() {
           {/* E-MAIL */}
           <a 
             href="mailto:nucleobase.app@gmail.com"
-            className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4 hover:shadow-md transition group cursor-pointer"
+            className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4 hover:shadow-md transition group cursor-pointer relative z-20 active:bg-gray-50"
           >
-            <div className="bg-blue-50 p-3 rounded-xl text-blue-600 group-hover:bg-blue-100 transition">
+            <div className="bg-blue-50 p-3 rounded-xl text-blue-600 group-hover:bg-blue-100 transition pointer-events-none">
               <Mail size={24} />
             </div>
-            <div>
+            <div className="pointer-events-none">
               <h3 className="font-bold text-gray-900">E-mail</h3>
               <p className="text-xs text-gray-500">Respostas em até 24h</p>
               <span className="text-blue-600 text-xs font-medium hover:underline">
