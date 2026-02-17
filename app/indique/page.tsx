@@ -186,7 +186,7 @@ export default function IndiquePage() {
               <div className="h-8 w-px bg-white/20 lg:h-px lg:w-12 lg:my-3"></div>
               
               <p className="text-[9px] font-bold text-blue-100 uppercase tracking-tighter max-w-[80px] lg:max-w-none">
-                {contagem < 5 ? `Faltam ${5 - contagem} p/ nível 2` : "Embaixador!"}
+                {contagem < 5 ? `Faltam ${5 - contagem} para o nível 2` : "Embaixador!"}
               </p>
             </div>
           </div>
@@ -265,11 +265,22 @@ export default function IndiquePage() {
                 </button>
               </div>
 
-              {/* Tag de Destaque */}
+              {/* Tag de Destaque - Ponto na lateral e texto em duas linhas */}
               <div className="absolute top-6 right-8">
-                <div className="flex items-center gap-1 bg-emerald-100/50 px-2 py-1 rounded-full border border-emerald-200/50">
-                  <div className="w-1 h-1 bg-emerald-600 rounded-full animate-ping" />
-                  <span className="text-[12px] font-black text-emerald-700 uppercase">Instantâneo</span>
+                <div className="flex items-center gap-2 bg-emerald-100/50 px-3 py-2 rounded-2xl border border-emerald-200/50">
+                  
+                  {/* Coluna 1: O ponto pulsante (centralizado verticalmente em relação ao bloco de texto) */}
+                  <div className="flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 bg-emerald-600 rounded-full animate-ping" />
+                  </div>
+
+                  {/* Coluna 2: Texto com quebra de linha */}
+                  <div className="flex flex-col justify-center">
+                    <span className="text-[9px] font-black text-emerald-700 uppercase leading-[1.1] text-center">
+                      Convite<br />Instantâneo
+                    </span>
+                  </div>
+                  
                 </div>
               </div>
             </div>
