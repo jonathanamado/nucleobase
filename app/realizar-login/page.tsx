@@ -2,8 +2,15 @@
 
 import React, { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { LogIn, Mail, Lock, ArrowRight, CheckCircle2, ArrowLeft } from "lucide-material";
-import { LogIn as LogInIcon, Mail as MailIcon, Lock as LockIcon, ArrowRight as ArrowRightIcon, CheckCircle2 as CheckCircleIcon, ArrowLeft as ArrowLeftIcon } from "lucide-react";
+// CORREÇÃO: Removida a linha que importava de "lucide-material"
+import { 
+  LogIn as LogInIcon, 
+  Mail as MailIcon, 
+  Lock as LockIcon, 
+  ArrowRight as ArrowRightIcon, 
+  CheckCircle2 as CheckCircleIcon, 
+  ArrowLeft as ArrowLeftIcon 
+} from "lucide-react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
