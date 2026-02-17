@@ -4,24 +4,54 @@ import Link from 'next/link';
 import { 
   Zap, ArrowRight, Mail, Newspaper, ShieldCheck, 
   BarChart3, MessageSquare, HelpCircle, Lock, 
-  Headset, Users, Gift, UserPlus, X, Loader2, CheckCircle2, Star, Quote, Plus, FileWarning
+  Users, Gift, X, Loader2, CheckCircle2, Star, Quote, Plus, FileWarning
 } from "lucide-react";
+import { supabase } from "@/lib/supabase"; 
 
 export function MainContent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [enviado, setEnviado] = useState(false);
 
-  // Link dinâmico para o WhatsApp (Exemplo)
-  const whatsappLink = "https://wa.me/seunumeroaqui";
-
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    
+    // Configurações do Web3Forms (Usando sua chave funcional do Blog)
+    formData.append("access_key", "9ef5a274-150a-4664-a885-0b052efd06f7");
+    formData.append("subject", "Nova Inscrição na Newsletter - Home Nucleobase");
+
+    try {
+      // 1. Salva no Supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error: dbError } = await supabase
+        .from("newsletter")
+        .insert([{ email: email, user_id: user?.id || null }]);
+
+      // Se for erro de e-mail duplicado, não travamos o envio do e-mail de aviso
+      if (dbError && dbError.code !== '23505') throw dbError;
+
+      // 2. Envia notificação via Web3Forms
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData
+      });
+      
+      const data = await res.json();
+      if (data.success) {
+        setEnviado(true);
+      } else {
+        throw new Error("Erro no serviço de e-mail");
+      }
+    } catch (err) {
+      console.error("Erro no processamento:", err);
+      alert("Erro ao processar assinatura. Tente novamente.");
+    } finally {
       setLoading(false);
-      setEnviado(true);
-    }, 1500);
+    }
   };
 
   return (
@@ -45,9 +75,20 @@ export function MainContent() {
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Assinar Newsletter</h3>
                 <p className="text-gray-500 mb-8 font-medium">Insights financeiros e estratégicos toda semana.</p>
+                
                 <form onSubmit={handleSubscribe} className="space-y-4">
-                  <input required type="email" placeholder="Seu melhor e-mail" className="w-full bg-gray-50 border-transparent rounded-2xl py-4 px-6 text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all" />
-                  <button type="submit" disabled={loading} className="w-full py-4 bg-gray-900 text-white rounded-full font-bold text-sm uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2">
+                  <input 
+                    required 
+                    type="email" 
+                    name="email" // Importante para o Web3Forms
+                    placeholder="Seu melhor e-mail" 
+                    className="w-full bg-gray-50 border-transparent rounded-2xl py-4 px-6 text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all" 
+                  />
+                  <button 
+                    type="submit" 
+                    disabled={loading} 
+                    className="w-full py-4 bg-gray-900 text-white rounded-full font-bold text-sm uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2"
+                  >
                     {loading ? <Loader2 className="animate-spin" size={18} /> : "Inscrever-se agora"}
                   </button>
                 </form>
@@ -204,7 +245,6 @@ export function MainContent() {
             <div className="relative z-10 text-center md:text-left">
               <div className="flex flex-col md:flex-row items-center gap-4 mb-8">
                 
-                {/* AJUSTE: IMAGEM DE PERFIL REAL (A. SILVA) */}
                 <div className="w-16 h-16 rounded-2xl bg-blue-50 border-2 border-blue-100 overflow-hidden flex items-center justify-center shadow-sm">
                   <img 
                     src="/depoimentos/a-silva.png" 
@@ -256,14 +296,13 @@ export function MainContent() {
           </div>
         </section>
 
-        {/* LINHA 6: ALINHADA À DIREITA (Ajustada com Novos Cards) */}
+        {/* LINHA 6: ALINHADA À DIREITA */}
         <section>
           <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
              <div className="h-px bg-gray-300 flex-1"></div> Suporte e Canais
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             
-            {/* CARD SUPORTE TÉCNICO (Modelo Problema/Bug) */}
             <div className="bg-gray-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden group">
               <div className="relative z-10">
                 <div className="bg-white/10 w-12 h-12 rounded-xl flex items-center justify-center mb-6">
@@ -282,7 +321,6 @@ export function MainContent() {
               </div>
             </div>
 
-            {/* CARD FALE CONOSCO (Modelo WhatsApp) */}
             <div className="bg-emerald-600 rounded-[2.5rem] p-10 text-white relative overflow-hidden group">
               <div className="relative z-10">
                 <div className="bg-white/20 w-12 h-12 rounded-xl flex items-center justify-center mb-6">
