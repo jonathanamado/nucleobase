@@ -4,7 +4,8 @@ import { Star, Quote, Loader2, User, Plus, MessageSquarePlus } from "lucide-reac
 import { supabase } from "@/lib/supabase";
 
 export default function DepoimentosPage() {
-  const [depoimentosReais, setDepoimentosReais] = useState([]);
+  // AJUSTE: Tipagem definida como <any[]> para aceitar a estrutura vinda do Supabase
+  const [depoimentosReais, setDepoimentosReais] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const depoimentosFixos = [
@@ -89,6 +90,7 @@ export default function DepoimentosPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start mb-24">
         {todosDepoimentos.map((item, index) => {
+          // Lógica de compatibilidade entre dados fixos e dados do Supabase
           const perfil = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
           const nomeExibicao = perfil?.nome_completo || item.nome || "Membro Nucleobase";
           const cargoExibicao = perfil?.profissao || item.cargo || "Usuário";
@@ -144,7 +146,6 @@ export default function DepoimentosPage() {
         })}
       </div>
 
-      {/* SEÇÃO FINAL: CTA CONVIDATIVO */}
       <div className="mb-24 p-1 rounded-[3rem] bg-gradient-to-r from-gray-50 via-white to-gray-50 border border-gray-100 shadow-sm">
         <div className="flex flex-col md:flex-row items-center justify-between p-8 md:p-12 gap-8">
           <div className="flex items-center gap-6">
