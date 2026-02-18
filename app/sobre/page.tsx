@@ -21,7 +21,7 @@ export default function SobreNucleobase() {
         <div>
           <h1 className="text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center">
             <span>Sobre a gente<span className="text-blue-600">.</span></span>
-            <Dna size={60} className="text-blue-600 opacity-35 ml-4" strokeWidth={1.2} />
+            <Dna size={60} className="text-blue-600 skew-x-16 opacity-35 ml-4" strokeWidth={1.2} />
           </h1>
           
           <h2 className="text-gray-500 text-xl font-medium max-w-2xl leading-relaxed -mt-0">
@@ -60,19 +60,19 @@ export default function SobreNucleobase() {
         {/* NARRATIVA PRINCIPAL */}
         <div className="lg:col-span-7 text-gray-700 text-lg leading-[1.8]">
           <p className="mb-8">
-            A Nucleobase nasceu de uma necessidade real. O que começou como uma ferramenta de controle pessoal, 
-            lapidada pelo tempo e pela demanda deste nicho, evoluiu a uma plataforma robusta 
-            focada em levar clareza às pessoas.
+            A Nucleobase nasceu de uma necessidade real tendo sua implantação digital no ano de 2025, quando a plataforma foi ao "ar". O que começou como uma ferramenta de controle pessoal, 
+            lapidada pelo tempo e demanda deste nicho, evoluiu para uma plataforma robusta, 
+            focada em levar clareza e praticidade às pessoas.
           </p>
 
           <p className="mb-8">
-            Antes da nossa plataforma, o gerenciamento era dependente de planilhas complexas, exaustivas 
-            e altamente suscetíveis a erros de preenchimento. Mais que o trabalho manual existente, havia também uma 
-            vulnerabilidade crítica na <strong className="text-gray-900">segurança de dados</strong> e na <strong className="text-gray-900">interpretação</strong> de informações e de resultados.
+            Antes do sistema, a gestão era dependente de planilhas complexas, exaustivas 
+            e altamente suscetíveis a erros de preenchimento. Mais que o trabalho manual, havia também uma 
+            vulnerabilidade crítica na <strong className="text-gray-900">segurança de dados</strong> e na <strong className="text-gray-900">interpretação</strong> de resultados.
           </p>
 
           {/* BLOCKQUOTE DE MISSÃO */}
-          <div className="bg-blue-50/50 border-l-4 border-blue-600 p-8 my-10 rounded-r-2xl relative overflow-hidden group">
+          <div className="bg-blue-50/50 border-l-4 border-blue-600 p-4 my-10 rounded-r-2xl relative overflow-hidden group">
             <ShieldCheck className="absolute -right-4 -bottom-4 text-blue-600 opacity-5 group-hover:scale-110 transition-transform" size={120} />
             <p className="font-medium text-blue-900 italic text-xl leading-relaxed relative z-10">
               "Nossa missão é mitigar os riscos de interpretação e blindar a sua segurança através de padrões 

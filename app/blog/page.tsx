@@ -127,7 +127,7 @@ export default function BlogDaNucleo() {
         <div>
           <h1 className="text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center">
             <span>Blog Digital<span className="text-blue-600">.</span></span>
-            <Newspaper size={45} className="text-blue-600 opacity-20 ml-4" strokeWidth={1.5} />
+            <Newspaper size={45} className="text-blue-600 skew-x-[-15deg] opacity-20 ml-4" strokeWidth={1.5} />
           </h1>
           
           <h2 className="text-gray-500 text-xl font-medium max-w-2xl leading-relaxed mt-2">

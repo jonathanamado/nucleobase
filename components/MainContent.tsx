@@ -110,7 +110,7 @@ export function MainContent() {
       <div className="mb-6 mt-0">
         <h1 className="text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center">
           <span>Nucleobase<span className="text-blue-600">.APP</span></span>
-          <Zap size={64} className="text-blue-600 opacity-30 ml-4" strokeWidth={1.5} />
+          <Zap size={58} className="text-blue-600 skew-x-[-15deg] opacity-30 ml-4" strokeWidth={1.5} />
         </h1>
         <h2 className="text-gray-500 text-xl font-medium max-w-2xl leading-relaxed -mt-0">
           Organização financeira com clareza e inteligência.
@@ -125,8 +125,8 @@ export function MainContent() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-24">
         <div className="lg:col-span-7">
           <p className="text-gray-700 text-lg leading-[1.8] mb-8">
-            A nucleobase.app é uma plataforma criada para ajudar pessoas na organização
-            de orçamentos domésticos de forma <span className="text-gray-900 font-semibold">simples, clara e consciente.</span> Acesse a página que conta mais sobre a nossa história, 
+            A nucleobase.app é uma plataforma digital criada para ajudar pessoas comuns na organização
+            de orçamentos domésticos de forma <span className="text-gray-900 font-semibold">simples, clara e consciente.</span> Acesse a página que conta a nossa história e curiosidades, 
             <Link href="/sobre" className="inline-flex items-center ml-2 group">
                 <span className="bg-blue-600 text-white px-2 pt-1 pb-0.5 rounded-md text-[10px] font-bold shadow-sm hover:bg-blue-700 transition-colors uppercase tracking-wider">
                   Clicando aqui
@@ -169,22 +169,25 @@ export function MainContent() {
             <div className="h-px bg-gray-300 flex-1"></div> Painel de Resultados 
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-blue-50/50">
-              <BarChart3 className="text-blue-600 mb-6" size={40} />
-              <p className="text-gray-600 text-lg leading-relaxed">Visualize sua saúde financeira através de gráficos intuitivos. O Dashboard da Nucleobase transforma lançamentos complexos em decisões baseadas em dados reais.</p>
-            </div>
+            
             <div className="text-left">
-              <h4 className="text-3xl font-bold text-gray-900 mb-6 tracking-tight">Sua visão 360º</h4>
+              <h4 className="text-3xl font-bold text-gray-900 mb-6 tracking-tight">Sua visão 360º diretamente em seu Painel de Resultados</h4>
               <p className="text-gray-500 text-xl italic font-medium mb-8">"Dados sem interpretação são apenas ruído. Na Nucleobase, entregamos clareza."</p>
               <p className="text-sm text-gray-400 font-medium flex items-center gap-2">
-                Acesse o Painel de resultados 
+                Acesse o Dashboard 
                 <Link href="/resultados" className="group">
                   <span className="bg-blue-600 text-white px-2 pt-1 pb-0.5 rounded-md text-[10px] font-bold shadow-sm hover:bg-blue-700 transition-colors uppercase tracking-wider">
-                    clicando aqui.
+                    CLICANDO AQUI.
                   </span>
                 </Link>
               </p>
             </div>
+
+            <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-blue-50/50">
+              <BarChart3 className="text-blue-600 mb-6" size={40} />
+              <p className="text-gray-600 text-lg leading-relaxed">Visualize sua saúde financeira através de gráficos intuitivos. O Dashboard da Nucleobase transforma seus lançamentos em decisões baseadas em dados reais.</p>
+            </div>
+
           </div>
         </section>
 
@@ -199,12 +202,12 @@ export function MainContent() {
             </div>
             <div>
               <h4 className="text-2xl font-bold text-gray-900 mb-3">Sigilo Bancário Absoluto</h4>
-              <p className="text-gray-600 text-lg leading-relaxed mb-6">Mantemos a privacidade total. Diferente de outros apps, não conectamos sua conta diretamente. Você mantém a custódia total das informações sem expor senhas sensíveis.</p>
+              <p className="text-gray-600 text-sm leading-relaxed mb-6">Foco em privacidade total: Diferente de outros apps, não conectamos suas contas diretamente, pois consideramos fundamental que você mantenha a custódia de suas informações sem expor senhas sensíveis.</p>
               <p className="text-sm text-gray-500 font-medium flex items-center gap-2">
-                Conheça mais sobre a Segurança da Núcleo 
+                Conheça mais sobre a Segurança da Nucleobase 
                 <Link href="/seguranca_privacidade" className="group">
                   <span className="bg-blue-600 text-white px-2 pt-1 pb-0.5 rounded-md text-[10px] font-bold shadow-sm hover:bg-blue-700 transition-colors uppercase tracking-wider">
-                    clicando aqui.
+                    CLICANDO AQUI.
                   </span>
                 </Link>
               </p>
@@ -221,13 +224,20 @@ export function MainContent() {
             <div className="w-20 h-20 bg-white text-blue-600 rounded-[2rem] flex items-center justify-center shadow-sm shrink-0">
               <HelpCircle size={40} />
             </div>
+
             <div className="md:text-right">
               <h4 className="text-2xl font-bold text-gray-900 mb-3">Central de Ajuda</h4>
-              <p className="text-gray-600 text-lg leading-relaxed">
-                Precisa de ajuda com o primeiro lançamento? Nossa central possui guias rápidos sobre gestão de custos e planejamento de receitas futuras.
-                <Link href="/faq" className="inline-flex items-center ml-2 group">
+              
+              <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                Precisa de ajuda com o primeiro lançamento? Nossa Central possui guias rápidos sobre gestão de custos e planejamento de receitas futuras, além das orientações básicas para que sejam dados os primeiros passos.
+              </p>
+
+              {/* Ajustado para text-gray-600 e alinhamento à direita no MD */}
+              <p className="text-sm text-gray-600 font-medium flex items-center md:justify-end gap-2">
+                Conheça mais sobre os lançamentos financeiros
+                <Link href="/faq" className="inline-flex items-center group">
                   <span className="bg-blue-600 text-white px-2 pt-1 pb-0.5 rounded-md text-[10px] font-bold shadow-sm hover:bg-blue-700 transition-colors uppercase tracking-wider">
-                    Clique aqui e saiba mais.
+                    CLICANDO AQUI.
                   </span>
                 </Link>
               </p>
@@ -262,14 +272,14 @@ export function MainContent() {
                 </div>
               </div>
               
-              <p className="text-gray-700 text-2xl leading-relaxed font-medium italic mb-12">
+              <p className="text-gray-700 text-base leading-relaxed font-medium italic mb-12">
                 "Finalmente encontrei uma plataforma que simplifica o que era complexo. A visualização clara dos meus rendimentos me trouxe uma paz de espírito que eu não tinha com planilhas manuais. Prático e essencial."
               </p>
 
               <div className="space-y-10">
                 <div className="text-center md:text-left">
-                  <h3 className="text-2xl font-bold text-gray-900 tracking-tight">Sua voz é importante para nós melhorarmos a Plataforma.</h3>
-                  <p className="text-gray-500 font-medium italic mt-1">Como a Nucleobase mudou sua rotina hoje?</p>
+                  <h3 className="text-lg font-bold text-gray-900 tracking-tight">Sua voz é importante para nós melhorarmos a Plataforma.</h3>
+                  <p className="text-gray-500 font-medium mt-1">Como a Nucleobase mudou sua rotina hoje?</p>
                 </div>
 
                 <div className="flex flex-col items-center md:items-start gap-8">
@@ -278,12 +288,12 @@ export function MainContent() {
                     className="group relative inline-flex items-center justify-center gap-3 px-12 py-5 bg-gray-900 text-white rounded-full hover:bg-black transition-all font-bold text-xs uppercase tracking-[0.2em] shadow-2xl shadow-gray-400 overflow-hidden"
                   >
                     <div className="absolute inset-0 bg-blue-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                    <Plus size={18} className="relative z-10 group-hover:rotate-90 transition-transform duration-300" /> 
+                    <Plus size={28} className="relative z-10 group-hover:rotate-90 transition-transform duration-300" /> 
                     <span className="relative z-10">Deixar meu depoimento</span>
                   </a>
                   
                   <p className="text-sm text-gray-400 font-medium flex items-center gap-2">
-                    Conheça as experiências dos nossos usuários. 
+                    Conheça outras experiência. 
                     <Link href="/depoimentos" className="group">
                       <span className="bg-blue-600 text-white px-2 pt-1 pb-0.5 rounded-md text-[10px] font-bold shadow-sm hover:bg-blue-700 transition-colors uppercase tracking-wider">
                         Acesse aqui e inspire-se.
