@@ -126,7 +126,7 @@ export default function BlogDaNucleo() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-2">
         <div>
           <h1 className="text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center">
-            <span>Blog Digital<span className="text-blue-600">.</span></span>
+            <span>Blog Nucleobase<span className="text-blue-600">.</span></span>
             <Newspaper size={45} className="text-blue-600 skew-x-[-15deg] opacity-20 ml-4" strokeWidth={1.5} />
           </h1>
           
