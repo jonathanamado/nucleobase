@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
@@ -8,7 +8,8 @@ import {
   Lock, CheckCircle2, Loader2 
 } from "lucide-react";
 
-export default function CheckoutPage() {
+// 1. Criamos um componente interno que contém a lógica do checkout
+function CheckoutContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const planSlug = searchParams.get("plan");
@@ -17,7 +18,6 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(true);
   const [cpf, setCpf] = useState("");
 
-  // Função para formatar CPF enquanto digita
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, "");
     const formattedValue = value
@@ -35,7 +35,6 @@ export default function CheckoutPage() {
         return;
       }
 
-      // CORRIGIDO: Removida a linha duplicada .from("plans")
       const { data, error } = await supabase
         .from("plans")
         .select("*")
@@ -63,7 +62,6 @@ export default function CheckoutPage() {
     );
   }
 
-  // Garantia extra para o TypeScript não reclamar de 'plan.name' abaixo
   if (!plan) return null;
 
   return (
@@ -74,7 +72,6 @@ export default function CheckoutPage() {
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        
         <div className="lg:col-span-7">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Finalizar Assinatura</h1>
           <p className="text-gray-500 mb-10">Preencha os dados abaixo para processar seu acesso.</p>
@@ -85,7 +82,6 @@ export default function CheckoutPage() {
                 <span className="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-[10px]">1</span>
                 Dados de Faturamento
               </h3>
-              
               <div className="space-y-4">
                 <div>
                   <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">CPF para Nota Fiscal</label>
@@ -113,7 +109,6 @@ export default function CheckoutPage() {
         <div className="lg:col-span-5">
           <div className="bg-gray-900 rounded-[3rem] p-8 text-white sticky top-10">
             <h3 className="text-xl font-bold mb-8 border-b border-white/10 pb-4">Resumo do Pedido</h3>
-            
             <div className="space-y-6 mb-8">
               <div className="flex justify-between items-start">
                 <div>
@@ -127,7 +122,6 @@ export default function CheckoutPage() {
                   </p>
                 </div>
               </div>
-
               <ul className="space-y-3">
                 {plan.features?.map((feature: string, index: number) => (
                   <li key={index} className="flex items-center gap-3 text-sm text-gray-400">
@@ -153,27 +147,30 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <button 
-              disabled 
-              className="w-full py-5 bg-blue-600 text-white rounded-[1.5rem] font-bold text-xs uppercase tracking-[0.2em] shadow-lg shadow-blue-900/40 opacity-50 cursor-not-allowed mb-6"
-            >
+            <button disabled className="w-full py-5 bg-blue-600 text-white rounded-[1.5rem] font-bold text-xs uppercase tracking-[0.2em] shadow-lg shadow-blue-900/40 opacity-50 cursor-not-allowed mb-6">
               Confirmar e Pagar
             </button>
 
             <div className="flex items-center justify-center gap-4 text-gray-500">
-              <div className="flex items-center gap-1">
-                <Lock size={12} />
-                <span className="text-[9px] font-bold uppercase tracking-widest">Ambiente Seguro</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <ShieldCheck size={12} />
-                <span className="text-[9px] font-bold uppercase tracking-widest">Privacidade Garantida</span>
-              </div>
+              <div className="flex items-center gap-1"><Lock size={12} /><span className="text-[9px] font-bold uppercase tracking-widest">Ambiente Seguro</span></div>
+              <div className="flex items-center gap-1"><ShieldCheck size={12} /><span className="text-[9px] font-bold uppercase tracking-widest">Privacidade Garantida</span></div>
             </div>
           </div>
         </div>
-
       </div>
     </div>
+  );
+}
+
+// 2. O export default envolve o conteúdo com Suspense
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <Loader2 className="animate-spin text-blue-600 mb-4" size={40} />
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
   );
 }
