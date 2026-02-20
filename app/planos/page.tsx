@@ -92,9 +92,12 @@ export default function PaginaDePlanos() {
               </div>
             </div>
 
-            <button className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-xs uppercase tracking-[0.2em] hover:bg-gray-800 transition-all shadow-lg">
+            <Link 
+              href="/assinatura/checkout?plan=essencial-monthly" 
+              className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-xs uppercase tracking-[0.2em] hover:bg-gray-800 transition-all shadow-lg text-center"
+            >
               Assinar Essencial
-            </button>
+            </Link>
             
             <div className="mt-6 pt-6 border-t border-gray-100">
                 <p className="text-[10px] font-bold text-gray-400 uppercase mb-3 text-center">Opções de Ciclo:</p>
@@ -135,9 +138,12 @@ export default function PaginaDePlanos() {
               </div>
             </div>
 
-            <button className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold text-xs uppercase tracking-[0.2em] hover:bg-blue-500 transition-all shadow-lg shadow-blue-900/40 relative z-10">
+            <Link 
+              href="/assinatura/checkout?plan=pro-monthly" 
+              className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold text-xs uppercase tracking-[0.2em] hover:bg-blue-500 transition-all shadow-lg shadow-blue-900/40 relative z-10 text-center"
+            >
               Assinar Plano Pro
-            </button>
+            </Link>
 
             <div className="mt-6 pt-6 border-t border-white/10 relative z-10 text-center">
                 <p className="text-[10px] font-bold text-gray-500 uppercase mb-3">Ciclos de Alta Performance:</p>

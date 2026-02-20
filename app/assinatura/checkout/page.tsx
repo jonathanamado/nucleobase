@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase"; // Verifique o caminho do seu cliente supabase
+import { supabase } from "@/lib/supabase";
 import { 
   ArrowLeft, ShieldCheck, CreditCard, 
   Lock, CheckCircle2, Loader2 
@@ -17,15 +17,26 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(true);
   const [cpf, setCpf] = useState("");
 
+  // Função para formatar CPF enquanto digita
+  const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "");
+    const formattedValue = value
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2")
+      .substring(0, 14);
+    setCpf(formattedValue);
+  };
+
   useEffect(() => {
     async function fetchPlan() {
       if (!planSlug) {
-        router.push("/assinatura"); // Redireciona se não houver plano selecionado
+        router.push("/assinatura");
         return;
       }
 
+      // CORRIGIDO: Removida a linha duplicada .from("plans")
       const { data, error } = await supabase
-        .from("plans")
         .from("plans")
         .select("*")
         .eq("slug", planSlug)
@@ -52,9 +63,11 @@ export default function CheckoutPage() {
     );
   }
 
+  // Garantia extra para o TypeScript não reclamar de 'plan.name' abaixo
+  if (!plan) return null;
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-10 animate-in fade-in duration-700">
-      {/* Voltar */}
       <Link href="/assinatura" className="inline-flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors mb-8 group">
         <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
         <span className="text-sm font-bold uppercase tracking-widest">Alterar Plano</span>
@@ -62,13 +75,11 @@ export default function CheckoutPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         
-        {/* LADO ESQUERDO: FORMULÁRIO */}
         <div className="lg:col-span-7">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Finalizar Assinatura</h1>
           <p className="text-gray-500 mb-10">Preencha os dados abaixo para processar seu acesso.</p>
 
           <section className="space-y-8">
-            {/* Dados de Identificação */}
             <div className="bg-white border border-gray-100 p-8 rounded-[2rem] shadow-sm">
               <h3 className="font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <span className="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-[10px]">1</span>
@@ -82,14 +93,13 @@ export default function CheckoutPage() {
                     type="text" 
                     placeholder="000.000.000-00"
                     value={cpf}
-                    onChange={(e) => setCpf(e.target.value)}
+                    onChange={handleCpfChange}
                     className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-blue-600 outline-none transition-all"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Pagamento (Placeholder) */}
             <div className="bg-gray-50 border border-dashed border-gray-300 p-8 rounded-[2rem] opacity-60">
               <h3 className="font-bold text-gray-400 mb-6 flex items-center gap-2">
                 <CreditCard size={20} />
@@ -100,7 +110,6 @@ export default function CheckoutPage() {
           </section>
         </div>
 
-        {/* LADO DIREITO: RESUMO DA COMPRA */}
         <div className="lg:col-span-5">
           <div className="bg-gray-900 rounded-[3rem] p-8 text-white sticky top-10">
             <h3 className="text-xl font-bold mb-8 border-b border-white/10 pb-4">Resumo do Pedido</h3>
