@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { 
-  Save, MapPin, Heart, LogOut, Mail, UserCircle, LayoutDashboard 
+  Save, MapPin, Heart, LogOut, Mail, UserCircle, LayoutDashboard, KeyRound, Eye, EyeOff, X 
 } from "lucide-react";
 
 const supabase = createClient(
@@ -18,6 +18,7 @@ export default function MinhaContaPage() {
   const [profissao, setProfissao] = useState("");
   const [dataNascimento, setDataNascimento] = useState("");
   const [genero, setGenero] = useState("");
+  const [estadoCivil, setEstadoCivil] = useState("");
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
   const [usoApp, setUsoApp] = useState("");
@@ -25,6 +26,13 @@ export default function MinhaContaPage() {
   
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+
+  // Estados para o Modal de Senha
+  const [showPassModal, setShowPassModal] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPass, setShowPass] = useState(false);
+  const [passLoading, setPassLoading] = useState(false);
 
   const aplicarMascaraTelefone = (value: string) => {
     return value.replace(/\D/g, "").replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2").replace(/(-\d{4})\d+?$/, "$1");
@@ -47,6 +55,7 @@ export default function MinhaContaPage() {
           setProfissao(profile.profissao || "");
           setDataNascimento(profile.data_nascimento || "");
           setGenero(profile.genero || "");
+          setEstadoCivil(profile.estado_civil || "");
           setCidade(profile.cidade || "");
           setEstado(profile.estado || "");
           setUsoApp(profile.uso_app || "");
@@ -69,6 +78,7 @@ export default function MinhaContaPage() {
         profissao: profissao,
         data_nascimento: dataNascimento,
         genero: genero,
+        estado_civil: estadoCivil,
         cidade: cidade,
         estado: estado,
         uso_app: usoApp,
@@ -81,6 +91,25 @@ export default function MinhaContaPage() {
     setUpdating(false);
   };
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) return alert("As senhas não coincidem!");
+    if (newPassword.length < 6) return alert("A senha deve ter no mínimo 6 caracteres.");
+
+    setPassLoading(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+    if (error) {
+      alert("Erro ao atualizar senha: " + error.message);
+    } else {
+      alert("Senha alterada com sucesso!");
+      setShowPassModal(false);
+      setNewPassword("");
+      setConfirmPassword("");
+    }
+    setPassLoading(false);
+  };
+
   if (loading) return (
     <div className="flex h-[80vh] items-center justify-center text-gray-400 animate-pulse font-medium">
       Sincronizando perfil...
@@ -88,33 +117,24 @@ export default function MinhaContaPage() {
   );
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-3 pt-0 pb-4 h-fit flex flex-col overflow-hidden select-none">
+    <div className="w-full max-w-6xl mx-auto px-3 pt-0 pb-20 min-h-screen flex flex-col select-none relative bg-white">
       
-      {/* HEADER ULTRA-COMPACTO COM NOVO BOTÃO */}
-      <div className="flex items-center justify-between mb-3 border-b border-gray-100 pb-1">
-        <div className="flex items-baseline gap-2">
+      {/* HEADER */}
+      <div className="flex items-center justify-between mb-2 border-b border-gray-100 pb-0">
+        <div className="flex items-baseline gap-4">
           <h1 className="text-2xl font-black text-gray-900 tracking-tighter">
             Perfil<span className="text-blue-600">.</span>
           </h1>
           <p className="text-xs text-gray-400 font-medium">
-            {nome ? nome.trim().split(' ')[0] : "Usuário"} / Configurações
+            {nome ? nome.trim().split(' ')[0] : "Usuário"} (Configurações da conta)
           </p>
         </div>
         
         <div className="flex items-center gap-2">
-          {/* BOTÃO VOLTAR AO PAINEL */}
-          <button 
-            onClick={() => window.location.href = "/acesso-usuario"}
-            className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-          >
+          <button onClick={() => window.location.href = "/acesso-usuario"} className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
             <LayoutDashboard size={14} /> Painel do usuário
           </button>
-
-          {/* BOTÃO SAIR */}
-          <button 
-            onClick={handleLogout}
-            className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-          >
+          <button onClick={handleLogout} className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
             <LogOut size={14} /> Realizar logoff
           </button>
         </div>
@@ -123,7 +143,7 @@ export default function MinhaContaPage() {
       {/* GRID PRINCIPAL */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
         
-        {/* COLUNA ESQUERDA: IDENTIFICAÇÃO E LOCALIZAÇÃO */}
+        {/* COLUNA ESQUERDA + CENTRAL (FORMULÁRIOS) */}
         <div className="lg:col-span-2 space-y-3">
           
           <section className="bg-white rounded-[1.5rem] p-2.5 border border-gray-100 shadow-sm">
@@ -132,9 +152,23 @@ export default function MinhaContaPage() {
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
-              <div className="space-y-0.5 md:col-span-2">
+              {/* NOME COMPLETO */}
+              <div className="space-y-0.5 md:col-span-1">
                 <label className="text-[9px] font-bold text-gray-400 uppercase ml-1">Nome Completo</label>
                 <input type="text" value={nome} className="w-full px-3 py-2 bg-gray-50 border-transparent rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all" onChange={(e) => setNome(e.target.value)} />
+              </div>
+
+              {/* ESTADO CIVIL (AO LADO DO NOME) */}
+              <div className="space-y-0.5">
+                <label className="text-[9px] font-bold text-gray-400 uppercase ml-1">Estado Civil</label>
+                <select value={estadoCivil} className="w-full px-3 py-2 bg-gray-50 border-transparent rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all" onChange={(e) => setEstadoCivil(e.target.value)}>
+                  <option value=""></option>
+                  <option value="solteiro">Solteiro(a)</option>
+                  <option value="casado">Casado(a)</option>
+                  <option value="uniao_estavel">União Estável</option>
+                  <option value="divorciado">Divorciado(a)</option>
+                  <option value="viuvo">Viúvo(a)</option>
+                </select>
               </div>
 
               <div className="space-y-0.5">
@@ -229,15 +263,77 @@ export default function MinhaContaPage() {
           </div>
 
           <button 
-            onClick={handleUpdate} 
-            disabled={updating} 
-            className="w-full bg-gray-900 text-white py-4 rounded-[1.5rem] hover:bg-black transition-all font-bold text-sm shadow-xl flex items-center justify-center gap-2 active:scale-90 disabled:opacity-50"
+            onClick={() => setShowPassModal(true)}
+            className="w-full bg-orange-500 text-white py-4 rounded-[1.5rem] hover:bg-orange-600 transition-all font-bold text-sm shadow-xl flex items-center justify-center gap-2 active:scale-95"
           >
-            <Save size={18} /> {updating ? "Salvando..." : "Salvar Dados"}
+            <KeyRound size={18} /> Alterar senha de acesso
           </button>
         </div>
-
       </div>
+
+      {/* BOTÃO SALVAR DADOS - REPOSICIONADO PARA OCUPAR TODA A LARGURA DA PÁGINA */}
+      <button 
+        onClick={handleUpdate} 
+        disabled={updating} 
+        className="w-full bg-gray-900 text-white py-2 rounded-[1.5rem] hover:bg-black transition-all font-bold text-base shadow-2xl flex items-center justify-center gap-3 active:scale-[0.99] disabled:opacity-50 mt-3"
+      >
+        <Save size={20} /> {updating ? "Sincronizando..." : "Salvar todas as alterações do perfil"}
+      </button>
+
+      {/* MODAL DE ALTERAÇÃO DE SENHA */}
+      {showPassModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <button onClick={() => setShowPassModal(false)} className="absolute right-6 top-6 text-gray-400 hover:text-gray-900">
+              <X size={20} />
+            </button>
+
+            <div className="text-center mb-6">
+              <div className="bg-orange-50 w-12 h-12 rounded-2xl flex items-center justify-center text-orange-500 mx-auto mb-4">
+                <KeyRound size={24} />
+              </div>
+              <h2 className="text-xl font-black text-gray-900 tracking-tight">Nova Senha</h2>
+              <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-1">Atualize sua segurança</p>
+            </div>
+
+            <form onSubmit={handlePasswordReset} className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Nova Senha</label>
+                <div className="relative">
+                  <input 
+                    type={showPass ? "text" : "password"} 
+                    value={newPassword}
+                    required
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full pl-4 pr-10 py-3 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-orange-100 outline-none"
+                  />
+                  <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Confirmar Nova Senha</label>
+                <input 
+                  type={showPass ? "text" : "password"} 
+                  value={confirmPassword}
+                  required
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-orange-100 outline-none"
+                />
+              </div>
+
+              <button 
+                disabled={passLoading}
+                className="w-full bg-orange-500 text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-orange-100 hover:bg-orange-600 transition-all disabled:opacity-50 mt-4"
+              >
+                {passLoading ? "Atualizando..." : "Confirmar Alteração"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

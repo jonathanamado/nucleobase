@@ -35,14 +35,14 @@ export function Header() {
   return (
     <header className="w-full border-b border-gray-200 bg-white sticky top-0 z-50">
       {/* AJUSTE CHAVE: Mudamos para max-w-7xl para igualar ao corpo da página */}
-      <div className="max-w-7xl mx-auto px-8 h-20 flex items-center justify-between">
+      <div className="w-full px-10 h-20 flex items-center justify-between">
         
         {/* BLOCO DA LOGO: 
             Agora você ajusta apenas o -ml-X. 
             Como o container está alinhado com o main, 
             um valor pequeno como -ml-4 ou -ml-6 já deve alinhar com a Sidebar.
         */}
-        <div className="flex items-center flex-shrink-0 min-w-fit -ml-11"> 
+        <div className="flex items-center flex-shrink-0 min-w-fit"> 
           <div className="flex-shrink-0">
              <a href="/" className="block hover:opacity-90 transition">
                <img 

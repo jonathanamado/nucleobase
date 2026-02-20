@@ -60,7 +60,7 @@ export default function SobreNucleobase() {
         {/* NARRATIVA PRINCIPAL */}
         <div className="lg:col-span-7 text-gray-700 text-lg leading-[1.8]">
           <p className="mb-8">
-            A Nucleobase nasceu de uma necessidade real tendo sua implantação digital no ano de 2025, quando a plataforma foi ao "ar". O que começou como uma ferramenta de controle pessoal, 
+            A Nucleobase nasceu de uma necessidade real tendo sua implantação digital no ano de 2025. O que começou como uma ferramenta de controle pessoal, 
             lapidada pelo tempo e demanda deste nicho, evoluiu para uma plataforma robusta, 
             focada em levar clareza e praticidade às pessoas.
           </p>

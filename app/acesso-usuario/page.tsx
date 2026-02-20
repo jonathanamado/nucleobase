@@ -2,7 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { UserCog, Rocket, ShieldCheck, ArrowRight, Lock, CheckCircle2, LogOut } from "lucide-react";
+import { 
+  UserCog, Rocket, ShieldCheck, ArrowRight, Lock, 
+  CheckCircle2, LogOut, X, Mail, LifeBuoy 
+} from "lucide-react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,6 +18,11 @@ export default function AcessoUsuarioPage() {
   const [loading, setLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
+  
+  // Estado para o Modal de "Esqueci a Senha"
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -53,21 +61,34 @@ export default function AcessoUsuarioPage() {
     window.location.reload();
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: "https://nucleobase.app/reset-password",
+    });
+
+    if (error) {
+      alert("Erro: " + error.message);
+    } else {
+      alert("Link de recuperação enviado com sucesso!");
+      setShowForgotModal(false);
+    }
+    setResetLoading(false);
+  };
+
   return (
-    /* Mantendo a estrutura w-full, adicionando h-screen e overflow-hidden para travar a rolagem */
-    <div className="w-full h-screen overflow-hidden">
+    <div className="w-full h-screen overflow-hidden relative">
       {/* Cabeçalho */}
-      <div className="mb-6 mt-0 flex justify-between items-start">
+      <div className="mb-6 mt-0 flex justify-between items-start p-0 px-4">
         <div className="text-left">
           <h1 className="text-4xl font-bold text-gray-900 mb-2 tracking-tight">
             {isLoggedIn ? `Olá, ${userName}!` : "Área do Usuário"}
           </h1>
 
           <p className="text-base text-gray-600 max-w-2xl leading-tight mb-8">
-            <span className="font-bold">Seja bem vindo(a) ao Painel do Usuário no "App da Núcleo Base".</span> 
-            {" "}Acreditamos no lançamento consciente. Embora o input de dados mantenha a autonomia do usuário, 
-            todo o ecossistema da nucleobase.app foi desenhado para eliminar a confusão e garantir 
-            que você tenha controle total sobre o seu patrimônio, seja ele pessoal ou familiar.
+            <span className="font-bold text-gray-900">Seja bem vindo(a)</span> 
+            {" "}ao Painel para acesso à Plataforma e ao seu Perfil cadastrado.
           </p>
 
           <p className="text-base text-gray-600 max-w-2xl font-bold leading-tight">
@@ -77,7 +98,7 @@ export default function AcessoUsuarioPage() {
                 {" para acessar o APP e gerenciar seus lançamentos."}
               </>
             ) : (
-              "Faça login para acessar sua plataforma e gerenciar seus dados financeiros."
+              "Faça login para acessar o APP e gerenciar seus dados financeiros."
             )}
           </p>
         </div>
@@ -89,8 +110,8 @@ export default function AcessoUsuarioPage() {
         )}
       </div>
 
-      {/* Grid com Altura Equalizada - Mantendo min-h-[280px] conforme original */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 w-full max-w-6xl items-stretch">
+      {/* Grid Principal */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 w-full max-w-6xl items-stretch px-4">
         
         {/* CARD 1: ACESSO OU LOGIN */}
         <div className="min-h-[280px] flex">
@@ -103,8 +124,8 @@ export default function AcessoUsuarioPage() {
                 <Rocket size={28} />
               </div>
               <h3 className="text-lg font-bold text-white mb-1">Acessar APP</h3>
-              <p className="text-orange-50 text-xs mb-4">Acesso liberado. Clique para atualizar seu Controle Financeiro.</p>
-              <div className="mt-auto flex items-center justify-center gap-2 bg-white text-orange-500 py-2.5 rounded-xl font-bold shadow-md text-sm">
+              <p className="text-orange-50 text-xs mb-4">Acesso liberado. Clique aqui para atualizar o seu Controle Financeiro.</p>
+              <div className="mt-auto flex items-center justify-center gap-2 bg-white text-orange-500 h-[52px] rounded-xl font-bold shadow-md text-sm">
                 Entrar Agora <ArrowRight size={16} />
               </div>
             </a>
@@ -115,7 +136,7 @@ export default function AcessoUsuarioPage() {
               </div>
               <form onSubmit={handleLogin} className="flex flex-col flex-1">
                 <h3 className="text-lg font-bold text-gray-900 mb-3">Acesso Rápido</h3>
-                <div className="space-y-2 mb-4">
+                <div className="space-y-2 mb-2">
                   <input 
                     type="email" 
                     placeholder="E-mail" 
@@ -131,9 +152,18 @@ export default function AcessoUsuarioPage() {
                     onChange={(e) => setPassword(e.target.value)}
                   />
                 </div>
+                
+                <button 
+                  type="button"
+                  onClick={() => setShowForgotModal(true)}
+                  className="text-[10px] text-gray-400 font-bold hover:text-orange-500 mb-4 transition-colors"
+                >
+                  Esqueceu a senha?
+                </button>
+
                 <button 
                   disabled={loading}
-                  className="mt-auto w-full bg-orange-500 text-white py-2.5 rounded-xl font-bold hover:bg-orange-600 transition shadow-lg text-xs disabled:opacity-50"
+                  className="mt-auto w-full bg-orange-500 text-white h-[52px] rounded-xl font-bold hover:bg-orange-600 transition shadow-lg text-xs disabled:opacity-50"
                 >
                   {loading ? "Entrando..." : "Acessar Plataforma"}
                 </button>
@@ -152,10 +182,11 @@ export default function AcessoUsuarioPage() {
               <UserCog size={28} />
             </div>
             <h3 className="text-lg font-bold text-gray-900 mb-1">Meu Perfil</h3>
-            <p className="text-gray-500 text-xs mb-3 leading-relaxed">Mantenha seu cadastro atualizado e explore as ferramentas e insights da Núcleo.</p>
+            <p className="text-gray-500 text-xs mb-3 leading-relaxed">Mantenha seu cadastro atualizado e explore as ferramentas e insights.</p>
             
-            <div className="mt-auto flex items-center gap-1.5 text-green-600 bg-green-50 px-3 py-1 rounded-full text-[10px] font-semibold">
-              <CheckCircle2 size={12} /> 
+            {/* PADRONIZADO: Mesmo py-2.5 e rounded-xl do botão de login */}
+            <div className={`mt-auto w-full flex items-center justify-center gap-2 h-[52px] rounded-xl font-bold text-xs transition-colors ${isLoggedIn ? 'bg-green-50 text-green-600' : 'bg-gray-50 text-gray-400'}`}>
+              <CheckCircle2 size={14} /> 
               {isLoggedIn ? "Perfil Ativo" : "Aguardando Login"}
             </div>
           </a>
@@ -173,18 +204,64 @@ export default function AcessoUsuarioPage() {
             <h3 className="text-lg font-bold text-gray-900 mb-1">Planos</h3>
             <p className="text-gray-500 text-xs mb-4 leading-relaxed">Entenda seu plano e veja as melhores opções adaptadas ao seu estilo.</p>
             
-            <div className="mt-auto w-full space-y-1.5">
+            {/* PADRONIZADO: Container com py-2.5 para manter altura idêntica ao botão */}
+            <div className="mt-auto w-full bg-gray-50 px-4 h-[52px] rounded-xl flex flex-col justify-center space-y-1.5">
               <div className="flex justify-between text-[9px] font-bold text-gray-400 uppercase tracking-tight">
                 <span>Uso</span>
-                <span>{isLoggedIn ? "Grátis" : "---"}</span>
+                <span className={isLoggedIn ? "text-orange-500" : ""}>{isLoggedIn ? "Grátis" : "---"}</span>
               </div>
-              <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
                 <div className={`h-full bg-orange-500 transition-all duration-1000 ${isLoggedIn ? 'w-[15%]' : 'w-0'}`}></div>
               </div>
             </div>
           </a>
         </div>
       </div>
+
+      {/* MODAL DE RECUPERAÇÃO */}
+      {showForgotModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
+            <button 
+              onClick={() => setShowForgotModal(false)}
+              className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-colors"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex flex-col items-center text-center">
+              <div className="bg-blue-50 p-4 rounded-2xl text-blue-600 mb-4">
+                <LifeBuoy size={32} />
+              </div>
+              <h2 className="text-xl font-black text-gray-900 tracking-tight mb-2">Recuperar Acesso</h2>
+              <p className="text-gray-500 text-xs mb-6">
+                Informe seu e-mail cadastrado para receber um link de redefinição de senha.
+              </p>
+
+              <form onSubmit={handleForgotPassword} className="w-full space-y-4">
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                  <input 
+                    type="email"
+                    required
+                    placeholder="seu@email.com"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-blue-100 outline-none text-sm"
+                  />
+                </div>
+                <button 
+                  disabled={resetLoading}
+                  className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-100 text-xs flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {resetLoading ? "Enviando..." : "Enviar Link de Acesso"}
+                  <ArrowRight size={16} />
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

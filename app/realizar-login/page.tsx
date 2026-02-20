@@ -174,14 +174,6 @@ export default function RealizarLoginPage() {
         </div>
       </div>
 
-      <footer className="mt-12 flex flex-col items-center gap-2 text-gray-300 text-[9px] font-black uppercase tracking-[0.3em]">
-        <p>© 2026 NUCLEOBASE</p>
-        <div className="flex items-center gap-4">
-          <span className="hover:text-gray-400 transition-colors cursor-default">Privacidade</span>
-          <span className="h-1 w-1 bg-gray-200 rounded-full"></span>
-          <span className="hover:text-gray-400 transition-colors cursor-default">Termos</span>
-        </div>
-      </footer>
     </div>
   );
 }

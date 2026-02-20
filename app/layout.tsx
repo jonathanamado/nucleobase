@@ -52,10 +52,10 @@ export default function RootLayout({
         
         <Header />
 
-        <main className="flex-1 flex flex-col md:flex-row gap-8 px-8 py-6 max-w-7xl mx-auto w-full items-stretch overflow-hidden">
+        <main className="flex-1 flex flex-col md:flex-row gap-0 w-full items-stretch overflow-hidden">
           <Sidebar />
           
-          <section className={`flex-1 pr-2 ${deveTravarScroll ? 'overflow-hidden' : 'overflow-y-auto'} scroll-smooth`}>
+          <section className={`flex-1 px-10 py-6 ${deveTravarScroll ? 'overflow-hidden' : 'overflow-y-auto'} scroll-smooth`}>
             {/* CONTEÚDO DA PÁGINA */}
             <div className="min-h-[calc(100vh-200px)]">
               {children}
