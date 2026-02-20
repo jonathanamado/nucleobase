@@ -17,7 +17,7 @@ export default function PaginaDePlanos() {
           <ShoppingCart size={55} className="text-blue-600 opacity-25 ml-4" strokeWidth={1.5} />
         </h1>
         <h2 className="text-gray-500 text-lg max-w-2xl">
-          Escolha o nível de controle que sua jornada financeira exige. Transparência total e flexibilidade.
+          Escolha o nível de controle que sua jornada financeira precisa.
         </h2>
       </div>
 

@@ -66,7 +66,7 @@ function CheckoutContent() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10 animate-in fade-in duration-700">
-      <Link href="/assinatura" className="inline-flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors mb-8 group">
+      <Link href="/planos" className="inline-flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors mb-8 group">
         <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
         <span className="text-sm font-bold uppercase tracking-widest">Alterar Plano</span>
       </Link>
