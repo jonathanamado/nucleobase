@@ -1,12 +1,18 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-01-27.acacia' as any,
-});
-
 export async function POST(req: Request) {
+  // Inicializamos o Stripe dentro do POST para evitar erros durante o Build da Vercel
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+    apiVersion: '2025-01-27.acacia' as any, // Mantive sua versão, mas agora protegida
+  });
+
   try {
+    // Verificação de segurança da chave
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error("STRIPE_SECRET_KEY não configurada nas variáveis de ambiente.");
+    }
+
     const formData = await req.formData();
     const lookup_key = formData.get('lookup_key') as string;
 
@@ -36,7 +42,6 @@ export async function POST(req: Request) {
       ],
       mode: 'subscription', 
       
-      // AQUI ESTÁ O AJUSTE: Enviando o nome do plano para o Webhook ler depois
       metadata: {
         plan_name: lookup_key, 
       },
@@ -51,7 +56,7 @@ export async function POST(req: Request) {
   } catch (err: any) {
     console.error("Erro crítico na rota Stripe:", err.message);
     return NextResponse.json(
-      { error: "Erro interno ao processar pagamento." }, 
+      { error: err.message || "Erro interno ao processar pagamento." }, 
       { status: 500 }
     );
   }
