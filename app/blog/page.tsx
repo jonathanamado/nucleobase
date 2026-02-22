@@ -11,6 +11,7 @@ import {
   X, 
   CheckCircle2, 
   Loader2,
+  Instagram
 } from "lucide-react";
 import { supabase } from "@/lib/supabase"; 
 
@@ -148,13 +149,24 @@ export default function BlogDaNucleo() {
         </div>
       </div>
 
-      {/* LINHA DIVISÓRIA MIGRADA */}
-      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
-        Gestão do Conhecimento <div className="h-px bg-gray-300 flex-1"></div>
+      {/* LINHA DIVISÓRIA */}
+      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4">
+        Acompanhe e participe <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
+      {/* INTRODUÇÃO AOS DEPOIMENTOS */}
+      <div className="mb-6 text-center md:text-left px-2">
+        <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-0">
+          Experiências que <span className="text-blue-600">transformam</span> resultados.
+        </h3>
+        <p className="text-gray-500 text-sm md:text-base font-medium leading-relaxed max-w-3xl">
+          Conheça quem vive a Núcleo e prepare-se pra se apaixonar 
+          por uma nova forma de gerir seus controles:
+        </p>
+      </div>
+
       {/* GRID DE POSTS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-24">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-20">
         {posts.map((post) => (
           <div key={post.id} className="group bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm hover:shadow-xl hover:shadow-blue-50/50 transition-all flex flex-col">
             <div className="flex items-start justify-between mb-8">
@@ -184,7 +196,7 @@ export default function BlogDaNucleo() {
       </div>
 
       {/* FOOTER CTA */}
-      <div className="bg-gray-50 rounded-[3rem] p-12 text-center border border-gray-100 relative overflow-hidden">
+      <div className="bg-gray-50 rounded-[3rem] p-2 text-center border border-gray-100 relative overflow-hidden">
         <PenTool size={100} className="absolute -top-5 -left-5 text-blue-100 opacity-50 -rotate-12" />
         <h3 className="text-3xl font-bold text-gray-900 mb-4">Sua expertise na Nucleobase.</h3>
         <p className="text-gray-500 mb-8 max-w-xl mx-auto font-medium">
@@ -194,6 +206,46 @@ export default function BlogDaNucleo() {
           Criar artigo agora
         </a>
       </div>
+
+      {/* BANNER INSTAGRAM - 3 COLUNAS */}
+      <a 
+        href="https://instagram.com/nucleobase.app" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="block w-full bg-gradient-to-r from-gray-50 to-white border border-gray-100 rounded-[2rem] p-2 mt-22 mb-16 group hover:shadow-lg hover:shadow-blue-50/50 transition-all overflow-hidden relative"
+      >
+        {/* Elemento Decorativo de Fundo */}
+        <Instagram size={150} className="absolute -right-10 -bottom-10 text-blue-500 opacity-[0.03] group-hover:rotate-12 transition-transform duration-700" />
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center relative z-10">
+          
+          {/* Coluna 1: O Convite */}
+          <div className="flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 py-2 md:py-0 text-center">
+            <div className="flex items-center gap-2 text-blue-600 mb-1">
+              <Instagram size={16} strokeWidth={2.5} />
+              <span className="text-[9px] font-black uppercase tracking-[0.2em]">Social Feed Núcleo</span>
+            </div>
+            <h4 className="text-lg font-bold text-gray-900 leading-tight">
+              Mais que um <span className="text-blue-600">dashboard.</span>
+            </h4>
+          </div>
+
+          {/* Coluna 2: O Estímulo */}
+          <div className="flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 py-2 md:py-0 md:px-4 text-center">
+            <p className="text-[12px] text-gray-500 font-medium leading-tight max-w-[280px]">
+              Bastidores, insights rápidos e a rotina de quem opera no <span className="text-gray-900 font-bold">próximo nível</span>.
+            </p>
+          </div>
+
+          {/* Coluna 3: A Ação */}
+          <div className="flex flex-col items-center justify-center py-2 md:py-0 text-center gap-2">
+            <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none">Conecte-se agora</p>
+            <div className="flex items-center gap-2 px-5 py-2 bg-gray-900 text-white rounded-full font-bold text-[9px] uppercase tracking-widest group-hover:bg-blue-600 transition-colors shadow-md">
+              Seguir no Instagram <ArrowRight size={12} />
+            </div>
+          </div>
+        </div>
+      </a>
 
     </div>
   );

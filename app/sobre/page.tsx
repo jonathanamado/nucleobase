@@ -120,8 +120,8 @@ export default function SobreNucleobase() {
                 </div>
               </div>
 
-              <p className="text-[11px] text-blue-50 leading-relaxed opacity-90">
-                Cada lançamento consciente aproxima você do <span className="font-bold text-white italic underline underline-offset-2">Próximo Nível</span>.
+              <p className="text-[12px] text-blue-50 leading-relaxed opacity-90 text-center">
+                Cada lançamento aproxima você do <span className="font-bold text-white underline underline-offset-2">próximo nível</span>.
               </p>
             </div>
           </div>

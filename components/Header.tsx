@@ -12,20 +12,59 @@ const supabase = createClient(
 
 export function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userProfile, setUserProfile] = useState<{ nome: string; avatar: string | null }>({
+    nome: "",
+    avatar: null,
+  });
   const pathname = usePathname();
   const router = useRouter();
+
+  // Função para buscar dados do perfil
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("nome_completo, avatar_url")
+      .eq("id", userId)
+      .single();
+
+    if (data) {
+      setUserProfile({
+        nome: data.nome_completo || "",
+        avatar: data.avatar_url || null,
+      });
+    }
+  };
 
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setIsLoggedIn(!!session);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      }
     };
+
     checkSession();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setIsLoggedIn(!!session);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      } else {
+        setUserProfile({ nome: "", avatar: null });
+      }
     });
+
     return () => subscription.unsubscribe();
   }, []);
+
+  // Função para pegar as iniciais do nome
+  const getInitials = (name: string) => {
+    if (!name) return "NB"; // Fallback para Nucleo Base
+    const parts = name.trim().split(" ");
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -34,14 +73,9 @@ export function Header() {
 
   return (
     <header className="w-full border-b border-gray-200 bg-white sticky top-0 z-50">
-      {/* AJUSTE CHAVE: Mudamos para max-w-7xl para igualar ao corpo da página */}
       <div className="w-full px-10 h-20 flex items-center justify-between">
         
-        {/* BLOCO DA LOGO: 
-            Agora você ajusta apenas o -ml-X. 
-            Como o container está alinhado com o main, 
-            um valor pequeno como -ml-4 ou -ml-6 já deve alinhar com a Sidebar.
-        */}
+        {/* BLOCO DA LOGO */}
         <div className="flex items-center flex-shrink-0 min-w-fit"> 
           <div className="flex-shrink-0">
              <a href="/" className="block hover:opacity-90 transition">
@@ -91,10 +125,29 @@ export function Header() {
                   <Home size={18} />
                 </a>
               )}
+              
               <a href="/acesso-usuario" className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition font-bold shadow-sm">
                 <LayoutDashboard size={18} />
                 Acessar Plataforma
               </a>
+
+              {/* BOTÃO DO PERFIL (FOTO OU INICIAIS) */}
+              <button 
+                onClick={() => router.push("/minha-conta")}
+                className="ml-1 flex items-center justify-center w-10 h-10 rounded-full border-2 border-gray-100 hover:border-blue-500 transition-all overflow-hidden bg-gray-50"
+              >
+                {userProfile.avatar ? (
+                  <img 
+                    src={userProfile.avatar} 
+                    alt="Perfil" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-xs font-black text-blue-600 tracking-tighter">
+                    {getInitials(userProfile.nome)}
+                  </span>
+                )}
+              </button>
             </div>
           )}
         </nav>

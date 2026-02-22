@@ -9,7 +9,8 @@ import {
   FileWarning, 
   Settings, 
   ArrowRight,
-  ShieldCheck
+  ShieldCheck,
+  Lock // Adicionado para o novo card
 } from "lucide-react";
 
 export default function SuportePage() {
@@ -20,7 +21,7 @@ export default function SuportePage() {
       title: "Base de Conhecimento",
       desc: "Tutoriais detalhados sobre fluxos de caixa, conciliação e dashboards.",
       icon: <BookOpen size={24} />,
-      link: "/blog", // Reutilizando a estrutura de blog/conteúdo
+      link: "/blog",
       color: "text-blue-600",
       bg: "bg-blue-50"
     },
@@ -39,11 +40,19 @@ export default function SuportePage() {
       link: "#",
       color: "text-amber-600",
       bg: "bg-amber-50"
+    },
+    {
+      title: "Segurança e Dados",
+      desc: "Entenda como protegemos suas informações e conformidade LGPD.",
+      icon: <Lock size={24} />,
+      link: "#",
+      color: "text-emerald-600",
+      bg: "bg-emerald-50"
     }
   ];
 
   return (
-    <div className="w-full max-w-5xl animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
+    <div className="w-full max-w-6xl animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
       {/* HEADER DA PÁGINA */}
       <div className="mb-12 mt-2">
         <div className="flex items-center gap-3 text-blue-600 mb-4">
@@ -58,19 +67,19 @@ export default function SuportePage() {
         </p>
       </div>
 
-      {/* GRIDS DE ATALHOS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+      {/* GRIDS DE ATALHOS - AJUSTADO PARA 4 COLUNAS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
         {centrais.map((item, i) => (
           <a 
             key={i} 
             href={item.link}
-            className="group bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+            className="group bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
           >
             <div className={`${item.bg} ${item.color} w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
               {item.icon}
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">{item.title}</h3>
-            <p className="text-sm text-gray-500 leading-relaxed mb-6">
+            <p className="text-sm text-gray-500 leading-relaxed mb-6 flex-1">
               {item.desc}
             </p>
             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-600">
@@ -101,7 +110,6 @@ export default function SuportePage() {
               Iniciar Chat Agora
             </a>
           </div>
-          {/* Círculos decorativos */}
           <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all"></div>
         </div>
 

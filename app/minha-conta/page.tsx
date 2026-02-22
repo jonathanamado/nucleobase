@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { 
-  Save, MapPin, Heart, LogOut, Mail, UserCircle, LayoutDashboard, KeyRound, Eye, EyeOff, X 
+  Save, MapPin, Heart, LogOut, Mail, UserCircle, LayoutDashboard, KeyRound, Eye, EyeOff, X, Camera
 } from "lucide-react";
 
 const supabase = createClient(
@@ -24,6 +24,10 @@ export default function MinhaContaPage() {
   const [usoApp, setUsoApp] = useState("");
   const [objetivoFinanceiro, setObjetivoFinanceiro] = useState("");
   
+  // Estados para Foto de Perfil
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
@@ -60,6 +64,7 @@ export default function MinhaContaPage() {
           setEstado(profile.estado || "");
           setUsoApp(profile.uso_app || "");
           setObjetivoFinanceiro(profile.objetivo_financeiro || "");
+          setAvatarUrl(profile.avatar_url || null);
         }
       } else { window.location.href = "/"; }
       setLoading(false);
@@ -67,29 +72,73 @@ export default function MinhaContaPage() {
     carregarDados();
   }, []);
 
-  const handleUpdate = async () => {
-    setUpdating(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { error } = await supabase.from("profiles").upsert({ 
-        id: user.id,
-        nome_completo: nome,
-        telefone: telefone,
-        profissao: profissao,
-        data_nascimento: dataNascimento,
-        genero: genero,
-        estado_civil: estadoCivil,
-        cidade: cidade,
-        estado: estado,
-        uso_app: usoApp,
-        objetivo_financeiro: objetivoFinanceiro,
-        updated_at: new Date()
-      });
-      if (error) alert("Erro: " + error.message);
-      else alert("Dados atualizados com sucesso!");
+  const handleUploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploadingAvatar(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // Upload para o bucket 'avatars'
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+
+      // Atualiza o perfil com a nova URL da foto
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl(publicUrl);
+    } catch (error: any) {
+      alert("Erro ao processar imagem: " + error.message);
+    } finally {
+      setUploadingAvatar(false);
     }
-    setUpdating(false);
   };
+
+  const handleUpdate = async () => {
+      setUpdating(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // Tratamento para evitar erro de sintaxe de data no Postgres
+        // Se dataNascimento for uma string vazia, enviamos null
+        const dataFormatada = dataNascimento === "" ? null : dataNascimento;
+
+        const { error } = await supabase.from("profiles").upsert({ 
+          id: user.id,
+          nome_completo: nome,
+          telefone: telefone,
+          profissao: profissao,
+          data_nascimento: dataFormatada, // Variável tratada aqui
+          genero: genero,
+          estado_civil: estadoCivil,
+          cidade: cidade,
+          estado: estado,
+          uso_app: usoApp,
+          objetivo_financeiro: objetivoFinanceiro,
+          updated_at: new Date()
+        });
+
+        if (error) alert("Erro: " + error.message);
+        else alert("Dados atualizados com sucesso!");
+      }
+      setUpdating(false);
+    };
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,15 +168,35 @@ export default function MinhaContaPage() {
   return (
     <div className="w-full max-w-6xl mx-auto px-3 pt-0 pb-20 min-h-screen flex flex-col select-none relative bg-white">
       
-      {/* HEADER */}
-      <div className="flex items-center justify-between mb-2 border-b border-gray-100 pb-0">
-        <div className="flex items-baseline gap-4">
-          <h1 className="text-2xl font-black text-gray-900 tracking-tighter">
-            Perfil<span className="text-blue-600">.</span>
-          </h1>
-          <p className="text-xs text-gray-400 font-medium">
-            {nome ? nome.trim().split(' ')[0] : "Usuário"} (Configurações da conta)
-          </p>
+      {/* HEADER AJUSTADO COM AVATAR */}
+      <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-2">
+        <div className="flex items-center gap-4">
+          {/* CONTAINER DO AVATAR */}
+          <div className="relative group">
+            <div className={`w-14 h-14 rounded-2xl bg-gray-50 border-2 border-white shadow-sm overflow-hidden flex items-center justify-center transition-all ${uploadingAvatar ? 'opacity-40' : 'opacity-100'}`}>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Foto de Perfil" className="w-full h-full object-cover" />
+              ) : (
+                <UserCircle size={28} className="text-gray-300" />
+              )}
+            </div>
+            <label className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 text-white opacity-0 group-hover:opacity-100 rounded-2xl cursor-pointer transition-all duration-200">
+              <Camera size={14} />
+              <span className="text-[8px] font-black uppercase mt-1">Alterar</span>
+              <input type="file" className="hidden" accept="image/*" onChange={handleUploadAvatar} disabled={uploadingAvatar} />
+            </label>
+            {uploadingAvatar && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col">
+            <h1 className="text-2xl font-black text-gray-900 tracking-tighter leading-none">
+              Perfil<span className="text-blue-600">.</span>
+            </h1>
+          </div>
         </div>
         
         <div className="flex items-center gap-2">
@@ -140,25 +209,18 @@ export default function MinhaContaPage() {
         </div>
       </div>
 
-      {/* GRID PRINCIPAL */}
+      {/* GRID PRINCIPAL - MANTIDO EXATAMENTE COMO O ORIGINAL */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-        
-        {/* COLUNA ESQUERDA + CENTRAL (FORMULÁRIOS) */}
         <div className="lg:col-span-2 space-y-3">
-          
           <section className="bg-white rounded-[1.5rem] p-2.5 border border-gray-100 shadow-sm">
             <h3 className="text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-2 mb-4">
               <UserCircle size={14}/> Dados Fundamentais
             </h3>
-            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
-              {/* NOME COMPLETO */}
               <div className="space-y-0.5 md:col-span-1">
                 <label className="text-[9px] font-bold text-gray-400 uppercase ml-1">Nome Completo</label>
                 <input type="text" value={nome} className="w-full px-3 py-2 bg-gray-50 border-transparent rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all" onChange={(e) => setNome(e.target.value)} />
               </div>
-
-              {/* ESTADO CIVIL (AO LADO DO NOME) */}
               <div className="space-y-0.5">
                 <label className="text-[9px] font-bold text-gray-400 uppercase ml-1">Estado Civil</label>
                 <select value={estadoCivil} className="w-full px-3 py-2 bg-gray-50 border-transparent rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all" onChange={(e) => setEstadoCivil(e.target.value)}>
@@ -170,24 +232,20 @@ export default function MinhaContaPage() {
                   <option value="viuvo">Viúvo(a)</option>
                 </select>
               </div>
-
               <div className="space-y-0.5">
                 <label className="text-[9px] font-bold text-gray-400 uppercase ml-1">E-mail</label>
                 <div className="flex items-center px-3 py-2 bg-gray-100/50 rounded-xl text-xs text-gray-500 border border-gray-100 italic">
                   <Mail size={12} className="mr-2" /> {email}
                 </div>
               </div>
-
               <div className="space-y-0.5">
                 <label className="text-[9px] font-bold text-gray-400 uppercase ml-1">Telefone</label>
                 <input type="text" value={telefone} placeholder="(00) 00000-0000" className="w-full px-3 py-2 bg-gray-50 border-transparent rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all" onChange={(e) => setTelefone(aplicarMascaraTelefone(e.target.value))} />
               </div>
-
               <div className="space-y-0.5">
                 <label className="text-[9px] font-bold text-gray-400 uppercase ml-1">Nascimento</label>
                 <input type="date" value={dataNascimento} className="w-full px-3 py-2 bg-gray-50 border-transparent rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all" onChange={(e) => setDataNascimento(e.target.value)} />
               </div>
-
               <div className="space-y-0.5">
                 <label className="text-[9px] font-bold text-gray-400 uppercase ml-1">Gênero</label>
                 <select value={genero} className="w-full px-3 py-2 bg-gray-50 border-transparent rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all" onChange={(e) => setGenero(e.target.value)}>
@@ -224,13 +282,11 @@ export default function MinhaContaPage() {
           </section>
         </div>
 
-        {/* COLUNA DIREITA */}
         <div className="lg:col-span-1 flex flex-col gap-4">
           <div className="bg-blue-600 rounded-[1.5rem] p-4 text-white shadow-lg shadow-blue-100">
             <h3 className="text-[10px] font-black text-blue-100 uppercase tracking-widest flex items-center gap-2 mb-4">
               <Heart size={14}/> Preferências do App
             </h3>
-            
             <div className="space-y-5">
               <div className="space-y-1">
                 <label className="text-[9px] font-bold text-blue-200 uppercase ml-1">Perfil de Uso</label>
@@ -242,7 +298,6 @@ export default function MinhaContaPage() {
                   <option value="equipe" className="text-gray-900">Gestão de Equipes</option>
                 </select>
               </div>
-
               <div className="space-y-1">
                 <label className="text-[9px] font-bold text-blue-200 uppercase ml-1">Foco Financeiro</label>
                 <select value={objetivoFinanceiro} className="w-full px-3 py-2.5 bg-blue-500/30 border-none rounded-xl text-sm outline-none focus:ring-2 focus:ring-white/20 text-white" onChange={(e) => setObjetivoFinanceiro(e.target.value)}>
@@ -254,86 +309,68 @@ export default function MinhaContaPage() {
                 </select>
               </div>
             </div>
-
             <div className="mt-7 p-4 bg-white/10 rounded-2xl border border-white/10">
               <p className="text-[11px] text-blue-100 leading-tight italic">
-                As preferências ajudam a nucleobase.app a personalizar suas experiências, sugestões e dashboards que adaptam-se ao seu estilo.
+                As preferências ajudam a nucleobase.app a personalizar suas experiências.
               </p>
             </div>
           </div>
 
-          <button 
-            onClick={() => setShowPassModal(true)}
-            className="w-full bg-orange-500 text-white py-4 rounded-[1.5rem] hover:bg-orange-600 transition-all font-bold text-sm shadow-xl flex items-center justify-center gap-2 active:scale-95"
-          >
+          <button onClick={() => setShowPassModal(true)} className="w-full bg-orange-500 text-white py-4 rounded-[1.5rem] hover:bg-orange-600 transition-all font-bold text-sm shadow-xl flex items-center justify-center gap-2 active:scale-95">
             <KeyRound size={18} /> Alterar senha de acesso
           </button>
         </div>
       </div>
 
-      {/* BOTÃO SALVAR DADOS - REPOSICIONADO PARA OCUPAR TODA A LARGURA DA PÁGINA */}
-      <button 
-        onClick={handleUpdate} 
-        disabled={updating} 
-        className="w-full bg-gray-900 text-white py-2 rounded-[1.5rem] hover:bg-black transition-all font-bold text-base shadow-2xl flex items-center justify-center gap-3 active:scale-[0.99] disabled:opacity-50 mt-3"
-      >
+      <button onClick={handleUpdate} disabled={updating} className="w-full bg-gray-900 text-white py-2 rounded-[1.5rem] hover:bg-black transition-all font-bold text-base shadow-2xl flex items-center justify-center gap-3 active:scale-[0.99] disabled:opacity-50 mt-3">
         <Save size={20} /> {updating ? "Sincronizando..." : "Salvar todas as alterações do perfil"}
       </button>
 
-      {/* MODAL DE ALTERAÇÃO DE SENHA */}
+      {/* MODAL DE SENHA AJUSTADO */}
       {showPassModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl relative animate-in zoom-in-95 duration-200">
             <button onClick={() => setShowPassModal(false)} className="absolute right-6 top-6 text-gray-400 hover:text-gray-900">
               <X size={20} />
             </button>
-
             <div className="text-center mb-6">
               <div className="bg-orange-50 w-12 h-12 rounded-2xl flex items-center justify-center text-orange-500 mx-auto mb-4">
                 <KeyRound size={24} />
               </div>
               <h2 className="text-xl font-black text-gray-900 tracking-tight">Nova Senha</h2>
-              <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-1">Atualize sua segurança</p>
             </div>
-
             <form onSubmit={handlePasswordReset} className="space-y-4">
+              
+              {/* CAMPO: NOVA SENHA */}
               <div className="space-y-1">
                 <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Nova Senha</label>
                 <div className="relative">
-                  <input 
-                    type={showPass ? "text" : "password"} 
-                    value={newPassword}
-                    required
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full pl-4 pr-10 py-3 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-orange-100 outline-none"
-                  />
+                  <input type={showPass ? "text" : "password"} value={newPassword} required onChange={(e) => setNewPassword(e.target.value)} className="w-full pl-4 pr-10 py-3 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-orange-100 outline-none" />
                   <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                     {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
               </div>
 
+              {/* CAMPO: CONFIRMAR NOVA SENHA (Ajustado com botão de olho) */}
               <div className="space-y-1">
                 <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Confirmar Nova Senha</label>
-                <input 
-                  type={showPass ? "text" : "password"} 
-                  value={confirmPassword}
-                  required
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-orange-100 outline-none"
-                />
+                <div className="relative">
+                  <input type={showPass ? "text" : "password"} value={confirmPassword} required onChange={(e) => setConfirmPassword(e.target.value)} className="w-full pl-4 pr-10 py-3 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-orange-100 outline-none" />
+                  <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
 
-              <button 
-                disabled={passLoading}
-                className="w-full bg-orange-500 text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-orange-100 hover:bg-orange-600 transition-all disabled:opacity-50 mt-4"
-              >
+              <button disabled={passLoading} className="w-full bg-orange-500 text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-orange-100 hover:bg-orange-600 transition-all disabled:opacity-50 mt-4">
                 {passLoading ? "Atualizando..." : "Confirmar Alteração"}
               </button>
             </form>
           </div>
         </div>
       )}
+
     </div>
   );
 }

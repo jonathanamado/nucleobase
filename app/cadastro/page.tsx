@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { ShieldCheck, Zap, Star, CheckCircle2, Globe } from "lucide-react";
+// Adicionado Eye e EyeOff na importação
+import { ShieldCheck, Zap, Star, CheckCircle2, Globe, Eye, EyeOff } from "lucide-react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,6 +15,8 @@ export default function CadastroPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  // Novo estado para visibilidade da senha
+  const [showPassword, setShowPassword] = useState(false);
 
   const enviarNotificacaoAdm = async (nomeNovo: string, emailNovo: string) => {
     try {
@@ -98,7 +101,6 @@ export default function CadastroPage() {
           </div>
         </div>
 
-        {/* Depoimento com a foto real alinhada com a lógica da página de depoimentos */}
         <div className="relative mt-5 z-10 p-6 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-sm max-w-sm mb-4">
             <div className="flex gap-1 mb-4">
                 {[...Array(5)].map((_, i) => <Star key={i} size={12} className="fill-blue-500 text-blue-500" />)}
@@ -107,7 +109,6 @@ export default function CadastroPage() {
               "Finalmente encontrei uma plataforma que simplifica o que era complexo. A visualização clara dos meus rendimentos me trouxe uma paz de espírito que eu não tinha com planilhas manuais."
             </p>
             <div className="flex items-center gap-3">
-                {/* Caminho da imagem atualizado para a estrutura de pastas do seu projeto */}
                 <img 
                     src="/depoimentos/a-silva.png" 
                     alt="A. Silva"
@@ -121,7 +122,7 @@ export default function CadastroPage() {
         </div>
       </div>
 
-      {/* LADO DIREITO: FORMULÁRIO (Topo Alinhado) */}
+      {/* LADO DIREITO: FORMULÁRIO */}
       <div className="flex-1 flex flex-col p-8 lg:px-16 lg:pt-8 bg-white overflow-hidden">
         <div className="w-full max-w-md mx-auto">
           
@@ -157,15 +158,25 @@ export default function CadastroPage() {
               />
             </div>
             
+            {/* CAMPO DE SENHA COM BOTÃO DE VISIBILIDADE */}
             <div className="group">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block group-focus-within:text-blue-600 transition-colors">Senha</label>
-              <input 
-                type="password" 
-                placeholder="••••••••" 
-                required 
-                className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 focus:ring-4 focus:ring-blue-50/50 transition-all text-sm font-medium" 
-                onChange={(e) => setPassword(e.target.value)} 
-              />
+              <div className="relative">
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  placeholder="••••••••" 
+                  required 
+                  className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 focus:ring-4 focus:ring-blue-50/50 transition-all text-sm font-medium pr-14" 
+                  onChange={(e) => setPassword(e.target.value)} 
+                />
+                <button 
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
             </div>
             
             <button 
