@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { 
   Zap, ArrowRight, Mail, Newspaper, ShieldCheck, 
   BarChart3, MessageSquare, HelpCircle, Lock, 
-  Users, Gift, X, Loader2, CheckCircle2, Star, Quote, Plus, FileWarning, ArrowUpRight
+  Users, Gift, X, Loader2, CheckCircle2, Star, Quote, Plus, FileWarning, ArrowUpRight,
+  LayoutDashboard
 } from "lucide-react";
 import { supabase } from "@/lib/supabase"; 
 
@@ -86,24 +87,47 @@ export function MainContent() {
           LAYOUT MOBILE (Otimizado para Telas Pequenas)
           ============================================================ */}
       <div className="block lg:hidden px-4 pb-20 space-y-8 animate-in fade-in duration-700">
-        <div className="mt-8">
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
-            Nucleobase<span className="text-blue-600">.APP</span>
-            <Zap size={24} className="text-blue-600 opacity-40" />
-          </h1>
-          <p className="text-gray-500 text-base font-medium mt-1">Organização financeira inteligente.</p>
-        </div>
+        
+        {/* HEADER E INTRODUÇÃO MOBILE */}
+        <div className="mt-8 space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
+              Nucleobase<span className="text-blue-600">.APP</span>
+              <Zap size={24} className="text-blue-600 opacity-40" />
+            </h1>
+            <p className="text-gray-500 text-base font-medium mt-1">Organização financeira inteligente.</p>
+          </div>
 
-        <div className="space-y-4">
-            <p className="text-gray-700 text-[15px] leading-relaxed">
-              Acreditamos que a verdadeira inteligência financeira nasce da clareza de dados. 
-              Ao eliminar a complexidade, permitimos que você foque no que importa.
+          {/* PRIMEIRO PARÁGRAFO: O QUE É A PLATAFORMA */}
+          <div className="space-y-4">
+            <p className="text-gray-700 text-[16px] leading-relaxed border-l-4 border-blue-600 pl-4">
+              A <span className="font-bold text-gray-900">Nucleobase</span> é o seu centro de comando financeiro. 
+              Diferente de planilhas complexas, traduzimos seu fluxo de caixa em inteligência estratégica, 
+              garantindo que cada centavo trabalhe para a construção do seu patrimônio com total privacidade.
             </p>
-            <Link href="/sobre" className="inline-flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
-                Clique aqui e saiba mais. <ArrowRight size={14} />
+            
+            {/* BOTÃO DE ACESSO DIRETO AO DASHBOARD */}
+            <Link href="/acesso-usuario" className="flex items-center justify-between w-full p-4 bg-gray-900 text-white rounded-2xl font-bold text-sm shadow-lg group active:scale-[0.98] transition-all">
+              <span>Acessar minha plataforma</span>
+              <div className="bg-blue-600 p-2 rounded-xl group-hover:bg-blue-500 transition-colors">
+                <LayoutDashboard size={18} />
+              </div>
             </Link>
+          </div>
+
+          {/* SEGUNDO PARÁGRAFO: O QUE ACREDITAMOS */}
+          <div className="space-y-3">
+            <p className="text-gray-600 text-[14px] leading-relaxed italic opacity-80">
+              Acreditamos que a verdadeira inteligência financeira nasce da clareza de dados. 
+              Ao eliminar a complexidade, permitimos que você foque no que importa: a sua segurança e o seu futuro.
+            </p>
+            <Link href="/sobre" className="inline-flex items-center gap-2 text-blue-600 font-bold text-[10px] uppercase tracking-widest">
+                Clique aqui e saiba mais <ArrowRight size={14} />
+            </Link>
+          </div>
         </div>
 
+        {/* CARD DE PLANOS */}
         <div className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl">
             <div className="relative z-10">
                 <p className="text-blue-400 text-[10px] uppercase font-black tracking-widest mb-2">O seu controle</p>
@@ -115,6 +139,7 @@ export function MainContent() {
             <ShieldCheck size={120} className="absolute -right-8 -bottom-8 text-white opacity-5" />
         </div>
 
+        {/* SEÇÃO DE CANAIS */}
         <section>
           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4">Canais e Contato</h3>
           <div className="grid grid-cols-2 gap-3">

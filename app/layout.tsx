@@ -6,6 +6,7 @@ import { MessageCircle, LayoutDashboard, Undo2 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
 import { usePathname } from "next/navigation";
+import Script from "next/script"; // Importação necessária para o GTM
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,14 +42,35 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
 
-  // Configurações de exibição por rota
   const paginasSemScroll = ["/acesso-usuario"];
   const isHome = pathname === "/";
   const deveTravarScroll = paginasSemScroll.includes(pathname);
 
   return (
     <html lang="pt-BR">
+      <head>
+        {/* Google Tag Manager - Script principal */}
+        <Script id="google-tag-manager" strategy="afterInteractive">
+          {`
+            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+            })(window,document,'script','dataLayer','GTM-NS5KWXFL');
+          `}
+        </Script>
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 h-screen overflow-hidden flex flex-col`}>
+        
+        {/* Google Tag Manager (noscript) - Imediatamente após a abertura do body */}
+        <noscript>
+          <iframe 
+            src="https://www.googletagmanager.com/ns.html?id=GTM-NS5KWXFL"
+            height="0" 
+            width="0" 
+            style={{ display: 'none', visibility: 'hidden' }}
+          ></iframe>
+        </noscript>
         
         <Header />
 
@@ -61,7 +83,7 @@ export default function RootLayout({
               {children}
             </div>
             
-            {/* NAVEGAÇÃO DE RETORNO (Só aparece se não for a Home) */}
+            {/* NAVEGAÇÃO DE RETORNO */}
             {!isHome && (
               <div className="mt-20 flex items-center justify-center gap-10 pt-10 border-t border-gray-100">
                 <a 
@@ -88,7 +110,7 @@ export default function RootLayout({
               </div>
             )}
 
-            {/* RODAPÉ: DIREITOS RESERVADOS */}
+            {/* RODAPÉ */}
             <footer className="mt-12 mb-10 text-center">
               <div className="inline-block px-8 py-3 bg-white/50 rounded-full border border-gray-100 shadow-sm">
                 <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.3em] flex items-center justify-center gap-3">
