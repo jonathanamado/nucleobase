@@ -94,31 +94,20 @@ export function MainContent() {
           <p className="text-gray-500 text-base font-medium mt-1">Organização financeira inteligente.</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Link href="/blog" className="flex flex-col gap-3 p-5 bg-gray-50 rounded-[2rem] border border-gray-100">
-            <Newspaper className="text-blue-600" size={20} />
-            <span className="font-bold text-[11px] uppercase tracking-wider text-gray-700">Blog</span>
-          </Link>
-          <button onClick={() => setIsModalOpen(true)} className="flex flex-col gap-3 p-5 bg-blue-50 rounded-[2rem] border border-blue-100 text-left">
-            <Mail className="text-blue-600" size={20} />
-            <span className="font-bold text-[11px] uppercase tracking-wider text-blue-600">Newsletter</span>
-          </button>
-        </div>
-
         <div className="space-y-4">
             <p className="text-gray-700 text-[15px] leading-relaxed">
               Acreditamos que a verdadeira inteligência financeira nasce da clareza de dados. 
               Ao eliminar a complexidade, permitimos que você foque no que importa.
             </p>
             <Link href="/sobre" className="inline-flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
-                Nossa História <ArrowRight size={14} />
+                Clique aqui e saiba mais. <ArrowRight size={14} />
             </Link>
         </div>
 
         <div className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl">
             <div className="relative z-10">
                 <p className="text-blue-400 text-[10px] uppercase font-black tracking-widest mb-2">O seu controle</p>
-                <h4 className="text-xl font-bold mb-6">Pronto para o próximo nível?</h4>
+                <h4 className="text-base font-bold mb-6">Pronto para o próximo nível?</h4>
                 <Link href="/planos" className="flex items-center justify-center gap-2 w-full py-4 bg-blue-600 rounded-xl font-bold text-xs uppercase tracking-widest">
                     Conhecer Planos <ArrowRight size={16} />
                 </Link>
