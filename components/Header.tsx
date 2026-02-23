@@ -75,9 +75,9 @@ export function Header() {
     { name: "Painel de Resultados", href: "/resultados", icon: <BarChart3 size={18} /> },
     { name: "Depoimentos", href: "/depoimentos", icon: <Star size={18} /> },
     { name: "FAQ", href: "/faq", icon: <HelpCircle size={18} /> },
-    { name: "Fale conosco", href: "/contato", icon: <MessageSquare size={18} /> },
+    //{ name: "Fale conosco", href: "/contato", icon: <MessageSquare size={18} /> },
     { name: "Segurança", href: "/seguranca_privacidade", icon: <Shield size={18} /> },
-    { name: "Suporte técnico", href: "/suporte", icon: <LifeBuoy size={18} /> },
+    //{ name: "Suporte técnico", href: "/suporte", icon: <LifeBuoy size={18} /> },
   ];
 
   return (
@@ -215,13 +215,13 @@ export function Header() {
                   </div>
                 )}
 
-                <nav className="space-y-1">
+                <nav className="space-y-0.5">
                   {menuLinks.map((link) => (
                     <a
                       key={link.name}
                       href={link.href}
                       onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center justify-between p-4 rounded-2xl text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-all group"
+                      className="flex items-center justify-between p-1.5 rounded-2xl text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-all group"
                     >
                       <div className="flex items-center gap-4">
                         <span className="text-gray-400 group-hover:text-blue-600 transition-colors">
