@@ -6,7 +6,7 @@ import { MessageCircle, LayoutDashboard, Undo2 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
 import { usePathname } from "next/navigation";
-import Script from "next/script"; // Importação necessária para o GTM
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,6 +42,7 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
 
+  // Configurações de exibição por rota
   const paginasSemScroll = ["/acesso-usuario"];
   const isHome = pathname === "/";
   const deveTravarScroll = paginasSemScroll.includes(pathname);
@@ -49,7 +50,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
-        {/* Google Tag Manager - Script principal */}
+        {/* Google Tag Manager */}
         <Script id="google-tag-manager" strategy="afterInteractive">
           {`
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -60,9 +61,10 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 h-screen overflow-hidden flex flex-col`}>
+      {/* AJUSTE: overflow-hidden agora só em desktop (md:) para permitir pull-to-refresh no mobile */}
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 h-screen md:overflow-hidden flex flex-col overscroll-y-contain`}>
         
-        {/* Google Tag Manager (noscript) - Imediatamente após a abertura do body */}
+        {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe 
             src="https://www.googletagmanager.com/ns.html?id=GTM-NS5KWXFL"
@@ -71,19 +73,18 @@ export default function RootLayout({
             style={{ display: 'none', visibility: 'hidden' }}
           ></iframe>
         </noscript>
-        
+
         <Header />
 
         <main className="flex-1 flex flex-col md:flex-row gap-0 w-full items-stretch overflow-hidden">
           <Sidebar />
           
-          <section className={`flex-1 px-10 py-6 ${deveTravarScroll ? 'overflow-hidden' : 'overflow-y-auto'} scroll-smooth`}>
-            {/* CONTEÚDO DA PÁGINA */}
+          {/* Seção principal de conteúdo */}
+          <section className={`flex-1 px-4 md:px-10 py-6 ${deveTravarScroll ? 'overflow-hidden' : 'overflow-y-auto'} scroll-smooth`}>
             <div className="min-h-[calc(100vh-200px)]">
               {children}
             </div>
             
-            {/* NAVEGAÇÃO DE RETORNO */}
             {!isHome && (
               <div className="mt-20 flex items-center justify-center gap-10 pt-10 border-t border-gray-100">
                 <a 
@@ -110,12 +111,11 @@ export default function RootLayout({
               </div>
             )}
 
-            {/* RODAPÉ */}
             <footer className="mt-12 mb-10 text-center">
-              <div className="inline-block px-8 py-3 bg-white/50 rounded-full border border-gray-100 shadow-sm">
-                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.3em] flex items-center justify-center gap-3">
+              <div className="inline-block px-6 py-3 bg-white/50 rounded-full border border-gray-100 shadow-sm mx-auto">
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] flex items-center justify-center gap-2 whitespace-nowrap">
                   © {new Date().getFullYear()} Nucleobase
-                  <span className="h-1 w-1 bg-blue-600/40 rounded-full"></span> 
+                  <span className="h-1 w-1 bg-blue-600/40 rounded-full shrink-0"></span> 
                   Todos os direitos reservados
                 </p>
               </div>

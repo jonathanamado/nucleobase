@@ -1,18 +1,13 @@
 "use client";
 
+import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
 import { usePathname, useRouter } from "next/navigation"; 
 import { 
-  UserCircle, LayoutDashboard, Home, LogOut, X, Menu, 
+  UserCircle, LayoutDashboard, X, Menu, 
   Info, Newspaper, CreditCard, BarChart3, Star, HelpCircle, 
-  MessageSquare, Shield, LifeBuoy, ChevronRight 
+  MessageSquare, Shield, LifeBuoy, ChevronRight, Undo2, AppWindow
 } from "lucide-react";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -98,7 +93,7 @@ export function Header() {
                 alt="Logo Núcleo Base"
                 width={120} 
                 height={65} 
-                className="lg:w-[140px] lg:h-[75px] object-contain" 
+                className="w-[140px] h-auto lg:w-[170px] lg:h-auto object-contain" 
               />
              </a>
           </div>
@@ -116,13 +111,16 @@ export function Header() {
           </div>
         </div>
 
-        {/* NAVEGAÇÃO DESKTOP (MANTIDA) */}
+        {/* NAVEGAÇÃO DESKTOP */}
         <nav className="hidden md:flex items-center gap-3 text-[13px] text-gray-600">
           {!isLoggedIn ? (
             <>
               {pathname !== "/" && (
-                <a href="/" className="flex items-center gap-2 hover:text-gray-900 transition-colors font-medium mr-2">
-                  <Home size={18} /> Página inicial
+                <a href="/" className="flex items-center gap-2.5 text-gray-400 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest mr-4 group">
+                  <div className="bg-gray-50 p-2 rounded-full group-hover:bg-blue-50 transition-colors border border-gray-100 group-hover:border-blue-100">
+                    <AppWindow size={16} strokeWidth={2} />
+                  </div>
+                  Página inicial
                 </a>
               )}
               <a href="/cadastro" className="min-w-[120px] inline-block text-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition font-bold shadow-sm">
@@ -135,8 +133,11 @@ export function Header() {
           ) : (
             <div className="flex items-center gap-3">
               {pathname !== "/" && (
-                <a href="/" className="px-2 py-2 text-gray-600 hover:text-blue-600 transition">
-                  <Home size={18} />
+                <a href="/" className="flex items-center gap-2.5 text-gray-400 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest mr-2 group">
+                  <div className="bg-gray-50 p-2 rounded-full group-hover:bg-blue-50 transition-colors border border-gray-100 group-hover:border-blue-100">
+                    <AppWindow size={16} strokeWidth={2} />
+                  </div>
+                  <span className="hidden lg:inline">Início</span>
                 </a>
               )}
               <a href="/acesso-usuario" className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition font-bold shadow-sm">
@@ -157,92 +158,109 @@ export function Header() {
           )}
         </nav>
 
-        {/* BOTÃO MOBILE MODERNO (DROPDOWN) */}
+        {/* BOTÃO MOBILE */}
         <button 
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="md:hidden flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-2xl border border-gray-100 text-gray-600 active:scale-95 transition-all"
+          className="md:hidden flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-2xl border border-gray-100 text-gray-600 active:scale-95 transition-all z-[110]"
         >
           <span className="text-[10px] font-black uppercase tracking-widest">Menu</span>
           {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
 
-        {/* ============================================================
-            DROPDOWN FLUTUANTE MOBILE
-            ============================================================ */}
+        {/* OVERLAY E DROPDOWN MOBILE */}
         {isMenuOpen && (
-          <div className="absolute top-[85px] right-6 left-6 bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 z-[100] overflow-hidden animate-in fade-in zoom-in-95 duration-200 md:hidden">
-            
-            <div className="max-h-[70vh] overflow-y-auto p-4 custom-scrollbar">
-              
-              {/* Usuário logado - Perfil Rápido */}
-              {isLoggedIn && (
-                <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-3xl mb-4 border border-gray-100">
-                  <div className="w-12 h-12 rounded-full bg-white border border-blue-100 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
-                    {userProfile.avatar ? (
-                      <img src={userProfile.avatar} alt="Perfil" className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="font-black text-blue-600 text-sm">{getInitials(userProfile.nome)}</span>
-                    )}
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-bold text-gray-900 truncate">{userProfile.nome || "Usuário"}</span>
-                    <button 
-                      onClick={() => {router.push("/minha-conta"); setIsMenuOpen(false);}}
-                      className="text-[10px] text-blue-600 font-bold uppercase tracking-wider text-left"
-                    >
-                      Minha Conta
-                    </button>
-                  </div>
-                </div>
-              )}
+          <>
+            {/* Camada para fechar ao clicar fora */}
+            <div 
+              className="fixed inset-0 bg-black/5 z-[90] md:hidden" 
+              onClick={() => setIsMenuOpen(false)}
+            />
 
-              {/* Links da Sidebar */}
-              <nav className="space-y-1">
-                {menuLinks.map((link) => (
-                  <a
-                    key={link.name}
-                    href={link.href}
-                    onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center justify-between p-4 rounded-2xl text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-all group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <span className="text-gray-400 group-hover:text-blue-600 transition-colors">
-                        {link.icon}
-                      </span>
-                      <span className="text-sm font-semibold">{link.name}</span>
+            <div className="absolute top-[85px] right-6 left-6 bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 z-[100] overflow-hidden animate-in fade-in zoom-in-95 duration-200 md:hidden">
+              <div className="max-h-[70vh] overflow-y-auto p-4 custom-scrollbar">
+                
+                {/* Página Inicial - Novo item no topo do menu mobile */}
+                <a
+                  href="/"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center justify-between p-4 rounded-2xl text-blue-600 bg-blue-50/50 border border-blue-100 mb-2 transition-all group"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="p-2 bg-white rounded-full shadow-sm text-blue-600">
+                      <AppWindow size={18} strokeWidth={2.5} />
+                    </span>
+                    <span className="text-sm font-bold uppercase tracking-tight">Página Inicial</span>
+                  </div>
+                  <ChevronRight size={14} className="opacity-50" />
+                </a>
+
+                {isLoggedIn && (
+                  <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-3xl mb-4 border border-gray-100">
+                    <div className="w-12 h-12 rounded-full bg-white border border-blue-100 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                      {userProfile.avatar ? (
+                        <img src={userProfile.avatar} alt="Perfil" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="font-black text-blue-600 text-sm">{getInitials(userProfile.nome)}</span>
+                      )}
                     </div>
-                    <ChevronRight size={14} className="text-gray-300 opacity-50" />
-                  </a>
-                ))}
-              </nav>
-
-              {/* Ações de Acesso */}
-              <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
-                {!isLoggedIn ? (
-                  <div className="grid grid-cols-2 gap-3">
-                    <a href="/acesso-usuario" className="py-4 bg-orange-500 text-white text-center rounded-2xl font-bold text-xs uppercase tracking-tighter shadow-md">
-                      Acessar
-                    </a>
-                    <a href="/cadastro" className="py-4 bg-blue-600 text-white text-center rounded-2xl font-bold text-xs uppercase tracking-tighter shadow-md">
-                      Criar Conta
-                    </a>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-2">
-                    <a href="/acesso-usuario" className="flex items-center justify-center gap-2 w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-sm shadow-lg">
-                      <LayoutDashboard size={18} /> Painel Principal
-                    </a>
-                    <button 
-                      onClick={handleLogout}
-                      className="py-3 text-gray-400 font-bold text-[11px] uppercase tracking-widest"
-                    >
-                      Sair da conta
-                    </button>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-bold text-gray-900 truncate">{userProfile.nome || "Usuário"}</span>
+                      <button 
+                        onClick={() => {router.push("/minha-conta"); setIsMenuOpen(false);}}
+                        className="text-[10px] text-blue-600 font-bold uppercase tracking-wider text-left"
+                      >
+                        Minha Conta
+                      </button>
+                    </div>
                   </div>
                 )}
+
+                <nav className="space-y-1">
+                  {menuLinks.map((link) => (
+                    <a
+                      key={link.name}
+                      href={link.href}
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center justify-between p-4 rounded-2xl text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-all group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <span className="text-gray-400 group-hover:text-blue-600 transition-colors">
+                          {link.icon}
+                        </span>
+                        <span className="text-sm font-semibold">{link.name}</span>
+                      </div>
+                      <ChevronRight size={14} className="text-gray-300 opacity-50" />
+                    </a>
+                  ))}
+                </nav>
+
+                <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+                  {!isLoggedIn ? (
+                    <div className="grid grid-cols-2 gap-3">
+                      <a href="/acesso-usuario" className="py-4 bg-orange-500 text-white text-center rounded-2xl font-bold text-xs uppercase tracking-tighter shadow-md">
+                        Acessar
+                      </a>
+                      <a href="/cadastro" className="py-4 bg-blue-600 text-white text-center rounded-2xl font-bold text-xs uppercase tracking-tighter shadow-md">
+                        Criar Conta
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      <a href="/acesso-usuario" className="flex items-center justify-center gap-2 w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-sm shadow-lg">
+                        <LayoutDashboard size={18} /> Painel Principal
+                      </a>
+                      <button 
+                        onClick={handleLogout}
+                        className="py-3 text-gray-400 font-bold text-[11px] uppercase tracking-widest"
+                      >
+                        Sair da conta
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     </header>
