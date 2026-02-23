@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-// Adicionado Eye e EyeOff na importação
 import { ShieldCheck, Zap, Star, CheckCircle2, Globe, Eye, EyeOff } from "lucide-react";
 
 const supabase = createClient(
@@ -15,8 +14,18 @@ export default function CadastroPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  // Novo estado para visibilidade da senha
   const [showPassword, setShowPassword] = useState(false);
+
+  // Função para transformar Nome em URL amigável (Slug)
+  const criarSlug = (texto: string) => {
+    return texto
+      .toLowerCase()
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+      .replace(/\s+/g, '-') // Espaços viram hífens
+      .replace(/[^\w-]+/g, ''); // Remove símbolos
+  };
 
   const enviarNotificacaoAdm = async (nomeNovo: string, emailNovo: string) => {
     try {
@@ -36,6 +45,7 @@ export default function CadastroPage() {
     e.preventDefault();
     setLoading(true);
 
+    // 1. Criar o Auth no Supabase
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -49,8 +59,32 @@ export default function CadastroPage() {
     }
 
     if (authData.user) {
+      // --- LÓGICA DE GERAÇÃO DE SLUG (OPÇÃO B) ---
+      const slugBase = criarSlug(nome);
+      let slugFinal = slugBase;
+
+      // Verifica se o slug já existe
+      const { data: slugExistente } = await supabase
+        .from('profiles')
+        .select('slug')
+        .eq('slug', slugBase)
+        .single();
+
+      if (slugExistente) {
+        // Se existir, adiciona um sufixo numérico aleatório
+        slugFinal = `${slugBase}-${Math.floor(1000 + Math.random() * 9000)}`;
+      }
+      // -------------------------------------------
+
+      // 2. Inserir no Perfil com o novo Slug
       await supabase.from('profiles').insert([
-        { id: authData.user.id, email: email, nome_completo: nome, plan_type: 'free' }
+        { 
+          id: authData.user.id, 
+          email: email, 
+          nome_completo: nome, 
+          plan_type: 'free',
+          slug: slugFinal // Gravando o link amigável
+        }
       ]);
 
       const indicadorId = localStorage.getItem("nucleobase_referral_id");
@@ -158,7 +192,6 @@ export default function CadastroPage() {
               />
             </div>
             
-            {/* CAMPO DE SENHA COM BOTÃO DE VISIBILIDADE */}
             <div className="group">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block group-focus-within:text-blue-600 transition-colors">Senha</label>
               <div className="relative">
