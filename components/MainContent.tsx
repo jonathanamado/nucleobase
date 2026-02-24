@@ -249,6 +249,26 @@ export function MainContent() {
 
         {/* SEÇÕES ADICIONAIS DESKTOP */}
         <div className="space-y-12">
+                  <section>
+            <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4">
+              Segurança de Dados <div className="h-px bg-gray-300 flex-1"></div>
+            </h3>
+            <div className="bg-emerald-50/50 border border-emerald-100 p-10 rounded-[3rem] flex flex-col md:flex-row gap-8 items-center">
+              <div className="w-20 h-20 bg-white text-emerald-600 rounded-[2rem] flex items-center justify-center shadow-sm shrink-0">
+                <Lock size={40} />
+              </div>
+              <div>
+                <h4 className="text-2xl font-bold text-gray-900 mb-3 tracking-tight">Privacidade e Soberania</h4>
+                <p className="text-gray-600 text-[16px] leading-relaxed mb-6">Custódia integral sob o princípio do Zero-Knowledge.</p>
+                <Link href="/seguranca_privacidade" className="group">
+                    <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest flex items-center gap-2">
+                      Acesse aqui <ArrowRight size={12} />
+                    </span>
+                </Link>
+              </div>
+            </div>
+          </section>
+          
           <section>
             <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4">
               <div className="h-px bg-gray-300 flex-1"></div> Painel de Resultados 
@@ -271,26 +291,6 @@ export function MainContent() {
                 </div>
                 <h5 className="font-bold text-gray-900 mb-2">Análise de Performance</h5>
                 <p className="text-gray-500 text-sm leading-relaxed">Visualize tendências e identifique gargalos.</p>
-              </div>
-            </div>
-          </section>
-
-          <section>
-            <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4">
-              Segurança de Dados <div className="h-px bg-gray-300 flex-1"></div>
-            </h3>
-            <div className="bg-emerald-50/50 border border-emerald-100 p-10 rounded-[3rem] flex flex-col md:flex-row gap-8 items-center">
-              <div className="w-20 h-20 bg-white text-emerald-600 rounded-[2rem] flex items-center justify-center shadow-sm shrink-0">
-                <Lock size={40} />
-              </div>
-              <div>
-                <h4 className="text-2xl font-bold text-gray-900 mb-3 tracking-tight">Privacidade e Soberania</h4>
-                <p className="text-gray-600 text-[16px] leading-relaxed mb-6">Custódia integral sob o princípio do Zero-Knowledge.</p>
-                <Link href="/seguranca_privacidade" className="group">
-                    <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest flex items-center gap-2">
-                      Acesse aqui <ArrowRight size={12} />
-                    </span>
-                </Link>
               </div>
             </div>
           </section>

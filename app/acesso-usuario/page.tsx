@@ -4,7 +4,8 @@ import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { 
   UserCog, Rocket, ShieldCheck, ArrowRight, Lock, 
-  CheckCircle2, LogOut, X, Mail, LifeBuoy 
+  CheckCircle2, LogOut, X, Mail, LifeBuoy, AtSign,
+  Eye, EyeOff 
 } from "lucide-react";
 
 const supabase = createClient(
@@ -13,13 +14,13 @@ const supabase = createClient(
 );
 
 export default function AcessoUsuarioPage() {
-  const [email, setEmail] = useState("");
+  const [slug, setSlug] = useState(""); 
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userName, setUserName] = useState("");
+  const [userName, setUserName] = useState(""); 
+  const [showPassword, setShowPassword] = useState(false);
   
-  // Estado para o Modal de "Esqueci a Senha"
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
@@ -27,33 +28,82 @@ export default function AcessoUsuarioPage() {
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      handleUserSession(session);
+      if (session) {
+        fetchProfileName(session.user);
+      } else {
+        setIsLoggedIn(false);
+      }
     };
     checkUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      handleUserSession(session);
+      if (session) {
+        fetchProfileName(session.user);
+      } else {
+        setIsLoggedIn(false);
+        setUserName("");
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleUserSession = (session: any) => {
-    setIsLoggedIn(!!session);
-    if (session?.user) {
-      const name = session.user.user_metadata?.full_name || session.user.email?.split('@')[0];
-      setUserName(name || "");
+  const fetchProfileName = async (user: any) => {
+    setIsLoggedIn(true);
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('nome_completo')
+      .eq('id', user.id)
+      .single();
+
+    if (profile?.nome_completo && profile.nome_completo.trim() !== "") {
+      setUserName(profile.nome_completo);
+    } 
+    else if (user.user_metadata?.full_name) {
+      setUserName(user.user_metadata.full_name);
+    }
+    else {
+      setUserName("Anônimo");
     }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      alert("Erro ao acessar: " + error.message);
+    const inputAcesso = slug.trim().toLowerCase();
+    const isEmail = inputAcesso.includes("@");
+
+    try {
+      let emailParaLogin = "";
+      if (isEmail) {
+        emailParaLogin = inputAcesso;
+      } else {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('slug', inputAcesso)
+          .maybeSingle();
+
+        if (profileError) throw profileError;
+        if (!profile || !profile.email) {
+          alert("ID de usuário não encontrado.");
+          setLoading(false);
+          return;
+        }
+        emailParaLogin = profile.email;
+      }
+
+      const { error: authError } = await supabase.auth.signInWithPassword({ 
+        email: emailParaLogin, 
+        password 
+      });
+
+      if (authError) alert("Erro ao acessar: Senha incorreta ou problema na conta.");
+    } catch (err) {
+      alert("Ocorreu um erro inesperado.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleLogout = async () => {
@@ -68,9 +118,8 @@ export default function AcessoUsuarioPage() {
       redirectTo: "https://nucleobase.app/reset-password",
     });
 
-    if (error) {
-      alert("Erro: " + error.message);
-    } else {
+    if (error) alert("Erro: " + error.message);
+    else {
       alert("Link de recuperação enviado com sucesso!");
       setShowForgotModal(false);
     }
@@ -78,27 +127,29 @@ export default function AcessoUsuarioPage() {
   };
 
   return (
-    <div className="w-full h-screen overflow-hidden relative">
-      {/* Cabeçalho */}
-      <div className="mb-6 mt-0 flex justify-between items-start p-0 px-4">
+    <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
+      
+      {/* Cabeçalho - Ajustado para largura total */}
+      <div className="mb-6 mt-8 flex justify-between items-start p-0 w-full">
         <div className="text-left">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2 tracking-tight">
+          <h1 className="text-5xl font-bold text-gray-900 mb-2 tracking-tight">
             {isLoggedIn ? `Olá, ${userName}!` : "Área do Usuário"}
+            <span className="text-orange-500">.</span>
           </h1>
 
-          <p className="text-base text-gray-600 max-w-2xl leading-tight mb-8">
+          <p className="text-base text-gray-600 max-w-none leading-tight mb-8">
             <span className="font-bold text-gray-900">Seja bem vindo(a)</span> 
             {" "}ao Painel para acesso à Plataforma e ao seu Perfil cadastrado.
           </p>
 
-          <p className="text-base text-gray-600 max-w-2xl font-bold leading-tight">
+          <p className="text-base text-gray-600 max-w-none font-bold leading-tight">
             {isLoggedIn ? (
               <>
                 <a href="https://nucleobase.streamlit.app" className="text-orange-500 hover:text-orange-600 transition underline decoration-2 underline-offset-4">Clique aqui</a>
                 {" para acessar o APP e gerenciar seus lançamentos."}
               </>
             ) : (
-              "Faça login para acessar o APP e gerenciar seus dados financeiros."
+              "Use seu ID de usuário para acessar o APP e gerenciar seus dados."
             )}
           </p>
         </div>
@@ -110,11 +161,16 @@ export default function AcessoUsuarioPage() {
         )}
       </div>
 
-      {/* Grid Principal */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 w-full max-w-6xl items-stretch px-4">
+      {/* Linha Divisória e Contexto */}
+      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4 w-full">
+        Navegação e Acessos <div className="h-px bg-gray-300 flex-1"></div>
+      </h3>
+
+      {/* Grid Principal - Ajustado para w-full */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 w-full items-stretch">
         
         {/* CARD 1: ACESSO OU LOGIN */}
-        <div className="min-h-[280px] flex">
+        <div className="min-h-[320px] flex">
           {isLoggedIn ? (
             <a 
               href="https://nucleobase.streamlit.app"
@@ -132,25 +188,36 @@ export default function AcessoUsuarioPage() {
           ) : (
             <div className="group p-6 rounded-3xl shadow-md transition-all border flex flex-col text-center bg-white border-gray-100 w-full h-full">
               <div className="bg-orange-50 p-3 rounded-2xl mb-3 w-fit mx-auto text-orange-500 group-hover:bg-orange-100 transition-all duration-300">
-                <Lock size={28} />
+                <AtSign size={28} />
               </div>
               <form onSubmit={handleLogin} className="flex flex-col flex-1">
                 <h3 className="text-lg font-bold text-gray-900 mb-3">Acesso Rápido</h3>
                 <div className="space-y-2 mb-2">
                   <input 
-                    type="email" 
-                    placeholder="E-mail" 
+                    type="text" 
+                    placeholder="ID de Usuário ou E-mail" 
                     required
-                    className="w-full px-4 py-2 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900"
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={slug}
+                    className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900 font-bold"
+                    onChange={(e) => setSlug(e.target.value)}
                   />
-                  <input 
-                    type="password" 
-                    placeholder="Senha" 
-                    required
-                    className="w-full px-4 py-2 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900"
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
+                  <div className="relative">
+                    <input 
+                      type={showPassword ? "text" : "password"} 
+                      placeholder="Senha" 
+                      required
+                      value={password}
+                      className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900 pr-10"
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition-colors"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
                 </div>
                 
                 <button 
@@ -165,7 +232,7 @@ export default function AcessoUsuarioPage() {
                   disabled={loading}
                   className="mt-auto w-full bg-orange-500 text-white h-[52px] rounded-xl font-bold hover:bg-orange-600 transition shadow-lg text-xs disabled:opacity-50"
                 >
-                  {loading ? "Entrando..." : "Acessar Plataforma"}
+                  {loading ? "Verificando..." : "Acessar Plataforma"}
                 </button>
               </form>
             </div>
@@ -175,7 +242,7 @@ export default function AcessoUsuarioPage() {
         {/* CARD 2: MEU PERFIL */}
         <div className="min-h-[280px] flex">
           <a 
-            href={isLoggedIn ? "/minha-conta" : "/realizar-login"} 
+            href={isLoggedIn ? "/minha-conta" : "/cadastro"} 
             className="group bg-white p-6 rounded-3xl shadow-sm hover:shadow-md transition-all border border-gray-100 flex flex-col items-center text-center w-full h-full"
           >
             <div className="bg-orange-50 p-3 rounded-2xl mb-3 text-orange-500 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all duration-300">
@@ -184,10 +251,9 @@ export default function AcessoUsuarioPage() {
             <h3 className="text-lg font-bold text-gray-900 mb-1">Meu Perfil</h3>
             <p className="text-gray-500 text-xs mb-3 leading-relaxed">Mantenha seu cadastro atualizado e explore as ferramentas e insights.</p>
             
-            {/* PADRONIZADO: Mesmo py-2.5 e rounded-xl do botão de login */}
             <div className={`mt-auto w-full flex items-center justify-center gap-2 h-[52px] rounded-xl font-bold text-xs transition-colors ${isLoggedIn ? 'bg-green-50 text-green-600' : 'bg-gray-50 text-gray-400'}`}>
               <CheckCircle2 size={14} /> 
-              {isLoggedIn ? "Perfil Ativo" : "Aguardando Login"}
+              {isLoggedIn ? "Perfil Ativo" : "Criar Nova Conta"}
             </div>
           </a>
         </div>
@@ -204,7 +270,6 @@ export default function AcessoUsuarioPage() {
             <h3 className="text-lg font-bold text-gray-900 mb-1">Planos</h3>
             <p className="text-gray-500 text-xs mb-4 leading-relaxed">Entenda seu plano e veja as melhores opções adaptadas ao seu estilo.</p>
             
-            {/* PADRONIZADO: Container com py-2.5 para manter altura idêntica ao botão */}
             <div className="mt-auto w-full bg-gray-50 px-4 h-[52px] rounded-xl flex flex-col justify-center space-y-1.5">
               <div className="flex justify-between text-[9px] font-bold text-gray-400 uppercase tracking-tight">
                 <span>Uso</span>

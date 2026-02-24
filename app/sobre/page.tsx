@@ -24,17 +24,17 @@ export default function SobreNucleobase() {
   }, []);
 
   return (
-    <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20">
+    <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
       
       {/* HEADER DA PÁGINA SOBRE */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
           <h1 className="text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center">
             <span>Sobre a gente<span className="text-blue-600">.</span></span>
-            <Dna size={60} className="text-blue-600 skew-x-16 opacity-35 ml-4" strokeWidth={1.2} />
+            <Dna size={60} className="text-blue-600 skew-x-12 opacity-35 ml-4" strokeWidth={1.2} />
           </h1>
           
-          <h2 className="text-gray-500 text-xl font-medium max-w-2xl leading-relaxed -mt-0">
+          <h2 className="text-gray-500 text-xl font-medium max-w-2xl leading-relaxed mt-0">
             Simplicidade em seu orçamento doméstico.
           </h2>
         </div>
@@ -53,117 +53,116 @@ export default function SobreNucleobase() {
         Manifesto e Visão <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+      {/* GRID PRINCIPAL COM ITEMS-STRETCH PARA ALINHAMENTO DE ALTURA */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
         
         {/* NARRATIVA PRINCIPAL */}
-        <div className="lg:col-span-7 text-gray-700 text-lg leading-[1.8]">
-          <p className="mb-8">
-            A Nucleobase nasceu de uma necessidade real tendo sua implantação digital no ano de 2025. O que começou como uma ferramenta de controle pessoal, 
-            lapidada pelo tempo e demanda deste nicho, evoluiu para uma plataforma robusta, 
-            focada em levar clareza e praticidade às pessoas.
-          </p>
+        <div className="lg:col-span-7 text-gray-700 text-lg leading-[1.8] pr-0 lg:pr-10 flex flex-col justify-between">
+          <div>
+            <p className="mb-8">
+              A Nucleobase nasceu de uma necessidade real tendo sua implantação digital no ano de 2025. O que começou como uma ferramenta de controle pessoal, 
+              lapidada pelo tempo e demanda deste nicho, evoluiu para uma plataforma robusta, 
+              focada em levar clareza e praticidade às pessoas.
+            </p>
 
-          <p className="mb-8">
-            Antes do sistema, a gestão do seu idealizador era dependente de planilhas complexas, exaustivas 
-            e altamente suscetíveis a erros de preenchimento. Mais que o trabalho manual, havia também uma 
-            vulnerabilidade crítica na <strong className="text-gray-900">segurança de dados</strong> e na <strong className="text-gray-900">interpretação</strong> de resultados.
-            Além de todo este esforço, retrabalho e risco, ainda se tornava mais complexo ainda quando o orçamento pessoal precisava "conversar" com o orçamento familiar.
-          </p>
+            <p className="mb-8">
+              Antes do sistema, a gestão do seu idealizador era dependente de planilhas complexas, exaustivas 
+              e altamente suscetíveis a erros de preenchimento. Mais que o trabalho manual, havia também uma 
+              vulnerabilidade crítica na <strong className="text-gray-900 font-bold">segurança de dados</strong> e na <strong className="text-gray-900 font-bold">interpretação</strong> de resultados.
+            </p>
 
-          <div className="bg-blue-50/50 border-l-4 border-blue-600 p-8 my-10 rounded-r-[2.5rem] relative overflow-hidden group">
-            <ShieldCheck className="absolute -right-4 -bottom-4 text-blue-600 opacity-5 group-hover:scale-110 transition-transform" size={140} />
-            <p className="font-medium text-blue-900 italic text-xl leading-relaxed relative z-10">
-              "Nossa missão é mitigar os riscos de interpretação e blindar a sua segurança através de padrões 
-              rigorosos, transformando números brutos em decisões inteligentes."
+            <div className="bg-blue-50/40 border-l-4 border-blue-600 p-10 my-12 rounded-r-[3rem] relative overflow-hidden group transition-all hover:bg-blue-50/60">
+              <ShieldCheck className="absolute -right-6 -bottom-6 text-blue-600 opacity-5 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-700" size={180} />
+              <p className="font-medium text-blue-900 italic text-2xl leading-relaxed relative z-10 tracking-tight">
+                "Nossa missão é mitigar os riscos de interpretação e blindar a sua segurança através de padrões 
+                rigorosos, transformando números brutos em decisões inteligentes."
+              </p>
+            </div>
+
+            <p className="mb-8 text-gray-700">
+              Cada pessoa possui um método único para gerir seu orçamento doméstico — alguns preferem o detalhe minucioso, outros a visão macro. Na <span className="font-bold text-blue-600">nucleobase.app</span>, transformamos essa rotina em um <span className="text-gray-900 font-bold italic">game de alta performance</span>. 
             </p>
           </div>
-
-          <p className="mb-8 text-gray-700 text-lg leading-[1.8]">
-            Cada pessoa possui um método único para gerir seu orçamento doméstico — alguns preferem o detalhe minucioso, outros a visão macro. Na <span className="font-semibold text-blue-600">nucleobase.app</span>, transformamos essa rotina em um <span className="text-gray-900 font-semibold italic">game de alta performance</span>. 
-            <br /><br />
-            Acreditamos no <span className="text-gray-900 font-medium underline decoration-blue-200 underline-offset-4">controle consciente</span> como o primeiro nível de conquista. Aqui, cada input de dados é um <span className="text-blue-600 font-medium">checkpoint</span> rumo à sua liberdade. Nosso ecossistema foi desenhado para garantir gestão sobre suas finanças, seja pessoal ou familiar.
+          
+          <p className="text-gray-700">
+            Acreditamos no <span className="text-gray-900 font-bold underline decoration-blue-200 underline-offset-4 decoration-2">controle consciente</span> como o primeiro nível de conquista. Aqui, cada input de dados é um <span className="text-blue-600 font-bold">checkpoint</span> rumo à sua liberdade. 
           </p>
         </div>
 
-        {/* SIDEBAR DE DESTAQUES (PADRONIZADA POR ALTURA) */}
-        <div className="lg:col-span-5 space-y-4">
+        {/* SIDEBAR DE DESTAQUES - DISTRIBUIÇÃO PADRONIZADA */}
+        <div className="lg:col-span-5 flex flex-col gap-6">
           
-          {/* Card 4 - Nível de Clareza (O Card Mestre) */}
-          <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-7 rounded-[2rem] shadow-xl shadow-blue-900/20 group relative overflow-hidden transition-all hover:scale-[1.02] flex flex-col justify-between min-h-[175px]">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:rotate-12 transition-transform pointer-events-none">
-              <Zap size={100} strokeWidth={1} className="text-white" />
+          {/* Card de Nível (Flex-1 para ocupar espaço proporcional) */}
+          <div className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center flex-1">
+            <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
+              <Zap size={180} strokeWidth={1} className="text-blue-500" />
             </div>
 
             <div className="relative z-10 w-full">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 shrink-0 bg-white/20 backdrop-blur-md text-white rounded-2xl flex items-center justify-center">
-                  <Star size={22} fill="white" />
+              <div className="flex items-center gap-4 mb-1 mt-4">
+                <div className="w-14 h-14 shrink-0 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20">
+                  <Star size={24} fill="white" />
                 </div>
                 <div>
-                  <p className="text-blue-100 text-[9px] font-black uppercase tracking-[0.2em]">Sua Jornada</p>
-                  <h4 className="font-bold text-white text-base leading-tight">Nível de Clareza</h4>
+                  <p className="text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]">Sua Jornada</p>
+                  <h4 className="font-bold text-white text-xl leading-tight">Nível de Clareza</h4>
                 </div>
               </div>
 
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-[9px] font-bold text-blue-100 uppercase tracking-wider">
+              <div className="space-y-3 mb-6">
+                <div className="flex justify-between text-[10px] font-black text-gray-400 uppercase tracking-widest">
                   <span>DNA Iniciante</span>
-                  <span>Mestre</span>
+                  <span className="text-blue-400">Progresso Atual</span>
                 </div>
-                <div className="h-2 w-full bg-white/20 rounded-full overflow-hidden">
+                <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden p-1">
                   <div 
-                    className="h-full bg-white rounded-full transition-all duration-[2000ms] ease-out relative"
+                    className="h-full bg-blue-600 rounded-full transition-all duration-[2500ms] ease-out relative"
                     style={{ width: progresso }}
                   >
-                    <div className="absolute right-0 top-0 h-full w-2 bg-white blur-sm"></div>
+                    <div className="absolute right-0 top-0 h-full w-4 bg-white/20 blur-sm"></div>
                   </div>
                 </div>
               </div>
 
-              <p className="text-[12px] text-blue-50 leading-relaxed opacity-90 text-center">
-                Cada lançamento aproxima você do <span className="font-bold text-white underline underline-offset-2">próximo nível</span>.
+              <p className="text-sm text-gray-400 leading-relaxed text-center font-medium">
+                Cada dia o aproxima do <span className="font-bold text-white underline underline-offset-4 decoration-blue-500">próximo nível</span>.
               </p>
             </div>
           </div>
 
-          {/* Card 1 */}
-          <div className="bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm hover:shadow-md transition-all group flex items-start gap-5 min-h-[175px]">
-            <div className="w-12 h-12 shrink-0 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
-              <Target size={22} />
+          {/* Mapeamento de Atributos com flex-1 para altura idêntica entre eles */}
+          {[
+            { 
+              icon: <Target size={24} />, 
+              color: "blue", 
+              title: "Foco em Clareza", 
+              desc: "Interface intuitiva desenhada para que qualquer pessoa entenda sua saúde econômica de maneira simples e transparente." 
+            },
+            { 
+              icon: <Zap size={24} />, 
+              color: "emerald", 
+              title: "Fluxo Eficiente", 
+              desc: "Substituímos o caos das planilhas por processos validados, reduzindo erro humano e garantindo integridade em tempo real." 
+            },
+            { 
+              icon: <LockKeyhole size={24} />, 
+              color: "purple", 
+              title: "Sigilo Bancário", 
+              desc: "Dados privados. Você mantém a custódia das informações sem expor senhas pessoais ou tokens sensíveis ao sistema." 
+            }
+          ].map((item, idx) => (
+            <div key={idx} className="bg-white border border-gray-100 p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all group flex items-center gap-6 flex-1">
+              <div className={`w-14 h-14 shrink-0 bg-${item.color}-50 text-${item.color}-600 rounded-2xl flex items-center justify-center group-hover:bg-${item.color}-600 group-hover:text-white transition-all duration-500 shadow-sm`}>
+                {item.icon}
+              </div>
+              <div>
+                <h4 className="font-black text-gray-900 text-lg mb-1 tracking-tight">{item.title}</h4>
+                <p className="text-[13px] text-gray-500 leading-relaxed font-medium">
+                  {item.desc}
+                </p>
+              </div>
             </div>
-            <div>
-              <h4 className="font-bold text-gray-900 text-base mb-2">Foco em Clareza</h4>
-              <p className="text-xs text-gray-500 leading-relaxed">
-                Interface intuitiva desenhada para que qualquer pessoa, independente do nível de gestão financeira, possa vir a entender sua saúde econômica de maneira simples e transparente.
-              </p>
-            </div>
-          </div>
-
-          {/* Card 2 */}
-          <div className="bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm hover:shadow-md transition-all group flex items-start gap-5 min-h-[175px]">
-            <div className="w-12 h-12 shrink-0 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
-              <Zap size={22} />
-            </div>
-            <div>
-              <h4 className="font-bold text-gray-900 text-base mb-2">Fluxo Eficiente</h4>
-              <p className="text-xs text-gray-500 leading-relaxed">
-                Substituímos o caos das planilhas por processos de trabalho validados, reduzindo erro humano e garantindo a integridade sobre os dados em tempo real.
-              </p>
-            </div>
-          </div>
-
-          {/* Card 3 */}
-          <div className="bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm hover:shadow-md transition-all group flex items-start gap-5 min-h-[175px]">
-            <div className="w-12 h-12 shrink-0 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all duration-300">
-              <LockKeyhole size={22} />
-            </div>
-            <div>
-              <h4 className="font-bold text-gray-900 text-base mb-2">Sigilo Bancário</h4>
-              <p className="text-xs text-gray-500 leading-relaxed">
-                Diferente de apps que conectam contas, aqui seus dados são privados. Você mantém a custódia das informações sem expor senhas pessoais ou tokens sensíveis.
-              </p>
-            </div>
-          </div>
+          ))}
 
         </div>
       </div>

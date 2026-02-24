@@ -1,10 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Star, Quote, Loader2, User, Plus, MessageSquarePlus } from "lucide-react";
+import { Star, Quote, Loader2, User, Plus, MessageSquarePlus, MessageCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 export default function DepoimentosPage() {
-  // AJUSTE: Tipagem definida como <any[]> para aceitar a estrutura vinda do Supabase
   const [depoimentosReais, setDepoimentosReais] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,7 +40,8 @@ export default function DepoimentosPage() {
             user_id,
             profiles (
               nome_completo,
-              profissao
+              profissao,
+              avatar_url
             )
           `)
           .eq("status", "aprovado")
@@ -64,79 +64,95 @@ export default function DepoimentosPage() {
   const todosDepoimentos = [...depoimentosFixos, ...depoimentosReais];
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 py-0">
-      <h1 className="text-5xl font-bold text-gray-900 mb-2 mt-2 tracking-tight">
-        Sua Experiência<span className="text-blue-600">.</span> 💬
-      </h1>
+    <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
       
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-        <h2 className="text-gray-500 text-lg font-bold max-w-2xl leading-tight">
-          O sentimento real de quem já transformou sua gestão financeira.
-        </h2>
-        
-        <a 
-          href="/publicacao_depoimentos" 
-          className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-white border border-gray-200 text-gray-900 rounded-full hover:border-blue-600 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-[0.15em] shadow-sm"
-        >
-          <Plus size={14} /> Criar depoimento
-        </a>
+      {/* HEADER - PADRÃO NUCLEOBASE */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
+        <div>
+          <h1 className="text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center">
+            <span>Sua Experiência<span className="text-blue-600">.</span></span>
+            <MessageCircle size={60} className="text-blue-600 opacity-35 ml-4 -rotate-12" strokeWidth={1.2} />
+          </h1>
+          
+          <h2 className="text-gray-500 text-xl font-medium max-w-2xl leading-relaxed mt-0">
+            O sentimento real de quem já transformou sua gestão financeira.
+          </h2>
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <a 
+            href="/publicacao_depoimentos" 
+            className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-white border border-gray-200 text-gray-900 rounded-full hover:border-blue-600 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-[0.15em] shadow-sm"
+          >
+            <Plus size={14} /> Criar depoimento
+          </a>
+        </div>
       </div>
 
+      {/* LINHA DIVISÓRIA DE SEÇÃO */}
+      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
+        Vozes da Comunidade <div className="h-px bg-gray-300 flex-1"></div>
+      </h3>
+
       {loading && (
-        <div className="flex justify-center my-8">
-          <Loader2 className="animate-spin text-blue-600" size={32} />
+        <div className="flex flex-col items-center justify-center my-20 gap-4">
+          <Loader2 className="animate-spin text-blue-600" size={40} />
+          <p className="text-xs font-black uppercase tracking-widest text-gray-400">Sincronizando experiências...</p>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start mb-24">
+      {/* GRID ASSIMÉTRICO DE CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-12 items-start mb-32">
         {todosDepoimentos.map((item, index) => {
-          // Lógica de compatibilidade entre dados fixos e dados do Supabase
           const perfil = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
           const nomeExibicao = perfil?.nome_completo || item.nome || "Membro Nucleobase";
           const cargoExibicao = perfil?.profissao || item.cargo || "Usuário";
+          const fotoExibicao = item.foto || perfil?.avatar_url;
 
           return (
             <div 
               key={item.id}
-              className={`bg-white border border-gray-100 shadow-xl shadow-blue-50/50 rounded-[2.5rem] p-10 relative overflow-hidden transition-all hover:-translate-y-1 ${
+              className={`group bg-white border border-gray-100 shadow-2xl shadow-blue-900/5 rounded-[3rem] p-10 relative overflow-hidden transition-all hover:scale-[1.01] ${
                 index % 2 !== 0 ? "md:mt-32" : ""
               }`}
             >
-              <Quote size={60} className="absolute -top-2 -right-2 text-blue-50 opacity-40" />
+              <Quote size={80} className="absolute -top-4 -right-4 text-blue-600 opacity-[0.03] pointer-events-none group-hover:opacity-10 transition-opacity" />
               
               <div className="relative z-10">
-                <div className="flex items-start justify-between mb-8">
+                {/* TOP CARD: Foto à esquerda, Estrelas à direita */}
+                <div className="flex items-center justify-between mb-10">
                   <div className="flex items-center gap-4">
-                    {item.foto ? (
+                    {fotoExibicao ? (
                       <img 
-                        src={item.foto} 
+                        src={fotoExibicao} 
                         alt={nomeExibicao} 
-                        className="w-14 h-14 rounded-2xl object-cover border-2 border-blue-50 shadow-sm" 
+                        className="w-16 h-16 rounded-2xl object-cover border-2 border-blue-50 shadow-md" 
                       />
                     ) : (
-                      <div className="w-14 h-14 rounded-2xl bg-blue-50 border-2 border-blue-100 flex items-center justify-center text-blue-600 shadow-sm">
-                        <User size={24} />
+                      <div className="w-16 h-16 rounded-2xl bg-blue-50 border-2 border-blue-100 flex items-center justify-center text-blue-600 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
+                        <User size={28} />
                       </div>
                     )}
                     <div>
-                      <p className="font-black text-gray-900 text-sm uppercase tracking-wider">
+                      <p className="font-black text-gray-900 text-sm uppercase tracking-[0.1em]">
                         {nomeExibicao}
                       </p>
-                      <p className="text-[11px] text-gray-400 font-bold uppercase tracking-tight">
+                      <p className="text-[11px] text-blue-600 font-bold uppercase tracking-widest mt-0.5">
                         {cargoExibicao}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex gap-0.5 pt-2">
+                  <div className="flex gap-0.5 self-start pt-2">
                     {Array.from({ length: item.rating || 5 }).map((_, i) => (
-                      <Star key={i} size={14} className="fill-orange-400 text-orange-400" />
+                      <Star key={i} size={14} className="fill-blue-600 text-blue-600" />
                     ))}
                   </div>
                 </div>
 
-                <div className="relative">
-                  <p className="text-gray-700 text-xl leading-relaxed font-medium italic">
+                {/* CONTEÚDO DO DEPOIMENTO */}
+                <div className="relative min-h-[100px] flex items-center">
+                  <p className="text-gray-700 text-2xl leading-relaxed font-medium italic tracking-tight">
                     "{item.content}"
                   </p>
                 </div>
@@ -146,27 +162,34 @@ export default function DepoimentosPage() {
         })}
       </div>
 
-      <div className="mb-24 p-1 rounded-[3rem] bg-gradient-to-r from-gray-50 via-white to-gray-50 border border-gray-100 shadow-sm">
-        <div className="flex flex-col md:flex-row items-center justify-between p-8 md:p-12 gap-8">
-          <div className="flex items-center gap-6">
-            <div className="hidden sm:flex w-16 h-16 bg-blue-600 text-white rounded-3xl items-center justify-center shadow-lg shadow-blue-200 rotate-3">
-              <MessageSquarePlus size={30} />
+      {/* BANNER CTA FINAL - ESTILO NUCLEOBASE */}
+      <div className="bg-gray-900 rounded-[3.5rem] p-12 md:p-16 relative overflow-hidden group shadow-2xl shadow-gray-400">
+        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
+          <div className="max-w-xl text-center md:text-left">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600/20 text-blue-400 rounded-full mb-6">
+              <MessageSquarePlus size={16} />
+              <span className="text-[10px] font-black uppercase tracking-widest">Feedback Loop</span>
             </div>
-            <div className="text-center md:text-left">
-              <h3 className="text-2xl font-bold text-gray-900 tracking-tight">Sua voz é importante para nós melhorarmos a Plataforma.</h3>
-              <p className="text-gray-500 font-medium italic mt-1">Como a Nucleobase mudou sua rotina hoje?</p>
-            </div>
+            <h3 className="text-3xl md:text-4xl font-bold text-white tracking-tight leading-tight">
+              Sua voz é importante para nós melhorarmos a Plataforma.
+            </h3>
+            <p className="text-gray-400 font-medium text-lg mt-4 italic">
+              Como a Nucleobase mudou sua rotina hoje?
+            </p>
           </div>
 
           <a 
             href="/publicacao_depoimentos" 
-            className="group relative inline-flex items-center justify-center gap-3 px-12 py-5 bg-gray-900 text-white rounded-full hover:bg-black transition-all font-bold text-xs uppercase tracking-[0.2em] shadow-2xl shadow-gray-400 overflow-hidden"
+            className="group relative inline-flex items-center justify-center gap-4 px-12 py-6 bg-blue-600 text-white rounded-full hover:bg-blue-500 transition-all font-bold text-xs uppercase tracking-[0.2em] shadow-xl shadow-blue-900/40 overflow-hidden"
           >
-            <div className="absolute inset-0 bg-blue-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-            <Plus size={18} className="relative z-10 group-hover:rotate-90 transition-transform duration-300" /> 
+            <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300 relative z-10" /> 
             <span className="relative z-10">Deixar meu depoimento</span>
+            <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
           </a>
         </div>
+        
+        {/* EFEITO DE FUNDO */}
+        <div className="absolute -right-20 -bottom-20 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none group-hover:bg-blue-600/20 transition-all duration-700"></div>
       </div>
     </div>
   );

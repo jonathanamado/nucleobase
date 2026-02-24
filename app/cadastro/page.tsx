@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { ShieldCheck, Zap, Star, CheckCircle2, Globe, Eye, EyeOff } from "lucide-react";
+import { ShieldCheck, Zap, Star, CheckCircle2, Globe, Eye, EyeOff, UserCircle, AlertTriangle } from "lucide-react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,19 +12,23 @@ const supabase = createClient(
 export default function CadastroPage() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const [slugDesejado, setSlugDesejado] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Estados para a advertência condicional
+  const [showWarning, setShowWarning] = useState(false);
+  const [cienteSemEmail, setCienteSemEmail] = useState(false);
 
-  // Função para transformar Nome em URL amigável (Slug)
-  const criarSlug = (texto: string) => {
+  const formatarSlug = (texto: string) => {
     return texto
       .toLowerCase()
       .trim()
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
-      .replace(/\s+/g, '-') // Espaços viram hífens
-      .replace(/[^\w-]+/g, ''); // Remove símbolos
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/[^\w-]+/g, '');
   };
 
   const enviarNotificacaoAdm = async (nomeNovo: string, emailNovo: string) => {
@@ -35,7 +39,7 @@ export default function CadastroPage() {
         body: JSON.stringify({
           access_key: "9ef5a274-150a-4664-a885-0b052efd06f7",
           subject: "🚀 Nova Indicação Registrada!",
-          message: `O usuário ${nomeNovo} (${emailNovo}) acabou de se cadastrar usando um link de indicação.`
+          message: `O usuário ${nomeNovo || "Anônimo"} (${emailNovo || "Sem e-mail"}) acabou de se cadastrar.`
         }),
       });
     } catch (e) { console.error("Erro ao enviar e-mail adm", e); }
@@ -43,13 +47,44 @@ export default function CadastroPage() {
 
   const handleCadastro = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    
+    // LOGICA DE ADVERTÊNCIA: Só aparece se o e-mail estiver em branco
+    if (!email.trim()) {
+      if (!showWarning) {
+        setShowWarning(true);
+        return; // Para a execução para o usuário ver o aviso e marcar o checkbox
+      }
+      if (!cienteSemEmail) {
+        alert("Por favor, aceite os termos de ciência para prosseguir sem e-mail.");
+        return;
+      }
+    }
 
-    // 1. Criar o Auth no Supabase
+    setLoading(true);
+    const slugFinal = formatarSlug(slugDesejado);
+
+    // 1. Verificar disponibilidade do slug
+    const { data: slugExistente } = await supabase
+      .from('profiles')
+      .select('slug')
+      .eq('slug', slugFinal)
+      .maybeSingle();
+
+    if (slugExistente) {
+      alert("Este ID de Usuário já está sendo utilizado. Por favor, escolha outro.");
+      setLoading(false);
+      return;
+    }
+
+    // 2. DEFINIÇÃO DO E-MAIL DE ACESSO (O ponto principal do seu ajuste)
+    // Se o usuário preencheu o e-mail, usa o dele. Caso contrário, gera o @nucleobase.app
+    const emailParaAuth = email.trim() ? email.trim() : `${slugFinal}@nucleobase.app`;
+
+    // 3. Criar o usuário no Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
+      email: emailParaAuth,
       password,
-      options: { data: { full_name: nome } }
+      options: { data: { full_name: nome || "Anônimo" } }
     });
 
     if (authError) {
@@ -59,31 +94,15 @@ export default function CadastroPage() {
     }
 
     if (authData.user) {
-      // --- LÓGICA DE GERAÇÃO DE SLUG (OPÇÃO B) ---
-      const slugBase = criarSlug(nome);
-      let slugFinal = slugBase;
-
-      // Verifica se o slug já existe
-      const { data: slugExistente } = await supabase
-        .from('profiles')
-        .select('slug')
-        .eq('slug', slugBase)
-        .single();
-
-      if (slugExistente) {
-        // Se existir, adiciona um sufixo numérico aleatório
-        slugFinal = `${slugBase}-${Math.floor(1000 + Math.random() * 9000)}`;
-      }
-      // -------------------------------------------
-
-      // 2. Inserir no Perfil com o novo Slug
+      // 4. Salvar na tabela profiles
       await supabase.from('profiles').insert([
         { 
           id: authData.user.id, 
-          email: email, 
-          nome_completo: nome, 
+          email: emailParaAuth, // E-mail usado no login
+          email_contato: email.trim() || null, // E-mail real (se houver) para notificações
+          nome_completo: nome || "Anônimo", 
           plan_type: 'free',
-          slug: slugFinal // Gravando o link amigável
+          slug: slugFinal 
         }
       ]);
 
@@ -93,7 +112,7 @@ export default function CadastroPage() {
           { indicador_id: indicadorId, indicado_id: authData.user.id, status: 'pendente' }
         ]);
         if (!indError) {
-          await enviarNotificacaoAdm(nome, email);
+          await enviarNotificacaoAdm(nome, emailParaAuth);
           localStorage.removeItem("nucleobase_referral_id");
         }
       }
@@ -103,103 +122,148 @@ export default function CadastroPage() {
   };
 
   return (
-    <div className="h-screen w-full flex flex-col lg:flex-row bg-white overflow-hidden">
+    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-white font-sans">
       
-      {/* LADO ESQUERDO: BRANDING */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gray-900 p-12 flex-col justify-between relative overflow-hidden border-r border-white/5">
+      {/* LADO ESQUERDO: BRANDING (Mantido original) */}
+      <div className="w-full lg:w-1/2 bg-gray-900 p-8 lg:p-12 flex flex-col justify-start relative border-r border-white/5">
         <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
             <Globe size={400} className="absolute -bottom-20 -left-20 text-blue-500" />
         </div>
 
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 text-blue-500 mb-8">
-            <Zap fill="currentColor" size={24} />
-            <span className="font-black uppercase tracking-[0.3em] text-xs">Nucleobase</span>
+        <div className="relative z-10 w-full max-w-md mx-auto space-y-10 pt-4 lg:pt-12 pb-8">
+          <div>
+            <div className="flex items-center gap-2 text-blue-500 mb-6">
+              <Zap fill="currentColor" size={24} />
+              <span className="font-black uppercase tracking-[0.3em] text-xs">Nucleobase</span>
+            </div>
+            <h1 className="text-3xl font-bold text-white leading-tight tracking-tighter mb-8">
+              Sua jornada para a <span className="text-blue-500">clareza financeira</span> começa aqui.
+            </h1>
+            <div className="space-y-4">
+              {[
+                  { icon: <ShieldCheck size={20} className="text-emerald-500" />, text: "Segurança de dados nível bancário" },
+                  { icon: <Zap size={20} className="text-blue-500" />, text: "Interface ultra-rápida e intuitiva" },
+                  { icon: <CheckCircle2 size={20} className="text-blue-500" />, text: "Relatórios gerados em tempo real" }
+              ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-4 text-white/80 font-medium text-sm">
+                      <div className="p-2 bg-white/5 rounded-xl">{item.icon}</div>
+                      {item.text}
+                  </div>
+              ))}
+            </div>
           </div>
 
-          <h1 className="text-3xl font-bold text-white leading-tight tracking-tighter mb-6">
-            Sua jornada para a <span className="text-blue-500">clareza financeira</span> começa aqui.
-          </h1>
-          
-          <div className="space-y-5">
-            {[
-                { icon: <ShieldCheck size={20} className="text-emerald-500" />, text: "Segurança de dados nível bancário" },
-                { icon: <Zap size={20} className="text-blue-500" />, text: "Interface ultra-rápida e intuitiva" },
-                { icon: <CheckCircle2 size={20} className="text-blue-500" />, text: "Relatórios gerados em tempo real" }
-            ].map((item, i) => (
-                <div key={i} className="flex items-center gap-4 text-white/80 font-medium text-sm">
-                    <div className="p-2 bg-white/5 rounded-xl">{item.icon}</div>
-                    {item.text}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-gray-500">
+              <div className="h-px w-8 bg-gray-800"></div>
+              <span className="text-[9px] font-black uppercase tracking-widest">A percepção de quem já organiza o lar</span>
+            </div>
+            <div className="relative p-6 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-sm">
+                <div className="flex gap-1 mb-4">
+                    {[...Array(5)].map((_, i) => <Star key={i} size={12} className="fill-blue-500 text-blue-500" />)}
                 </div>
-            ))}
+                <p className="text-white text-xs italic mb-5 leading-relaxed">
+                  "Finalmente encontrei uma plataforma que simplifica o que era complexo. A visualização clara dos meus rendimentos me trouxe uma paz de espírito que eu não tinha com planilhas manuais."
+                </p>
+                <div className="flex items-center gap-3">
+                    <img src="/depoimentos/a-silva.png" alt="A. Silva" className="w-10 h-10 rounded-full border-2 border-blue-500/30 object-cover" />
+                    <div className="flex flex-col">
+                        <span className="text-[10px] text-white font-black uppercase tracking-widest">A. Silva</span>
+                        <span className="text-[9px] text-gray-500 font-medium uppercase">Empreendedor Digital</span>
+                    </div>
+                </div>
+            </div>
           </div>
-        </div>
-
-        <div className="relative mt-5 z-10 p-6 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-sm max-w-sm mb-4">
-            <div className="flex gap-1 mb-4">
-                {[...Array(5)].map((_, i) => <Star key={i} size={12} className="fill-blue-500 text-blue-500" />)}
-            </div>
-            <p className="text-white text-xs italic mb-5 leading-relaxed">
-              "Finalmente encontrei uma plataforma que simplifica o que era complexo. A visualização clara dos meus rendimentos me trouxe uma paz de espírito que eu não tinha com planilhas manuais."
-            </p>
-            <div className="flex items-center gap-3">
-                <img 
-                    src="/depoimentos/a-silva.png" 
-                    alt="A. Silva"
-                    className="w-10 h-10 rounded-full border-2 border-blue-500/30 object-cover shadow-sm"
-                />
-                <div className="flex flex-col">
-                    <span className="text-[10px] text-white font-black uppercase tracking-widest">A. Silva</span>
-                    <span className="text-[9px] text-gray-500 font-medium uppercase tracking-tighter">Empreendedor Digital</span>
-                </div>
-            </div>
         </div>
       </div>
 
       {/* LADO DIREITO: FORMULÁRIO */}
-      <div className="flex-1 flex flex-col p-8 lg:px-16 lg:pt-8 bg-white overflow-hidden">
-        <div className="w-full max-w-md mx-auto">
-          
+      <div className="flex-1 flex flex-col p-8 lg:px-16 justify-start bg-white">
+        <div className="w-full max-w-md mx-auto pt-4 lg:pt-12 pb-12">
           <div className="mb-8 pt-0 text-left">
             <h2 className="text-3xl font-bold text-gray-900 mb-1 tracking-tight">
-              Criar sua conta<span className="text-blue-600">.</span>
+              Crie sua conta gratuitamente para testar a Plataforma<span className="text-blue-600">.</span>
             </h2>
             <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em]">
               Inicie sua gestão estratégica hoje
             </p>
           </div>
 
-          <form onSubmit={handleCadastro} className="space-y-5">
+          <form onSubmit={handleCadastro} className="space-y-4">
+            {/* ID DE USUÁRIO */}
             <div className="group">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block group-focus-within:text-blue-600 transition-colors">Nome Completo</label>
+              <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-2 block">
+                ID de Usuário (Obrigatório)
+              </label>
+              <div className="relative">
+                <input 
+                  type="text" 
+                  placeholder="Exemplo: joao-silva" 
+                  required 
+                  className="w-full px-6 py-4 bg-blue-50/50 border-2 border-blue-100 rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-400 transition-all text-sm pr-12" 
+                  onChange={(e) => setSlugDesejado(e.target.value)} 
+                />
+                <UserCircle className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-300" size={20} />
+              </div>
+            </div>
+
+            {/* NOME COMPLETO */}
+            <div className="group">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block group-focus-within:text-blue-600 transition-colors">Nome Completo (Opcional)</label>
               <input 
                 type="text" 
-                placeholder="Ex: João Silva" 
-                required 
-                className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 focus:ring-4 focus:ring-blue-50/50 transition-all text-sm font-medium" 
+                placeholder="Exemplo: João Andrade Silva" 
+                className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium" 
                 onChange={(e) => setNome(e.target.value)} 
               />
             </div>
             
+            {/* E-MAIL RECOMENDADO */}
             <div className="group">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block group-focus-within:text-blue-600 transition-colors">E-mail</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block group-focus-within:text-blue-600 transition-colors">E-mail (Recomendado)</label>
               <input 
                 type="email" 
-                placeholder="nome@empresa.com" 
-                required 
-                className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 focus:ring-4 focus:ring-blue-50/50 transition-all text-sm font-medium" 
-                onChange={(e) => setEmail(e.target.value)} 
+                placeholder="Exemplo: joao@seudominio.com" 
+                className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium" 
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (e.target.value.trim()) setShowWarning(false); // Esconde o aviso se o usuário começar a digitar
+                }} 
               />
             </div>
+
+            {/* ADVERTÊNCIA CONDICIONAL: Aparece apenas no "Finalizar" se e-mail estiver vazio */}
+            {showWarning && !email.trim() && (
+              <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 animate-in fade-in zoom-in-95 duration-200">
+                <div className="flex gap-3">
+                  <AlertTriangle className="text-orange-500 shrink-0" size={18} />
+                  <div className="space-y-2">
+                    <p className="text-[11px] text-orange-800 font-bold leading-tight uppercase tracking-tighter">
+                      Atenção: Sem um e-mail real, você não poderá recuperar sua senha se esquecê-la.
+                    </p>
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <input 
+                        type="checkbox" 
+                        className="rounded border-orange-300 text-orange-600 focus:ring-orange-500 h-3.5 w-3.5 transition-transform active:scale-90"
+                        checked={cienteSemEmail}
+                        onChange={(e) => setCienteSemEmail(e.target.checked)}
+                      />
+                      <span className="text-[10px] text-orange-700 font-bold uppercase tracking-tight">Estou ciente e desejo prosseguir</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
             
+            {/* SENHA */}
             <div className="group">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block group-focus-within:text-blue-600 transition-colors">Senha</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block group-focus-within:text-blue-600 transition-colors">Senha (Obrigatório)</label>
               <div className="relative">
                 <input 
                   type={showPassword ? "text" : "password"} 
                   placeholder="••••••••" 
                   required 
-                  className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 focus:ring-4 focus:ring-blue-50/50 transition-all text-sm font-medium pr-14" 
+                  className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium pr-14" 
                   onChange={(e) => setPassword(e.target.value)} 
                 />
                 <button 
@@ -212,10 +276,11 @@ export default function CadastroPage() {
               </div>
             </div>
             
+            {/* BOTÃO FINALIZAR */}
             <button 
               disabled={loading} 
               type="submit" 
-              className="w-full bg-gray-900 text-white py-5 rounded-2xl hover:bg-black transition-all font-bold text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-gray-200 disabled:bg-gray-400 mt-4 flex items-center justify-center gap-3 group"
+              className="w-full bg-gray-900 text-white py-5 rounded-2xl hover:bg-black transition-all font-bold text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-gray-200 disabled:bg-gray-400 mt-2 flex items-center justify-center gap-3 group"
             >
               {loading ? (
                 <span className="animate-pulse">Sincronizando...</span>

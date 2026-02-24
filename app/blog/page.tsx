@@ -61,7 +61,7 @@ export default function BlogDaNucleo() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 pb-20 relative">
+    <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
       
       {/* MODAL DE NEWSLETTER */}
       {isModalOpen && (
@@ -77,16 +77,17 @@ export default function BlogDaNucleo() {
             {!enviado ? (
               <>
                 <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
-                  <Mail size={24} />
+                  <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl">
+                    <Mail size={24} />
+                  </div>
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Newsletter</h3>
-                <p className="text-gray-500 mb-8 font-medium">Insights financeiros e estratégicos toda semana.</p>
+                <p className="text-gray-500 mb-8 font-medium text-sm">Insights financeiros e estratégicos toda semana.</p>
                 
                 <div className="space-y-4">
                   <form onSubmit={handleSubscribe} className="space-y-3">
-                    <input required type="email" name="email" placeholder="Seu melhor e-mail" className="w-full bg-gray-50 border-transparent rounded-2xl py-4 px-6 text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all" />
+                    <input required type="email" name="email" placeholder="Seu melhor e-mail" className="w-full bg-gray-50 border-transparent rounded-2xl py-4 px-6 text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm" />
                     
-                    {/* BOTÃO ASSINAR */}
                     <button 
                       type="submit" 
                       disabled={loading} 
@@ -101,7 +102,6 @@ export default function BlogDaNucleo() {
                     <div className="relative flex justify-center text-[8px] uppercase tracking-widest font-bold"><span className="bg-white px-2 text-gray-400">ou</span></div>
                   </div>
 
-                  {/* BOTÃO ESCREVER ARTIGO - IDÊNTICO AO ASSINAR */}
                   <a 
                     href="/escrever" 
                     className="w-full py-4 bg-gray-900 text-white rounded-full font-bold text-[10px] uppercase tracking-[0.2em] hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg shadow-gray-200"
@@ -123,16 +123,16 @@ export default function BlogDaNucleo() {
         </div>
       )}
 
-      {/* HEADER DA PÁGINA - PADRONIZADO COM A PÁGINA SOBRE */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-2">
+      {/* HEADER DA PÁGINA - ADAPTADO PARA LARGURA TOTAL */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
           <h1 className="text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center">
             <span>Blog Nucleobase<span className="text-blue-600">.</span></span>
-            <Newspaper size={45} className="text-blue-600 skew-x-[-15deg] opacity-20 ml-4" strokeWidth={1.5} />
+            <Newspaper size={60} className="text-blue-600 skew-x-[-15deg] opacity-35 ml-4" strokeWidth={1.2} />
           </h1>
           
-          <h2 className="text-gray-500 text-xl font-medium max-w-2xl leading-relaxed mt-2">
-            Educação e estratégia em âmbito pessoal.
+          <h2 className="text-gray-500 text-xl font-medium max-w-2xl leading-relaxed mt-0">
+            Education e estratégia em âmbito pessoal.
           </h2>
         </div>
 
@@ -150,28 +150,28 @@ export default function BlogDaNucleo() {
       </div>
 
       {/* LINHA DIVISÓRIA */}
-      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4">
+      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
         Acompanhe e participe <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
       {/* INTRODUÇÃO AOS DEPOIMENTOS */}
-      <div className="mb-6 text-center md:text-left px-2">
-        <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-0">
+      <div className="mb-10 text-left">
+        <h3 className="text-xl md:text-3xl font-bold text-gray-900 mb-2">
           Experiências que <span className="text-blue-600">transformam</span> resultados.
         </h3>
-        <p className="text-gray-500 text-sm md:text-base font-medium leading-relaxed max-w-3xl">
+        <p className="text-gray-500 text-base md:text-lg font-medium leading-relaxed max-w-4xl">
           Conheça quem vive a Núcleo e prepare-se pra se apaixonar 
           por uma nova forma de gerir seus controles:
         </p>
       </div>
 
-      {/* GRID DE POSTS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-20">
+      {/* GRID DE POSTS - LARGURA TOTAL COM 3 COLUNAS EM TELAS GRANDES (LG) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
         {posts.map((post) => (
-          <div key={post.id} className="group bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm hover:shadow-xl hover:shadow-blue-50/50 transition-all flex flex-col">
+          <div key={post.id} className="group bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm hover:shadow-xl hover:shadow-blue-50/50 transition-all flex flex-col min-h-[420px]">
             <div className="flex items-start justify-between mb-8">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+                <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
                   <User size={20} />
                 </div>
                 <div>
@@ -186,8 +186,8 @@ export default function BlogDaNucleo() {
             <div className="mb-4">
               <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] bg-blue-50/50 px-3 py-1 rounded-md">{post.tag}</span>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-5 group-hover:text-blue-600 transition-colors leading-tight">{post.titulo}</h3>
-            <p className="text-gray-500 text-base leading-relaxed mb-10 font-medium italic">"{post.preview}"</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors leading-tight">{post.titulo}</h3>
+            <p className="text-gray-500 text-sm leading-relaxed mb-8 font-medium italic">"{post.preview}"</p>
             <div className="mt-auto flex items-center text-gray-900 text-[11px] font-black uppercase tracking-widest gap-2 group-hover:gap-4 transition-all cursor-pointer">
               Ler artigo completo <ArrowRight size={16} className="text-blue-600" />
             </div>
@@ -195,53 +195,49 @@ export default function BlogDaNucleo() {
         ))}
       </div>
 
-      {/* FOOTER CTA */}
-      <div className="bg-gray-50 rounded-[3rem] p-2 text-center border border-gray-100 relative overflow-hidden">
-        <PenTool size={100} className="absolute -top-5 -left-5 text-blue-100 opacity-50 -rotate-12" />
-        <h3 className="text-3xl font-bold text-gray-900 mb-4">Sua expertise na Nucleobase.</h3>
-        <p className="text-gray-500 mb-8 max-w-xl mx-auto font-medium">
+      {/* FOOTER CTA - ADAPTADO */}
+      <div className="bg-gray-50 rounded-[3rem] p-12 text-center border border-gray-100 relative overflow-hidden mb-12">
+        <PenTool size={140} className="absolute -top-10 -left-10 text-blue-100 opacity-30 -rotate-12 pointer-events-none" />
+        <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 relative z-10">Sua expertise na Nucleobase.</h3>
+        <p className="text-gray-500 mb-8 max-w-2xl mx-auto font-medium text-lg relative z-10">
           Escreva e posicione-se como uma autoridade no mercado digital.
         </p>
-        <a href="/blog/contribuir" className="inline-block px-10 py-4 bg-gray-900 text-white rounded-full font-bold text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-gray-200">
+        <a href="/blog/contribuir" className="relative z-10 inline-block px-12 py-4 bg-gray-900 text-white rounded-full font-bold text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-gray-200">
           Criar artigo agora
         </a>
       </div>
 
-      {/* BANNER INSTAGRAM - 3 COLUNAS */}
+      {/* BANNER INSTAGRAM - 3 COLUNAS LARGURA TOTAL */}
       <a 
         href="https://instagram.com/nucleobase.app" 
         target="_blank" 
         rel="noopener noreferrer"
-        className="block w-full bg-gradient-to-r from-gray-50 to-white border border-gray-100 rounded-[2rem] p-2 mt-22 mb-16 group hover:shadow-lg hover:shadow-blue-50/50 transition-all overflow-hidden relative"
+        className="block w-full bg-gradient-to-r from-gray-50 to-white border border-gray-100 rounded-[3rem] p-8 group hover:shadow-lg hover:shadow-blue-50/50 transition-all overflow-hidden relative"
       >
-        {/* Elemento Decorativo de Fundo */}
-        <Instagram size={150} className="absolute -right-10 -bottom-10 text-blue-500 opacity-[0.03] group-hover:rotate-12 transition-transform duration-700" />
+        <Instagram size={180} className="absolute -right-10 -bottom-10 text-blue-500 opacity-[0.05] group-hover:rotate-12 transition-transform duration-700" />
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center relative z-10">
           
-          {/* Coluna 1: O Convite */}
-          <div className="flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 py-2 md:py-0 text-center">
-            <div className="flex items-center gap-2 text-blue-600 mb-1">
-              <Instagram size={16} strokeWidth={2.5} />
-              <span className="text-[9px] font-black uppercase tracking-[0.2em]">Social Feed Núcleo</span>
+          <div className="flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 py-4 md:py-0 text-center">
+            <div className="flex items-center gap-2 text-blue-600 mb-2">
+              <Instagram size={20} strokeWidth={2.5} />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Social Feed Núcleo</span>
             </div>
-            <h4 className="text-lg font-bold text-gray-900 leading-tight">
+            <h4 className="text-2xl font-bold text-gray-900 leading-tight">
               Mais que um <span className="text-blue-600">dashboard.</span>
             </h4>
           </div>
 
-          {/* Coluna 2: O Estímulo */}
-          <div className="flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 py-2 md:py-0 md:px-4 text-center">
-            <p className="text-[12px] text-gray-500 font-medium leading-tight max-w-[280px]">
+          <div className="flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 py-4 md:py-0 md:px-8 text-center">
+            <p className="text-base text-gray-500 font-medium leading-relaxed max-w-[320px]">
               Bastidores, insights rápidos e a rotina de quem opera no <span className="text-gray-900 font-bold">próximo nível</span>.
             </p>
           </div>
 
-          {/* Coluna 3: A Ação */}
-          <div className="flex flex-col items-center justify-center py-2 md:py-0 text-center gap-2">
-            <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none">Conecte-se agora</p>
-            <div className="flex items-center gap-2 px-5 py-2 bg-gray-900 text-white rounded-full font-bold text-[9px] uppercase tracking-widest group-hover:bg-blue-600 transition-colors shadow-md">
-              Seguir no Instagram <ArrowRight size={12} />
+          <div className="flex flex-col items-center justify-center py-4 md:py-0 text-center gap-4">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Conecte-se agora</p>
+            <div className="flex items-center gap-3 px-8 py-3 bg-gray-900 text-white rounded-full font-bold text-[10px] uppercase tracking-widest group-hover:bg-blue-600 transition-colors shadow-md">
+              Seguir no Instagram <ArrowRight size={14} />
             </div>
           </div>
         </div>

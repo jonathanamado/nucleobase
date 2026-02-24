@@ -1,4 +1,3 @@
-// app/suporte/page.tsx
 "use client";
 import React from "react";
 import { 
@@ -10,7 +9,9 @@ import {
   Settings, 
   ArrowRight,
   ShieldCheck,
-  Lock // Adicionado para o novo card
+  Lock,
+  Lightbulb, // Alterado: Lightbulb em vez de Handshake
+  Sparkles
 } from "lucide-react";
 
 export default function SuportePage() {
@@ -45,35 +46,49 @@ export default function SuportePage() {
       title: "Segurança e Dados",
       desc: "Entenda como protegemos suas informações e conformidade LGPD.",
       icon: <Lock size={24} />,
-      link: "#",
+      link: "/privacidade",
       color: "text-emerald-600",
       bg: "bg-emerald-50"
     }
   ];
 
   return (
-    <div className="w-full max-w-6xl animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
-      {/* HEADER DA PÁGINA */}
-      <div className="mb-12 mt-2">
-        <div className="flex items-center gap-3 text-blue-600 mb-4">
-          <LifeBuoy className="animate-spin-slow" size={32} />
-          <span className="text-xs font-black uppercase tracking-[0.3em]">Central de Sucesso</span>
+    <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
+      
+      {/* HEADER DA PÁGINA - PADRÃO NUCLEOBASE */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
+        <div>
+          <div className="flex items-center gap-2 text-blue-600 mb-4">
+            <LifeBuoy className="animate-spin-slow" size={18} />
+            <span className="text-[10px] font-black uppercase tracking-[0.3em]">Central de Sucesso</span>
+          </div>
+          <h1 className="text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center">
+            <span>Como podemos ajudar hoje<span className="text-blue-600">?</span></span>
+            {/* NOVO DESENHO: LIGHTBULB PARA INSIGHTS E SUPORTE INTELIGENTE */}
+            <Lightbulb 
+              size={64} 
+              className="text-blue-600 opacity-30 ml-6 -rotate-12 transition-transform hover:rotate-0 duration-700" 
+              strokeWidth={1.2} 
+            />
+          </h1>
+          <h2 className="text-gray-500 text-xl font-medium max-w-4xl leading-relaxed mt-2">
+            Escolha um dos canais abaixo. Incentivamos o contato de uma maneira humana, pois é assim que trabalhamos para melhorar sua experiência na Núcleo.
+          </h2>
         </div>
-        <h1 className="text-5xl font-bold text-gray-900 mb-4 tracking-tight">
-          Como podemos ajudar hoje<span className="text-blue-600">?</span> 👋👋👋
-        </h1>
-        <p className="text-gray-500 text-lg max-w-4xl leading-relaxed">
-          Sua jornada na <strong>Núcleo</strong> deve ser fluida. Escolha um dos canais abaixo para resolver sua dúvida ou otimizar sua gestão de uma maneira simples e efetiva. Incentivamos o contato de uma maneira humana, esteja ciente que é da mesma forma que retornaremos o contato para melhorar sua experiência na Núcleo.
-        </p>
       </div>
 
-      {/* GRIDS DE ATALHOS - AJUSTADO PARA 4 COLUNAS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      {/* LINHA DIVISÓRIA DE SEÇÃO */}
+      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
+        Canais de Autoatendimento <div className="h-px bg-gray-300 flex-1"></div>
+      </h3>
+
+      {/* GRIDS DE ATALHOS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
         {centrais.map((item, i) => (
           <a 
             key={i} 
             href={item.link}
-            className="group bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
+            className="group bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 hover:-translate-y-1 transition-all duration-300 flex flex-col"
           >
             <div className={`${item.bg} ${item.color} w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
               {item.icon}
@@ -82,71 +97,79 @@ export default function SuportePage() {
             <p className="text-sm text-gray-500 leading-relaxed mb-6 flex-1">
               {item.desc}
             </p>
-            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-600">
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-600 group-hover:translate-x-1 transition-transform">
               Acessar agora <ArrowRight size={14} />
             </div>
           </a>
         ))}
       </div>
 
-      {/* SEÇÃO DE SUPORTE CRÍTICO / DIRETO */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* LINHA DIVISÓRIA SUPORTE DIRETO */}
+      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
+        Suporte Especializado <div className="h-px bg-gray-300 flex-1"></div>
+      </h3>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
         
-        {/* CARD WHATSAPP (Suporte Real-time) */}
-        <div className="bg-emerald-600 rounded-[2.5rem] p-10 text-white relative overflow-hidden group">
-          <div className="relative z-10">
-            <div className="bg-white/20 w-12 h-12 rounded-xl flex items-center justify-center mb-6">
-              <MessageSquare size={24} />
+        {/* CARD WHATSAPP */}
+        <div className="bg-emerald-600 rounded-[3rem] p-10 text-white relative overflow-hidden group shadow-2xl shadow-emerald-900/10">
+          <div className="relative z-10 flex flex-col h-full">
+            <div className="bg-white/20 w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
+              <MessageSquare size={28} />
             </div>
-            <h3 className="text-3xl font-bold mb-4 tracking-tight">Suporte via<br/>WhatsApp</h3>
-            <p className="text-emerald-100 mb-8 text-sm leading-relaxed max-w-[280px]">
-              Fale com um consultor humano para questões técnicas ou comerciais.
+            <h3 className="text-4xl font-bold mb-4 tracking-tight">Suporte via<br/>WhatsApp</h3>
+            <p className="text-emerald-100 mb-10 text-base leading-relaxed max-w-[320px] font-medium italic">
+              Fale com um consultor humano para questões técnicas ou comerciais em tempo real.
             </p>
             <a 
               href={whatsappLink}
               target="_blank"
-              className="inline-flex items-center gap-3 bg-white text-emerald-600 px-8 py-4 rounded-full font-bold text-xs uppercase tracking-widest hover:bg-emerald-50 transition-all shadow-lg"
+              rel="noopener noreferrer"
+              className="mt-auto inline-flex items-center justify-center gap-3 bg-white text-emerald-600 px-10 py-5 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-emerald-50 transition-all shadow-xl w-fit"
             >
-              Iniciar Chat Agora
+              Iniciar Chat Agora <ArrowRight size={16} />
             </a>
           </div>
-          <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all"></div>
+          <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:scale-125 transition-all duration-700"></div>
         </div>
 
-        {/* CARD REPORTAR BUG (Focado em Melhoria) */}
-        <div className="bg-gray-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden group">
-          <div className="relative z-10">
-            <div className="bg-white/10 w-12 h-12 rounded-xl flex items-center justify-center mb-6">
-              <FileWarning size={24} className="text-amber-400" />
+        {/* CARD REPORTAR BUG */}
+        <div className="bg-gray-900 rounded-[3rem] p-10 text-white relative overflow-hidden group shadow-2xl shadow-gray-900/20">
+          <div className="relative z-10 flex flex-col h-full">
+            <div className="bg-white/10 w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
+              <FileWarning size={28} className="text-amber-400" />
             </div>
-            <h3 className="text-3xl font-bold mb-4 tracking-tight">Reportar um<br/>Problema</h3>
-            <p className="text-gray-400 mb-8 text-sm leading-relaxed max-w-[280px]">
-              Encontrou algo errado? Nos avise para que possamos corrigir imediatamente.
+            <h3 className="text-4xl font-bold mb-4 tracking-tight">Reportar um<br/>Problema</h3>
+            <p className="text-gray-400 mb-10 text-base leading-relaxed max-w-[320px] font-medium italic">
+              Encontrou algo errado? Nos avise para que nossa engenharia possa corrigir imediatamente.
             </p>
             <a 
               href="/contato"
-              className="inline-flex items-center gap-3 bg-gray-800 text-white border border-gray-700 px-8 py-4 rounded-full font-bold text-xs uppercase tracking-widest hover:bg-gray-700 transition-all"
+              className="mt-auto inline-flex items-center justify-center gap-3 bg-gray-800 text-white border border-gray-700 px-10 py-5 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-gray-700 transition-all w-fit"
             >
-              Abrir Ticket
+              Abrir Chamado Técnico
             </a>
           </div>
+          <div className="absolute -top-20 -right-20 w-64 h-64 bg-blue-600/10 blur-[100px] rounded-full pointer-events-none"></div>
         </div>
-
       </div>
 
-      {/* FOOTER DE SEGURANÇA */}
-      <div className="mt-16 flex flex-col md:flex-row items-center justify-between p-8 border border-dashed border-gray-200 rounded-[2rem] gap-6">
-        <div className="flex items-center gap-4">
-          <div className="bg-gray-50 p-3 rounded-full text-gray-400">
-            <ShieldCheck size={24} />
+      {/* FOOTER DE SEGURANÇA PADRONIZADO */}
+      <div className="flex flex-col md:flex-row items-center justify-between p-10 border border-dashed border-gray-200 rounded-[2.5rem] gap-8 bg-gray-50/30">
+        <div className="flex items-center gap-6">
+          <div className="bg-white p-4 rounded-2xl text-gray-400 shadow-sm border border-gray-100">
+            <ShieldCheck size={28} />
           </div>
           <div>
-            <h4 className="font-bold text-gray-900 text-sm">Privacidade e Segurança</h4>
-            <p className="text-xs text-gray-500">Seus dados são protegidos por criptografia RSA 2048 bits.</p>
+            <h4 className="font-bold text-gray-900 text-lg tracking-tight">Privacidade e Segurança</h4>
+            <p className="text-sm text-gray-500 font-medium italic">Seus dados financeiros são protegidos por criptografia de nível bancário.</p>
           </div>
         </div>
-        <div className="flex gap-4">
-           <span className="px-4 py-2 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase rounded-full">Status: Operacional</span>
+        <div className="flex items-center gap-4">
+           <div className="flex items-center gap-2 px-6 py-3 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-[0.2em] rounded-full border border-emerald-100">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+              Status: Operacional
+           </div>
         </div>
       </div>
 
@@ -156,7 +179,7 @@ export default function SuportePage() {
           to { transform: rotate(360deg); }
         }
         .animate-spin-slow {
-          animation: spin-slow 8s linear infinite;
+          animation: spin-slow 12s linear infinite;
         }
       `}</style>
     </div>
