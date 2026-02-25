@@ -6,11 +6,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { 
   UserCircle, LayoutDashboard, X, Menu, 
   Info, Newspaper, CreditCard, BarChart3, Star, HelpCircle, 
-  MessageSquare, Shield, LifeBuoy, ChevronRight, Undo2, AppWindow
+  Shield, ChevronRight, AppWindow
 } from "lucide-react";
 
 export function Header() {
-  const [mounted, setMounted] = useState(false); // NOVO: Resolve erro #418
+  const [mounted, setMounted] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<{ nome: string; avatar: string | null }>({
@@ -20,7 +20,6 @@ export function Header() {
   const pathname = usePathname();
   const router = useRouter();
 
-  // URLs Absolutas para evitar conflitos de subdomínio/CORS
   const MAIN_URL = "https://nucleobase.app";
 
   const fetchProfile = async (userId: string) => {
@@ -39,7 +38,7 @@ export function Header() {
   };
 
   useEffect(() => {
-    setMounted(true); // Indica que o componente está no cliente
+    setMounted(true);
     
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -71,8 +70,14 @@ export function Header() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setIsMenuOpen(false);
-    // Após deslogar, forçamos o redirecionamento para o site principal (fora do dashboard)
+    // Força redirecionamento total para limpar o estado do subdomínio
     window.location.href = MAIN_URL;
+  };
+
+  // Função para navegar entre subdomínios sem erro de CORS/Prefetch
+  const navigateExternal = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
+    e.preventDefault();
+    window.location.href = url;
   };
 
   const menuLinks = [
@@ -85,7 +90,6 @@ export function Header() {
     { name: "Segurança", href: `${MAIN_URL}/seguranca_privacidade`, icon: <Shield size={18} /> },
   ];
 
-  // Previne renderização divergente até que o cliente esteja pronto
   if (!mounted) return <div className="w-full h-20 bg-white border-b border-gray-100" />;
 
   return (
@@ -95,7 +99,7 @@ export function Header() {
         {/* BLOCO DA LOGO */}
         <div className="flex items-center flex-shrink-0 min-w-fit"> 
           <div className="flex-shrink-0">
-              <a href={MAIN_URL} rel="external" className="block hover:opacity-90 transition">
+              <a href={MAIN_URL} onClick={(e) => navigateExternal(e, MAIN_URL)} rel="external" className="block hover:opacity-90 transition">
                 <img 
                   src="/logo-oficial.png?v=3" 
                   alt="Logo Núcleo Base"
@@ -107,7 +111,7 @@ export function Header() {
           </div>
 
           <div className="hidden lg:flex flex-col text-[13px] font-bold text-gray-900 leading-tight tracking-tighter -ml-8 select-none">
-            <a href={MAIN_URL} rel="external" className="hover:opacity-80 transition flex flex-col">
+            <a href={MAIN_URL} onClick={(e) => navigateExternal(e, MAIN_URL)} rel="external" className="hover:opacity-80 transition flex flex-col">
               <span className="pl-0">Sua plataforma</span>
               <span className="pl-7.5 mt-0 text-gray-500">financeira</span>
               <span className="pl-9.5 mt-0.5">
@@ -123,7 +127,7 @@ export function Header() {
         <nav className="hidden md:flex items-center gap-3 text-[13px] text-gray-600">
           {!isLoggedIn ? (
             <>
-              <a href={MAIN_URL} className="flex items-center gap-2.5 text-gray-400 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest mr-4 group">
+              <a href={MAIN_URL} onClick={(e) => navigateExternal(e, MAIN_URL)} rel="external" className="flex items-center gap-2.5 text-gray-400 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest mr-4 group">
                  <div className="bg-gray-50 p-2 rounded-full group-hover:bg-blue-50 transition-colors border border-gray-100 group-hover:border-blue-100">
                    <AppWindow size={16} strokeWidth={2} />
                  </div>
@@ -138,7 +142,7 @@ export function Header() {
             </>
           ) : (
             <div className="flex items-center gap-3">
-              <a href={MAIN_URL} className="flex items-center gap-2.5 text-gray-400 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest mr-2 group">
+              <a href={MAIN_URL} onClick={(e) => navigateExternal(e, MAIN_URL)} rel="external" className="flex items-center gap-2.5 text-gray-400 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest mr-2 group">
                 <div className="bg-gray-50 p-2 rounded-full group-hover:bg-blue-50 transition-colors border border-gray-100 group-hover:border-blue-100">
                   <AppWindow size={16} strokeWidth={2} />
                 </div>
@@ -178,7 +182,7 @@ export function Header() {
             <div className="absolute top-[85px] right-6 left-6 bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 z-[100] overflow-hidden animate-in fade-in zoom-in-95 duration-200 md:hidden">
               <div className="max-h-[70vh] overflow-y-auto p-4">
                 
-                <a href={MAIN_URL} onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between p-4 rounded-2xl text-blue-600 bg-blue-50/50 border border-blue-100 mb-2 group">
+                <a href={MAIN_URL} onClick={(e) => { setIsMenuOpen(false); navigateExternal(e, MAIN_URL); }} rel="external" className="flex items-center justify-between p-4 rounded-2xl text-blue-600 bg-blue-50/50 border border-blue-100 mb-2 group">
                   <div className="flex items-center gap-4">
                     <span className="p-2 bg-white rounded-full shadow-sm">
                       <AppWindow size={18} strokeWidth={2.5} />
@@ -211,7 +215,8 @@ export function Header() {
                     <a
                       key={link.name}
                       href={link.href}
-                      onClick={() => setIsMenuOpen(false)}
+                      onClick={(e) => { setIsMenuOpen(false); navigateExternal(e, link.href); }}
+                      rel="external"
                       className="flex items-center justify-between p-1.5 rounded-2xl text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-all group"
                     >
                       <div className="flex items-center gap-4">
@@ -226,16 +231,16 @@ export function Header() {
                 <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
                   {!isLoggedIn ? (
                     <div className="grid grid-cols-2 gap-3">
-                      <a href="/acesso-usuario" className="py-4 bg-orange-500 text-white text-center rounded-2xl font-bold text-xs uppercase tracking-tighter">
+                      <a href="/acesso-usuario" onClick={() => setIsMenuOpen(false)} className="py-4 bg-orange-500 text-white text-center rounded-2xl font-bold text-xs uppercase tracking-tighter">
                         Acessar
                       </a>
-                      <a href="/cadastro" className="py-4 bg-blue-600 text-white text-center rounded-2xl font-bold text-xs uppercase tracking-tighter">
+                      <a href="/cadastro" onClick={() => setIsMenuOpen(false)} className="py-4 bg-blue-600 text-white text-center rounded-2xl font-bold text-xs uppercase tracking-tighter">
                         Criar Conta
                       </a>
                     </div>
                   ) : (
                     <div className="flex flex-col gap-2">
-                      <a href="/acesso-usuario" className="flex items-center justify-center gap-2 w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-sm shadow-lg">
+                      <a href="/acesso-usuario" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-center gap-2 w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-sm shadow-lg">
                         <LayoutDashboard size={18} /> Painel Principal
                       </a>
                       <button onClick={handleLogout} className="py-3 text-gray-400 font-bold text-[11px] uppercase tracking-widest">

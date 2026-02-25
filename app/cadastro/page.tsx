@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { supabase } from "@/lib/supabase"; // AJUSTE: Usar instância centralizada
+import { supabase } from "@/lib/supabase"; 
 import { ShieldCheck, Zap, Star, CheckCircle2, Globe, Eye, EyeOff, UserCircle, AlertTriangle } from "lucide-react";
 
 export default function CadastroPage() {
@@ -15,7 +15,6 @@ export default function CadastroPage() {
   const [showWarning, setShowWarning] = useState(false);
   const [cienteSemEmail, setCienteSemEmail] = useState(false);
 
-  // URLs para redirecionamento estratégico
   const DASHBOARD_URL = "https://dashboard.nucleobase.app";
 
   const formatarSlug = (texto: string) => {
@@ -59,69 +58,82 @@ export default function CadastroPage() {
     setLoading(true);
     const slugFinal = formatarSlug(slugDesejado);
 
-    // 1. Verificar disponibilidade do slug
-    const { data: slugExistente } = await supabase
-      .from('profiles')
-      .select('slug')
-      .eq('slug', slugFinal)
-      .maybeSingle();
+    try {
+      // 1. Verificar disponibilidade do slug
+      const { data: slugExistente } = await supabase
+        .from('profiles')
+        .select('slug')
+        .eq('slug', slugFinal)
+        .maybeSingle();
 
-    if (slugExistente) {
-      alert("Este ID de Usuário já está sendo utilizado. Por favor, escolha outro.");
-      setLoading(false);
-      return;
-    }
-
-    const emailParaAuth = email.trim() ? email.trim() : `${slugFinal}@nucleobase.app`;
-
-    // 2. Criar o usuário no Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: emailParaAuth,
-      password,
-      options: { data: { full_name: nome || "Anônimo" } }
-    });
-
-    if (authError) {
-      alert("Erro ao cadastrar: " + authError.message);
-      setLoading(false);
-      return;
-    }
-
-    if (authData.user) {
-      // 3. Salvar na tabela profiles
-      await supabase.from('profiles').insert([
-        { 
-          id: authData.user.id, 
-          email: emailParaAuth, 
-          email_contato: email.trim() || null, 
-          nome_completo: nome || "Anônimo", 
-          plan_type: 'free',
-          slug: slugFinal 
-        }
-      ]);
-
-      const indicadorId = localStorage.getItem("nucleobase_referral_id");
-      if (indicadorId && indicadorId !== authData.user.id) {
-        const { error: indError } = await supabase.from("indicacoes").insert([
-          { indicador_id: indicadorId, indicado_id: authData.user.id, status: 'pendente' }
-        ]);
-        if (!indError) {
-          await enviarNotificacaoAdm(nome, emailParaAuth);
-          localStorage.removeItem("nucleobase_referral_id");
-        }
+      if (slugExistente) {
+        alert("Este ID de Usuário já está sendo utilizado. Por favor, escolha outro.");
+        setLoading(false);
+        return;
       }
-      
-      // AJUSTE: Redirecionar direto para o APP após cadastro para melhor UX
-      window.location.href = `${DASHBOARD_URL}/lancamentos`;
+
+      const emailParaAuth = email.trim() ? email.trim() : `${slugFinal}@nucleobase.app`;
+
+      // 2. Criar o usuário no Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: emailParaAuth,
+        password,
+        options: { data: { full_name: nome || "Anônimo" } }
+      });
+
+      if (authError) {
+        alert("Erro ao cadastrar: " + authError.message);
+        setLoading(false);
+        return;
+      }
+
+      if (authData.user) {
+        // 3. Salvar na tabela profiles
+        const { error: profileError } = await supabase.from('profiles').insert([
+          { 
+            id: authData.user.id, 
+            email: emailParaAuth, 
+            email_contato: email.trim() || null, 
+            nome_completo: nome || "Anônimo", 
+            plan_type: 'free',
+            slug: slugFinal 
+          }
+        ]);
+
+        if (profileError) {
+            console.error("Erro ao criar perfil:", profileError);
+            alert("Conta criada, mas houve um erro ao configurar seu perfil. Tente fazer login.");
+            setLoading(false);
+            return;
+        }
+
+        // 4. Lógica de Indicação
+        const indicadorId = localStorage.getItem("nucleobase_referral_id");
+        if (indicadorId && indicadorId !== authData.user.id) {
+          const { error: indError } = await supabase.from("indicacoes").insert([
+            { indicador_id: indicadorId, indicado_id: authData.user.id, status: 'pendente' }
+          ]);
+          if (!indError) {
+            await enviarNotificacaoAdm(nome, emailParaAuth);
+            localStorage.removeItem("nucleobase_referral_id");
+          }
+        }
+        
+        // Sucesso: Redirecionamento forçado para o dashboard
+        // Usamos window.location para garantir que a sessão seja reconhecida no novo subdomínio
+        window.location.href = `${DASHBOARD_URL}/lancamentos`;
+      }
+    } catch (err) {
+      alert("Ocorreu um erro crítico no cadastro. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
-    /* Estrutura de UI e Textos mantidos exatamente como solicitados */
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-white font-sans">
       
-      {/* LADO ESQUERDO: BRANDING */}
+      {/* LADO ESQUERDO: BRANDING (Mantido original) */}
       <div className="w-full lg:w-1/2 bg-gray-900 p-8 lg:p-12 flex flex-col justify-start relative border-r border-white/5">
         <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
             <Globe size={400} className="absolute -bottom-20 -left-20 text-blue-500" />
@@ -153,14 +165,14 @@ export default function CadastroPage() {
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-gray-500">
               <div className="h-px w-8 bg-gray-800"></div>
-              <span className="text-[9px] font-black uppercase tracking-widest">A percepção de quem já organiza o lar</span>
+              <span className="text-[9px] font-black uppercase tracking-widest">Depoimento</span>
             </div>
             <div className="relative p-6 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-sm">
                 <div className="flex gap-1 mb-4">
                     {[...Array(5)].map((_, i) => <Star key={i} size={12} className="fill-blue-500 text-blue-500" />)}
                 </div>
                 <p className="text-white text-xs italic mb-5 leading-relaxed">
-                  "Finalmente encontrei uma plataforma que simplifica o que era complexo. A visualização clara dos meus rendimentos me trouxe uma paz de espírito que eu não tinha com planilhas manuais."
+                  "Finalmente encontrei uma plataforma que simplifica o que era complexo. A visualização clara dos meus rendimentos me trouxe uma paz de espírito."
                 </p>
                 <div className="flex items-center gap-3">
                     <img src="/depoimentos/a-silva.png" alt="A. Silva" className="w-10 h-10 rounded-full border-2 border-blue-500/30 object-cover" />
@@ -179,7 +191,7 @@ export default function CadastroPage() {
         <div className="w-full max-w-md mx-auto pt-4 lg:pt-12 pb-12">
           <div className="mb-8 pt-0 text-left">
             <h2 className="text-3xl font-bold text-gray-900 mb-1 tracking-tight">
-              Crie sua conta gratuitamente para testar a Plataforma<span className="text-blue-600">.</span>
+              Crie sua conta gratuitamente<span className="text-blue-600">.</span>
             </h2>
             <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em]">
               Inicie sua gestão estratégica hoje

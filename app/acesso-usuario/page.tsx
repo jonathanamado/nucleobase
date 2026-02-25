@@ -1,15 +1,15 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase"; // Use a instância centralizada que configuramos
+import { supabase } from "@/lib/supabase"; 
 import { 
   UserCog, Rocket, ShieldCheck, ArrowRight, 
-  CheckCircle2, LogOut, X, Mail, LifeBuoy, AtSign,
+  CheckCircle2, LogOut, X, LifeBuoy, AtSign,
   Eye, EyeOff 
 } from "lucide-react";
 
 export default function AcessoUsuarioPage() {
-  const [mounted, setMounted] = useState(false); // RESOLVE ERRO DE HIDRATAÇÃO
+  const [mounted, setMounted] = useState(false);
   const [slug, setSlug] = useState(""); 
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -94,7 +94,7 @@ export default function AcessoUsuarioPage() {
       if (authError) {
         alert("Erro ao acessar: Senha incorreta ou problema na conta.");
       } else {
-        // Login com sucesso: Forçamos o redirecionamento para o dashboard limpo
+        // IMPORTANTE: window.location.href evita erros de Prefetch/CORS do Next.js
         window.location.href = `${DASHBOARD_URL}/lancamentos`;
       }
     } catch (err) {
@@ -106,28 +106,20 @@ export default function AcessoUsuarioPage() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.href = "/acesso-usuario"; // Refresh limpo
+    // Refresh total para limpar cookies de subdomínio
+    window.location.href = "/acesso-usuario"; 
   };
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
+  // Função para navegar para fora do dashboard sem disparar erro de Prefetch
+  const handleExternalNav = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
     e.preventDefault();
-    setResetLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      redirectTo: `${MAIN_URL}/reset-password`,
-    });
-    if (error) alert("Erro: " + error.message);
-    else {
-      alert("Link enviado! Verifique seu e-mail.");
-      setShowForgotModal(false);
-    }
-    setResetLoading(false);
+    window.location.href = url;
   };
 
-  // Previne renderização divergente entre Servidor e Cliente
   if (!mounted) return <div className="min-h-screen bg-white" />;
 
   return (
-    <div className="w-full min-h-screen overflow-y-auto animate-in fade-in slide-in-from-bottom-6 duration-700 pb-32 relative px-4 md:px-0 md:pr-10">
+    <div className="w-full min-h-screen animate-in fade-in slide-in-from-bottom-6 duration-700 pb-32 relative px-4 md:px-0 md:pr-10">
       
       {/* Cabeçalho */}
       <div className="mb-6 mt-8 flex flex-col md:flex-row justify-between items-start gap-4 p-0 w-full">
@@ -154,11 +146,11 @@ export default function AcessoUsuarioPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full items-stretch">
         
-        {/* CARD 1: ACESSO AO APP */}
+        {/* CARD 1: ACESSO AO APP (Relativo ou DASHBOARD_URL) */}
         <div className="flex">
           {isLoggedIn ? (
             <a 
-              href={`${DASHBOARD_URL}/lancamentos`}
+              href="/lancamentos"
               className="p-8 rounded-[2.5rem] shadow-lg transition-all border flex flex-col text-center bg-orange-500 border-orange-400 hover:bg-orange-600 group w-full"
             >
               <div className="p-4 rounded-2xl mb-4 w-fit mx-auto bg-white/20 text-white group-hover:scale-110 transition-transform">
@@ -217,11 +209,12 @@ export default function AcessoUsuarioPage() {
           )}
         </div>
 
-        {/* CARD 2: MEU PERFIL (Sempre aponta para o domínio principal) */}
+        {/* CARD 2: MEU PERFIL (Navegação Externa) */}
         <div className="flex">
           <a 
-            href={isLoggedIn ? `${MAIN_URL}/minha-conta` : `${MAIN_URL}/cadastro`} 
+            href={`${MAIN_URL}/minha-conta`} 
             rel="external"
+            onClick={(e) => handleExternalNav(e, isLoggedIn ? `${MAIN_URL}/minha-conta` : `${MAIN_URL}/cadastro`)}
             className="group bg-white p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-gray-100 flex flex-col items-center text-center w-full hover:border-blue-100"
           >
             <div className="bg-orange-50 p-4 rounded-2xl mb-4 text-orange-500 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all duration-300">
@@ -236,11 +229,12 @@ export default function AcessoUsuarioPage() {
           </a>
         </div>
 
-        {/* CARD 3: PLANOS */}
+        {/* CARD 3: PLANOS (Navegação Externa) */}
         <div className="flex">
           <a 
             href={`${MAIN_URL}/planos`} 
             rel="external"
+            onClick={(e) => handleExternalNav(e, `${MAIN_URL}/planos`)}
             className="group bg-white p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-gray-100 flex flex-col items-center text-center w-full hover:border-blue-100"
           >
             <div className="bg-orange-50 p-4 rounded-2xl mb-4 text-orange-500 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all duration-300">
@@ -261,7 +255,7 @@ export default function AcessoUsuarioPage() {
         </div>
       </div>
 
-      {/* MODAL DE RECUPERAÇÃO (Mantido conforme original com pequenos ajustes) */}
+      {/* MODAL DE RECUPERAÇÃO */}
       {showForgotModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-sm rounded-[2.5rem] p-10 relative animate-in zoom-in-95 duration-200">
