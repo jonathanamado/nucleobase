@@ -9,13 +9,13 @@ import {
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
 
-// Inicialização com persistência para Mobile
+// Substitua sua inicialização antiga por esta:
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   {
     auth: {
-      persistSession: true,
+      persistSession: true, // Garante que o login sobreviva ao fechar a aba
       autoRefreshToken: true,
       detectSessionInUrl: true
     }
@@ -24,11 +24,9 @@ const supabase = createClient(
 
 export default function LancamentosPage() {
   const [userId, setUserId] = useState<string | null>(null);
-  const [userName, setUserName] = useState("");
   const [loading, setLoading] = useState(false);
   const [sucesso, setSucesso] = useState(false);
   const [ultimosLancamentos, setUltimosLancamentos] = useState<any[]>([]);
-  const [mounted, setMounted] = useState(false);
 
   // Lista de Categorias Sugeridas para Padronização
   const categoriasSugeridas = [
@@ -57,28 +55,6 @@ export default function LancamentosPage() {
 
   const [formData, setFormData] = useState(initialFormState);
 
-  // Passo C: Lógica de busca de nome robusta
-  const fetchProfileName = async (user: any) => {
-    if (!user) return;
-    
-    try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('nome_completo')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (profile?.nome_completo && profile.nome_completo.trim() !== "") {
-        setUserName(profile.nome_completo);
-      } else {
-        const nomeFinal = user.user_metadata?.full_name || user.user_metadata?.name || "Usuário";
-        setUserName(nomeFinal);
-      }
-    } catch (err) {
-      setUserName("Usuário");
-    }
-  };
-
   const fetchUltimos = async (id: string) => {
     const { data, error } = await supabase
       .from("lancamentos_financeiros")
@@ -91,15 +67,11 @@ export default function LancamentosPage() {
     if (error) console.error("Erro ao buscar lançamentos:", error);
   };
 
-  // Passo B: Proteção contra renderização inconsistente
   useEffect(() => {
-    setMounted(true);
-
     const getUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUserId(session.user.id);
-        fetchProfileName(session.user);
         fetchUltimos(session.user.id);
       }
     };
@@ -141,9 +113,6 @@ export default function LancamentosPage() {
     }
   };
 
-  // Trava de segurança para evitar erro de hidratação e inconsistência mobile
-  if (!mounted) return <div className="min-h-screen bg-white" />;
-
   return (
     <div className="w-full min-h-screen animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0 md:pr-10">
       
@@ -155,7 +124,7 @@ export default function LancamentosPage() {
             <Activity size={50} className="text-orange-500 skew-x-12 opacity-20 ml-4" strokeWidth={1.5} />
           </h1>
           <h2 className="text-gray-500 text-xl font-medium max-w-2xl leading-relaxed mt-1">
-            Olá, <span className="text-orange-500">{userName || "carregando..."}</span>. Alimente sua base de dados com precisão.
+            Alimente sua base de dados com precisão.
           </h2>
         </div>
       </div>
@@ -286,6 +255,7 @@ export default function LancamentosPage() {
                   </div>
                 </div>
 
+                {/* CAMPO DE CATEGORIA COM DATALIST (Sugestão + Novo) */}
                 <div className="space-y-2 mb-6">
                   <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 ml-2 flex items-center gap-2">
                     Categoria <span className="text-[8px] text-gray-600">(Sugestão ou Personalizada)</span>
