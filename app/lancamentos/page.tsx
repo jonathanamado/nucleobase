@@ -6,9 +6,9 @@ import {
   Tag, DollarSign, CheckCircle2, Layers, Repeat, 
   Rocket, Activity, Plus 
 } from "lucide-react";
+import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
 
-// Configuração persistente para evitar perda de sessão entre domínios/mobile
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -28,7 +28,7 @@ export default function LancamentosPage() {
   const [sucesso, setSucesso] = useState(false);
   const [ultimosLancamentos, setUltimosLancamentos] = useState<any[]>([]);
 
-  // Categorias para o Datalist
+  // Lista de Categorias Sugeridas para Padronização
   const categoriasSugeridas = [
     "Alimentação", "Assinaturas & Serviços", "Compras", "Educação", 
     "Empréstimos", "Impostos", "Investimentos", "Lazer", "Moradia", 
@@ -55,12 +55,6 @@ export default function LancamentosPage() {
 
   const [formData, setFormData] = useState(initialFormState);
 
-  // FUNÇÃO DE NAVEGAÇÃO: Força a saída do subdomínio dashboard para o domínio principal
-  const handleExit = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
-    e.preventDefault();
-    window.location.href = `https://nucleobase.app${path}`;
-  };
-
   const fetchUltimos = async (id: string) => {
     const { data, error } = await supabase
       .from("lancamentos_financeiros")
@@ -74,7 +68,7 @@ export default function LancamentosPage() {
   };
 
   useEffect(() => {
-    // 1. Checagem inicial
+    // 1. Checagem imediata
     const getUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
@@ -84,7 +78,7 @@ export default function LancamentosPage() {
     };
     getUser();
 
-    // 2. Listener para mudanças de estado (crucial para mobile)
+    // 2. Ouvinte para mudanças (essencial para mobile e subdomínios)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setUserId(session.user.id);
@@ -99,20 +93,15 @@ export default function LancamentosPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!userId) {
+      alert("Usuário não identificado.");
+      return;
+    }
+
     setLoading(true);
-
     try {
-      // Re-valida a sessão no momento do envio (Prevenção extra para mobile)
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !session?.user) {
-        alert("Sessão expirada. Por favor, faça login novamente.");
-        window.location.href = "https://nucleobase.app/acesso-usuario";
-        return;
-      }
-
-      const currentUserId = session.user.id;
-      const token = session.access_token;
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
 
       const response = await fetch("/api/lancamentos", {
         method: "POST",
@@ -120,7 +109,7 @@ export default function LancamentosPage() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}` 
         },
-        body: JSON.stringify({ ...formData, user_id: currentUserId }),
+        body: JSON.stringify({ ...formData, user_id: userId }),
       });
 
       const result = await response.json();
@@ -128,7 +117,7 @@ export default function LancamentosPage() {
 
       setSucesso(true);
       setFormData(initialFormState);
-      fetchUltimos(currentUserId);
+      fetchUltimos(userId);
       setTimeout(() => setSucesso(false), 5000);
     } catch (err: any) {
       alert("Erro: " + err.message);
@@ -140,20 +129,8 @@ export default function LancamentosPage() {
   return (
     <div className="w-full min-h-screen animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0 md:pr-10">
       
-      {/* NAVEGAÇÃO SUPERIOR / VOLTAR */}
-      <div className="pt-8 mb-4">
-        <a 
-          href="https://nucleobase.app/" 
-          onClick={(e) => handleExit(e, "/")}
-          className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-400 hover:text-orange-500 transition-colors group"
-        >
-          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-          Voltar ao Início
-        </a>
-      </div>
-
       {/* HEADER DA PÁGINA */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-8">
         <div>
           <h1 className="text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center">
             <span>Lançamentos<span className="text-orange-500">.</span></span>
@@ -165,6 +142,7 @@ export default function LancamentosPage() {
         </div>
       </div>
 
+      {/* LINHA DIVISÓRIA COM FOGUETE */}
       <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
         Formulário de Entrada <div className="h-px bg-gray-200 flex-1"></div>
         <Rocket size={20} className="text-orange-500 -rotate-45" />
@@ -254,7 +232,7 @@ export default function LancamentosPage() {
           </section>
         </div>
 
-        {/* COLUNA DIREITA */}
+        {/* COLUNA DIREITA: CLASSIFICAÇÃO COM DATALIST */}
         <div className="lg:col-span-5 flex flex-col h-full">
           <div className="bg-gray-900 rounded-[2.5rem] p-8 shadow-2xl flex flex-col justify-between h-full group relative overflow-hidden transition-all hover:scale-[1.01]">
             <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
@@ -290,6 +268,7 @@ export default function LancamentosPage() {
                   </div>
                 </div>
 
+                {/* CAMPO DE CATEGORIA COM DATALIST (Sugestão + Novo) */}
                 <div className="space-y-2 mb-6">
                   <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 ml-2 flex items-center gap-2">
                     Categoria <span className="text-[8px] text-gray-600">(Sugestão ou Personalizada)</span>
