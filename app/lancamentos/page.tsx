@@ -19,12 +19,7 @@ const supabase = createClient(
       autoRefreshToken: true,
       detectSessionInUrl: true,
       storageKey: 'nucleobase-auth',
-      cookieOptions: {
-        domain: '.nucleobase.app', 
-        path: '/',
-        sameSite: 'lax',
-        secure: true,
-      },
+      // Removido o cookieOptions daqui para evitar o erro de tipo no Build
     },
   }
 );
