@@ -87,19 +87,21 @@ export function Header() {
         {/* BLOCO DA LOGO */}
         <div className="flex items-center flex-shrink-0 min-w-fit"> 
           <div className="flex-shrink-0">
-             <a href="/" className="block hover:opacity-90 transition">
-               <img 
-                src="/logo-oficial.png?v=3" 
-                alt="Logo Núcleo Base"
-                width={120} 
-                height={65} 
-                className="w-[140px] h-auto lg:w-[170px] lg:h-auto object-contain" 
-              />
-             </a>
+              {/* Adicionei rel="external" para sinalizar ao navegador a saída do SPA */}
+              <a href="https://nucleobase.app" rel="external" className="block hover:opacity-90 transition">
+                <img 
+                  src="/logo-oficial.png?v=3" 
+                  alt="Logo Núcleo Base"
+                  width={120} 
+                  height={65} 
+                  className="w-[140px] h-auto lg:w-[170px] lg:h-auto object-contain" 
+                />
+              </a>
           </div>
 
           <div className="hidden lg:flex flex-col text-[13px] font-bold text-gray-900 leading-tight tracking-tighter -ml-8 select-none">
-            <a href="/" className="hover:opacity-80 transition flex flex-col">
+            {/* Aqui garantimos que o container do texto também force a saída */}
+            <a href="https://nucleobase.app" rel="external" className="hover:opacity-80 transition flex flex-col">
               <span className="pl-0">Sua plataforma</span>
               <span className="pl-7.5 mt-0 text-gray-500">financeira</span>
               <span className="pl-9.5 mt-0.5">
@@ -116,7 +118,7 @@ export function Header() {
           {!isLoggedIn ? (
             <>
               {pathname !== "/" && (
-                <a href="/" className="flex items-center gap-2.5 text-gray-400 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest mr-4 group">
+                <a href="https://nucleobase.app" className="flex items-center gap-2.5 text-gray-400 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest mr-4 group">
                   <div className="bg-gray-50 p-2 rounded-full group-hover:bg-blue-50 transition-colors border border-gray-100 group-hover:border-blue-100">
                     <AppWindow size={16} strokeWidth={2} />
                   </div>
@@ -133,7 +135,7 @@ export function Header() {
           ) : (
             <div className="flex items-center gap-3">
               {pathname !== "/" && (
-                <a href="/" className="flex items-center gap-2.5 text-gray-400 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest mr-2 group">
+                <a href="https://nucleobase.app" className="flex items-center gap-2.5 text-gray-400 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest mr-2 group">
                   <div className="bg-gray-50 p-2 rounded-full group-hover:bg-blue-50 transition-colors border border-gray-100 group-hover:border-blue-100">
                     <AppWindow size={16} strokeWidth={2} />
                   </div>
@@ -181,7 +183,7 @@ export function Header() {
                 
                 {/* Página Inicial - Novo item no topo do menu mobile */}
                 <a
-                  href="/"
+                  href="https://nucleobase.app"
                   onClick={() => setIsMenuOpen(false)}
                   className="flex items-center justify-between p-4 rounded-2xl text-blue-600 bg-blue-50/50 border border-blue-100 mb-2 transition-all group"
                 >
