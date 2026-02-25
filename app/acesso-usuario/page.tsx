@@ -185,7 +185,7 @@ export default function AcessoUsuarioPage() {
         <div className="min-h-[320px] flex">
           {isLoggedIn ? (
             <a 
-              href="https://nucleobase.streamlit.app"
+              href="dashboard.nucleobase.app"
               className="p-6 rounded-3xl shadow-lg transition-all border flex flex-col text-center bg-orange-500 border-orange-400 hover:bg-orange-600 group w-full h-full"
             >
               <div className="p-3 rounded-2xl mb-3 w-fit mx-auto bg-white/20 text-white group-hover:scale-110 transition-transform">
