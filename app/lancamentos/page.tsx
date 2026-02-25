@@ -9,6 +9,7 @@ import {
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
 
+// Cliente Supabase configurado para persistência entre subdomínios (Essencial para Mobile)
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -19,8 +20,7 @@ const supabase = createClient(
       detectSessionInUrl: true,
       storageKey: 'nucleobase-auth',
       cookieOptions: {
-        name: 'sb-auth-token',
-        domain: '.nucleobase.app', // O PONTO ANTES É VITAL: permite compartilhar entre os subdomínios
+        domain: '.nucleobase.app', 
         path: '/',
         sameSite: 'lax',
         secure: true,
@@ -74,7 +74,6 @@ export default function LancamentosPage() {
   };
 
   useEffect(() => {
-    // Busca inicial e escuta de mudanças na autenticação (importante para novos domínios)
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
@@ -104,21 +103,14 @@ export default function LancamentosPage() {
     setLoading(true);
     
     try {
-      // 1. Tenta pegar a sessão atualizada
+      // Força a captura da sessão e do usuário (Melhor para Mobile)
       const { data: { session } } = await supabase.auth.getSession();
-      
-      // 2. Fallback: se a sessão falhar, tenta o getUser direto que é mais rigoroso
-      let user = session?.user;
-      let token = session?.access_token;
+      const { data: { user } } = await supabase.auth.getUser();
 
-      if (!user) {
-        const { data: { user: refreshedUser } } = await supabase.auth.getUser();
-        user = refreshedUser || undefined;
-        // O token pode ser pego novamente se necessário
-      }
+      const token = session?.access_token;
 
       if (!user || !token) {
-        throw new Error("Sessão expirada. Por favor, saia e faça login novamente no dashboard.");
+        throw new Error("Sessão expirada. Por favor, faça login novamente no dashboard.");
       }
 
       const response = await fetch("/api/lancamentos", {
@@ -130,11 +122,24 @@ export default function LancamentosPage() {
         body: JSON.stringify({ ...formData, user_id: user.id }),
       });
 
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Erro ao salvar");
+
+      setSucesso(true);
+      setFormData(initialFormState);
+      fetchUltimos(user.id);
+      setTimeout(() => setSucesso(false), 5000);
+    } catch (err: any) {
+      alert("Erro: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="w-full min-h-screen animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0 md:pr-10">
       
-      {/* HEADER DA PÁGINA */}
+      {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-8">
         <div>
           <h1 className="text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center">
@@ -153,13 +158,12 @@ export default function LancamentosPage() {
           <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
               <span className="text-[10px] font-bold text-gray-500 whitespace-nowrap">
-              Em desenvolvimento
+                Em desenvolvimento
               </span>
           </div>
         </div>
       </div>
 
-      {/* LINHA DIVISÓRIA COM FOGUETE */}
       <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
         Formulário de Entrada <div className="h-px bg-gray-200 flex-1"></div>
         <Rocket size={20} className="text-orange-500 -rotate-45" />
@@ -170,14 +174,12 @@ export default function LancamentosPage() {
           <CheckCircle2 size={24} className="shrink-0" />
           <div>
             <p className="font-bold text-sm uppercase tracking-tight">Sucesso no Processamento</p>
-            <p className="text-xs opacity-80">Seus dados foram blindados e registrados no sistema.</p>
+            <p className="text-xs opacity-80">Seus dados foram registrados com segurança.</p>
           </div>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
-        
-        {/* COLUNA ESQUERDA */}
         <div className="lg:col-span-7 space-y-10">
           <section>
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-3">
@@ -249,7 +251,6 @@ export default function LancamentosPage() {
           </section>
         </div>
 
-        {/* COLUNA DIREITA */}
         <div className="lg:col-span-5 flex flex-col h-full">
           <div className="bg-gray-900 rounded-[2.5rem] p-8 shadow-2xl flex flex-col justify-between h-full group relative overflow-hidden transition-all hover:scale-[1.01]">
             <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
