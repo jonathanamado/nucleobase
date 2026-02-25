@@ -389,9 +389,9 @@ export default function IndiquePage() {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
-            { meta: "Meritrocacia", premio: "Valor x Indicação", desc: "Receba o valor de R$ 5,00 x Essencial | R$ 10,00 x Pro, ativada na Núcleo.", icon: <Gift className="text-blue-500" /> },
-            { meta: "Benefícios extras", premio: "+ Troféu afiliado", desc: "Acima de 10 indicações, além do cash, libere templates exclusivos e suporte prioritário.", icon: <Trophy className="text-amber-500" /> },
-            { meta: "Embaixador Master", premio: "+ Brindes únicos", desc: "Acima de 30 indicações, você se tornará parte desta história e, além dos benefícios anteriores, ganhará brindes especiais", icon: <Stars className="text-purple-500" /> }
+            { meta: "Meritrocacia", premio: "Valor x Indicação", desc: "Receba o bônus de R$ 5,00 x Essencial | R$ 10,00 x Pro para cada conta ativada.", icon: <Gift className="text-blue-500" /> },
+            { meta: "Benefícios extras", premio: "+ Troféu afiliado", desc: "Acima de 10 indicações, além do cash x ativação, libere templates exclusivos e suporte prioritário.", icon: <Trophy className="text-amber-500" /> },
+            { meta: "Embaixador Master", premio: "+ Brindes únicos", desc: "Acima de 30 indicações, você se tornará parte desta história e, além dos benefícios anteriores, ganhará brindes especiais.", icon: <Stars className="text-purple-500" /> }
           ].map((item, i) => (
             <div key={i} className="bg-white border border-gray-100 p-10 rounded-[2.5rem] hover:shadow-xl transition-all group relative overflow-hidden">
               <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-6">{item.icon}</div>

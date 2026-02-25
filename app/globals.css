@@ -19,8 +19,40 @@
   }
 }
 
+/* Ajuste Global de Rolagem */
+html {
+  /* Permite rolagem suave ao clicar em links internos */
+  scroll-smooth: auto;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  
+  /* Garante que o corpo aceite rolagem mesmo se o layout tentar travar */
+  min-height: 100vh;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  
+  /* Melhora o comportamento de scroll no mobile */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Personalização da Barra de Rolagem (Opcional, para um visual mais limpo) */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #e2e8f0; /* slate-200 */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1; /* slate-300 */
 }

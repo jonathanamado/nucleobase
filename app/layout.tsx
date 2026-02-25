@@ -43,14 +43,13 @@ export default function RootLayout({
   const pathname = usePathname();
 
   // Configurações de exibição por rota
-  const paginasSemScroll = ["/acesso-usuario"];
+  const paginasSemScroll = []; // Mantido vazio conforme solicitado para resolver o problema
   const isHome = pathname === "/";
   const deveTravarScroll = paginasSemScroll.includes(pathname);
 
   return (
     <html lang="pt-BR">
       <head>
-        {/* Google Tag Manager */}
         <Script id="google-tag-manager" strategy="afterInteractive">
           {`
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -61,10 +60,9 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      {/* AJUSTE: overflow-hidden agora só em desktop (md:) para permitir pull-to-refresh no mobile */}
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 h-screen md:overflow-hidden flex flex-col overscroll-y-contain`}>
+      {/* AJUSTE: Removido h-screen e md:overflow-hidden para permitir rolagem natural do body */}
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen flex flex-col`}>
         
-        {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe 
             src="https://www.googletagmanager.com/ns.html?id=GTM-NS5KWXFL"
@@ -76,11 +74,11 @@ export default function RootLayout({
 
         <Header />
 
-        <main className="flex-1 flex flex-col md:flex-row gap-0 w-full items-stretch overflow-hidden">
+        <main className="flex-1 flex flex-col md:flex-row gap-0 w-full items-stretch">
           <Sidebar />
           
-          {/* Seção principal de conteúdo */}
-          <section className={`flex-1 px-4 md:px-10 py-6 ${deveTravarScroll ? 'overflow-hidden' : 'overflow-y-auto'} scroll-smooth`}>
+          {/* Seção principal de conteúdo - Removido overflow-hidden forçado */}
+          <section className={`flex-1 px-4 md:px-10 py-6 scroll-smooth`}>
             <div className="min-h-[calc(100vh-200px)]">
               {children}
             </div>

@@ -1,0 +1,76 @@
+import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server';
+import { expandirLancamentos } from "@/lib/finance-service";
+
+export async function POST(request: Request) {
+  const authHeader = request.headers.get('Authorization');
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      global: {
+        headers: { Authorization: authHeader || '' },
+      },
+    }
+  );
+
+  try {
+    const body = await request.json();
+
+    // 1. Definição do lançamento base
+    // Passamos o valor total bruto para a função de expansão
+    const lancamentoBase = {
+      user_id: body.user_id,
+      projeto: body.projeto || "Pessoal",
+      tipo_origem: body.tipo_origem,
+      origem: body.origem,
+      cartao_nome: body.cartao_nome,
+      descricao: body.descricao,
+      valor: body.valorTotal, // Aqui entra o valor total (ex: 300)
+      natureza: body.natureza,
+      categoria: body.categoria || null,
+      data_competencia: body.dataCompetencia,
+      parcelas_total: body.parcelasTotais || 1,
+      parcela_atual: 1,
+      fatura_mes: body.fatura_mes || null,
+      tipo_de_custo: body.tipo_de_custo || 'Variável',
+      fixo_ate: body.fixo_ate || null
+    };
+
+    // 2. Lógica de Expansão Inteligente
+    // Agora a função retorna a lista com os valores já divididos (ex: 100, 100, 100)
+    let listaFinal = expandirLancamentos(lancamentoBase);
+
+    // 3. Geração de Hash para Deduplicação
+    // IMPORTANTE: O hash usa o 'item.valor' (já dividido) para ser único por parcela
+    listaFinal = listaFinal.map(item => {
+      const uniqueString = `${item.user_id}-${item.valor}-${item.data_competencia}-${item.descricao}-${item.parcela_atual}`;
+      const hash = Buffer.from(uniqueString).toString('base64');
+      return { ...item, hash_deduplicacao: hash };
+    });
+
+    // 4. Inserção no Banco de Dados
+    const { data, error: insertError } = await supabase
+      .from("lancamentos_financeiros")
+      .insert(listaFinal)
+      .select();
+
+    if (insertError) {
+      if (insertError.code === '23505') {
+        return NextResponse.json(
+          { error: "Este lançamento (ou suas parcelas) já consta no sistema." }, 
+          { status: 409 }
+        );
+      }
+      console.error("Erro Supabase:", insertError);
+      return NextResponse.json({ error: insertError.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ success: true, count: data.length, data });
+
+  } catch (error: any) {
+    console.error("Erro na API de Lançamentos:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

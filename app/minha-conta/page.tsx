@@ -48,7 +48,7 @@ export default function MinhaContaPage() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.href = "/";
+    window.location.href = "https://nucleobase.app";
   };
 
   const handleUploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,7 +113,10 @@ export default function MinhaContaPage() {
           setPossuiFilhos(profile.possui_filhos || "");
           setObjetivoPlataforma(profile.objetivo_plataforma || "");
         }
-      } else { window.location.href = "/"; }
+      } else { 
+        window.location.href = "https://nucleobase.app/acesso-usuario";
+        return;
+      }
       setLoading(false);
     }
     carregarDados();
@@ -151,12 +154,16 @@ export default function MinhaContaPage() {
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) return alert("As senhas não coincidem!");
+    
     setPassLoading(true);
     const { error } = await supabase.auth.updateUser({ password: newPassword });
-    if (error) alert("Erro: " + error.message);
-    else {
-      alert("Senha alterada com sucesso!");
-      setShowPassModal(false);
+    
+    if (error) {
+      alert("Erro: " + error.message);
+    } else {
+      setShowPassModal(false); // Fecha o modal primeiro para dar feedback visual de sucesso
+      alert("Senha alterada com sucesso! Por segurança, faça login novamente.");
+      handleLogout();
     }
     setPassLoading(false);
   };
@@ -176,7 +183,7 @@ export default function MinhaContaPage() {
         </div>
         
         <div className="flex items-center gap-3">
-          <button onClick={() => window.location.href = "/acesso-usuario"} className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all border border-gray-100 shadow-sm">
+          <button onClick={() => window.location.href = "https://nucleobase.app/acesso-usuario"} className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all border border-gray-100 shadow-sm">
             <LayoutDashboard size={16} /> Painel do usuário
           </button>
           <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all border border-gray-100 shadow-sm">
