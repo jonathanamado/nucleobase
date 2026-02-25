@@ -94,7 +94,6 @@ export default function AcessoUsuarioPage() {
       if (authError) {
         alert("Erro ao acessar: Senha incorreta ou problema na conta.");
       } else {
-        // IMPORTANTE: window.location.href evita erros de Prefetch/CORS do Next.js
         window.location.href = `${DASHBOARD_URL}/lancamentos`;
       }
     } catch (err) {
@@ -106,11 +105,27 @@ export default function AcessoUsuarioPage() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    // Refresh total para limpar cookies de subdomínio
     window.location.href = "/acesso-usuario"; 
   };
 
-  // Função para navegar para fora do dashboard sem disparar erro de Prefetch
+  // --- FUNÇÃO CORRIGIDA (ADICIONADA PARA O BUILD) ---
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${MAIN_URL}/reset-password`,
+      });
+      if (error) throw error;
+      alert("Link de recuperação enviado! Verifique seu e-mail.");
+      setShowForgotModal(false);
+    } catch (error: any) {
+      alert("Erro ao enviar e-mail: " + error.message);
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   const handleExternalNav = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
     e.preventDefault();
     window.location.href = url;
@@ -146,7 +161,7 @@ export default function AcessoUsuarioPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full items-stretch">
         
-        {/* CARD 1: ACESSO AO APP (Relativo ou DASHBOARD_URL) */}
+        {/* CARD 1: ACESSO AO APP */}
         <div className="flex">
           {isLoggedIn ? (
             <a 
@@ -209,7 +224,7 @@ export default function AcessoUsuarioPage() {
           )}
         </div>
 
-        {/* CARD 2: MEU PERFIL (Navegação Externa) */}
+        {/* CARD 2: MEU PERFIL */}
         <div className="flex">
           <a 
             href={`${MAIN_URL}/minha-conta`} 
@@ -229,7 +244,7 @@ export default function AcessoUsuarioPage() {
           </a>
         </div>
 
-        {/* CARD 3: PLANOS (Navegação Externa) */}
+        {/* CARD 3: PLANOS */}
         <div className="flex">
           <a 
             href={`${MAIN_URL}/planos`} 
