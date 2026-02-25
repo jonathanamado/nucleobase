@@ -85,42 +85,44 @@ export default function LancamentosPage() {
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    setLoading(true);
-    
-    try {
-      // Re-valida a sessão no momento do clique para evitar userId nulo por expiração
-      const { data: { session } } = await supabase.auth.getSession();
-      const currentUser = session?.user;
-      const token = session?.access_token;
+      e.preventDefault();
+      setLoading(true);
+      
+      try {
+        // 1. Tenta pegar a sessão atualizada
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        // 2. Se não vier no getSession, tenta pegar o usuário direto (força refresh)
+        const { data: { user } } = await supabase.auth.getUser();
 
-      if (!currentUser || !token) {
-        throw new Error("Sessão expirada ou usuário não identificado. Por favor, faça login novamente.");
+        const token = session?.access_token;
+
+        if (!user || !token) {
+          throw new Error("Sessão expirada ou usuário não identificado. Por favor, faça login novamente.");
+        }
+
+        const response = await fetch("/api/lancamentos", {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}` // Garante que o Bearer Token está indo
+          },
+          body: JSON.stringify({ ...formData, user_id: user.id }),
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Erro ao salvar");
+
+        setSucesso(true);
+        setFormData(initialFormState);
+        fetchUltimos(user.id);
+        setTimeout(() => setSucesso(false), 5000);
+      } catch (err: any) {
+        alert("Erro: " + err.message);
+      } finally {
+        setLoading(false);
       }
-
-      const response = await fetch("/api/lancamentos", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}` 
-        },
-        body: JSON.stringify({ ...formData, user_id: currentUser.id }),
-      });
-
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Erro ao salvar");
-
-      setSucesso(true);
-      setFormData(initialFormState);
-      fetchUltimos(currentUser.id);
-      setTimeout(() => setSucesso(false), 5000);
-    } catch (err: any) {
-      alert("Erro: " + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
   return (
     <div className="w-full min-h-screen animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0 md:pr-10">
