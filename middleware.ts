@@ -11,32 +11,41 @@ export function middleware(request: NextRequest) {
   const DASHBOARD_DOMAIN = 'dashboard.nucleobase.app';
 
   // --- LOGICA PARA O SUBDOMÍNIO DASHBOARD ---
-  if (hostname === DASHBOARD_DOMAIN) {
+  if (hostname.includes(DASHBOARD_DOMAIN)) {
     
-    // 1. Se acessar a raiz (/), manda para /lancamentos silenciosamente
+    // 1. Se acessar a raiz (/), manda para /lancamentos
     if (pathname === '/') {
       return NextResponse.rewrite(new URL('/lancamentos', request.url));
     }
 
-    // 2. PROTEÇÃO: Se estiver no dashboard e tentar acessar QUALQUER coisa que NÃO SEJA /lancamentos
-    // (ex: /minha-conta, /cadastro), manda ele de volta para o domínio principal
-    if (!pathname.startsWith('/lancamentos') && !pathname.startsWith('/_next') && !pathname.startsWith('/api')) {
-      return NextResponse.redirect(new URL(`https://${MAIN_DOMAIN}${pathname}`, request.url));
+    // 2. PROTEÇÃO FLEXÍVEL:
+    // Permitir /lancamentos, /api, arquivos do Next (_next) e AUTH do Supabase
+    const isAllowedPath = 
+      pathname.startsWith('/lancamentos') || 
+      pathname.startsWith('/api') || 
+      pathname.startsWith('/_next') ||
+      pathname.includes('auth'); // Importante para manter a sessão
+
+    if (!isAllowedPath) {
+      // Em vez de redirecionar tudo, apenas deixe passar se for um recurso do Next.js
+      // ou redirecione apenas se for uma tentativa de acessar páginas institucionais explicitamente
+      if (pathname === '/sobre' || pathname === '/contato') {
+        return NextResponse.redirect(new URL(`https://${MAIN_DOMAIN}${pathname}`, request.url));
+      }
     }
   }
 
   // --- LOGICA PARA O DOMÍNIO PRINCIPAL ---
   if (hostname === MAIN_DOMAIN) {
-    // 3. Se tentar acessar /lancamentos no domínio principal, redireciona para o subdomínio correto
     if (pathname.startsWith('/lancamentos')) {
-      return NextResponse.redirect(new URL(`https://${DASHBOARD_DOMAIN}`, request.url));
+      return NextResponse.redirect(new URL(`https://${DASHBOARD_DOMAIN}/lancamentos`, request.url));
     }
   }
 
   return NextResponse.next();
 }
 
-// Opcional: Filtra quais caminhos o middleware deve rodar para economizar performance
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  // Ajustado para não interceptar chamadas de API e Auth que precisam de headers limpos
+  matcher: ['/((?!api/auth|_next/static|_next/image|favicon.ico).*)'],
 };
