@@ -9,18 +9,17 @@ import {
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
 
-// Cliente Supabase configurado para persistência entre subdomínios (Essencial para Mobile)
+// Cliente Supabase otimizado para subdomínios via LocalStorage
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   {
     auth: {
       persistSession: true,
+      storageKey: 'nucleobase-dashboard-auth',
       autoRefreshToken: true,
-      detectSessionInUrl: true,
-      storageKey: 'nucleobase-auth',
-      // Removido o cookieOptions daqui para evitar o erro de tipo no Build
-    },
+      detectSessionInUrl: true
+    }
   }
 );
 
@@ -98,19 +97,21 @@ export default function LancamentosPage() {
     setLoading(true);
     
     try {
-      // 1. Tenta pegar a sessão atualizada
-      const { data: { session } } = await supabase.auth.getSession();
+      // 1. Tenta obter a sessão de forma garantida
+      let { data: { session } } = await supabase.auth.getSession();
       
-      // 2. Tenta pegar o usuário (isso força o Supabase a checar o storage)
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      // 2. Se não houver sessão, tenta um refresh silencioso
+      if (!session) {
+        const { data: refreshData } = await supabase.auth.refreshSession();
+        session = refreshData.session;
+      }
 
-      // Pega o token de onde estiver disponível
-      const token = session?.access_token || (await supabase.auth.getSession()).data.session?.access_token;
+      const user = session?.user;
+      const token = session?.access_token;
 
       if (!user || !token) {
-        // Log para você ver no F12 do navegador o que está vindo
-        console.error("User:", user, "Token:", token ? "Presente" : "Ausente");
-        throw new Error("Sessão não encontrada. Por favor, faça logout e login novamente.");
+        console.error("Auth Failure - User:", !!user, "Token:", !!token);
+        throw new Error("Sessão expirada ou não encontrada. Por favor, faça login novamente no dashboard.");
       }
 
       const response = await fetch("/api/lancamentos", {
