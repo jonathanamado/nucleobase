@@ -20,7 +20,6 @@ export default function LancamentosPage() {
   const [sucesso, setSucesso] = useState(false);
   const [ultimosLancamentos, setUltimosLancamentos] = useState<any[]>([]);
 
-  // Lista de Categorias Sugeridas para Padronização
   const categoriasSugeridas = [
     "Alimentação", "Assinaturas & Serviços", "Compras", "Educação", 
     "Empréstimos", "Impostos", "Investimentos", "Lazer", "Moradia", 
@@ -60,27 +59,45 @@ export default function LancamentosPage() {
   };
 
   useEffect(() => {
-    const getUser = async () => {
+    // Busca inicial e escuta de mudanças na autenticação (importante para novos domínios)
+    const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUserId(session.user.id);
         fetchUltimos(session.user.id);
       }
     };
-    getUser();
+
+    checkUser();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUserId(session.user.id);
+        fetchUltimos(session.user.id);
+      } else {
+        setUserId(null);
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userId) {
-      alert("Usuário não identificado.");
-      return;
-    }
-
+    
     setLoading(true);
+    
     try {
+      // Re-valida a sessão no momento do clique para evitar userId nulo por expiração
       const { data: { session } } = await supabase.auth.getSession();
+      const currentUser = session?.user;
       const token = session?.access_token;
+
+      if (!currentUser || !token) {
+        throw new Error("Sessão expirada ou usuário não identificado. Por favor, faça login novamente.");
+      }
 
       const response = await fetch("/api/lancamentos", {
         method: "POST",
@@ -88,7 +105,7 @@ export default function LancamentosPage() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}` 
         },
-        body: JSON.stringify({ ...formData, user_id: userId }),
+        body: JSON.stringify({ ...formData, user_id: currentUser.id }),
       });
 
       const result = await response.json();
@@ -96,7 +113,7 @@ export default function LancamentosPage() {
 
       setSucesso(true);
       setFormData(initialFormState);
-      fetchUltimos(userId);
+      fetchUltimos(currentUser.id);
       setTimeout(() => setSucesso(false), 5000);
     } catch (err: any) {
       alert("Erro: " + err.message);
@@ -120,17 +137,16 @@ export default function LancamentosPage() {
           </h2>
         </div>
 
-        {/* Container dos textos: alterado de "flex flex-col pr-1" para o abaixo */}
         <div className="flex flex-col items-center text-center"> 
-        <span className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 leading-none mb-1">
-            Upload Arquivo XLS
-        </span>
-        <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
-            <span className="text-[10px] font-bold text-gray-500 whitespace-nowrap">
-            Em desenvolvimento
-            </span>
-        </div>
+          <span className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 leading-none mb-1">
+              Upload Arquivo XLS
+          </span>
+          <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
+              <span className="text-[10px] font-bold text-gray-500 whitespace-nowrap">
+              Em desenvolvimento
+              </span>
+          </div>
         </div>
       </div>
 

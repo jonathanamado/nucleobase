@@ -5,6 +5,7 @@ import { expandirLancamentos } from "@/lib/finance-service";
 export async function POST(request: Request) {
   const authHeader = request.headers.get('Authorization');
 
+  // Criamos o cliente do Supabase
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -16,18 +17,27 @@ export async function POST(request: Request) {
   );
 
   try {
+    // --- NOVIDADE: VALIDAÇÃO DO USUÁRIO NO SERVIDOR ---
+    // Isso garante que o token enviado é válido para o novo domínio
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.error("Erro de autenticação na API:", authError?.message);
+      return NextResponse.json({ error: "Usuário não identificado ou sessão expirada." }, { status: 401 });
+    }
+
     const body = await request.json();
 
     // 1. Definição do lançamento base
-    // Passamos o valor total bruto para a função de expansão
+    // Usamos o ID do usuário validado pelo servidor (user.id) para maior segurança
     const lancamentoBase = {
-      user_id: body.user_id,
+      user_id: user.id, // Segurança extra: não confiamos apenas no ID vindo do corpo da requisição
       projeto: body.projeto || "Pessoal",
       tipo_origem: body.tipo_origem,
       origem: body.origem,
       cartao_nome: body.cartao_nome,
       descricao: body.descricao,
-      valor: body.valorTotal, // Aqui entra o valor total (ex: 300)
+      valor: body.valorTotal,
       natureza: body.natureza,
       categoria: body.categoria || null,
       data_competencia: body.dataCompetencia,
@@ -39,11 +49,9 @@ export async function POST(request: Request) {
     };
 
     // 2. Lógica de Expansão Inteligente
-    // Agora a função retorna a lista com os valores já divididos (ex: 100, 100, 100)
     let listaFinal = expandirLancamentos(lancamentoBase);
 
     // 3. Geração de Hash para Deduplicação
-    // IMPORTANTE: O hash usa o 'item.valor' (já dividido) para ser único por parcela
     listaFinal = listaFinal.map(item => {
       const uniqueString = `${item.user_id}-${item.valor}-${item.data_competencia}-${item.descricao}-${item.parcela_atual}`;
       const hash = Buffer.from(uniqueString).toString('base64');
@@ -63,7 +71,7 @@ export async function POST(request: Request) {
           { status: 409 }
         );
       }
-      console.error("Erro Supabase:", insertError);
+      console.error("Erro Supabase Insert:", insertError);
       return NextResponse.json({ error: insertError.message }, { status: 400 });
     }
 

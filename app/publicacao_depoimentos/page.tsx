@@ -50,6 +50,8 @@ export default function PublicacaoDepoimentos() {
     setLoading(true);
     try {
       if (!user) throw new Error("Você precisa estar logado.");
+      
+      // 1. Salva no Banco de Dados (Supabase)
       const { error: insertError } = await supabase
         .from("depoimentos")
         .insert([{ 
@@ -58,7 +60,28 @@ export default function PublicacaoDepoimentos() {
           content,
           status: "aprovado" 
         }]);
+      
       if (insertError) throw insertError;
+
+      // 2. Dispara notificação silenciosa para o e-mail Zoho
+      try {
+        await fetch("https://api.web3forms.com/submit", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            access_key: "9ef5a274-150a-4664-a885-0b052efd06f7",
+            subject: "Novo Depoimento Publicado - Nucleobase",
+            from_name: "Sistema de Feedback",
+            message: `Um novo depoimento de ${rating} estrelas foi publicado.\n\nConteúdo: ${content}\n\nEnviado por: ${user.email}`,
+          }),
+        });
+      } catch (e) {
+        console.error("Erro ao enviar notificação por e-mail, mas o depoimento foi salvo.");
+      }
+
       setEnviado(true);
     } catch (error: any) {
       alert(error.message || "Erro inesperado.");

@@ -130,9 +130,15 @@ export default function FAQ() {
               </div>
               <div>
                 <h4 className="font-black text-gray-900 text-sm uppercase tracking-wider">E-mail Direto</h4>
-                <a href="mailto:contato@nucleobase.app" className="text-blue-600 text-xs font-bold hover:underline">
+                <button 
+                  onClick={() => {
+                    // Força a abertura do cliente de e-mail nativo
+                    window.location.assign("mailto:contato@nucleobase.app");
+                  }}
+                  className="text-blue-600 text-xs font-bold hover:underline bg-transparent border-none p-0 cursor-pointer"
+                >
                   contato@nucleobase.app
-                </a>
+                </button>
               </div>
             </div>
           </div>
