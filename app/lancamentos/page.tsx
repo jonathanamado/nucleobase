@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { 
   ArrowLeft, Save, CreditCard, Wallet, Calendar, 
   Tag, DollarSign, CheckCircle2, Layers, Repeat, 
-  Rocket, Activity, Plus, FileUp 
+  Rocket, Activity, Plus 
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
@@ -119,19 +119,6 @@ export default function LancamentosPage() {
             Alimente sua base de dados com precisão.
           </h2>
         </div>
-
-        {/* Container dos textos: alterado de "flex flex-col pr-1" para o abaixo */}
-        <div className="flex flex-col items-center text-center"> 
-        <span className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 leading-none mb-1">
-            Upload Arquivo XLS
-        </span>
-        <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
-            <span className="text-[10px] font-bold text-gray-500 whitespace-nowrap">
-            Em desenvolvimento
-            </span>
-        </div>
-        </div>
       </div>
 
       {/* LINHA DIVISÓRIA COM FOGUETE */}
@@ -224,7 +211,7 @@ export default function LancamentosPage() {
           </section>
         </div>
 
-        {/* COLUNA DIREITA */}
+        {/* COLUNA DIREITA: CLASSIFICAÇÃO COM DATALIST */}
         <div className="lg:col-span-5 flex flex-col h-full">
           <div className="bg-gray-900 rounded-[2.5rem] p-8 shadow-2xl flex flex-col justify-between h-full group relative overflow-hidden transition-all hover:scale-[1.01]">
             <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
@@ -260,9 +247,10 @@ export default function LancamentosPage() {
                   </div>
                 </div>
 
+                {/* CAMPO DE CATEGORIA COM DATALIST (Sugestão + Novo) */}
                 <div className="space-y-2 mb-6">
                   <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 ml-2 flex items-center gap-2">
-                    Categoria <span className="text-[8px] text-gray-600">(Sugestão ou Nova)</span>
+                    Categoria <span className="text-[8px] text-gray-600">(Sugestão ou Personalizada)</span>
                   </label>
                   <div className="relative group">
                     <input 
@@ -329,6 +317,7 @@ export default function LancamentosPage() {
         </div>
       </form>
 
+      {/* HISTÓRICO RECENTE */}
       <div className="mt-20">
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
           Histórico Recente <div className="h-px bg-gray-100 flex-1"></div>
@@ -351,7 +340,7 @@ export default function LancamentosPage() {
                   <td className="p-6">
                     <span className="text-sm font-bold text-gray-900 block group-hover:text-orange-500 transition-colors">{l.descricao}</span>
                     <div className="text-[10px] text-gray-400 uppercase font-black tracking-tight mt-1 flex items-center gap-2">
-                      <Tag size={10} className="text-orange-500" /> {l.categoria || 'Geral'} • {l.origem} {l.parcelas_total > 1 ? `• ${l.parcela_atual}/${l.parcelas_total}` : ''}
+                      <Tag size={10} className="text-orange-500" /> {l.categoria || 'Sem Categoria'} • {l.origem} {l.parcelas_total > 1 ? `• ${l.parcela_atual}/${l.parcelas_total}` : ''}
                     </div>
                   </td>
                   <td className="p-6 font-black text-sm text-gray-900 text-right">
