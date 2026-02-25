@@ -43,7 +43,7 @@ export default function RootLayout({
   const pathname = usePathname();
 
   // Configurações de exibição por rota
-  const paginasSemScroll = []; // Mantido vazio conforme solicitado para resolver o problema
+  const paginasSemScroll: string[] = []; // Mantido vazio conforme solicitado para resolver o problema
   const isHome = pathname === "/";
   const deveTravarScroll = paginasSemScroll.includes(pathname);
 
