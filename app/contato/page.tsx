@@ -50,12 +50,12 @@ export default function ContatoPage() {
               label: "Chamar no Whats"
             },
             {
-              href: "mailto:nucleobase.app@gmail.com",
+              href: "mailto:contato@nucleobase.app",
               icon: <Mail size={24} />,
               color: "blue",
               title: "E-mail",
               desc: "Respostas em até 24h",
-              label: "nucleobase.app@gmail.com"
+              label: "contato@nucleobase.app"
             }
           ].map((link, idx) => (
             <a 

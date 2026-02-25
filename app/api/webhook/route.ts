@@ -66,7 +66,7 @@ export async function POST(req: Request) {
         const resCliente = await resend.emails.send({
           from: 'Nucleo Base <comercial@nucleobase.app>',
           to: [customerEmail!],
-          replyTo: 'nucleobase.app@gmail.com',
+          replyTo: 'contato@nucleobase.app',
           subject: 'Acesso Liberado! Seja bem-vindo ao Nucleo Base 🚀',
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #f0f0f0; padding: 30px; border-radius: 16px;">
@@ -98,7 +98,7 @@ export async function POST(req: Request) {
         // B. E-mail de NOTIFICAÇÃO PARA VOCÊ
         const resAdmin = await resend.emails.send({
           from: 'Nucleo Base <comercial@nucleobase.app>',
-          to: ['nucleobase.app@gmail.com'], 
+          to: ['contato@nucleobase.app'], 
           replyTo: customerEmail!,
           subject: `💰 Nova Venda: ${formattedPlanName}`,
           html: `<h3>Parabéns! Nova assinatura: ${customerEmail}</h3>`

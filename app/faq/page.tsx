@@ -130,8 +130,8 @@ export default function FAQ() {
               </div>
               <div>
                 <h4 className="font-black text-gray-900 text-sm uppercase tracking-wider">E-mail Direto</h4>
-                <a href="mailto:nucleobase.app@gmail.com" className="text-blue-600 text-xs font-bold hover:underline">
-                  nucleobase.app@gmail.com
+                <a href="mailto:contato@nucleobase.app" className="text-blue-600 text-xs font-bold hover:underline">
+                  contato@nucleobase.app
                 </a>
               </div>
             </div>
