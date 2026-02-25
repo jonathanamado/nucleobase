@@ -25,6 +25,10 @@ export default function AcessoUsuarioPage() {
   const [resetEmail, setResetEmail] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
 
+  // URLs de Base para evitar que tudo fique preso no subdomínio dashboard
+  const MAIN_URL = "https://nucleobase.app";
+  const DASHBOARD_URL = "https://dashboard.nucleobase.app";
+
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -115,12 +119,8 @@ export default function AcessoUsuarioPage() {
     e.preventDefault();
     setResetLoading(true);
 
-    const redirectUrl = process.env.NEXT_PUBLIC_DASHBOARD_URL 
-        ? `${process.env.NEXT_PUBLIC_DASHBOARD_URL}/reset-password`
-        : "https://nucleobase.app/reset-password";
-
     const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      redirectTo: redirectUrl,
+      redirectTo: `${MAIN_URL}/reset-password`,
     });
 
     if (error) alert("Erro: " + error.message);
@@ -132,7 +132,6 @@ export default function AcessoUsuarioPage() {
   };
 
   return (
-    /* AJUSTE: min-h-screen e overflow-y-auto garantem que a rolagem aconteça nesta div */
     <div className="w-full min-h-screen overflow-y-auto animate-in fade-in slide-in-from-bottom-6 duration-700 pb-32 relative px-4 md:px-0 md:pr-10">
       
       {/* Cabeçalho */}
@@ -151,7 +150,7 @@ export default function AcessoUsuarioPage() {
           <p className="text-base text-gray-600 max-w-none font-bold leading-tight">
             {isLoggedIn ? (
               <>
-                <a href="https://dashboard.nucleobase.app" className="text-orange-500 hover:text-orange-600 transition underline decoration-2 underline-offset-4">Clique aqui</a>
+                <a href={DASHBOARD_URL} className="text-orange-500 hover:text-orange-600 transition underline decoration-2 underline-offset-4">Clique aqui</a>
                 {" para acessar o APP e gerenciar seus lançamentos."}
               </>
             ) : (
@@ -172,14 +171,14 @@ export default function AcessoUsuarioPage() {
         Navegação e Acessos <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
-      {/* Grid Principal - Ajustado para items-stretch (igual ao Sobre) */}
+      {/* Grid Principal */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full items-stretch">
         
-        {/* CARD 1: ACESSO OU LOGIN */}
+        {/* CARD 1: ACESSO OU LOGIN (DIRECIONA PARA O SUBDOMÍNIO DASHBOARD) */}
         <div className="flex">
           {isLoggedIn ? (
             <a 
-              href="https://dashboard.nucleobase.app"
+              href={DASHBOARD_URL}
               className="p-8 rounded-[2.5rem] shadow-lg transition-all border flex flex-col text-center bg-orange-500 border-orange-400 hover:bg-orange-600 group w-full"
             >
               <div className="p-4 rounded-2xl mb-4 w-fit mx-auto bg-white/20 text-white group-hover:scale-110 transition-transform">
@@ -245,10 +244,10 @@ export default function AcessoUsuarioPage() {
           )}
         </div>
 
-        {/* CARD 2: MEU PERFIL */}
+        {/* CARD 2: MEU PERFIL (DIRECIONA PARA O DOMÍNIO PRINCIPAL) */}
         <div className="flex">
           <a 
-            href={isLoggedIn ? "/minha-conta" : "/cadastro"} 
+            href={isLoggedIn ? `${MAIN_URL}/minha-conta` : `${MAIN_URL}/cadastro`} 
             className="group bg-white p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-gray-100 flex flex-col items-center text-center w-full hover:border-blue-100"
           >
             <div className="bg-orange-50 p-4 rounded-2xl mb-4 text-orange-500 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all duration-300">
@@ -264,10 +263,10 @@ export default function AcessoUsuarioPage() {
           </a>
         </div>
 
-        {/* CARD 3: PLANOS */}
+        {/* CARD 3: PLANOS (DIRECIONA PARA O DOMÍNIO PRINCIPAL) */}
         <div className="flex">
           <a 
-            href="/planos" 
+            href={`${MAIN_URL}/planos`} 
             className="group bg-white p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-gray-100 flex flex-col items-center text-center w-full hover:border-blue-100"
           >
             <div className="bg-orange-50 p-4 rounded-2xl mb-4 text-orange-500 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all duration-300">
