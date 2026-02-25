@@ -9,15 +9,15 @@ import {
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
 
-// Substitua sua inicialização antiga por esta:
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   {
     auth: {
-      persistSession: true, // Garante que o login sobreviva ao fechar a aba
+      persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: true
+      detectSessionInUrl: true,
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
     }
   }
 );
@@ -68,6 +68,7 @@ export default function LancamentosPage() {
   };
 
   useEffect(() => {
+    // 1. Checagem imediata
     const getUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
@@ -76,6 +77,18 @@ export default function LancamentosPage() {
       }
     };
     getUser();
+
+    // 2. Ouvinte para mudanças (essencial para mobile e subdomínios)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUserId(session.user.id);
+        fetchUltimos(session.user.id);
+      } else {
+        setUserId(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
