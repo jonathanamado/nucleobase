@@ -8,17 +8,9 @@ import {
   Eye, EyeOff 
 } from "lucide-react";
 
-// Substitua sua inicialização antiga por esta:
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  {
-    auth: {
-      persistSession: true, // Garante que o login sobreviva ao fechar a aba
-      autoRefreshToken: true,
-      detectSessionInUrl: true
-    }
-  }
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 export default function AcessoUsuarioPage() {
@@ -57,25 +49,21 @@ export default function AcessoUsuarioPage() {
   }, []);
 
   const fetchProfileName = async (user: any) => {
-    if (!user) return;
     setIsLoggedIn(true);
-    
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('nome_completo')
-        .eq('id', user.id)
-        .maybeSingle(); // Usar maybeSingle é mais seguro que single() para evitar erros 406
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('nome_completo')
+      .eq('id', user.id)
+      .single();
 
-      if (profile?.nome_completo && profile.nome_completo.trim() !== "") {
-        setUserName(profile.nome_completo);
-      } else {
-        // Se não achar no perfil, tenta o metadata que é instantâneo
-        const nomeFinal = user.user_metadata?.full_name || user.user_metadata?.name || "Usuário";
-        setUserName(nomeFinal);
-      }
-    } catch (err) {
-      setUserName("Usuário");
+    if (profile?.nome_completo && profile.nome_completo.trim() !== "") {
+      setUserName(profile.nome_completo);
+    } 
+    else if (user.user_metadata?.full_name) {
+      setUserName(user.user_metadata.full_name);
+    }
+    else {
+      setUserName("Anônimo");
     }
   };
 
