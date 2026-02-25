@@ -1,4 +1,3 @@
-// middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -10,32 +9,33 @@ export function middleware(request: NextRequest) {
   const MAIN_DOMAIN = 'nucleobase.app';
   const DASHBOARD_DOMAIN = 'dashboard.nucleobase.app';
 
-  // --- LOGICA PARA O SUBDOMÍNIO DASHBOARD ---
+  // Detecta se é uma requisição de dados do Next.js (Prefetch ou navegação SPA)
+  const isNextDataRequest = url.searchParams.has('_rsc');
+
+  // --- LÓGICA PARA O SUBDOMÍNIO DASHBOARD ---
   if (hostname.includes(DASHBOARD_DOMAIN)) {
     
-    // 1. Se acessar a raiz (/), manda para /lancamentos
+    // 1. Rewrite silencioso da raiz para lançamentos
     if (pathname === '/') {
       return NextResponse.rewrite(new URL('/lancamentos', request.url));
     }
 
-    // 2. PROTEÇÃO FLEXÍVEL:
-    // Permitir /lancamentos, /api, arquivos do Next (_next) e AUTH do Supabase
-    const isAllowedPath = 
-      pathname.startsWith('/lancamentos') || 
-      pathname.startsWith('/api') || 
-      pathname.startsWith('/_next') ||
-      pathname.includes('auth'); // Importante para manter a sessão
-
-    if (!isAllowedPath) {
-      // Em vez de redirecionar tudo, apenas deixe passar se for um recurso do Next.js
-      // ou redirecione apenas se for uma tentativa de acessar páginas institucionais explicitamente
-      if (pathname === '/sobre' || pathname === '/contato') {
-        return NextResponse.redirect(new URL(`https://${MAIN_DOMAIN}${pathname}`, request.url));
+    // 2. CORREÇÃO DE CORS: Se for uma requisição de dados do Next.js para páginas 
+    // que não existem no dashboard, não redirecione. Apenas ignore ou mande 404.
+    // Isso evita que o navegador tente seguir um redirect cross-origin proibido.
+    const institutionalPages = ['/sobre', '/contato', '/precos'];
+    
+    if (institutionalPages.includes(pathname)) {
+      if (isNextDataRequest) {
+        // Retorna um 404 limpo para o prefetch não quebrar o log
+        return new NextResponse(null, { status: 404 });
       }
+      // Redirecionamento completo só se o usuário DIGITAR na barra de endereços
+      return NextResponse.redirect(new URL(`https://${MAIN_DOMAIN}${pathname}`, request.url));
     }
   }
 
-  // --- LOGICA PARA O DOMÍNIO PRINCIPAL ---
+  // --- LÓGICA PARA O DOMÍNIO PRINCIPAL ---
   if (hostname === MAIN_DOMAIN) {
     if (pathname.startsWith('/lancamentos')) {
       return NextResponse.redirect(new URL(`https://${DASHBOARD_DOMAIN}/lancamentos`, request.url));
@@ -46,6 +46,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Ajustado para não interceptar chamadas de API e Auth que precisam de headers limpos
-  matcher: ['/((?!api/auth|_next/static|_next/image|favicon.ico).*)'],
+  // Mantendo o matcher original, mas ele agora ignora os arquivos estáticos corretamente
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };

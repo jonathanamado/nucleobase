@@ -9,7 +9,6 @@ import {
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
 
-// Cliente Supabase otimizado para subdomínios via LocalStorage
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -24,6 +23,7 @@ const supabase = createClient(
 );
 
 export default function LancamentosPage() {
+  const [mounted, setMounted] = useState(false); // NOVO: Controle de Hidratação
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [sucesso, setSucesso] = useState(false);
@@ -42,14 +42,14 @@ export default function LancamentosPage() {
     cartao_nome: "",
     descricao: "",
     valorTotal: 0,
-    dataCompetencia: new Date().toISOString().split('T')[0],
+    dataCompetencia: "", // Vazio para evitar erro #418
     natureza: "Despesa",
     categoria: "",
     projeto: "Pessoal",
     tipo_de_custo: "Variável",
     parcelado: false,
     parcelasTotais: 1,
-    fatura_mes: new Date().toISOString().slice(0, 7),
+    fatura_mes: "", // Vazio para evitar erro #418
     fixo_ate: ""
   };
 
@@ -68,6 +68,17 @@ export default function LancamentosPage() {
   };
 
   useEffect(() => {
+    setMounted(true); // Indica que o cliente carregou
+    
+    // Inicializa datas apenas no cliente
+    const hoje = new Date().toISOString().split('T')[0];
+    const mesAtual = new Date().toISOString().slice(0, 7);
+    setFormData(prev => ({
+      ...prev,
+      dataCompetencia: hoje,
+      fatura_mes: mesAtual
+    }));
+
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
@@ -97,10 +108,8 @@ export default function LancamentosPage() {
     setLoading(true);
     
     try {
-      // 1. Tenta obter a sessão de forma garantida
       let { data: { session } } = await supabase.auth.getSession();
       
-      // 2. Se não houver sessão, tenta um refresh silencioso
       if (!session) {
         const { data: refreshData } = await supabase.auth.refreshSession();
         session = refreshData.session;
@@ -110,8 +119,7 @@ export default function LancamentosPage() {
       const token = session?.access_token;
 
       if (!user || !token) {
-        console.error("Auth Failure - User:", !!user, "Token:", !!token);
-        throw new Error("Sessão expirada ou não encontrada. Por favor, faça login novamente no dashboard.");
+        throw new Error("Sessão expirada. Por favor, recarregue a página.");
       }
 
       const response = await fetch("/api/lancamentos", {
@@ -127,7 +135,12 @@ export default function LancamentosPage() {
       if (!response.ok) throw new Error(result.error || "Erro ao salvar");
 
       setSucesso(true);
-      setFormData(initialFormState);
+      // Reseta o form mantendo as datas seguras
+      setFormData({
+        ...initialFormState,
+        dataCompetencia: new Date().toISOString().split('T')[0],
+        fatura_mes: new Date().toISOString().slice(0, 7)
+      });
       fetchUltimos(user.id);
       setTimeout(() => setSucesso(false), 5000);
     } catch (err: any) {
@@ -136,6 +149,11 @@ export default function LancamentosPage() {
       setLoading(false);
     }
   };
+
+  // Renderização condicional para evitar erro de hidratação
+  if (!mounted) {
+    return <div className="min-h-screen bg-white" />; 
+  }
 
   return (
     <div className="w-full min-h-screen animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0 md:pr-10">

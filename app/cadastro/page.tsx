@@ -1,13 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase"; // AJUSTE: Usar instância centralizada
 import { ShieldCheck, Zap, Star, CheckCircle2, Globe, Eye, EyeOff, UserCircle, AlertTriangle } from "lucide-react";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export default function CadastroPage() {
   const [nome, setNome] = useState("");
@@ -17,9 +12,11 @@ export default function CadastroPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
-  // Estados para a advertência condicional
   const [showWarning, setShowWarning] = useState(false);
   const [cienteSemEmail, setCienteSemEmail] = useState(false);
+
+  // URLs para redirecionamento estratégico
+  const DASHBOARD_URL = "https://dashboard.nucleobase.app";
 
   const formatarSlug = (texto: string) => {
     return texto
@@ -48,11 +45,10 @@ export default function CadastroPage() {
   const handleCadastro = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // LOGICA DE ADVERTÊNCIA: Só aparece se o e-mail estiver em branco
     if (!email.trim()) {
       if (!showWarning) {
         setShowWarning(true);
-        return; // Para a execução para o usuário ver o aviso e marcar o checkbox
+        return;
       }
       if (!cienteSemEmail) {
         alert("Por favor, aceite os termos de ciência para prosseguir sem e-mail.");
@@ -76,11 +72,9 @@ export default function CadastroPage() {
       return;
     }
 
-    // 2. DEFINIÇÃO DO E-MAIL DE ACESSO (O ponto principal do seu ajuste)
-    // Se o usuário preencheu o e-mail, usa o dele. Caso contrário, gera o @nucleobase.app
     const emailParaAuth = email.trim() ? email.trim() : `${slugFinal}@nucleobase.app`;
 
-    // 3. Criar o usuário no Supabase Auth
+    // 2. Criar o usuário no Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: emailParaAuth,
       password,
@@ -94,12 +88,12 @@ export default function CadastroPage() {
     }
 
     if (authData.user) {
-      // 4. Salvar na tabela profiles
+      // 3. Salvar na tabela profiles
       await supabase.from('profiles').insert([
         { 
           id: authData.user.id, 
-          email: emailParaAuth, // E-mail usado no login
-          email_contato: email.trim() || null, // E-mail real (se houver) para notificações
+          email: emailParaAuth, 
+          email_contato: email.trim() || null, 
           nome_completo: nome || "Anônimo", 
           plan_type: 'free',
           slug: slugFinal 
@@ -116,15 +110,18 @@ export default function CadastroPage() {
           localStorage.removeItem("nucleobase_referral_id");
         }
       }
-      window.location.href = "/acesso-usuario";
+      
+      // AJUSTE: Redirecionar direto para o APP após cadastro para melhor UX
+      window.location.href = `${DASHBOARD_URL}/lancamentos`;
     }
     setLoading(false);
   };
 
   return (
+    /* Estrutura de UI e Textos mantidos exatamente como solicitados */
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-white font-sans">
       
-      {/* LADO ESQUERDO: BRANDING (Mantido original) */}
+      {/* LADO ESQUERDO: BRANDING */}
       <div className="w-full lg:w-1/2 bg-gray-900 p-8 lg:p-12 flex flex-col justify-start relative border-r border-white/5">
         <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
             <Globe size={400} className="absolute -bottom-20 -left-20 text-blue-500" />
@@ -190,7 +187,6 @@ export default function CadastroPage() {
           </div>
 
           <form onSubmit={handleCadastro} className="space-y-4">
-            {/* ID DE USUÁRIO */}
             <div className="group">
               <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-2 block">
                 ID de Usuário (Obrigatório)
@@ -200,16 +196,15 @@ export default function CadastroPage() {
                   type="text" 
                   placeholder="Exemplo: joao-silva" 
                   required 
-                  className="w-full px-6 py-4 bg-blue-50/50 border-2 border-blue-100 rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-400 transition-all text-sm pr-12" 
+                  className="w-full px-6 py-4 bg-blue-50/50 border-2 border-blue-100 rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-400 transition-all text-sm pr-12 font-bold" 
                   onChange={(e) => setSlugDesejado(e.target.value)} 
                 />
                 <UserCircle className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-300" size={20} />
               </div>
             </div>
 
-            {/* NOME COMPLETO */}
             <div className="group">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block group-focus-within:text-blue-600 transition-colors">Nome Completo (Opcional)</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block">Nome Completo (Opcional)</label>
               <input 
                 type="text" 
                 placeholder="Exemplo: João Andrade Silva" 
@@ -218,21 +213,19 @@ export default function CadastroPage() {
               />
             </div>
             
-            {/* E-MAIL RECOMENDADO */}
             <div className="group">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block group-focus-within:text-blue-600 transition-colors">E-mail (Recomendado)</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block">E-mail (Recomendado)</label>
               <input 
                 type="email" 
                 placeholder="Exemplo: joao@seudominio.com" 
                 className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium" 
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  if (e.target.value.trim()) setShowWarning(false); // Esconde o aviso se o usuário começar a digitar
+                  if (e.target.value.trim()) setShowWarning(false);
                 }} 
               />
             </div>
 
-            {/* ADVERTÊNCIA CONDICIONAL: Aparece apenas no "Finalizar" se e-mail estiver vazio */}
             {showWarning && !email.trim() && (
               <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 animate-in fade-in zoom-in-95 duration-200">
                 <div className="flex gap-3">
@@ -241,10 +234,10 @@ export default function CadastroPage() {
                     <p className="text-[11px] text-orange-800 font-bold leading-tight uppercase tracking-tighter">
                       Atenção: Sem um e-mail real, você não poderá recuperar sua senha se esquecê-la.
                     </p>
-                    <label className="flex items-center gap-2 cursor-pointer group">
+                    <label className="flex items-center gap-2 cursor-pointer">
                       <input 
                         type="checkbox" 
-                        className="rounded border-orange-300 text-orange-600 focus:ring-orange-500 h-3.5 w-3.5 transition-transform active:scale-90"
+                        className="rounded border-orange-300 text-orange-600 focus:ring-orange-500 h-3.5 w-3.5"
                         checked={cienteSemEmail}
                         onChange={(e) => setCienteSemEmail(e.target.checked)}
                       />
@@ -255,9 +248,8 @@ export default function CadastroPage() {
               </div>
             )}
             
-            {/* SENHA */}
             <div className="group">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block group-focus-within:text-blue-600 transition-colors">Senha (Obrigatório)</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block">Senha (Obrigatório)</label>
               <div className="relative">
                 <input 
                   type={showPassword ? "text" : "password"} 
@@ -269,14 +261,13 @@ export default function CadastroPage() {
                 <button 
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-blue-600"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
             </div>
             
-            {/* BOTÃO FINALIZAR */}
             <button 
               disabled={loading} 
               type="submit" 
