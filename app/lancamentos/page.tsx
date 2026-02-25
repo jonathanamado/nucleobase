@@ -4,31 +4,23 @@ import React, { useState, useEffect } from "react";
 import { 
   ArrowLeft, Save, CreditCard, Wallet, Calendar, 
   Tag, DollarSign, CheckCircle2, Layers, Repeat, 
-  Rocket, Activity, Plus, FileUp 
+  Rocket, Activity, Plus 
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  {
-    auth: {
-      persistSession: true,
-      storageKey: 'nucleobase-dashboard-auth',
-      autoRefreshToken: true,
-      detectSessionInUrl: true
-    }
-  }
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 export default function LancamentosPage() {
-  const [mounted, setMounted] = useState(false); // NOVO: Controle de Hidratação
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [sucesso, setSucesso] = useState(false);
   const [ultimosLancamentos, setUltimosLancamentos] = useState<any[]>([]);
 
+  // Lista de Categorias Sugeridas para Padronização
   const categoriasSugeridas = [
     "Alimentação", "Assinaturas & Serviços", "Compras", "Educação", 
     "Empréstimos", "Impostos", "Investimentos", "Lazer", "Moradia", 
@@ -42,14 +34,14 @@ export default function LancamentosPage() {
     cartao_nome: "",
     descricao: "",
     valorTotal: 0,
-    dataCompetencia: "", // Vazio para evitar erro #418
+    dataCompetencia: new Date().toISOString().split('T')[0],
     natureza: "Despesa",
     categoria: "",
     projeto: "Pessoal",
     tipo_de_custo: "Variável",
     parcelado: false,
     parcelasTotais: 1,
-    fatura_mes: "", // Vazio para evitar erro #418
+    fatura_mes: new Date().toISOString().slice(0, 7),
     fixo_ate: ""
   };
 
@@ -68,59 +60,27 @@ export default function LancamentosPage() {
   };
 
   useEffect(() => {
-    setMounted(true); // Indica que o cliente carregou
-    
-    // Inicializa datas apenas no cliente
-    const hoje = new Date().toISOString().split('T')[0];
-    const mesAtual = new Date().toISOString().slice(0, 7);
-    setFormData(prev => ({
-      ...prev,
-      dataCompetencia: hoje,
-      fatura_mes: mesAtual
-    }));
-
-    const checkUser = async () => {
+    const getUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUserId(session.user.id);
         fetchUltimos(session.user.id);
       }
     };
-
-    checkUser();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        setUserId(session.user.id);
-        fetchUltimos(session.user.id);
-      } else {
-        setUserId(null);
-      }
-    });
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
+    getUser();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!userId) {
+      alert("Usuário não identificado.");
+      return;
+    }
+
     setLoading(true);
-    
     try {
-      let { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        const { data: refreshData } = await supabase.auth.refreshSession();
-        session = refreshData.session;
-      }
-
-      const user = session?.user;
+      const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
-
-      if (!user || !token) {
-        throw new Error("Sessão expirada. Por favor, recarregue a página.");
-      }
 
       const response = await fetch("/api/lancamentos", {
         method: "POST",
@@ -128,20 +88,15 @@ export default function LancamentosPage() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}` 
         },
-        body: JSON.stringify({ ...formData, user_id: user.id }),
+        body: JSON.stringify({ ...formData, user_id: userId }),
       });
 
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Erro ao salvar");
 
       setSucesso(true);
-      // Reseta o form mantendo as datas seguras
-      setFormData({
-        ...initialFormState,
-        dataCompetencia: new Date().toISOString().split('T')[0],
-        fatura_mes: new Date().toISOString().slice(0, 7)
-      });
-      fetchUltimos(user.id);
+      setFormData(initialFormState);
+      fetchUltimos(userId);
       setTimeout(() => setSucesso(false), 5000);
     } catch (err: any) {
       alert("Erro: " + err.message);
@@ -150,15 +105,10 @@ export default function LancamentosPage() {
     }
   };
 
-  // Renderização condicional para evitar erro de hidratação
-  if (!mounted) {
-    return <div className="min-h-screen bg-white" />; 
-  }
-
   return (
     <div className="w-full min-h-screen animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0 md:pr-10">
       
-      {/* HEADER */}
+      {/* HEADER DA PÁGINA */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-8">
         <div>
           <h1 className="text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center">
@@ -169,20 +119,9 @@ export default function LancamentosPage() {
             Alimente sua base de dados com precisão.
           </h2>
         </div>
-
-        <div className="flex flex-col items-center text-center"> 
-          <span className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 leading-none mb-1">
-              Upload Arquivo XLS
-          </span>
-          <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
-              <span className="text-[10px] font-bold text-gray-500 whitespace-nowrap">
-                Em desenvolvimento
-              </span>
-          </div>
-        </div>
       </div>
 
+      {/* LINHA DIVISÓRIA COM FOGUETE */}
       <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
         Formulário de Entrada <div className="h-px bg-gray-200 flex-1"></div>
         <Rocket size={20} className="text-orange-500 -rotate-45" />
@@ -193,12 +132,14 @@ export default function LancamentosPage() {
           <CheckCircle2 size={24} className="shrink-0" />
           <div>
             <p className="font-bold text-sm uppercase tracking-tight">Sucesso no Processamento</p>
-            <p className="text-xs opacity-80">Seus dados foram registrados com segurança.</p>
+            <p className="text-xs opacity-80">Seus dados foram blindados e registrados no sistema.</p>
           </div>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
+        
+        {/* COLUNA ESQUERDA */}
         <div className="lg:col-span-7 space-y-10">
           <section>
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-3">
@@ -270,6 +211,7 @@ export default function LancamentosPage() {
           </section>
         </div>
 
+        {/* COLUNA DIREITA: CLASSIFICAÇÃO COM DATALIST */}
         <div className="lg:col-span-5 flex flex-col h-full">
           <div className="bg-gray-900 rounded-[2.5rem] p-8 shadow-2xl flex flex-col justify-between h-full group relative overflow-hidden transition-all hover:scale-[1.01]">
             <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
@@ -305,9 +247,10 @@ export default function LancamentosPage() {
                   </div>
                 </div>
 
+                {/* CAMPO DE CATEGORIA COM DATALIST (Sugestão + Novo) */}
                 <div className="space-y-2 mb-6">
                   <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 ml-2 flex items-center gap-2">
-                    Categoria <span className="text-[8px] text-gray-600">(Sugestão ou Nova)</span>
+                    Categoria <span className="text-[8px] text-gray-600">(Sugestão ou Personalizada)</span>
                   </label>
                   <div className="relative group">
                     <input 
@@ -374,6 +317,7 @@ export default function LancamentosPage() {
         </div>
       </form>
 
+      {/* HISTÓRICO RECENTE */}
       <div className="mt-20">
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
           Histórico Recente <div className="h-px bg-gray-100 flex-1"></div>
@@ -396,7 +340,7 @@ export default function LancamentosPage() {
                   <td className="p-6">
                     <span className="text-sm font-bold text-gray-900 block group-hover:text-orange-500 transition-colors">{l.descricao}</span>
                     <div className="text-[10px] text-gray-400 uppercase font-black tracking-tight mt-1 flex items-center gap-2">
-                      <Tag size={10} className="text-orange-500" /> {l.categoria || 'Geral'} • {l.origem} {l.parcelas_total > 1 ? `• ${l.parcela_atual}/${l.parcelas_total}` : ''}
+                      <Tag size={10} className="text-orange-500" /> {l.categoria || 'Sem Categoria'} • {l.origem} {l.parcelas_total > 1 ? `• ${l.parcela_atual}/${l.parcelas_total}` : ''}
                     </div>
                   </td>
                   <td className="p-6 font-black text-sm text-gray-900 text-right">
