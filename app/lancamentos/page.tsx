@@ -98,14 +98,19 @@ export default function LancamentosPage() {
     setLoading(true);
     
     try {
-      // Força a captura da sessão e do usuário (Melhor para Mobile)
+      // 1. Tenta pegar a sessão atualizada
       const { data: { session } } = await supabase.auth.getSession();
-      const { data: { user } } = await supabase.auth.getUser();
+      
+      // 2. Tenta pegar o usuário (isso força o Supabase a checar o storage)
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-      const token = session?.access_token;
+      // Pega o token de onde estiver disponível
+      const token = session?.access_token || (await supabase.auth.getSession()).data.session?.access_token;
 
       if (!user || !token) {
-        throw new Error("Sessão expirada. Por favor, faça login novamente no dashboard.");
+        // Log para você ver no F12 do navegador o que está vindo
+        console.error("User:", user, "Token:", token ? "Presente" : "Ausente");
+        throw new Error("Sessão não encontrada. Por favor, faça logout e login novamente.");
       }
 
       const response = await fetch("/api/lancamentos", {
