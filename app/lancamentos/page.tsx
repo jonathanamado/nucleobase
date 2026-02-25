@@ -11,7 +11,22 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storageKey: 'nucleobase-auth',
+      cookieOptions: {
+        name: 'sb-auth-token',
+        domain: '.nucleobase.app', // O PONTO ANTES É VITAL: permite compartilhar entre os subdomínios
+        path: '/',
+        sameSite: 'lax',
+        secure: true,
+      },
+    },
+  }
 );
 
 export default function LancamentosPage() {
@@ -85,44 +100,36 @@ export default function LancamentosPage() {
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-      e.preventDefault();
-      setLoading(true);
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      // 1. Tenta pegar a sessão atualizada
+      const { data: { session } } = await supabase.auth.getSession();
       
-      try {
-        // 1. Tenta pegar a sessão atualizada
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        // 2. Se não vier no getSession, tenta pegar o usuário direto (força refresh)
-        const { data: { user } } = await supabase.auth.getUser();
+      // 2. Fallback: se a sessão falhar, tenta o getUser direto que é mais rigoroso
+      let user = session?.user;
+      let token = session?.access_token;
 
-        const token = session?.access_token;
-
-        if (!user || !token) {
-          throw new Error("Sessão expirada ou usuário não identificado. Por favor, faça login novamente.");
-        }
-
-        const response = await fetch("/api/lancamentos", {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}` // Garante que o Bearer Token está indo
-          },
-          body: JSON.stringify({ ...formData, user_id: user.id }),
-        });
-
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || "Erro ao salvar");
-
-        setSucesso(true);
-        setFormData(initialFormState);
-        fetchUltimos(user.id);
-        setTimeout(() => setSucesso(false), 5000);
-      } catch (err: any) {
-        alert("Erro: " + err.message);
-      } finally {
-        setLoading(false);
+      if (!user) {
+        const { data: { user: refreshedUser } } = await supabase.auth.getUser();
+        user = refreshedUser || undefined;
+        // O token pode ser pego novamente se necessário
       }
-    };
+
+      if (!user || !token) {
+        throw new Error("Sessão expirada. Por favor, saia e faça login novamente no dashboard.");
+      }
+
+      const response = await fetch("/api/lancamentos", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}` 
+        },
+        body: JSON.stringify({ ...formData, user_id: user.id }),
+      });
+
 
   return (
     <div className="w-full min-h-screen animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0 md:pr-10">
