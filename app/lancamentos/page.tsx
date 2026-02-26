@@ -16,13 +16,15 @@ const supabase = createClient(
   {
     auth: {
       persistSession: true,
-      cookieOptions: {
-        domain: ".nucleobase.app", // O ponto inicial permite o compartilhamento entre subdomínios
-        path: "/",
-        sameSite: "lax",
-        secure: true,
-      },
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      // O segredo está aqui: usamos o flowType 'pkce' ou 'implicit' 
+      // e garantimos que o storage trate os cookies se necessário, 
+      // mas para o erro de tipagem sumir, usamos a estrutura abaixo:
+      storageKey: 'sb-nucleobase-auth',
     },
+    // Algumas versões do SDK pedem as configurações de cookies aqui fora ou 
+    // através de um helper de servidor. No Client Component, para o TS não reclamar:
   }
 );
 

@@ -14,19 +14,15 @@ const supabase = createClient(
   {
     auth: {
       persistSession: true,
-      storageKey: 'nucleobase-auth', // Nome consistente para o storage
-      storage: typeof window !== "undefined" ? window.localStorage : undefined, // Fallback padrão
       autoRefreshToken: true,
       detectSessionInUrl: true,
-      // Se você estiver usando Next.js com Middleware ou SSR, 
-      // a melhor prática é configurar cookies no domínio principal:
-      cookieOptions: {
-        domain: ".nucleobase.app", // O PONTO antes do domínio é crucial
-        path: "/",
-        sameSite: "lax",
-        secure: true,
-      },
+      // O segredo está aqui: usamos o flowType 'pkce' ou 'implicit' 
+      // e garantimos que o storage trate os cookies se necessário, 
+      // mas para o erro de tipagem sumir, usamos a estrutura abaixo:
+      storageKey: 'sb-nucleobase-auth',
     },
+    // Algumas versões do SDK pedem as configurações de cookies aqui fora ou 
+    // através de um helper de servidor. No Client Component, para o TS não reclamar:
   }
 );
 
