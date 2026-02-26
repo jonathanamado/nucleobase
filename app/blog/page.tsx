@@ -132,7 +132,7 @@ export default function BlogDaNucleo() {
           </h1>
           
           <h2 className="text-gray-500 text-xl font-medium max-w-2xl leading-relaxed mt-0">
-            Education e estratégia em âmbito pessoal.
+            Educação e estratégia em âmbito pessoal.
           </h2>
         </div>
 

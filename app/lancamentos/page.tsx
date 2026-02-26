@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { 
   ArrowLeft, Save, CreditCard, Wallet, Calendar, 
   Tag, DollarSign, CheckCircle2, Layers, Repeat, 
-  Rocket, Activity, Plus, FileUp, Zap 
+  Rocket, Activity, Plus, FileUp, Zap, Clock, AlertCircle 
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
@@ -18,12 +18,19 @@ export default function LancamentosPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [sucesso, setSucesso] = useState(false);
+  const [erroValidacao, setErroValidacao] = useState(false);
   const [ultimosLancamentos, setUltimosLancamentos] = useState<any[]>([]);
 
   const getLocalDate = () => {
     const now = new Date();
     const offset = now.getTimezoneOffset() * 60000;
     return new Date(now.getTime() - offset).toISOString().split('T')[0];
+  };
+
+  const getNextMonth = () => {
+    const now = new Date();
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    return nextMonth.toISOString().slice(0, 7);
   };
 
   const categoriasSugeridas = [
@@ -46,7 +53,7 @@ export default function LancamentosPage() {
     tipo_de_custo: "Variável",
     parcelado: false,
     parcelasTotais: 1,
-    fatura_mes: new Date().toISOString().slice(0, 7),
+    fatura_mes: getNextMonth(),
     fixo_ate: ""
   };
 
@@ -78,6 +85,16 @@ export default function LancamentosPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId) return;
+
+    if (formData.tipo_de_custo === "Fixo" && formData.fixo_ate) {
+      if (new Date(formData.fixo_ate) < new Date(formData.dataCompetencia)) {
+        setErroValidacao(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setTimeout(() => setErroValidacao(false), 5000);
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -103,10 +120,8 @@ export default function LancamentosPage() {
   };
 
   return (
-    // Ajuste pt-0 e mt-0 para colar no início da página
     <div className="w-full min-h-screen animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0 md:pr-10 pt-0 mt-0">
       
-      {/* HEADER DA PÁGINA - Margens zeradas para subir o texto */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0 pt-1">
         <div>
           <h1 className="text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center">
@@ -118,9 +133,11 @@ export default function LancamentosPage() {
           </h2>
         </div>
 
-        {/* Ajuste Card Upload: Largura idêntica ao card de inteligência (5/12 colunas) */}
-        <div className="flex flex-col items-center text-center bg-gray-50 border border-gray-200 rounded-2xl py-3 px-8 lg:w-[39.5%] self-center md:self-end"> 
-          <span className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 leading-none mb-1">
+        <Link 
+          href="/lancamentos/importar" 
+          className="flex flex-col items-center text-center bg-gray-50 border border-gray-200 rounded-2xl py-3 px-8 lg:w-[39.5%] self-center md:self-end hover:bg-gray-100 hover:border-gray-300 transition-all cursor-pointer group"
+        > 
+          <span className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 leading-none mb-1 group-hover:text-orange-500 transition-colors">
               Upload Arquivo XLS
           </span>
           <div className="flex items-center gap-1.5">
@@ -129,7 +146,7 @@ export default function LancamentosPage() {
               Em desenvolvimento
               </span>
           </div>
-        </div>
+        </Link>
       </div>
 
       <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
@@ -138,16 +155,26 @@ export default function LancamentosPage() {
       </h3>
 
       {sucesso && (
-        <div className="mb-8 p-6 bg-green-50 border-l-4 border-green-500 text-green-700 rounded-r-3xl flex items-center gap-4 animate-in fade-in slide-in-from-left-4">
-          <CheckCircle2 size={24} className="shrink-0" />
+        <div className="mb-8 p-6 bg-orange-500 text-white rounded-[2rem] flex items-center gap-4 animate-in fade-in slide-in-from-left-4 shadow-lg shadow-orange-500/20 border-l-8 border-orange-600">
+          <CheckCircle2 size={24} className="shrink-0 text-white" />
           <div>
             <p className="font-bold text-sm uppercase tracking-tight">Sucesso no Processamento</p>
-            <p className="text-xs opacity-80">Seus dados foram blindados e registrados no sistema.</p>
+            <p className="text-xs opacity-90 font-medium">Seus dados foram blindados e registrados no sistema.</p>
           </div>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
+      {erroValidacao && (
+        <div className="mb-8 p-6 bg-red-600 text-white rounded-[2rem] flex items-center gap-4 animate-in fade-in slide-in-from-left-4 shadow-lg shadow-red-500/20 border-l-8 border-red-800">
+          <AlertCircle size={24} className="shrink-0 text-white" />
+          <div>
+            <p className="font-bold text-sm uppercase tracking-tight">Revisar erros de lançamento</p>
+            <p className="text-xs opacity-90 font-medium">A data de recorrência não pode ser anterior à data do lançamento.</p>
+          </div>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
         
         {/* COLUNA ESQUERDA */}
         <div className="lg:col-span-7 space-y-10">
@@ -223,6 +250,10 @@ export default function LancamentosPage() {
 
         {/* COLUNA DIREITA */}
         <div className="lg:col-span-5 flex flex-col h-full">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-3">
+            <span className="w-8 h-px bg-gray-200"></span> 03. Classificação
+          </h3>
+          
           <div className="bg-gray-900 rounded-[2.5rem] p-8 shadow-2xl flex flex-col justify-between h-full group relative overflow-hidden transition-all hover:scale-[1.01]">
             <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
               <Activity size={180} strokeWidth={1} className="text-orange-500" />
@@ -259,17 +290,19 @@ export default function LancamentosPage() {
 
                 <div className="space-y-2 mb-6">
                   <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 ml-2 flex items-center gap-2">
-                    Categoria <span className="text-[8px] text-gray-600">(Sugestão ou Nova)</span>
+                    Categoria <span className="text-[8px] text-gray-600">(Sugestão)</span>
                   </label>
-                  <div className="relative group">
-                    <input required list="categorias-list" type="text" placeholder="Busque ou digite" value={formData.categoria}
-                      className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none focus:ring-2 focus:ring-orange-500 transition-all pr-12"
-                      onChange={(e) => setFormData({...formData, categoria: e.target.value})} />
-                    <Plus size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-orange-500" />
-                    <datalist id="categorias-list">
-                      {categoriasSugeridas.map((cat, idx) => <option key={idx} value={cat} />)}
-                    </datalist>
-                  </div>
+                  <select 
+                    required 
+                    className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none focus:ring-2 focus:ring-orange-500"
+                    value={formData.categoria} 
+                    onChange={(e) => setFormData({...formData, categoria: e.target.value})}
+                  >
+                    <option value="" className="bg-gray-900" disabled>Selecione uma categoria</option>
+                    {categoriasSugeridas.map((cat, idx) => (
+                      <option key={idx} value={cat} className="bg-gray-900">{cat}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="mt-auto space-y-4">
@@ -294,13 +327,19 @@ export default function LancamentosPage() {
                           onChange={(e) => setFormData({...formData, parcelado: e.target.checked, parcelasTotais: e.target.checked ? 2 : 1})} />
                       </div>
                       {formData.parcelado && (
-                        <div className="grid grid-cols-2 gap-3">
-                          <input required type="number" min="2" placeholder="Parcelas" value={formData.parcelasTotais}
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-xs text-white"
-                            onChange={(e) => setFormData({...formData, parcelasTotais: parseInt(e.target.value) || 1})} />
-                          <input required type="month" value={formData.fatura_mes}
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-xs text-white"
-                            onChange={(e) => setFormData({...formData, fatura_mes: e.target.value})} />
+                        <div className="grid grid-cols-2 gap-3 animate-in slide-in-from-top-2">
+                          <div className="space-y-1.5">
+                            <label className="text-[8px] font-black uppercase tracking-widest text-orange-500/60 ml-1">Meses parcelamento</label>
+                            <input required type="number" min="2" placeholder="Parcelas" value={formData.parcelasTotais}
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-xs text-white outline-none focus:ring-1 focus:ring-orange-500/50"
+                              onChange={(e) => setFormData({...formData, parcelasTotais: parseInt(e.target.value) || 1})} />
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-[8px] font-black uppercase tracking-widest text-orange-500/60 ml-1">Mês início pagamento</label>
+                            <input required type="month" value={formData.fatura_mes}
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-xs text-white outline-none focus:ring-1 focus:ring-orange-500/50"
+                              onChange={(e) => setFormData({...formData, fatura_mes: e.target.value})} />
+                          </div>
                         </div>
                       )}
                     </div>
@@ -319,7 +358,7 @@ export default function LancamentosPage() {
         </div>
       </form>
 
-      {/* RELATÓRIO DE DEMONSTRAÇÃO ATUALIZADO */}
+      {/* HISTÓRICO RECENTE */}
       <div className="mt-20">
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
           Histórico Recente <div className="h-px bg-gray-100 flex-1"></div>
@@ -328,7 +367,7 @@ export default function LancamentosPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50/50">
-                <th className="p-6 text-[10px] font-black uppercase text-gray-400 tracking-widest">Data</th>
+                <th className="p-6 text-[10px] font-black uppercase text-gray-400 tracking-widest">Data e Hora</th>
                 <th className="p-6 text-[10px] font-black uppercase text-gray-400 tracking-widest">Descrição / Origem</th>
                 <th className="p-6 text-[10px] font-black uppercase text-gray-400 tracking-widest">Categoria</th>
                 <th className="p-6 text-[10px] font-black uppercase text-gray-400 tracking-widest">Tipo de Custo</th>
@@ -338,8 +377,15 @@ export default function LancamentosPage() {
             <tbody className="divide-y divide-gray-50">
               {ultimosLancamentos.map((l) => (
                 <tr key={l.id} className="hover:bg-gray-50/50 transition-colors group">
-                  <td className="p-6 text-xs font-bold text-gray-400 whitespace-nowrap">
-                    {new Date(l.data_competencia).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                  <td className="p-6 whitespace-nowrap">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-gray-900">
+                        {new Date(l.data_competencia).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                      </span>
+                      <span className="text-[10px] font-medium text-gray-400 flex items-center gap-1 mt-0.5">
+                        <Clock size={10} /> {new Date(l.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
                   </td>
                   <td className="p-6">
                     <span className="text-sm font-bold text-gray-900 block group-hover:text-orange-500 transition-colors">{l.descricao}</span>
