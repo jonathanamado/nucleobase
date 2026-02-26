@@ -35,24 +35,47 @@ export function Header() {
   };
 
   useEffect(() => {
+    let mounted = true;
+
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setIsLoggedIn(!!session);
-      if (session?.user) fetchProfile(session.user.id);
+      // Tenta pegar a sessão atual
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (mounted) {
+        if (session) {
+          setIsLoggedIn(true);
+          fetchProfile(session.user.id);
+        } else {
+          // Se não houver sessão, fazemos uma última tentativa silenciosa 
+          // de atualizar o token caso ele exista mas esteja expirado
+          const { data: refresh } = await supabase.auth.refreshSession();
+          if (refresh.session) {
+            setIsLoggedIn(true);
+            fetchProfile(refresh.session.user.id);
+          } else {
+            setIsLoggedIn(false);
+          }
+        }
+      }
     };
 
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsLoggedIn(!!session);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
-        setUserProfile({ nome: "", avatar: null });
+      if (mounted) {
+        setIsLoggedIn(!!session);
+        if (session?.user) {
+          fetchProfile(session.user.id);
+        } else {
+          setUserProfile({ nome: "", avatar: null });
+        }
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const getInitials = (name: string) => {
