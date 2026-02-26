@@ -145,7 +145,7 @@ export default function AcessoUsuarioPage() {
           <p className="text-base text-gray-600 max-w-none font-bold leading-tight">
             {isLoggedIn ? (
               <>
-                <a href="https://nucleobase.streamlit.app" className="text-orange-500 hover:text-orange-600 transition underline decoration-2 underline-offset-4">Clique aqui</a>
+                <a href="/lancamentos" className="text-orange-500 hover:text-orange-600 transition underline decoration-2 underline-offset-4">Clique aqui</a>
                 {" para acessar o APP e gerenciar seus lançamentos."}
               </>
             ) : (
@@ -173,7 +173,7 @@ export default function AcessoUsuarioPage() {
         <div className="min-h-[320px] flex">
           {isLoggedIn ? (
             <a 
-              href="https://nucleobase.streamlit.app"
+              href="/lancamentos"
               className="p-6 rounded-3xl shadow-lg transition-all border flex flex-col text-center bg-orange-500 border-orange-400 hover:bg-orange-600 group w-full h-full"
             >
               <div className="p-3 rounded-2xl mb-3 w-fit mx-auto bg-white/20 text-white group-hover:scale-110 transition-transform">
