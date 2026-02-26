@@ -151,9 +151,9 @@ export default function AcessoUsuarioPage() {
             {isLoggedIn ? (
               <>
                 <a 
-                  href="https://dashboard.nucleobase.app" 
+                  href="https://dashboard.nucleobase.app/" 
                   rel="external"
-                  onClick={(e) => handleExitDashboard(e, "https://dashboard.nucleobase.app")}
+                  onClick={(e) => handleExitDashboard(e, "https://dashboard.nucleobase.app/")}
                   className="text-orange-500 hover:text-orange-600 transition underline decoration-2 underline-offset-4"
                 >
                   Clique aqui
@@ -184,15 +184,19 @@ export default function AcessoUsuarioPage() {
         {/* CARD 1: ACESSO OU LOGIN */}
         <div className="min-h-[320px] flex">
           {isLoggedIn ? (
-            <a 
-              href="dashboard.nucleobase.app"
-              className="p-6 rounded-3xl shadow-lg transition-all border flex flex-col text-center bg-orange-500 border-orange-400 hover:bg-orange-600 group w-full h-full"
+            <a
+              href="https://dashboard.nucleobase.app/" 
+              rel="external"
+              onClick={(e) => handleExitDashboard(e, "https://dashboard.nucleobase.app/")}
+              className="p-6 rounded-3xl shadow-lg transition-all border flex flex-col text-center bg-orange-500 border-orange-400 hover:bg-orange-600 group w-full h-full cursor-pointer"
             >
               <div className="p-3 rounded-2xl mb-3 w-fit mx-auto bg-white/20 text-white group-hover:scale-110 transition-transform">
                 <Rocket size={28} />
               </div>
               <h3 className="text-lg font-bold text-white mb-1">Acessar APP</h3>
-              <p className="text-orange-50 text-xs mb-4">Acesso liberado. Clique aqui para atualizar o seu Controle Financeiro.</p>
+              <p className="text-orange-50 text-xs mb-4">
+                Acesso liberado. Clique aqui para atualizar o seu Controle Financeiro.
+              </p>
               <div className="mt-auto flex items-center justify-center gap-2 bg-white text-orange-500 h-[52px] rounded-xl font-bold shadow-md text-sm">
                 Entrar Agora <ArrowRight size={16} />
               </div>
