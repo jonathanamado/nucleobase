@@ -10,20 +10,7 @@ import {
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-      // O segredo está aqui: usamos o flowType 'pkce' ou 'implicit' 
-      // e garantimos que o storage trate os cookies se necessário, 
-      // mas para o erro de tipagem sumir, usamos a estrutura abaixo:
-      storageKey: 'sb-nucleobase-auth',
-    },
-    // Algumas versões do SDK pedem as configurações de cookies aqui fora ou 
-    // através de um helper de servidor. No Client Component, para o TS não reclamar:
-  }
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 export default function AcessoUsuarioPage() {
@@ -139,11 +126,6 @@ export default function AcessoUsuarioPage() {
     setResetLoading(false);
   };
 
-  const handleExitDashboard = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
-    e.preventDefault();
-    window.location.assign(url);
-  };
-
   return (
     <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
       
@@ -163,14 +145,7 @@ export default function AcessoUsuarioPage() {
           <p className="text-base text-gray-600 max-w-none font-bold leading-tight">
             {isLoggedIn ? (
               <>
-                <a 
-                  href="https://dashboard.nucleobase.app/" 
-                  rel="external"
-                  onClick={(e) => handleExitDashboard(e, "https://dashboard.nucleobase.app/")}
-                  className="text-orange-500 hover:text-orange-600 transition underline decoration-2 underline-offset-4"
-                >
-                  Clique aqui
-                </a>
+                <a href="https://nucleobase.streamlit.app" className="text-orange-500 hover:text-orange-600 transition underline decoration-2 underline-offset-4">Clique aqui</a>
                 {" para acessar o APP e gerenciar seus lançamentos."}
               </>
             ) : (
@@ -197,19 +172,15 @@ export default function AcessoUsuarioPage() {
         {/* CARD 1: ACESSO OU LOGIN */}
         <div className="min-h-[320px] flex">
           {isLoggedIn ? (
-            <a
-              href="https://dashboard.nucleobase.app/" 
-              rel="external"
-              onClick={(e) => handleExitDashboard(e, "https://dashboard.nucleobase.app/")}
-              className="p-6 rounded-3xl shadow-lg transition-all border flex flex-col text-center bg-orange-500 border-orange-400 hover:bg-orange-600 group w-full h-full cursor-pointer"
+            <a 
+              href="https://nucleobase.streamlit.app"
+              className="p-6 rounded-3xl shadow-lg transition-all border flex flex-col text-center bg-orange-500 border-orange-400 hover:bg-orange-600 group w-full h-full"
             >
               <div className="p-3 rounded-2xl mb-3 w-fit mx-auto bg-white/20 text-white group-hover:scale-110 transition-transform">
                 <Rocket size={28} />
               </div>
               <h3 className="text-lg font-bold text-white mb-1">Acessar APP</h3>
-              <p className="text-orange-50 text-xs mb-4">
-                Acesso liberado. Clique aqui para atualizar o seu Controle Financeiro.
-              </p>
+              <p className="text-orange-50 text-xs mb-4">Acesso liberado. Clique aqui para atualizar o seu Controle Financeiro.</p>
               <div className="mt-auto flex items-center justify-center gap-2 bg-white text-orange-500 h-[52px] rounded-xl font-bold shadow-md text-sm">
                 Entrar Agora <ArrowRight size={16} />
               </div>
