@@ -41,11 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-
-  // Configurações de exibição por rota
-  const paginasSemScroll: string[] = []; // Mantido vazio conforme solicitado para resolver o problema
   const isHome = pathname === "/";
-  const deveTravarScroll = paginasSemScroll.includes(pathname);
 
   return (
     <html lang="pt-BR">
@@ -60,7 +56,6 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      {/* AJUSTE: Removido h-screen e md:overflow-hidden para permitir rolagem natural do body */}
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen flex flex-col`}>
         
         <noscript>
@@ -72,13 +67,22 @@ export default function RootLayout({
           ></iframe>
         </noscript>
 
+        {/* Header fixo no topo */}
         <Header />
 
-        <main className="flex-1 flex flex-col md:flex-row gap-0 w-full items-stretch">
+        {/* Ajuste no Main: 
+            Adicionamos um pt-20 (80px) para o conteúdo não ficar por baixo do Header 
+        */}
+        <main className="flex-1 flex w-full">
+          
+          {/* Sidebar (Que agora é fixed lá no componente dela) */}
           <Sidebar />
           
-          {/* Seção principal de conteúdo - Removido overflow-hidden forçado */}
-          <section className={`flex-1 px-4 md:px-10 py-6 scroll-smooth`}>
+          {/* CONTEÚDO PRINCIPAL:
+              1. md:ml-80: Cria o espaço vazio na esquerda para a Sidebar fixa (80 = 320px).
+              2. flex-1: Ocupa todo o restante da largura.
+          */}
+          <section className="flex-1 px-4 md:px-10 py-6 scroll-smooth md:ml-80">
             <div className="min-h-[calc(100vh-200px)]">
               {children}
             </div>

@@ -128,7 +128,7 @@ export default function MinhaContaPage() {
         nome_completo: nome,
         email_contato: emailContato,
         telefone: telefone,
-        profissao: profissao,
+        profissao: profession,
         formacao: formacao,
         data_nascimento: dataNascimento || null,
         genero: genero,
@@ -187,8 +187,8 @@ export default function MinhaContaPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         
-        {/* COLUNA ESQUERDA: DADOS FUNDAMENTAIS */}
-        <div className="lg:col-span-9 h-full">
+        {/* COLUNA ESQUERDA: DADOS FUNDAMENTAIS - Reduzida para col-span-8 */}
+        <div className="lg:col-span-8 h-full">
           <section className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm relative flex flex-col h-full">
             
             <div className="flex flex-col xl:flex-row justify-between items-start mb-10 gap-8">
@@ -214,14 +214,14 @@ export default function MinhaContaPage() {
               </div>
 
               {/* BOX DE DADOS DE ACESSO */}
-              <div className="w-full xl:w-auto bg-gray-50/80 p-5 rounded-[2rem] border border-gray-100 space-y-4 min-w-[320px] shadow-inner">
+              <div className="w-full xl:w-auto bg-gray-50/80 p-5 rounded-[2rem] border border-gray-100 space-y-4 min-w-[280px] shadow-inner">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between gap-6 px-1">
                     <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter flex items-center gap-1"><AtSign size={10}/> ID Usuário</span>
                     <span className="text-xs font-bold text-gray-700">{slug || "---"}</span>
                   </div>
                   <div className="flex items-center justify-between gap-6 border-t border-gray-200/50 pt-2.5 px-1">
-                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter flex items-center gap-1"><Mail size={10}/> E-mail Acesso</span>
+                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter flex items-center gap-1"><Mail size={10}/> Email </span>
                     <span className="text-xs font-medium text-gray-500 italic truncate ml-4">{email}</span>
                   </div>
                 </div>
@@ -269,7 +269,7 @@ export default function MinhaContaPage() {
                 </select>
               </div>
 
-              {/* DATA NASCIMENTO E FILHOS (LINHA DEBAIXO) */}
+              {/* DATA NASCIMENTO E FILHOS */}
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black text-gray-400 uppercase ml-1 tracking-wider">Data de Nascimento</label>
                 <input type="date" value={dataNascimento} className="w-full h-11 px-4 bg-gray-50/50 border border-gray-100 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all" onChange={(e) => setDataNascimento(e.target.value)} />
@@ -317,8 +317,8 @@ export default function MinhaContaPage() {
           </section>
         </div>
 
-        {/* COLUNA DIREITA: PREFERÊNCIAS (AZUL) */}
-        <div className="lg:col-span-3 h-full">
+        {/* COLUNA DIREITA: PREFERÊNCIAS - Aumentada para col-span-4 */}
+        <div className="lg:col-span-4 h-full">
           <section className="bg-blue-600 rounded-[2.5rem] p-8 text-white shadow-xl shadow-blue-100 flex flex-col h-full">
             <h3 className="text-[10px] font-black text-blue-100 uppercase tracking-[0.2em] flex items-center gap-2 mb-10">
               <Heart size={16}/> Preferências do APP

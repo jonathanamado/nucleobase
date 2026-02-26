@@ -188,7 +188,7 @@ export default function IndiquePage() {
           <div className="w-full bg-blue-50/40 border-l-4 border-blue-600 p-6 mb-8 rounded-r-2xl transition-all">
             <p className="font-medium text-blue-900 italic text-base leading-relaxed">
               Olá, <span className="font-bold">{userName.split(' ')[0]}</span>! Sua influência transformará a gestão das pessoas, por isso você está no coração do nosso motor de crescimento. 
-              Use a aba <strong className="text-blue-700">Comunidade</strong> para ajudar amigos e familiares a realizarem controles financeiros efetivos. Na aba <strong className="text-blue-700">Consultor Partner</strong> você poderá fazer seu acompanhamento de "Indicações", solicitando comissões e recebendo prêmios reais.
+              Use a aba <strong className="text-blue-700">Comunidade</strong> para ajudar amigos e familiares a realizarem controles efetivos. Na aba <strong className="text-blue-700">Consultor Partner</strong> você poderá fazer seu acompanhamento de "Indicações", solicitando comissões e recebendo prêmios reais.
             </p>
           </div>
 

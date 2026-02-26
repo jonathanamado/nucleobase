@@ -130,7 +130,7 @@ export default function AcessoUsuarioPage() {
     <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
       
       {/* Cabeçalho - Ajustado para largura total */}
-      <div className="mb-6 mt-8 flex justify-between items-start p-0 w-full">
+      <div className="mb-6 mt-2 flex justify-between items-start p-0 w-full">
         <div className="text-left">
           <h1 className="text-5xl font-bold text-gray-900 mb-2 tracking-tight">
             {isLoggedIn ? `Olá, ${userName}!` : "Área do Usuário"}
@@ -179,7 +179,7 @@ export default function AcessoUsuarioPage() {
               <div className="p-3 rounded-2xl mb-3 w-fit mx-auto bg-white/20 text-white group-hover:scale-110 transition-transform">
                 <Rocket size={28} />
               </div>
-              <h3 className="text-lg font-bold text-white mb-1">Acessar APP</h3>
+              <h3 className="text-lg font-bold text-white mb-1">Acesso APP</h3>
               <p className="text-orange-50 text-xs mb-4">Acesso liberado. Clique aqui para atualizar o seu Controle Financeiro.</p>
               <div className="mt-auto flex items-center justify-center gap-2 bg-white text-orange-500 h-[52px] rounded-xl font-bold shadow-md text-sm">
                 Entrar Agora <ArrowRight size={16} />

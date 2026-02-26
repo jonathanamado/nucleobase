@@ -88,7 +88,7 @@ export function Header() {
         <div className="flex items-center flex-shrink-0 min-w-fit"> 
           <div className="flex-shrink-0">
               {/* Adicionei rel="external" para sinalizar ao navegador a saída do SPA */}
-              <a href="https://nucleobase.app" rel="external" className="block hover:opacity-90 transition">
+              <a href="/" rel="external" className="block hover:opacity-90 transition">
                 <img 
                   src="/logo-oficial.png?v=3" 
                   alt="Logo Núcleo Base"
@@ -101,11 +101,11 @@ export function Header() {
 
           <div className="hidden lg:flex flex-col text-[13px] font-bold text-gray-900 leading-tight tracking-tighter -ml-8 select-none">
             {/* Aqui garantimos que o container do texto também force a saída */}
-            <a href="https://nucleobase.app" rel="external" className="hover:opacity-80 transition flex flex-col">
+            <a href="/" rel="external" className="hover:opacity-80 transition flex flex-col">
               <span className="pl-0">Sua plataforma</span>
               <span className="pl-7.5 mt-0 text-gray-500">financeira</span>
               <span className="pl-9.5 mt-0.5">
-                <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[10px] shadow-sm inline-block">
+                <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block">
                   DIGITAL
                 </span>
               </span>
@@ -118,7 +118,7 @@ export function Header() {
           {!isLoggedIn ? (
             <>
               {pathname !== "/" && (
-                <a href="https://nucleobase.app" className="flex items-center gap-2.5 text-gray-400 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest mr-4 group">
+                <a href="/" className="flex items-center gap-2.5 text-gray-400 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest mr-4 group">
                   <div className="bg-gray-50 p-2 rounded-full group-hover:bg-blue-50 transition-colors border border-gray-100 group-hover:border-blue-100">
                     <AppWindow size={16} strokeWidth={2} />
                   </div>
@@ -135,7 +135,7 @@ export function Header() {
           ) : (
             <div className="flex items-center gap-3">
               {pathname !== "/" && (
-                <a href="https://nucleobase.app" className="flex items-center gap-2.5 text-gray-400 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest mr-2 group">
+                <a href="/" className="flex items-center gap-2.5 text-gray-400 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest mr-2 group">
                   <div className="bg-gray-50 p-2 rounded-full group-hover:bg-blue-50 transition-colors border border-gray-100 group-hover:border-blue-100">
                     <AppWindow size={16} strokeWidth={2} />
                   </div>
