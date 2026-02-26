@@ -9,12 +9,25 @@ import {
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
 
+// INICIALIZAÇÃO AJUSTADA PARA PERSISTÊNCIA EM SUBDOMÍNIOS
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    auth: {
+      persistSession: true,
+      cookieOptions: {
+        domain: ".nucleobase.app", // O ponto inicial permite o compartilhamento entre subdomínios
+        path: "/",
+        sameSite: "lax",
+        secure: true,
+      },
+    },
+  }
 );
 
 export default function LancamentosPage() {
+  const [mounted, setMounted] = useState(false); // Proteção contra hidratação e processamento de cookie
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [sucesso, setSucesso] = useState(false);
@@ -60,6 +73,8 @@ export default function LancamentosPage() {
   };
 
   useEffect(() => {
+    setMounted(true); // Marca como montado no cliente
+    
     const getUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
@@ -105,6 +120,9 @@ export default function LancamentosPage() {
     }
   };
 
+  // Se não estiver montado, retorna vazio para evitar flash de conteúdo deslogado
+  if (!mounted) return <div className="min-h-screen bg-white" />;
+
   return (
     <div className="w-full min-h-screen animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0 md:pr-10">
       
@@ -120,17 +138,16 @@ export default function LancamentosPage() {
           </h2>
         </div>
 
-        {/* Container dos textos: alterado de "flex flex-col pr-1" para o abaixo */}
         <div className="flex flex-col items-center text-center"> 
-        <span className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 leading-none mb-1">
-            Upload Arquivo XLS
-        </span>
-        <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
-            <span className="text-[10px] font-bold text-gray-500 whitespace-nowrap">
-            Em desenvolvimento
-            </span>
-        </div>
+          <span className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 leading-none mb-1">
+              Upload Arquivo XLS
+          </span>
+          <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
+              <span className="text-[10px] font-bold text-gray-500 whitespace-nowrap">
+              Em desenvolvimento
+              </span>
+          </div>
         </div>
       </div>
 

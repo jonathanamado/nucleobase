@@ -10,7 +10,24 @@ import {
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    auth: {
+      persistSession: true,
+      storageKey: 'nucleobase-auth', // Nome consistente para o storage
+      storage: typeof window !== "undefined" ? window.localStorage : undefined, // Fallback padrão
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      // Se você estiver usando Next.js com Middleware ou SSR, 
+      // a melhor prática é configurar cookies no domínio principal:
+      cookieOptions: {
+        domain: ".nucleobase.app", // O PONTO antes do domínio é crucial
+        path: "/",
+        sameSite: "lax",
+        secure: true,
+      },
+    },
+  }
 );
 
 export default function AcessoUsuarioPage() {
