@@ -128,7 +128,7 @@ export default function MinhaContaPage() {
         nome_completo: nome,
         email_contato: emailContato,
         telefone: telefone,
-        profissao: profession,
+        profissao: profissao,
         formacao: formacao,
         data_nascimento: dataNascimento || null,
         genero: genero,
