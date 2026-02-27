@@ -282,7 +282,7 @@ export default function LancamentosPage() {
                   <div className="space-y-2">
                     <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 ml-2">Natureza</label>
                     <select required className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none focus:ring-2 focus:ring-orange-500"
-                      value={formData.natureza} onChange={(e) => setFormData({...formData,自然: e.target.value})}>
+                      value={formData.natureza} onChange={(e) => setFormData({...formData, natureza: e.target.value})}>
                       <option value="Despesa" className="bg-gray-900">Despesa</option>
                       <option value="Receita" className="bg-gray-900">Receita</option>
                     </select>
