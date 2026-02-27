@@ -9,6 +9,36 @@ import Link from "next/link";
 import Papa from "papaparse";
 import { supabase } from "@/lib/supabase";
 
+// Interfaces para tipagem rigorosa
+interface Fonte {
+  id: number;
+  nome: string;
+  status: string;
+  tipo: string;
+  url: string;
+}
+
+interface LogEntry {
+  horario: string;
+  acao: string;
+  fonte: string;
+  resultado: string;
+}
+
+// Interface que reflete as colunas da sua planilha (ajuste conforme necessário)
+interface PlanilhaRow {
+  descricao: string;
+  valor: string;
+  data_compra?: string;
+  categoria?: string;
+  natureza?: string;
+  nome_cartao_credito?: string;
+  banco?: string;
+  sub_categoria?: string;
+  fatura_mes?: string;
+  tipo_de_custo?: string;
+}
+
 const DICIONARIO_CATEGORIAS: { [key: string]: string[] } = {
   "Alimentação": ["padaria", "mercado", "ifood", "restaurante", "café", "pão", "lanche", "açougue", "refeição", "supermercado"],
   "Saúde": ["farmacia", "drogaria", "médico", "hospital", "exame", "remedio", "dentista", "unimed", "consulta"],
@@ -31,13 +61,13 @@ export default function IntegrarPage() {
   const [mounted, setMounted] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(null);
-  const [logs, setLogs] = useState<any[]>([]);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedFonte, setSelectedFonte] = useState<any>(null);
+  const [selectedFonte, setSelectedFonte] = useState<Fonte | null>(null);
   const [newUrl, setNewUrl] = useState("");
   const [savingUrl, setSavingUrl] = useState(false);
-  const [fontes, setFontes] = useState([
+  const [fontes, setFontes] = useState<Fonte[]>([
     { id: 1, nome: "Planilha Principal", status: "active", tipo: "Google Sheets", url: "" },
     { id: 2, nome: "Export Diário", status: "active", tipo: "CSV Externo", url: "" },
   ]);
@@ -54,13 +84,14 @@ export default function IntegrarPage() {
     ]);
   }, []);
 
-  const openEditModal = (fonte: any) => {
+  const openEditModal = (fonte: Fonte) => {
     setSelectedFonte(fonte);
     setNewUrl(fonte.url || "");
     setIsModalOpen(true);
   };
 
   const handleSaveEndpoint = async () => {
+    if (!selectedFonte) return;
     setSavingUrl(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -112,23 +143,24 @@ export default function IntegrarPage() {
       if (!response.ok) throw new Error("Acesso negado à planilha. Verifique se ela está pública.");
       const csvText = await response.text();
 
-      const parsedData: any[] = await new Promise((resolve, reject) => {
+      // TIPAGEM AQUI: Definindo que o retorno é um array de PlanilhaRow
+      const parsedData: PlanilhaRow[] = await new Promise((resolve, reject) => {
         Papa.parse(csvText, {
           header: true,
           skipEmptyLines: 'greedy',
           transformHeader: (h) => h.trim().toLowerCase(),
-          complete: (results) => resolve(results.data),
-          error: (err) => reject(err)
+          complete: (results) => resolve(results.data as PlanilhaRow[]),
+          error: (err: Error) => reject(err)
         });
       });
 
-      const dadosValidos = parsedData.filter((linha: any) => 
+      const dadosValidos = parsedData.filter((linha) => 
         (linha.descricao) && (linha.valor)
       );
 
       if (dadosValidos.length === 0) throw new Error("Planilha vazia ou colunas incompatíveis.");
 
-      const lancamentosParaInserir = dadosValidos.map((linha: any) => {
+      const lancamentosParaInserir = dadosValidos.map((linha) => {
         const desc = (linha.descricao).toString().trim();
         const valorBruto = (linha.valor || "0").toString();
         const valorTratado = parseFloat(valorBruto.replace(/[R$\s]/g, "").replace(/\./g, "").replace(",", ".")) || 0;
