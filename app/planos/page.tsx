@@ -77,14 +77,21 @@ export default function PaginaDePlanos() {
               <p className="text-blue-100 text-lg leading-relaxed mb-8 opacity-90">
                 Inicie sua jornada com <strong className="text-white">acesso completo e gratuito</strong> para entender o poder da gestão consciente.
               </p>
-              <ul className="space-y-5 text-base font-bold">
+              <ul className="space-y-5 text-base font-bold mb-10">
                 <li className="flex items-center gap-4"><CheckCircle2 size={20} className="text-blue-300" /> Registro ilimitado</li>
                 <li className="flex items-center gap-4"><CheckCircle2 size={20} className="text-blue-300" /> Painel de indicadores</li>
                 <li className="flex items-center gap-4"><CheckCircle2 size={20} className="text-blue-300" /> Suporte prioritário</li>
               </ul>
+
+              {/* AJUSTE SOLICITADO: BOTÃO DE ASSINATURA GRATUITA */}
+              <a href="/cadastro" className="block w-full decoration-transparent mb-8">
+                <button className="w-full py-5 bg-white text-blue-600 rounded-[1.5rem] font-bold text-xs uppercase tracking-[0.2em] hover:bg-blue-50 transition-all shadow-lg active:scale-[0.98]">
+                  Assine gratuitamente
+                </button>
+              </a>
             </div>
             
-            <div className="relative z-10 pt-8 border-t border-white/10 flex items-center gap-3 mt-10">
+            <div className="relative z-10 pt-8 border-t border-white/10 flex items-center gap-3">
               <Info size={18} className="text-blue-200" />
               <p className="text-[12px] text-blue-200 uppercase tracking-widest font-black">Sem cobrança prévia</p>
             </div>

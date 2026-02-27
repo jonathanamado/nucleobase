@@ -21,7 +21,7 @@ export default function ImportarXLSPage() {
   // --- CONFIGURAÇÃO DE VALIDAÇÃO DE LAYOUT ---
   const COLUNAS_OBRIGATORIAS = {
     CC: ["data_compra", "descricao", "valor", "natureza", "categoria", "banco"],
-    CARTAO: ["data_compra", "descricao", "valor", "natureza", "categoria", "nome_cartao_credito"]
+    CARTAO: ["data_compra", "descricao", "valor", "natureza", "categoria", "nome_cartao_credito", "banco"]
   };
 
   const formatarDataParaBanco = (data: any) => {
@@ -92,28 +92,38 @@ export default function ImportarXLSPage() {
           const dataFormatada = formatarDataParaBanco(row.data_compra);
           const valor = parseFloat(row.valor);
           const subCat = row.sub_categoria || row.Subcategoria || row.subcategoria || null;
-          const hash = btoa(`${dataFormatada}-${valor}-${row.descricao}-${subCat || ''}`).substring(0, 50);
+          const bancoOrigem = row.banco || "Não informado";
           
+          const hashBase = btoa(`${dataFormatada}-${valor}-${row.descricao}-${subCat || ''}-${bancoOrigem}`).substring(0, 50);
+          
+          // Se for cartão e for parcelado, o hash que vai pro banco terá o sufixo -p1, -p2...
+          // Para o preview identificar se já existe, precisamos checar o hash correto.
+          const totalParcelas = parseInt(row.parcelas_totais) || 1;
+          const hashParaVerificacao = (tipoImportacao === 'CARTAO' && totalParcelas > 1) 
+            ? `${hashBase}-p1` 
+            : hashBase;
+
           return {
             ...row,
             sub_categoria: subCat,
-            hash_deduplicacao: hash,
+            hash_deduplicacao: hashBase, // Hash base para uso na gravação
+            hash_busca: hashParaVerificacao, // Hash real para checar existência
             ja_existe: false
           };
         });
 
         if (user) {
-          const hashes = dadosComHash.map(d => d.hash_deduplicacao);
+          const hashesParaBusca = dadosComHash.map(d => d.hash_busca);
           const { data: existentes } = await supabase
             .from("lancamentos_financeiros")
             .select("hash_deduplicacao")
             .eq("user_id", user.id)
-            .in("hash_deduplicacao", hashes);
+            .in("hash_deduplicacao", hashesParaBusca);
 
           if (existentes) {
-            const hashesExistentes = existentes.map(e => e.hash_deduplicacao);
+            const hashesNoBanco = existentes.map(e => e.hash_deduplicacao);
             dadosComHash.forEach(d => {
-              if (hashesExistentes.includes(d.hash_deduplicacao)) d.ja_existe = true;
+              if (hashesNoBanco.includes(d.hash_busca)) d.ja_existe = true;
             });
           }
         }
@@ -146,42 +156,39 @@ export default function ImportarXLSPage() {
         return;
       }
 
-      const rowsToInsert: any[] = [];
+      const potentialRows: any[] = [];
 
       novosLancamentos.forEach((item) => {
         const totalParcelas = parseInt(item.parcelas_totais) || 1;
         const valorTotal = parseFloat(item.valor);
 
-        // Se for Cartão e tiver mais de 1 parcela, divide o valor
         if (tipoImportacao === 'CARTAO' && totalParcelas > 1) {
           const valorParcela = valorTotal / totalParcelas;
-          
           for (let i = 1; i <= totalParcelas; i++) {
-            rowsToInsert.push({
+            potentialRows.push({
               user_id: user.id,
               projeto: "Importação arquivo XLS", 
               tipo_origem: "Cartão de Crédito",
-              origem: item.nome_cartao_credito || "Cartão",
+              origem: item.banco || "Cartão",
               cartao_nome: item.nome_cartao_credito,
               descricao: item.descricao || "Sem descrição",
-              valor: valorParcela, // Valor dividido
+              valor: valorParcela,
               natureza: item.natureza || "Despesa",
               data_competencia: formatarDataParaBanco(item.data_compra),
               tipo_de_custo: item.tipo_de_custo || "Variável",
               categoria: item.categoria || "Geral",
               sub_categoria: item.sub_categoria,
-              hash_deduplicacao: `${item.hash_deduplicacao}-p${i}`, // Hash único por parcela
+              hash_deduplicacao: `${item.hash_deduplicacao}-p${i}`, 
               parcelas_total: totalParcelas,
               parcela_atual: i
             });
           }
         } else {
-          // Lógica padrão para Conta Corrente ou Cartão à vista
-          rowsToInsert.push({
+          potentialRows.push({
             user_id: user.id,
             projeto: "Importação arquivo XLS", 
             tipo_origem: tipoImportacao === 'CARTAO' ? "Cartão de Crédito" : "Conta Corrente",
-            origem: tipoImportacao === 'CC' ? (item.banco || "Não informado") : (item.nome_cartao_credito || "Cartão"),
+            origem: item.banco || "Não informado",
             cartao_nome: tipoImportacao === 'CARTAO' ? item.nome_cartao_credito : null,
             descricao: item.descricao || "Sem descrição",
             valor: valorTotal,
@@ -197,10 +204,26 @@ export default function ImportarXLSPage() {
         }
       });
 
+      const potentialHashes = potentialRows.map(r => r.hash_deduplicacao);
+      const { data: dbExistentes } = await supabase
+        .from("lancamentos_financeiros")
+        .select("hash_deduplicacao")
+        .eq("user_id", user.id)
+        .in("hash_deduplicacao", potentialHashes);
+
+      const finalHashesExistentes = dbExistentes?.map(e => e.hash_deduplicacao) || [];
+      const rowsToInsert = potentialRows.filter(r => !finalHashesExistentes.includes(r.hash_deduplicacao));
+
+      if (rowsToInsert.length === 0) {
+        alert("Todos os lançamentos identificados neste arquivo já foram importados anteriormente.");
+        setIsSaving(false);
+        return;
+      }
+
       const { error } = await supabase.from("lancamentos_financeiros").insert(rowsToInsert);
       if (error) throw error;
 
-      alert(`${rowsToInsert.length} registros (incluindo parcelas) salvos com sucesso!`);
+      alert(`${rowsToInsert.length} registros salvos com sucesso!`);
       limparFluxo();
     } catch (error: any) {
       alert("Erro ao salvar: " + error.message);
@@ -214,7 +237,7 @@ export default function ImportarXLSPage() {
   return (
     <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
       
-      {/* HEADER - Estilo "Sobre" */}
+      {/* HEADER */}
       <div className="mb-6 mt-2 flex flex-col text-left w-full">
         <Link href="/lancamentos" className="flex items-center gap-2 text-gray-400 hover:text-orange-500 transition-colors font-black text-[10px] uppercase tracking-widest mb-4 w-fit">
           <ArrowLeft size={14} /> Voltar para Lançamentos Manuais
@@ -231,7 +254,6 @@ export default function ImportarXLSPage() {
             "Baixe" o modelo adequado ao lado para evitar erros de processamento.
           </p>
           
-          {/* DOWNLOAD DOS MODELOS */}
           <div className="flex gap-3 w-full md:w-auto">
             <a 
               href="/modelo_importacao_conta-corrente.xlsx" 
@@ -253,7 +275,6 @@ export default function ImportarXLSPage() {
         </div>
       </div>
 
-      {/* LINHA DIVISÓRIA PADRONIZADA */}
       <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4 w-full">
         Configuração e Upload <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
@@ -412,7 +433,7 @@ export default function ImportarXLSPage() {
         </div>
       )}
 
-      {/* 4. CARDS DE DICAS - Estilo Unificado */}
+      {/* 4. CARDS DE DICAS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-16">
         <div className="bg-gray-900 p-10 rounded-[3rem] shadow-xl relative overflow-hidden group">
           <Activity className="absolute -right-8 -bottom-8 text-orange-500 opacity-10" size={120} />

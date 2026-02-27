@@ -135,33 +135,52 @@ export default function LancamentosPage() {
   };
 
   return (
-    <div className="w-full min-h-screen animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0 md:pr-10 pt-0 mt-0">
+    <div className="w-full min-h-screen animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 lg:px-8 pt-0 mt-0 max-w-[1600px] mx-auto">
       
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0 pt-1">
-        <div>
-          <h1 className="text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center">
+      {/* HEADER SECTION ADJUSTED */}
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mb-10 mt-0 pt-4">
+        <div className="flex-1">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center flex-wrap">
             <span>Lançamentos<span className="text-orange-500">.</span></span>
-            <Activity size={50} className="text-orange-500 skew-x-12 opacity-20 ml-4" strokeWidth={1.5} />
+            <Activity size={40} className="text-orange-500 skew-x-12 opacity-20 ml-4 hidden sm:block" strokeWidth={1.5} />
           </h1>
-          <h2 className="text-gray-500 text-xl font-medium max-w-2xl leading-relaxed mt-1">
+          <h2 className="text-gray-500 text-lg md:text-xl font-medium max-w-2xl leading-relaxed mt-1">
             Alimente sua base de dados com precisão.
           </h2>
         </div>
 
-        <Link 
-          href="/lancamentos/importar" 
-          className="flex flex-col items-center text-center bg-gray-50 border border-gray-200 rounded-2xl py-3 px-8 lg:w-[39.5%] self-center md:self-end hover:bg-gray-100 hover:border-gray-300 transition-all cursor-pointer group"
-        > 
-          <span className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 leading-none mb-1 group-hover:text-orange-500 transition-colors">
-              Upload Arquivo XLS
-          </span>
-          <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
-              <span className="text-[10px] font-bold text-gray-500 whitespace-nowrap">
-              Atualize sua base dinamicamente
-              </span>
-          </div>
-        </Link>
+        {/* FIX: Cards de Integração com grid responsivo e sem overflow */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full xl:w-[45%]">
+          <Link 
+            href="/lancamentos/importar" 
+            className="flex flex-col items-center text-center bg-gray-50 border border-gray-200 rounded-2xl py-4 px-4 hover:bg-gray-100 hover:border-orange-200 transition-all cursor-pointer group shadow-sm"
+          > 
+            <span className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 leading-none mb-2 group-hover:text-orange-500 transition-colors">
+                Upload Arquivo XLS
+            </span>
+            <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse shrink-0"></span>
+                <span className="text-[10px] font-bold text-gray-500 leading-tight">
+                Importação Dinâmica
+                </span>
+            </div>
+          </Link>
+
+          <Link 
+            href="/lancamentos/integrar" 
+            className="flex flex-col items-center text-center bg-gray-50 border border-gray-200 rounded-2xl py-4 px-4 hover:bg-gray-100 hover:border-emerald-200 transition-all cursor-pointer group shadow-sm"
+          > 
+            <span className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 leading-none mb-2 group-hover:text-emerald-500 transition-colors">
+                Integração API
+            </span>
+            <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                <span className="text-[10px] font-bold text-gray-500 leading-tight">
+                Automação Integrada
+                </span>
+            </div>
+          </Link>
+        </div>
       </div>
 
       <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
@@ -169,12 +188,13 @@ export default function LancamentosPage() {
         <Rocket size={20} className="text-orange-500 -rotate-45" />
       </h3>
 
+      {/* ALERT MESSAGES... (código omitido para brevidade, mantido igual ao original) */}
       {sucesso && (
         <div className="mb-8 p-6 bg-orange-500 text-white rounded-[2rem] flex items-center gap-4 animate-in fade-in slide-in-from-left-4 shadow-lg shadow-orange-500/20 border-l-8 border-orange-600">
           <CheckCircle2 size={24} className="shrink-0 text-white" />
           <div>
             <p className="font-bold text-sm uppercase tracking-tight">Sucesso no Processamento</p>
-            <p className="text-xs opacity-90 font-medium">Seus dados foram blindados e registrados no sistema.</p>
+            <p className="text-xs opacity-90 font-medium">Seus dados foram registrados com sucesso.</p>
           </div>
         </div>
       )}
@@ -183,14 +203,14 @@ export default function LancamentosPage() {
         <div className="mb-8 p-6 bg-red-600 text-white rounded-[2rem] flex items-center gap-4 animate-in fade-in slide-in-from-left-4 shadow-lg shadow-red-500/20 border-l-8 border-red-800">
           <AlertCircle size={24} className="shrink-0 text-white" />
           <div>
-            <p className="font-bold text-sm uppercase tracking-tight">Revisar erros de lançamento</p>
-            <p className="text-xs opacity-90 font-medium">A data de recorrência não pode ser anterior à data do lançamento.</p>
+            <p className="font-bold text-sm uppercase tracking-tight">Revisar erros</p>
+            <p className="text-xs opacity-90 font-medium">Data de recorrência inválida.</p>
           </div>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-        
+        {/* LADO ESQUERDO: ORIGEM E DETALHES */}
         <div className="lg:col-span-7 space-y-10">
           <section>
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-3">
@@ -262,12 +282,13 @@ export default function LancamentosPage() {
           </section>
         </div>
 
+        {/* LADO DIREITO: CLASSIFICAÇÃO (O CARD ESCURO) */}
         <div className="lg:col-span-5 flex flex-col h-full">
           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-3">
             <span className="w-8 h-px bg-gray-200"></span> 03. Classificação
           </h3>
           
-          <div className="bg-gray-900 rounded-[2.5rem] p-8 shadow-2xl flex flex-col justify-between h-full group relative overflow-hidden transition-all hover:scale-[1.01]">
+          <div className="bg-gray-900 rounded-[2.5rem] p-6 sm:p-8 shadow-2xl flex flex-col justify-between h-full group relative overflow-hidden transition-all hover:scale-[1.01]">
             <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
               <Activity size={180} strokeWidth={1} className="text-orange-500" />
             </div>
@@ -369,13 +390,13 @@ export default function LancamentosPage() {
                       {formData.parcelado && (
                         <div className="grid grid-cols-2 gap-3 animate-in slide-in-from-top-2">
                           <div className="space-y-1.5">
-                            <label className="text-[8px] font-black uppercase tracking-widest text-orange-500/60 ml-1">Meses parcelamento</label>
-                            <input required type="number" min="2" placeholder="Parcelas" value={formData.parcelasTotais}
+                            <label className="text-[8px] font-black uppercase tracking-widest text-orange-500/60 ml-1">Parcelas</label>
+                            <input required type="number" min="2" placeholder="Ex: 12" value={formData.parcelasTotais}
                               className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-xs text-white outline-none focus:ring-1 focus:ring-orange-500/50"
                               onChange={(e) => setFormData({...formData, parcelasTotais: parseInt(e.target.value) || 1})} />
                           </div>
                           <div className="space-y-1.5">
-                            <label className="text-[8px] font-black uppercase tracking-widest text-orange-500/60 ml-1">Mês início pagamento</label>
+                            <label className="text-[8px] font-black uppercase tracking-widest text-orange-500/60 ml-1">Mês Início</label>
                             <input required type="month" value={formData.fatura_mes}
                               className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-xs text-white outline-none focus:ring-1 focus:ring-orange-500/50"
                               onChange={(e) => setFormData({...formData, fatura_mes: e.target.value})} />
@@ -387,7 +408,7 @@ export default function LancamentosPage() {
                 </div>
               </div>
 
-              <div className="mt-auto pt-4">
+              <div className="mt-auto pt-6">
                 <button type="submit" disabled={loading}
                   className="w-full bg-orange-500 text-white py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-orange-600 transition-all shadow-xl disabled:bg-gray-700 flex items-center justify-center gap-3">
                   {loading ? "Processando..." : <><Save size={18} /> Salvar Lançamento</>}
@@ -398,12 +419,13 @@ export default function LancamentosPage() {
         </div>
       </form>
 
+      {/* TABLE SECTION (WRAPPER FOR SCROLL) */}
       <div className="mt-20">
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
           Histórico Recente <div className="h-px bg-gray-100 flex-1"></div>
         </h3>
-        <div className="overflow-hidden bg-white border border-gray-100 rounded-[2.5rem] shadow-sm">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto bg-white border border-gray-100 rounded-[2.5rem] shadow-sm">
+          <table className="w-full text-left border-collapse min-w-[800px]">
             <thead>
               <tr className="bg-gray-50/50">
                 <th className="p-6 text-[10px] font-black uppercase text-gray-400 tracking-widest">Data e Hora</th>
