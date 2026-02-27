@@ -33,12 +33,26 @@ export default function LancamentosPage() {
     return nextMonth.toISOString().slice(0, 7);
   };
 
-  const categoriasSugeridas = [
-    "Alimentação", "Assinaturas & Serviços", "Compras", "Educação", 
-    "Empréstimos", "Impostos", "Investimentos", "Lazer", "Moradia", 
-    "Presentes", "Reserva de Emergência", "Restaurante", "Saúde", 
-    "Transporte", "Viagem", "Outros"
-  ];
+  const categoriasConfig: { [key: string]: string[] } = {
+    "Alimentação": ["Mercado", "Feira", "Padaria", "Suplementos", "Outros"],
+    "Assinaturas & Serviços": ["Streaming (Netflix/Spotify)", "Software/SaaS", "Internet", "Telefone", "iCloud/Google Drive"],
+    "Compras": ["Roupas", "Eletrônicos", "Casa/Decoração", "Beleza/Cosméticos", "Pet Shop"],
+    "Educação": ["Curso/Treinamento", "Faculdade/Escola", "Livros", "Eventos/Congressos"],
+    "Empréstimos": ["Parcela Empréstimo", "Juros", "Amortização"],
+    "Impostos": ["IPTU", "IPVA", "Imposto de Renda", "Taxas Governamentais"],
+    "Investimentos": ["Ações/FIIs", "Criptoativos", "Renda Fixa", "Previdência Privada"],
+    "Lazer": ["Viagem", "Hospedagem", "Cinema/Teatro", "Hobbies", "Bares/Festas"],
+    "Moradia": ["Aluguel/Condomínio", "Energia", "Água", "Gás", "Manutenção/Reforma"],
+    "Presentes": ["Aniversário", "Datas Comemorativas", "Doações"],
+    "Reserva de Emergência": ["Aporte Reserva"],
+    "Restaurante": ["Restaurante", "Delivery/iFood", "Cafeteria", "Lanches"],
+    "Saúde": ["Farmácia", "Consulta Médica", "Exames", "Plano de Saúde", "Dentista", "Terapia"],
+    "Transporte": ["Combustível", "Uber/99", "Estacionamento", "Seguro Auto", "Manutenção Veículo", "Transporte Público"],
+    "Viagem": ["Passagens", "Hospedagem", "Seguro Viagem", "Alimentação Viagem"],
+    "Outros": ["Imprevistos", "Taxas Bancárias", "Saque Dinheiro"]
+  };
+
+  const categoriasSugeridas = Object.keys(categoriasConfig);
   
   const initialFormState = {
     tipo_origem: "CONTA_CORRENTE",
@@ -49,6 +63,7 @@ export default function LancamentosPage() {
     dataCompetencia: getLocalDate(),
     natureza: "Despesa",
     categoria: "",
+    sub_categoria: "",
     projeto: "Pessoal",
     tipo_de_custo: "Variável",
     parcelado: false,
@@ -143,7 +158,7 @@ export default function LancamentosPage() {
           <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
               <span className="text-[10px] font-bold text-gray-500 whitespace-nowrap">
-              Em desenvolvimento
+              Atualize sua base dinamicamente
               </span>
           </div>
         </Link>
@@ -176,7 +191,6 @@ export default function LancamentosPage() {
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
         
-        {/* COLUNA ESQUERDA */}
         <div className="lg:col-span-7 space-y-10">
           <section>
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-3">
@@ -248,7 +262,6 @@ export default function LancamentosPage() {
           </section>
         </div>
 
-        {/* COLUNA DIREITA */}
         <div className="lg:col-span-5 flex flex-col h-full">
           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-3">
             <span className="w-8 h-px bg-gray-200"></span> 03. Classificação
@@ -269,7 +282,7 @@ export default function LancamentosPage() {
                   <div className="space-y-2">
                     <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 ml-2">Natureza</label>
                     <select required className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none focus:ring-2 focus:ring-orange-500"
-                      value={formData.natureza} onChange={(e) => setFormData({...formData, natureza: e.target.value})}>
+                      value={formData.natureza} onChange={(e) => setFormData({...formData,自然: e.target.value})}>
                       <option value="Despesa" className="bg-gray-900">Despesa</option>
                       <option value="Receita" className="bg-gray-900">Receita</option>
                     </select>
@@ -288,24 +301,51 @@ export default function LancamentosPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2 mb-6">
-                  <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 ml-2 flex items-center gap-2">
-                    Categoria <span className="text-[8px] text-gray-600">(Sugestão)</span>
-                  </label>
-                  <select 
-                    required 
-                    className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none focus:ring-2 focus:ring-orange-500"
-                    value={formData.categoria} 
-                    onChange={(e) => setFormData({...formData, categoria: e.target.value})}
-                  >
-                    <option value="" className="bg-gray-900" disabled>Selecione uma categoria</option>
-                    {categoriasSugeridas.map((cat, idx) => (
-                      <option key={idx} value={cat} className="bg-gray-900">{cat}</option>
-                    ))}
-                  </select>
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 ml-2 flex items-center gap-2">
+                      Categoria <span className="text-[8px] text-gray-600">(Livre/Sugestão)</span>
+                    </label>
+                    <input 
+                      list="categorias-list"
+                      required 
+                      placeholder="Escolha ou digite..."
+                      className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none focus:ring-2 focus:ring-orange-500"
+                      value={formData.categoria} 
+                      onFocus={(e) => e.target.select()}
+                      onClick={(e) => (e.target as HTMLInputElement).select()}
+                      onChange={(e) => setFormData({...formData, categoria: e.target.value, sub_categoria: ""})}
+                    />
+                    <datalist id="categorias-list">
+                      {categoriasSugeridas.map((cat, idx) => (
+                        <option key={idx} value={cat} />
+                      ))}
+                    </datalist>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 ml-2 flex items-center gap-2">
+                      Sub-categoria <span className="text-[8px] text-gray-600">(Livre/Opcional)</span>
+                    </label>
+                    <input 
+                      list="subcategorias-list"
+                      placeholder="Escolha ou digite..."
+                      className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      value={formData.sub_categoria} 
+                      disabled={!formData.categoria}
+                      onFocus={(e) => e.target.select()}
+                      onClick={(e) => (e.target as HTMLInputElement).select()}
+                      onChange={(e) => setFormData({...formData, sub_categoria: e.target.value})} 
+                    />
+                    <datalist id="subcategorias-list">
+                      {formData.categoria && categoriasConfig[formData.categoria]?.map((sub, idx) => (
+                        <option key={idx} value={sub} />
+                      ))}
+                    </datalist>
+                  </div>
                 </div>
 
-                <div className="mt-auto space-y-4">
+                <div className="mt-8 space-y-4">
                   {formData.tipo_de_custo === "Fixo" && (
                     <div className="p-5 bg-blue-500/10 rounded-2xl border border-blue-500/20 space-y-3 animate-in zoom-in-95">
                       <div className="flex items-center gap-2 text-blue-400 font-bold text-[10px] uppercase tracking-wider">
@@ -358,7 +398,6 @@ export default function LancamentosPage() {
         </div>
       </form>
 
-      {/* HISTÓRICO RECENTE */}
       <div className="mt-20">
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
           Histórico Recente <div className="h-px bg-gray-100 flex-1"></div>
@@ -397,6 +436,7 @@ export default function LancamentosPage() {
                     <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
                       <Tag size={12} className="text-orange-500" />
                       {l.categoria || 'Geral'}
+                      {l.sub_categoria && <span className="text-[10px] opacity-60 ml-1">/ {l.sub_categoria}</span>}
                     </div>
                   </td>
                   <td className="p-6">

@@ -75,19 +75,17 @@ export function Header() {
     { name: "Painel de Resultados", href: "/resultados", icon: <BarChart3 size={18} /> },
     { name: "Depoimentos", href: "/depoimentos", icon: <Star size={18} /> },
     { name: "FAQ", href: "/faq", icon: <HelpCircle size={18} /> },
-    //{ name: "Fale conosco", href: "/contato", icon: <MessageSquare size={18} /> },
     { name: "Segurança", href: "/seguranca_privacidade", icon: <Shield size={18} /> },
-    //{ name: "Suporte técnico", href: "/suporte", icon: <LifeBuoy size={18} /> },
   ];
 
   return (
     <header className="w-full border-b border-gray-200 bg-white sticky top-0 z-50">
-      <div className="w-full px-6 lg:px-10 h-20 flex items-center justify-between relative">
+      {/* Ajustado px-4 para mobile para melhor aproveitamento de tela */}
+      <div className="w-full px-4 md:px-8 lg:px-10 h-20 flex items-center justify-between relative">
         
         {/* BLOCO DA LOGO */}
         <div className="flex items-center flex-shrink-0 min-w-fit"> 
           <div className="flex-shrink-0">
-              {/* Adicionei rel="external" para sinalizar ao navegador a saída do SPA */}
               <a href="/" rel="external" className="block hover:opacity-90 transition">
                 <img 
                   src="/logo-oficial.png?v=3" 
@@ -100,7 +98,6 @@ export function Header() {
           </div>
 
           <div className="hidden lg:flex flex-col text-[13px] font-bold text-gray-900 leading-tight tracking-tighter -ml-8 select-none">
-            {/* Aqui garantimos que o container do texto também force a saída */}
             <a href="/" rel="external" className="hover:opacity-80 transition flex flex-col">
               <span className="pl-0">Sua plataforma</span>
               <span className="pl-7.5 mt-0 text-gray-500">financeira</span>
@@ -172,20 +169,19 @@ export function Header() {
         {/* OVERLAY E DROPDOWN MOBILE */}
         {isMenuOpen && (
           <>
-            {/* Camada para fechar ao clicar fora */}
             <div 
               className="fixed inset-0 bg-black/5 z-[90] md:hidden" 
               onClick={() => setIsMenuOpen(false)}
             />
 
-            <div className="absolute top-[85px] right-6 left-6 bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 z-[100] overflow-hidden animate-in fade-in zoom-in-95 duration-200 md:hidden">
-              <div className="max-h-[70vh] overflow-y-auto p-4 custom-scrollbar">
+            {/* Ajustado left-0 right-0 para ocupar toda a extremidade horizontal */}
+            <div className="absolute top-[80px] right-0 left-0 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.15)] border-t border-b border-gray-100 z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 md:hidden">
+              <div className="max-h-[70vh] overflow-y-auto p-6 custom-scrollbar">
                 
-                {/* Página Inicial - Novo item no topo do menu mobile */}
                 <a
-                  href="https://nucleobase.app"
+                  href="/"
                   onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center justify-between p-4 rounded-2xl text-blue-600 bg-blue-50/50 border border-blue-100 mb-2 transition-all group"
+                  className="flex items-center justify-between p-4 rounded-2xl text-blue-600 bg-blue-50/50 border border-blue-100 mb-4 transition-all group"
                 >
                   <div className="flex items-center gap-4">
                     <span className="p-2 bg-white rounded-full shadow-sm text-blue-600">
@@ -197,7 +193,7 @@ export function Header() {
                 </a>
 
                 {isLoggedIn && (
-                  <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-3xl mb-4 border border-gray-100">
+                  <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-3xl mb-6 border border-gray-100">
                     <div className="w-12 h-12 rounded-full bg-white border border-blue-100 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
                       {userProfile.avatar ? (
                         <img src={userProfile.avatar} alt="Perfil" className="w-full h-full object-cover" />
@@ -217,13 +213,13 @@ export function Header() {
                   </div>
                 )}
 
-                <nav className="space-y-0.5">
+                <nav className="space-y-1">
                   {menuLinks.map((link) => (
                     <a
                       key={link.name}
                       href={link.href}
                       onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center justify-between p-1.5 rounded-2xl text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-all group"
+                      className="flex items-center justify-between p-2 rounded-2xl text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-all group"
                     >
                       <div className="flex items-center gap-4">
                         <span className="text-gray-400 group-hover:text-blue-600 transition-colors">
@@ -236,9 +232,9 @@ export function Header() {
                   ))}
                 </nav>
 
-                <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+                <div className="mt-6 pt-6 border-t border-gray-100 space-y-3">
                   {!isLoggedIn ? (
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-4">
                       <a href="/acesso-usuario" className="py-4 bg-orange-500 text-white text-center rounded-2xl font-bold text-xs uppercase tracking-tighter shadow-md">
                         Acessar
                       </a>
@@ -253,7 +249,7 @@ export function Header() {
                       </a>
                       <button 
                         onClick={handleLogout}
-                        className="py-3 text-gray-400 font-bold text-[11px] uppercase tracking-widest"
+                        className="py-4 text-gray-400 font-bold text-[11px] uppercase tracking-widest"
                       >
                         Sair da conta
                       </button>

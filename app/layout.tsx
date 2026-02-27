@@ -56,7 +56,7 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen flex flex-col`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen flex flex-col overflow-x-hidden max-w-full`}>
         
         <noscript>
           <iframe 
@@ -67,28 +67,19 @@ export default function RootLayout({
           ></iframe>
         </noscript>
 
-        {/* Header fixo no topo */}
         <Header />
 
-        {/* Ajuste no Main: 
-            Adicionamos um pt-20 (80px) para o conteúdo não ficar por baixo do Header 
-        */}
-        <main className="flex-1 flex w-full">
+        <main className="flex-1 flex w-full max-w-full overflow-x-hidden">
           
-          {/* Sidebar (Que agora é fixed lá no componente dela) */}
           <Sidebar />
           
-          {/* CONTEÚDO PRINCIPAL:
-              1. md:ml-80: Cria o espaço vazio na esquerda para a Sidebar fixa (80 = 320px).
-              2. flex-1: Ocupa todo o restante da largura.
-          */}
-          <section className="flex-1 px-4 md:px-10 py-6 scroll-smooth md:ml-80">
-            <div className="min-h-[calc(100vh-200px)]">
+          <section className="flex-1 w-full max-w-full px-4 md:px-10 py-6 scroll-smooth md:ml-80 overflow-x-hidden flex flex-col">
+            <div className="min-h-[calc(100vh-200px)] w-full">
               {children}
             </div>
             
             {!isHome && (
-              <div className="mt-20 flex items-center justify-center gap-10 pt-10 border-t border-gray-100">
+              <div className="mt-20 flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 pt-10 border-t border-gray-100">
                 <a 
                   href="/" 
                   className="text-gray-400 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-[0.2em] flex items-center gap-3 group no-underline"
@@ -99,7 +90,7 @@ export default function RootLayout({
                   Página Inicial
                 </a>
 
-                <div className="h-4 w-px bg-gray-200"></div>
+                <div className="hidden md:block h-4 w-px bg-gray-200"></div>
 
                 <button 
                   onClick={() => window.history.back()}
@@ -113,12 +104,13 @@ export default function RootLayout({
               </div>
             )}
 
-            <footer className="mt-12 mb-10 text-center">
-              <div className="inline-block px-6 py-3 bg-white/50 rounded-full border border-gray-100 shadow-sm mx-auto">
-                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] flex items-center justify-center gap-2 whitespace-nowrap">
-                  © {new Date().getFullYear()} Nucleobase
-                  <span className="h-1 w-1 bg-blue-600/40 rounded-full shrink-0"></span> 
-                  Todos os direitos reservados
+            {/* RODAPÉ AJUSTADO PARA CENTRALIZAÇÃO MOBILE */}
+            <footer className="mt-12 mb-10 flex justify-center w-full">
+              <div className="inline-flex px-6 py-3 bg-white/50 rounded-2xl md:rounded-full border border-gray-100 shadow-sm">
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] flex flex-wrap items-center justify-center gap-x-2 gap-y-1 md:whitespace-nowrap text-center">
+                  <span>© {new Date().getFullYear()} Nucleobase</span>
+                  <span className="hidden md:inline h-1 w-1 bg-blue-600/40 rounded-full shrink-0"></span> 
+                  <span>Todos os direitos reservados</span>
                 </p>
               </div>
             </footer>
