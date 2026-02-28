@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { 
   ArrowLeft, Save, CreditCard, Wallet, Calendar, 
   Tag, DollarSign, CheckCircle2, Layers, Repeat, 
@@ -19,7 +19,10 @@ export default function LancamentosPage() {
   const [loading, setLoading] = useState(false);
   const [sucesso, setSucesso] = useState(false);
   const [erroValidacao, setErroValidacao] = useState(false);
-  const [ultimosLancamentos, setUltimosLancamentos] = useState<any[]>([]);
+  
+  // ESTADOS PARA CARGA ÚNICA E FILTRAGEM
+  const [todosLancamentos, setTodosLancamentos] = useState<any[]>([]);
+  const [filtroTipo, setFiltroTipo] = useState<"TODOS" | "CONTA_CORRENTE" | "CARTAO">("TODOS");
 
   const getLocalDate = () => {
     const now = new Date();
@@ -36,7 +39,7 @@ export default function LancamentosPage() {
   const categoriasConfig: { [key: string]: string[] } = {
     "Alimentação": ["Mercado", "Feira", "Padaria", "Suplementos", "Outros"],
     "Assinaturas & Serviços": ["Streaming (Netflix/Spotify)", "Software/SaaS", "Internet", "Telefone", "iCloud/Google Drive"],
-    "Compras": ["Roupas", "Eletrônicos", "Casa/Decoração", "Beleza/Cosméticos", "Pet Shop"],
+    "Compras": ["Roupas", "Eletrônicos", "Casa/Decoracao", "Beleza/Cosméticos", "Pet Shop"],
     "Educação": ["Curso/Treinamento", "Faculdade/Escola", "Livros", "Eventos/Congressos"],
     "Empréstimos": ["Parcela Empréstimo", "Juros", "Amortização"],
     "Impostos": ["IPTU", "IPVA", "Imposto de Renda", "Taxas Governamentais"],
@@ -74,16 +77,34 @@ export default function LancamentosPage() {
 
   const [formData, setFormData] = useState(initialFormState);
 
-  const fetchUltimos = async (id: string) => {
+  // BUSCA ÚNICA: Ajustada para garantir nomes de colunas comuns e log de depuração
+  const fetchTudo = async (id: string) => {
     const { data, error } = await supabase
       .from("lancamentos_financeiros")
-      .select("*")
+      .select(`
+        id, 
+        created_at, 
+        data_competencia, 
+        descricao, 
+        origem, 
+        categoria, 
+        sub_categoria, 
+        tipo_de_custo, 
+        valor,
+        tipo_origem, 
+        parcelas_total, 
+        parcela_atual
+      `)
       .eq("user_id", id)
-      .order("created_at", { ascending: false })
-      .limit(5);
+      .order("created_at", { ascending: false });
     
-    if (data) setUltimosLancamentos(data);
-    if (error) console.error("Erro ao buscar lançamentos:", error);
+    if (data) {
+      console.log("Dados carregados com sucesso:", data.length, "itens");
+      setTodosLancamentos(data);
+    }
+    if (error) {
+      console.error("Erro Supabase:", error.message);
+    }
   };
 
   useEffect(() => {
@@ -91,11 +112,18 @@ export default function LancamentosPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUserId(session.user.id);
-        fetchUltimos(session.user.id);
+        fetchTudo(session.user.id);
       }
     };
     getUser();
   }, []);
+
+  // FILTRAGEM NO CLIENTE: Adicionada proteção contra dados nulos
+  const lancamentosExibidos = useMemo(() => {
+    if (!todosLancamentos) return [];
+    if (filtroTipo === "TODOS") return todosLancamentos;
+    return todosLancamentos.filter(l => l.tipo_origem === filtroTipo);
+  }, [todosLancamentos, filtroTipo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,7 +153,7 @@ export default function LancamentosPage() {
       if (!response.ok) throw new Error("Erro ao salvar");
       setSucesso(true);
       setFormData(initialFormState);
-      fetchUltimos(userId);
+      fetchTudo(userId); 
       setTimeout(() => setSucesso(false), 5000);
     } catch (err: any) {
       alert(err.message);
@@ -137,7 +165,6 @@ export default function LancamentosPage() {
   return (
     <div className="w-full min-h-screen animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 lg:px-8 pt-0 mt-0 max-w-[1600px] mx-auto">
       
-      {/* HEADER SECTION ADJUSTED */}
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mb-10 mt-0 pt-4">
         <div className="flex-1">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center flex-wrap">
@@ -149,7 +176,6 @@ export default function LancamentosPage() {
           </h2>
         </div>
 
-        {/* FIX: Cards de Integração com grid responsivo e sem overflow */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full xl:w-[45%]">
           <Link 
             href="/lancamentos/importar" 
@@ -188,7 +214,6 @@ export default function LancamentosPage() {
         <Rocket size={20} className="text-orange-500 -rotate-45" />
       </h3>
 
-      {/* ALERT MESSAGES... (código omitido para brevidade, mantido igual ao original) */}
       {sucesso && (
         <div className="mb-8 p-6 bg-orange-500 text-white rounded-[2rem] flex items-center gap-4 animate-in fade-in slide-in-from-left-4 shadow-lg shadow-orange-500/20 border-l-8 border-orange-600">
           <CheckCircle2 size={24} className="shrink-0 text-white" />
@@ -210,7 +235,6 @@ export default function LancamentosPage() {
       )}
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-        {/* LADO ESQUERDO: ORIGEM E DETALHES */}
         <div className="lg:col-span-7 space-y-10">
           <section>
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-3">
@@ -282,7 +306,6 @@ export default function LancamentosPage() {
           </section>
         </div>
 
-        {/* LADO DIREITO: CLASSIFICAÇÃO (O CARD ESCURO) */}
         <div className="lg:col-span-5 flex flex-col h-full">
           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-3">
             <span className="w-8 h-px bg-gray-200"></span> 03. Classificação
@@ -419,11 +442,25 @@ export default function LancamentosPage() {
         </div>
       </form>
 
-      {/* TABLE SECTION (WRAPPER FOR SCROLL) */}
       <div className="mt-20">
-        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
-          Histórico Recente <div className="h-px bg-gray-100 flex-1"></div>
-        </h3>
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+          <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 flex items-center gap-4 flex-1">
+            Histórico Recente <div className="h-px bg-gray-100 flex-1"></div>
+          </h3>
+          
+          <div className="flex bg-gray-100 p-1 rounded-xl">
+            {(["TODOS", "CONTA_CORRENTE", "CARTAO"] as const).map((tipo) => (
+              <button
+                key={tipo}
+                onClick={() => setFiltroTipo(tipo)}
+                className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${filtroTipo === tipo ? 'bg-white text-orange-500 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                {tipo.replace('_', ' ')}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="overflow-x-auto bg-white border border-gray-100 rounded-[2.5rem] shadow-sm">
           <table className="w-full text-left border-collapse min-w-[800px]">
             <thead>
@@ -436,7 +473,7 @@ export default function LancamentosPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {ultimosLancamentos.map((l) => (
+              {lancamentosExibidos.map((l) => (
                 <tr key={l.id} className="hover:bg-gray-50/50 transition-colors group">
                   <td className="p-6 whitespace-nowrap">
                     <div className="flex flex-col">

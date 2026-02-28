@@ -67,59 +67,95 @@ export default function PaginaDePlanos() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         
         {/* LADO ESQUERDO: EXPERIÊNCIA (Ocupa 4/12) */}
-        <div className="lg:col-span-4 h-full">
-          <div className="bg-blue-600 rounded-[3rem] p-12 text-white relative overflow-hidden shadow-xl shadow-blue-900/20 h-full flex flex-col justify-between group transition-all hover:scale-[1.01]">
+<a href="/cadastro" className="lg:col-span-4 h-full block group decoration-transparent">
+          <div className="bg-blue-600 rounded-[3rem] p-12 text-white relative overflow-hidden shadow-xl shadow-blue-900/20 h-full flex flex-col justify-between transition-all hover:scale-[1.01] cursor-pointer">
             <div className="relative z-10">
-              <div className="bg-white/20 backdrop-blur-md w-16 h-16 rounded-2xl flex items-center justify-center mb-10 group-hover:scale-110 transition-transform">
-                <Star className="text-white fill-white" size={32} />
+              <div className="flex justify-between items-start mb-6">
+                <div className="flex flex-col gap-1 w-full mr-4">
+                  <span className="text-blue-200 text-[11px] font-black uppercase tracking-[0.2em] block">Conheça e valide.</span>
+                  <div className="bg-white/10 border border-white/20 text-white text-[10px] font-black px-5 py-2.5 rounded-full uppercase tracking-widest min-h-[3.5rem] flex items-center justify-center text-center w-full">
+                    Cadastre-se aqui
+                  </div>
+                </div>
+                <Star className="text-white fill-white group-hover:scale-110 transition-transform shrink-0" size={32} />
               </div>
+              
               <h3 className="text-4xl font-bold mb-6 tracking-tight">14 Dias de Experiência</h3>
               <p className="text-blue-100 text-lg leading-relaxed mb-8 opacity-90">
                 Inicie sua jornada com <strong className="text-white">acesso completo e gratuito</strong> para entender o poder da gestão consciente.
               </p>
               <ul className="space-y-5 text-base font-bold mb-10">
-                <li className="flex items-center gap-4"><CheckCircle2 size={20} className="text-blue-300" /> Registro ilimitado</li>
-                <li className="flex items-center gap-4"><CheckCircle2 size={20} className="text-blue-300" /> Painel de indicadores</li>
-                <li className="flex items-center gap-4"><CheckCircle2 size={20} className="text-blue-300" /> Suporte prioritário</li>
+                <li className="flex items-center gap-4"><CheckCircle2 size={20} className="text-blue-300" /> Registros ilimitados</li>
+                <li className="flex items-center gap-4"><CheckCircle2 size={20} className="text-blue-300" /> Painel de Resultados</li>
+                <li className="flex items-center gap-4"><CheckCircle2 size={20} className="text-blue-300" /> Lançamentos online</li>
               </ul>
 
-              {/* AJUSTE SOLICITADO: BOTÃO DE ASSINATURA GRATUITA */}
-              <a href="/cadastro" className="block w-full decoration-transparent mb-8">
-                <button className="w-full py-5 bg-white text-blue-600 rounded-[1.5rem] font-bold text-xs uppercase tracking-[0.2em] hover:bg-blue-50 transition-all shadow-lg active:scale-[0.98]">
-                  Assine gratuitamente
+              <div className="w-full mb-8">
+                <button className="w-full py-5 bg-blue-600 text-white border border-blue-400/30 rounded-[1.5rem] font-bold text-xs uppercase tracking-[0.2em] hover:bg-blue-700 transition-all shadow-lg shadow-blue-900/20 active:scale-[0.98] text-center">
+                  Cadastre-se gratuitamente. Teste todas as funções.
                 </button>
-              </a>
+                <p className="text-center text-blue-200/70 text-sm mt-4 font-medium italic">
+                  Aqui o seu teste será sem restrições.
+                </p>
+              </div>
             </div>
             
-            <div className="relative z-10 pt-8 border-t border-white/10 flex items-center gap-3">
-              <Info size={18} className="text-blue-200" />
-              <p className="text-[12px] text-blue-200 uppercase tracking-widest font-black">Sem cobrança prévia</p>
+            <div className="relative z-10 pt-8 border-t border-white/10">
+              <p className="text-[10px] font-black text-blue-200/60 uppercase mb-4 text-center tracking-widest">Conheça</p>
+              <div className="flex items-center gap-3 justify-center">
+                <Info size={18} className="text-blue-200" />
+                <p className="text-[12px] text-blue-200 uppercase tracking-widest font-black">Sem cobrança prévia</p>
+              </div>
             </div>
             
             <Zap size={300} className="absolute -right-24 -bottom-24 text-white opacity-10 -rotate-12 pointer-events-none group-hover:rotate-0 transition-transform duration-1000" />
           </div>
-        </div>
+        </a>
 
         {/* LADO DIREITO: OS PLANOS (Ocupa 8/12) */}
         <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-8">
           
           {/* PLANO ESSENCIAL */}
-          <div className="bg-white border border-gray-100 rounded-[3rem] p-10 shadow-sm hover:shadow-xl transition-all flex flex-col h-full border-b-4 border-b-transparent hover:border-b-blue-600">
+          <div className="bg-white border border-gray-100 rounded-[3rem] p-10 shadow-sm hover:shadow-xl transition-all flex flex-col h-full border-b-4 border-b-transparent hover:border-b-blue-600 group">
             <div className="mb-10">
-              <span className="text-blue-600 text-[11px] font-black uppercase tracking-[0.2em] mb-3 block">Ideal para começar</span>
+              <div className="flex justify-between items-start mb-6">
+                <div className="relative flex w-full items-center justify-center bg-blue-50 border border-blue-100 text-blue-600 text-[10px] font-black px-5 py-2.5 rounded-full uppercase tracking-widest min-h-[3.5rem] text-center">
+                  Econômico.<br />Funcional.
+                  <ShieldCheck className="text-blue-600 absolute right-5" size={24} />
+                </div>
+              </div>
               <h3 className="text-4xl font-bold text-gray-900 tracking-tight">Essencial</h3>
-              <div className="mt-6 flex items-baseline gap-2">
+              <div className="mt-6 flex flex-col">
                 <span className="text-5xl font-black text-gray-900 tracking-tighter">R$ 9,90</span>
-                <span className="text-gray-400 text-base font-bold uppercase tracking-widest">/mês</span>
+                <span className="text-gray-400 text-base font-bold uppercase tracking-widest mt-1">/mês</span>
               </div>
             </div>
 
             <div className="space-y-5 mb-12 flex-grow">
               <div className="flex items-start gap-4">
                 <div className="bg-emerald-50 p-1 rounded-lg">
-                    <CheckCircle2 size={20} className="text-emerald-500 shrink-0" />
+                  <CheckCircle2 size={20} className="text-emerald-500 shrink-0" />
                 </div>
                 <p className="text-base text-gray-600 font-medium">Registro <strong className="text-gray-900">ilimitado</strong> de dados</p>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="bg-emerald-50 p-1 rounded-lg">
+                  <CheckCircle2 size={20} className="text-emerald-500 shrink-0" />
+                </div>
+                <p className="text-base text-gray-600 font-medium">Importação via tela</p>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="bg-emerald-50 p-1 rounded-lg">
+                  <CheckCircle2 size={20} className="text-emerald-500 shrink-0" />
+                </div>
+                <p className="text-base text-gray-600 font-medium">Painel de Resultados</p>
+              </div>
+              
+              {/* Novo texto centralizado após a lista */}
+              <div className="pt-4 text-center">
+                <p className="text-sm text-gray-400 font-medium italic">
+                  Neste plano você desbloqueia ótimas funções para o seu dia a dia.
+                </p>
               </div>
             </div>
 
@@ -144,13 +180,48 @@ export default function PaginaDePlanos() {
           <div className="bg-gray-900 border border-gray-800 rounded-[3rem] p-10 shadow-2xl flex flex-col relative overflow-hidden group h-full transition-all hover:scale-[1.01]">
             <div className="relative z-10 mb-10 flex-grow">
               <div className="flex justify-between items-start mb-6">
-                <span className="bg-blue-600 text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest animate-pulse">Mais Escolhido</span>
-                <Gem className="text-blue-500 group-hover:scale-110 transition-transform" size={32} />
+                <div className="relative flex w-full items-center justify-center bg-blue-600 text-white text-[10px] font-black px-5 py-2.5 rounded-full uppercase tracking-widest animate-pulse min-h-[3.5rem] text-center">
+                  Melhor custo<br />x benefício.
+                  <Gem className="text-white absolute right-5" size={24} />
+                </div>
               </div>
               <h3 className="text-4xl font-bold text-white tracking-tight">Plano Pro</h3>
-              <div className="mt-6 flex items-baseline gap-2">
+              <div className="mt-6 flex flex-col">
                 <span className="text-5xl font-black text-white tracking-tighter">R$ 19,90</span>
-                <span className="text-gray-500 text-base font-bold uppercase tracking-widest">/mês</span>
+                <span className="text-gray-500 text-base font-bold uppercase tracking-widest mt-1">/mês</span>
+              </div>
+
+              <div className="space-y-5 mt-10">
+                <div className="flex items-start gap-4">
+                  <div className="bg-blue-600/20 p-1 rounded-lg">
+                    <CheckCircle2 size={20} className="text-blue-400 shrink-0" />
+                  </div>
+                  <p className="text-base text-gray-300 font-medium">Registro <strong className="text-white">ilimitado</strong> de dados</p>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="bg-blue-600/20 p-1 rounded-lg">
+                    <CheckCircle2 size={20} className="text-blue-400 shrink-0" />
+                  </div>
+                  <p className="text-base text-gray-300 font-medium">Importação via tela e arquivo</p>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="bg-blue-600/20 p-1 rounded-lg">
+                    <CheckCircle2 size={20} className="text-blue-400 shrink-0" />
+                  </div>
+                  <p className="text-base text-gray-300 font-medium">Integração Contínua (D-1)</p>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="bg-blue-600/20 p-1 rounded-lg">
+                    <CheckCircle2 size={20} className="text-blue-400 shrink-0" />
+                  </div>
+                  <p className="text-base text-gray-300 font-medium">Painel de Resultados</p>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="bg-blue-600/20 p-1 rounded-lg">
+                    <CheckCircle2 size={20} className="text-blue-400 shrink-0" />
+                  </div>
+                  <p className="text-base text-gray-300 font-medium">Suporte prioritário</p>
+                </div>
               </div>
             </div>
 

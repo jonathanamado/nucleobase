@@ -96,8 +96,6 @@ export default function ImportarXLSPage() {
           
           const hashBase = btoa(`${dataFormatada}-${valor}-${row.descricao}-${subCat || ''}-${bancoOrigem}`).substring(0, 50);
           
-          // Se for cartão e for parcelado, o hash que vai pro banco terá o sufixo -p1, -p2...
-          // Para o preview identificar se já existe, precisamos checar o hash correto.
           const totalParcelas = parseInt(row.parcelas_totais) || 1;
           const hashParaVerificacao = (tipoImportacao === 'CARTAO' && totalParcelas > 1) 
             ? `${hashBase}-p1` 
@@ -106,8 +104,8 @@ export default function ImportarXLSPage() {
           return {
             ...row,
             sub_categoria: subCat,
-            hash_deduplicacao: hashBase, // Hash base para uso na gravação
-            hash_busca: hashParaVerificacao, // Hash real para checar existência
+            hash_deduplicacao: hashBase, 
+            hash_busca: hashParaVerificacao, 
             ja_existe: false
           };
         });
@@ -161,10 +159,15 @@ export default function ImportarXLSPage() {
       novosLancamentos.forEach((item) => {
         const totalParcelas = parseInt(item.parcelas_totais) || 1;
         const valorTotal = parseFloat(item.valor);
+        const dataOriginal = new Date(formatarDataParaBanco(item.data_compra) + 'T00:00:00');
 
         if (tipoImportacao === 'CARTAO' && totalParcelas > 1) {
           const valorParcela = valorTotal / totalParcelas;
           for (let i = 1; i <= totalParcelas; i++) {
+            // Lógica de Projeção: Adiciona meses para cada parcela
+            const dataProjetada = new Date(dataOriginal);
+            dataProjetada.setMonth(dataOriginal.getMonth() + (i - 1));
+
             potentialRows.push({
               user_id: user.id,
               projeto: "Importação arquivo XLS", 
@@ -174,7 +177,7 @@ export default function ImportarXLSPage() {
               descricao: item.descricao || "Sem descrição",
               valor: valorParcela,
               natureza: item.natureza || "Despesa",
-              data_competencia: formatarDataParaBanco(item.data_compra),
+              data_competencia: dataProjetada.toISOString().split('T')[0],
               tipo_de_custo: item.tipo_de_custo || "Variável",
               categoria: item.categoria || "Geral",
               sub_categoria: item.sub_categoria,
