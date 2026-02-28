@@ -176,6 +176,19 @@ export default function DashboardResultados() {
           <button onClick={() => setShowAuthForm('login')} className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold transition flex items-center gap-2">Entrar na conta <ArrowRight size={18} /></button>
           <a href="/cadastro" className="bg-white border border-gray-200 text-gray-600 px-8 py-4 rounded-2xl font-bold hover:bg-gray-50 transition flex items-center gap-2">Criar conta grátis</a>
         </div>
+        {showAuthForm === 'login' && (
+          <form onSubmit={handleLogin} className="w-full max-w-sm bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-2xl">
+            <h3 className="text-lg font-bold text-gray-900 mb-6 uppercase tracking-tight">Acesso Rápido</h3>
+            <div className="space-y-4">
+              <input type="text" placeholder="ID ou E-mail" required className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl text-xs font-bold" onChange={(e) => setSlug(e.target.value)} />
+              <div className="relative">
+                <input type={showPassword ? "text" : "password"} placeholder="Senha" required className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl text-xs font-bold pr-10" onChange={(e) => setPassword(e.target.value)} />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
+              </div>
+              <button disabled={authLoading} className="w-full bg-blue-600 text-white h-[52px] rounded-xl font-bold shadow-lg shadow-blue-100">{authLoading ? "Verificando..." : "Acessar Resultados"}</button>
+            </div>
+          </form>
+        )}
       </div>
     );
   }
@@ -243,7 +256,10 @@ export default function DashboardResultados() {
               <AreaChart data={viewMode === 'REAL' ? chartData : fictitiousData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#9ca3af'}} />
-                <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR')}`, 'Total']} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} 
+                  formatter={(value: any) => [value ? `R$ ${value.toLocaleString('pt-BR')}` : "R$ 0", 'Total']} 
+                />
                 <Area type="monotone" dataKey="gastos" stroke={viewMode === 'REAL' ? "#2563eb" : "#9333ea"} strokeWidth={4} fill={`url(#colorGastos${viewMode})`} animationDuration={1000} />
                 <defs>
                   <linearGradient id={`colorGastos${viewMode}`} x1="0" y1="0" x2="0" y2="1">
@@ -287,7 +303,11 @@ export default function DashboardResultados() {
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f0f0" />
                 <XAxis type="number" hide />
                 <YAxis dataKey="category" type="category" axisLine={false} tickLine={false} tick={{fontSize: 12, fontWeight: 'bold', fill: '#111827'}} width={100} />
-                <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '12px', border: 'none' }} />
+                <Tooltip 
+                  cursor={{fill: 'transparent'}} 
+                  contentStyle={{ borderRadius: '12px', border: 'none' }} 
+                  formatter={(value: any) => [value ? `R$ ${value.toLocaleString('pt-BR')}` : "R$ 0", 'Valor']}
+                />
                 <Bar dataKey="value" radius={[0, 10, 10, 0]} barSize={32}>
                   {categoryData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
                 </Bar>
