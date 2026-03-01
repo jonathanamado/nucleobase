@@ -5,7 +5,7 @@ import {
   Rocket, ShieldCheck, ArrowUpRight, 
   Mail, Send, MessageCircle, Sparkles, Trophy,
   Gift, Stars, Heart, Eye, EyeOff, AtSign,
-  Wallet, History, Landmark, TrendingUp
+  Wallet, History, Landmark, TrendingUp, Fingerprint
 } from "lucide-react";
 import { supabase } from "@/lib/supabase"; 
 
@@ -28,6 +28,7 @@ export default function IndiquePage() {
   
   // --- MÉTRICAS DE INDICAÇÃO ---
   const [contagem, setContagem] = useState(0); 
+  const [indicadosLista, setIndicadosLista] = useState<any[]>([]);
   const [copiado, setCopiado] = useState(false);
   const [emailInvite, setEmailInvite] = useState("");
   const [inviteEnviado, setInviteEnviado] = useState(false);
@@ -43,6 +44,7 @@ export default function IndiquePage() {
     setLoadingData(true);
     try {
       setUserId(user.id);
+      
       const { data: profile } = await supabase
         .from('profiles')
         .select('slug, nome_completo')
@@ -52,15 +54,45 @@ export default function IndiquePage() {
       setUserName(profile?.nome_completo || user.user_metadata?.full_name || user.email?.split('@')[0] || "Um amigo");
       setUserSlug(profile?.slug || user.id);
 
-      const { count } = await supabase
+      const { data: indData, error: indError, count } = await supabase
         .from("indicacoes")
-        .select('*', { count: 'exact', head: true })
-        .eq('indicador_id', user.id);
+        .select('id, created_at, status, indicado_id, email_indicado', { count: 'exact' })
+        .eq('indicador_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (indError) throw indError;
       setContagem(count || 0);
+
+      if (indData && indData.length > 0) {
+        const enriquecidos = await Promise.all(indData.map(async (item) => {
+          if (!item.indicado_id) return { ...item, cracha: "NUC-PROCESS", plano: 'free' };
+
+          const { data: userData } = await supabase
+            .from('usuarios')
+            .select('num_cracha')
+            .eq('id', item.indicado_id)
+            .maybeSingle();
+
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('plan_type')
+            .eq('id', item.indicado_id)
+            .maybeSingle();
+
+          return {
+            ...item,
+            cracha: userData?.num_cracha || "NUC-PROCESS",
+            plano: profileData?.plan_type || 'free'
+          };
+        }));
+        setIndicadosLista(enriquecidos);
+      } else {
+        setIndicadosLista([]);
+      }
 
       const { data: vendasData } = await supabase
         .from('afiliados_vendas')
-        .select('*')
+        .select('*, usuarios(num_cracha)') 
         .eq('consultor_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -184,7 +216,6 @@ export default function IndiquePage() {
 
       {userId ? (
         <>
-          {/* TEXTO INICIAL - LARGURA TOTAL E ENRIQUECIDO */}
           <div className="w-full bg-blue-50/40 border-l-4 border-blue-600 p-6 mb-8 rounded-r-2xl transition-all">
             <p className="font-medium text-blue-900 italic text-base leading-relaxed">
               Olá, <span className="font-bold">{userName.split(' ')[0]}</span>! Sua influência transformará a gestão das pessoas, por isso você está no coração do nosso motor de crescimento. 
@@ -192,7 +223,6 @@ export default function IndiquePage() {
             </p>
           </div>
 
-          {/* SELETOR DE ABAS COMPACTO */}
           <div className="flex gap-2 mb-10 bg-gray-100 p-1 rounded-full w-fit">
             <button 
               onClick={() => setActiveTab("comunidade")}
@@ -218,7 +248,7 @@ export default function IndiquePage() {
                 <div className="lg:col-span-8 bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm flex flex-col justify-center">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="bg-blue-50 p-2 rounded-lg text-blue-600"><Share2 size={16} /></div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Link de Cadastro Gratuito</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Link de Cadastro Gratuito (Envie aos seus contatos)</span>
                   </div>
                   <div className="flex flex-col sm:flex-row items-center bg-gray-50 rounded-3xl p-2 border border-gray-100 w-full">
                     <code className="flex-1 text-xs font-mono text-blue-600 px-6 py-4 truncate w-full">{linkIndicacao}</code>
@@ -234,13 +264,53 @@ export default function IndiquePage() {
                 </div>
               </div>
 
-              {/* NOVA LINHA DIVISÓRIA E CONTEXTUALIZAÇÃO */}
+              <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-sm">
+                <div className="p-8 border-b border-gray-50 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Users size={18} className="text-blue-600" />
+                    <h3 className="text-sm font-black uppercase tracking-widest">Relação de Pessoas Indicadas</h3>
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-gray-50 text-[9px] font-black uppercase text-gray-400">
+                      <tr>
+                        <th className="px-10 py-5">Código Membro Indicado</th>
+                        <th className="px-10 py-5">Data do Cadastro</th>
+                        <th className="px-10 py-5">Status Plano</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {indicadosLista.length > 0 ? indicadosLista.map((item, i) => {
+                        const isActive = item.plano !== 'free';
+
+                        return (
+                          <tr key={i} className="group hover:bg-gray-50/50 transition-colors">
+                            <td className="px-10 py-6 text-sm font-mono font-bold text-blue-600">{item.cracha}</td>
+                            <td className="px-10 py-6 text-sm text-gray-500">{new Date(item.created_at).toLocaleDateString('pt-BR')}</td>
+                            <td className="px-10 py-6">
+                              <span className={`text-[9px] font-black uppercase px-3 py-1 rounded-full ${isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-400'}`}>
+                                {isActive ? 'Ativo' : 'Pendente/Free'}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      }) : (
+                        <tr>
+                          <td colSpan={3} className="px-10 py-16 text-center text-gray-400 text-xs italic font-medium">Nenhum indicado encontrado.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
               <div className="w-full">
                 <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-4 flex items-center gap-4">
                   Envio Direto <div className="h-px bg-gray-300 flex-1"></div>
                 </h3>
                 <p className="text-gray-500 text-lg font-medium w-full leading-relaxed mb-10">
-                  Além do seu link exclusivo via "copy", você pode acelerar o crescimento da nossa rede utilizando nossos métodos facilitados de "disparo" aos seus contatos. Convide quem quiser através do <strong className="text-gray-900">e-mail direto</strong> ou via <strong className="text-gray-900">mensagem rápida no WhatsApp</strong>. Estas funções são infalíveis: funcionam de verdade e você é beneficiado pelo seu resultado de indicação.
+                  Além do seu link exclusivo via "copy", você pode acelerar o crescimento da nossa rede utilizando nossos métodos facilitados de "disparo" aos seus contatos.
                 </p>
               </div>
 
@@ -289,7 +359,7 @@ export default function IndiquePage() {
                     <input 
                       value={pixKey} 
                       onChange={(e) => setPixKey(e.target.value)} 
-                      placeholder="Chave aleatória/Telefone/E-mail/CPF" 
+                      placeholder="Chave PIX" 
                       className="w-full bg-white/10 border-none rounded-xl px-4 py-4 text-[11px] placeholder:text-[10px] outline-none focus:ring-1 focus:ring-blue-500 text-white" 
                     />
                     <button 
@@ -300,7 +370,7 @@ export default function IndiquePage() {
                       {solicitandoSaque ? "..." : "Solicitar resgate"}
                     </button>
                   </div>
-                  <span className="text-[12px] text-gray-500 mt-2 uppercase font-bold">Mínimo R$ 30,00</span>
+                  <span className="text-[12px] text-gray-500 mt-2 uppercase font-bold">Mínimo R$ 20,00</span>
                 </div>
               </div>
 
@@ -315,25 +385,56 @@ export default function IndiquePage() {
                   <table className="w-full text-left">
                     <thead className="bg-gray-50 text-[9px] font-black uppercase text-gray-400">
                       <tr>
-                        <th className="px-10 py-5">Data</th>
-                        <th className="px-10 py-5">Status</th>
-                        <th className="px-10 py-5 text-right">Sua Comissão</th>
+                        <th className="px-10 py-5">Código Membro Indicado</th>
+                        <th className="px-10 py-5">Data do Cadastro</th>
+                        <th className="px-10 py-5">Status Plano</th>
+                        <th className="px-10 py-5">Pagamento Prêmio</th>
+                        <th className="px-10 py-5 text-right">Status Comissão Núcleo</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                      {vendas.length > 0 ? vendas.map((v, i) => (
-                        <tr key={i} className="group hover:bg-gray-50/50 transition-colors">
-                          <td className="px-10 py-6 text-sm font-medium text-gray-500">{new Date(v.created_at).toLocaleDateString('pt-BR')}</td>
-                          <td className="px-10 py-6">
-                            <span className={`text-[9px] font-black uppercase px-3 py-1 rounded-full ${v.status === 'validado' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
-                              {v.status}
-                            </span>
-                          </td>
-                          <td className="px-10 py-6 text-right font-black text-gray-900 text-lg">R$ {v.valor_comissao.toFixed(2)}</td>
-                        </tr>
-                      )) : (
+                      {vendas.length > 0 ? (
+                        <>
+                          {vendas.map((v, i) => (
+                            <tr key={i} className="group hover:bg-gray-50/50 transition-colors">
+                              <td className="px-10 py-6 text-sm font-mono font-bold text-blue-600">{v.usuarios?.num_cracha || "NUC-PROCESS"}</td>
+                              <td className="px-10 py-6 text-sm text-gray-500">{new Date(v.created_at).toLocaleDateString('pt-BR')}</td>
+                              <td className="px-10 py-6">
+                                <span className={`text-[9px] font-black uppercase px-3 py-1 rounded-full ${v.valor_comissao >= 10 ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'}`}>
+                                  {v.valor_comissao >= 10 ? 'Ativo (Pro)' : 'Ativo (Essencial)'}
+                                </span>
+                              </td>
+
+                              {/* NOVA COLUNA DE STATUS DE PAGAMENTO */}
+                              <td className="px-10 py-6">
+                                <div className="flex items-center gap-2">
+                                  <div className={`w-1.5 h-1.5 rounded-full ${
+                                    v.status_pagamento === 'pago' ? 'bg-emerald-500 animate-pulse' : 
+                                    v.status_pagamento === 'liberado' ? 'bg-blue-500' : 'bg-gray-300'
+                                  }`} />
+                                  <span className={`text-[9px] font-black uppercase ${
+                                    v.status_pagamento === 'pago' ? 'text-emerald-600' : 
+                                    v.status_pagamento === 'liberado' ? 'text-blue-600' : 'text-gray-400'
+                                  }`}>
+                                    {v.status_pagamento === 'pago' ? 'Pago via PIX' : 
+                                     v.status_pagamento === 'liberado' ? 'Disponível' : 'Em Processamento'}
+                                  </span>
+                                </div>
+                              </td>
+
+                              <td className="px-10 py-6 text-right font-black text-gray-900 text-lg">R$ {v.valor_comissao.toFixed(2)}</td>
+                            </tr>
+                          ))}
+                          <tr className="bg-gray-50">
+                            <td colSpan={4} className="px-10 py-6 text-right text-[10px] font-black uppercase text-gray-400">Total em Comissões:</td>
+                            <td className="px-10 py-6 text-right font-black text-xl text-blue-600">
+                              R$ {vendas.reduce((acc, current) => acc + current.valor_comissao, 0).toFixed(2)}
+                            </td>
+                          </tr>
+                        </>
+                      ) : (
                         <tr>
-                          <td colSpan={3} className="px-10 py-20 text-center text-gray-400 text-xs font-medium italic">Nenhuma assinatura convertida ainda.</td>
+                          <td colSpan={5} className="px-10 py-20 text-center text-gray-400 text-xs font-medium italic">Nenhuma assinatura convertida ainda.</td>
                         </tr>
                       )}
                     </tbody>
@@ -348,14 +449,10 @@ export default function IndiquePage() {
         <div className="bg-white rounded-[3rem] border border-gray-100 shadow-2xl shadow-blue-900/5 overflow-hidden mb-12">
           <div className="p-12 bg-gray-50/50 border-b border-gray-100 text-center">
             <h2 className="text-4xl font-bold text-gray-900 mb-4 tracking-tight">Entre para indicar<span className="text-blue-600">.</span></h2>
-            <p className="text-gray-500 text-lg mb-8 max-w-xl mx-auto font-medium">Acesse sua conta para gerar seu link exclusivo e monitorar suas recompensas.</p>
-            <div className="flex justify-center gap-10">
-              <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]"><Rocket size={16} className="text-blue-600"/> Rápido</div>
-              <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]"><ShieldCheck size={16} className="text-emerald-600"/> Seguro</div>
-            </div>
+            <p className="text-gray-500 text-lg mb-8 max-w-xl mx-auto font-medium">Acesse sua conta para gerar seu link exclusivo.</p>
           </div>
           <div className="p-12 flex flex-col items-center bg-white">
-            <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4">
+            <form onSubmit={handleLogin} className="w-full max-sm space-y-4">
               <div className="relative">
                 <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                 <input 
@@ -410,7 +507,7 @@ export default function IndiquePage() {
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
               <h3 className="text-4xl font-bold mb-6 tracking-tight leading-tight">Crescemos quando você compartilha clareza<span className="text-blue-500">.</span></h3>
-              <p className="text-gray-400 text-lg mb-10 leading-relaxed font-medium italic">Cada indicação fortalece nossa infraestrutura e garante que continuemos focados na sua privacidade.</p>
+              <p className="text-gray-400 text-lg mb-10 leading-relaxed font-medium italic">Cada indicação fortalece nossa infraestrutura.</p>
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div className="bg-white/5 border border-white/10 p-8 rounded-[2rem] backdrop-blur-sm">

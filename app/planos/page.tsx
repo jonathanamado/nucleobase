@@ -95,7 +95,7 @@ export default function PaginaDePlanos() {
                   Cadastre-se gratuitamente. Teste todas as funções.
                 </button>
                 <p className="text-center text-blue-200/70 text-sm mt-4 font-medium italic">
-                  Aqui o seu teste será sem restrições.
+                  Teste a plataforma sem restrições. Experimente e assine.
                 </p>
               </div>
             </div>

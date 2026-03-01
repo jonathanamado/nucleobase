@@ -33,7 +33,7 @@ export function Sidebar() {
               <div className="flex flex-col gap-[0.8vh] pl-3 text-[clamp(14px,0.85vw,16px)] font-medium text-gray-700">
                 <Link href="/sobre" className="transition-all hover:text-blue-600 hover:pl-1">Sobre a Plataforma</Link>
                 <Link href="/blog" className="hover:text-blue-600 transition-all hover:pl-1">Blog da Núcleo</Link>
-                <Link href="/planos" className="hover:text-blue-600 transition-all hover:pl-1">Assinatura digital</Link>
+                <Link href="/planos" className="hover:text-blue-600 transition-all hover:pl-1">Assinatura Digital</Link>
               </div>
             </section>
 

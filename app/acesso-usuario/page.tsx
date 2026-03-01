@@ -3,9 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { 
-  UserCog, Rocket, ShieldCheck, ArrowRight, Lock, 
+  UserCog, Rocket, ArrowRight, 
   CheckCircle2, LogOut, X, Mail, LifeBuoy, AtSign,
-  Eye, EyeOff 
+  Eye, EyeOff, BarChart3, Sparkles, TrendingUp
 } from "lucide-react";
 
 const supabase = createClient(
@@ -129,12 +129,19 @@ export default function AcessoUsuarioPage() {
   return (
     <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
       
-      {/* Cabeçalho - Ajustado para largura total */}
+      {/* Cabeçalho com Desenho do Dashboard */}
       <div className="mb-6 mt-2 flex justify-between items-start p-0 w-full">
         <div className="text-left">
-          <h1 className="text-5xl font-bold text-gray-900 mb-2 tracking-tight">
-            {isLoggedIn ? `Olá, ${userName}!` : "Área do Usuário"}
-            <span className="text-orange-500">.</span>
+          <h1 className="text-5xl font-bold text-gray-900 mb-2 tracking-tight flex items-center">
+            <span>
+              {isLoggedIn ? `Olá, ${userName}!` : "Área do Usuário"}
+              <span className="text-orange-500">.</span>
+            </span>
+            <BarChart3 
+              size={60} 
+              className="text-blue-600 skew-x-12 opacity-35 ml-4" 
+              strokeWidth={1.2} 
+            />
           </h1>
 
           <p className="text-base text-gray-600 max-w-none leading-tight mb-8">
@@ -161,15 +168,15 @@ export default function AcessoUsuarioPage() {
         )}
       </div>
 
-      {/* Linha Divisória e Contexto */}
+      {/* Linha Divisória */}
       <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4 w-full">
         Navegação e Acessos <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
-      {/* Grid Principal - Ajustado para w-full */}
+      {/* Grid Principal: Ordem 1 (APP), 3 (Resultados), 2 (Perfil) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 w-full items-stretch">
         
-        {/* CARD 1: ACESSO OU LOGIN */}
+        {/* CARD 1: ACESSO APP */}
         <div className="min-h-[320px] flex">
           {isLoggedIn ? (
             <a 
@@ -239,8 +246,37 @@ export default function AcessoUsuarioPage() {
           )}
         </div>
 
-        {/* CARD 2: MEU PERFIL */}
-        <div className="min-h-[280px] flex">
+        {/* CARD 2: RESULTADOS (DASHBOARD) */}
+        <div className="min-h-[320px] flex">
+          <a 
+            href="/resultados" 
+            className="group bg-white p-8 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-gray-100 flex flex-col items-center text-center w-full h-full relative overflow-hidden"
+          >
+            <div className="absolute top-4 right-4 bg-orange-500 text-white text-[9px] font-black px-2 py-1 rounded-full uppercase tracking-tighter animate-pulse">
+              Beta
+            </div>
+
+            <div className="bg-blue-50 p-4 rounded-2xl mb-4 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm">
+              <BarChart3 size={32} />
+            </div>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-2 tracking-tight flex items-center gap-2">
+              Resultados
+              <BarChart3 size={20} className="text-blue-600 skew-x-12 opacity-40" strokeWidth={1.5} />
+            </h3>
+            
+            <p className="text-gray-500 text-[13px] leading-relaxed font-medium mb-6">
+              Transforme números brutos em <span className="text-blue-600 font-bold">decisões inteligentes</span>. Visualize a performance real do seu caixa agora.
+            </p>
+            
+            <div className="mt-auto inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-full hover:bg-black transition-all font-bold text-[10px] uppercase tracking-widest shadow-lg group-hover:scale-105">
+              <TrendingUp size={14} className="text-blue-400" /> Acessar Dashboard
+            </div>
+          </a>
+        </div>
+
+        {/* CARD 3: MEU PERFIL */}
+        <div className="min-h-[320px] flex">
           <a 
             href={isLoggedIn ? "/minha-conta" : "/cadastro"} 
             className="group bg-white p-6 rounded-3xl shadow-sm hover:shadow-md transition-all border border-gray-100 flex flex-col items-center text-center w-full h-full"
@@ -258,29 +294,6 @@ export default function AcessoUsuarioPage() {
           </a>
         </div>
 
-        {/* CARD 3: PLANOS */}
-        <div className="min-h-[280px] flex">
-          <a 
-            href="/planos" 
-            className="group bg-white p-6 rounded-3xl shadow-sm hover:shadow-md transition-all border border-gray-100 flex flex-col items-center text-center w-full h-full"
-          >
-            <div className="bg-orange-50 p-3 rounded-2xl mb-3 text-orange-500 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all duration-300">
-              <ShieldCheck size={28} />
-            </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-1">Planos</h3>
-            <p className="text-gray-500 text-xs mb-4 leading-relaxed">Entenda seu plano e veja as melhores opções adaptadas ao seu estilo.</p>
-            
-            <div className="mt-auto w-full bg-gray-50 px-4 h-[52px] rounded-xl flex flex-col justify-center space-y-1.5">
-              <div className="flex justify-between text-[9px] font-bold text-gray-400 uppercase tracking-tight">
-                <span>Uso</span>
-                <span className={isLoggedIn ? "text-orange-500" : ""}>{isLoggedIn ? "Grátis" : "---"}</span>
-              </div>
-              <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
-                <div className={`h-full bg-orange-500 transition-all duration-1000 ${isLoggedIn ? 'w-[15%]' : 'w-0'}`}></div>
-              </div>
-            </div>
-          </a>
-        </div>
       </div>
 
       {/* MODAL DE RECUPERAÇÃO */}

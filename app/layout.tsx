@@ -8,6 +8,13 @@ import { Sidebar } from "@/components/Sidebar";
 import { usePathname } from "next/navigation";
 import Script from "next/script";
 
+// Tipagem global para evitar erros de compilação ao usar o dataLayer no projeto
+declare global {
+  interface Window {
+    dataLayer: any[];
+  }
+}
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -46,6 +53,11 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
+        {/* Inicialização segura do dataLayer antes do script do GTM */}
+        <Script id="gtm-datalayer-init" strategy="beforeInteractive">
+          {`window.dataLayer = window.dataLayer || [];`}
+        </Script>
+        
         <Script id="google-tag-manager" strategy="afterInteractive">
           {`
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -104,7 +116,6 @@ export default function RootLayout({
               </div>
             )}
 
-            {/* RODAPÉ AJUSTADO PARA CENTRALIZAÇÃO MOBILE */}
             <footer className="mt-12 mb-10 flex justify-center w-full">
               <div className="inline-flex px-6 py-3 bg-white/50 rounded-2xl md:rounded-full border border-gray-100 shadow-sm">
                 <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] flex flex-wrap items-center justify-center gap-x-2 gap-y-1 md:whitespace-nowrap text-center">
