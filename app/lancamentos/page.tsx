@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { 
   Save, CreditCard, Wallet, Calendar, 
   Tag, DollarSign, CheckCircle2, Layers, Repeat, 
-  Rocket, Activity, Clock, AlertCircle, BarChart3, ArrowRight
+  Rocket, Activity, Clock, AlertCircle, BarChart3, ArrowRight, LineChart, Zap
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
@@ -198,7 +198,6 @@ export default function LancamentosPage() {
       )}
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
-        {/* COLUNA ESQUERDA: Equalizada com h-full e flex-1 nas seções */}
         <div className="lg:col-span-7 flex flex-col h-full space-y-10">
           <section className="flex-1 flex flex-col">
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-3">
@@ -260,7 +259,6 @@ export default function LancamentosPage() {
           </section>
         </div>
 
-        {/* COLUNA DIREITA */}
         <div className="lg:col-span-5 h-full">
           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-3">
             <span className="w-8 h-px bg-gray-200"></span> 03. Classificação
@@ -378,6 +376,33 @@ export default function LancamentosPage() {
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
           Histórico Recente <div className="h-px bg-gray-100 flex-1"></div>
         </h3>
+
+        {/* CARD DE CONVITE PARA RESULTADOS */}
+        <div className="mb-10 p-8 bg-blue-600 rounded-[2.5rem] text-white relative overflow-hidden shadow-xl shadow-blue-900/10 group">
+          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-6">
+              <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
+                <LineChart className="text-white" size={28} />
+              </div>
+              <div>
+                <h4 className="text-lg font-bold tracking-tight mb-1">Dados atualizados com sucesso!</h4>
+                <p className="text-blue-100 text-sm font-medium opacity-90">
+                  Seus novos lançamentos já foram processados. Deseja visualizar sua análise completa?
+                </p>
+              </div>
+            </div>
+            
+            <Link 
+              href="/resultados" 
+              className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-50 transition-all flex items-center gap-3 shadow-lg active:scale-95 whitespace-nowrap"
+            >
+              Acessar Resultados <ArrowRight size={16} />
+            </Link>
+          </div>
+          
+          <Zap size={200} className="absolute -right-16 -bottom-16 text-white opacity-10 -rotate-12 pointer-events-none group-hover:rotate-0 transition-transform duration-700" />
+        </div>
+
         <div className="overflow-x-auto bg-white border border-gray-100 rounded-[2.5rem] shadow-sm">
           <table className="w-full text-left border-collapse min-w-[800px]">
             <thead className="bg-gray-50/50">
