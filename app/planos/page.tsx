@@ -12,7 +12,7 @@ export default function PaginaDePlanos() {
   const [copied, setCopied] = useState(false);
 
   const PIX_KEY = "contato@nucleobase.app";
-  const WHATSAPP_LINK_ID = "q46hkm"; // Extraído do link https://wa.link/q46hkm
+  const WHATSAPP_LINK_ID = "q46hkm"; 
 
   const openPixModal = (name: string, price: string, qrCode: string) => {
     setSelectedPlan({ name, price, qrCode });
@@ -148,48 +148,83 @@ export default function PaginaDePlanos() {
         
       {/* LADO ESQUERDO: EXPERIÊNCIA */}
         <a href="/cadastro" className="lg:col-span-4 h-full block group decoration-transparent">
-          <div className="bg-blue-600 rounded-[3rem] p-12 text-white relative overflow-hidden shadow-xl shadow-blue-900/20 h-full flex flex-col justify-between transition-all hover:scale-[1.01] cursor-pointer">
-            <div className="relative z-10">
-              <div className="flex flex-col items-center mb-6 relative">
-                {/* ESTRELA REPOSICIONADA MAIS À ESQUERDA E ACIMA */}
-                <Star className="text-white fill-white group-hover:scale-110 transition-transform shrink-0 absolute -top-4 -left-4" size={32} />
-                
-                {/* TEXTOS CENTRALIZADOS */}
+          <div className="bg-blue-600 rounded-[3rem] p-12 text-white relative overflow-hidden shadow-xl shadow-blue-900/20 h-full flex flex-col transition-all hover:scale-[1.01] cursor-pointer">
+            <div className="relative z-10 flex-grow">
+              <div className="flex flex-col items-center mb-10 relative">
                 <div className="flex flex-col gap-1 w-full items-center text-center">
-                  <span className="text-blue-200 text-[11px] font-black uppercase tracking-[0.2em] block">
-                    Conheça e valide.
-                  </span>
-                  <div className="bg-white/10 border border-white/20 text-white text-[10px] font-black px-5 py-2.5 rounded-full uppercase tracking-widest min-h-[3.5rem] flex items-center justify-center w-full max-w-[280px]">
-                    Cadastre-se aqui
+                  <div className="relative flex w-full items-center justify-center bg-white/10 border border-white/20 text-white text-[10px] font-black px-5 py-2.5 rounded-full uppercase tracking-widest min-h-[3.5rem] text-center">
+                    <Star className="text-white fill-white absolute left-5 group-hover:scale-110 transition-transform" size={24} />
+                    Conheça e valide.<br />Sem restrições.
                   </div>
                 </div>
               </div>
               
               <h3 className="text-4xl font-bold mb-6 tracking-tight">14 Dias de Experiência</h3>
-              <p className="text-blue-100 text-lg leading-relaxed mb-8 opacity-90">
-                Inicie sua jornada com <strong className="text-white">acesso completo e gratuito</strong> para entender o poder da gestão consciente.
-              </p>
-              <ul className="space-y-5 text-base font-bold mb-10">
-                <li className="flex items-center gap-4"><CheckCircle2 size={20} className="text-blue-300" /> Registros ilimitados</li>
-                <li className="flex items-center gap-4"><CheckCircle2 size={20} className="text-blue-300" /> Painel de Resultados</li>
-                <li className="flex items-center gap-4"><CheckCircle2 size={20} className="text-blue-300" /> Lançamentos online</li>
-              </ul>
+              <div className="mt-6 flex flex-col mb-10">
+                <span className="text-5xl font-black text-white tracking-tighter">Grátis</span>
+                <span className="text-blue-200 text-base font-bold uppercase tracking-widest mt-1">Período de Degustação</span>
+              </div>
+              
+              <div className="space-y-5 mb-12 flex-grow">
+                <div className="flex items-start gap-4">
+                  <div className="bg-white/10 p-1 rounded-lg">
+                    <CheckCircle2 size={20} className="text-blue-200 shrink-0" />
+                  </div>
+                  <p className="text-base text-blue-50 font-medium">Registros <strong className="text-white">ilimitados</strong></p>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="bg-white/10 p-1 rounded-lg">
+                    <CheckCircle2 size={20} className="text-blue-200 shrink-0" />
+                  </div>
+                  <p className="text-base text-blue-50 font-medium">Painel de Resultados</p>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="bg-white/10 p-1 rounded-lg">
+                    <CheckCircle2 size={20} className="text-blue-200 shrink-0" />
+                  </div>
+                  <p className="text-base text-blue-50 font-medium">Lançamentos online</p>
+                </div>
 
-              <div className="w-full mb-8">
-                <button className="w-full py-5 bg-blue-600 text-white border border-blue-400/30 rounded-[1.5rem] font-bold text-xs uppercase tracking-[0.2em] hover:bg-blue-700 transition-all shadow-lg shadow-blue-900/20 active:scale-[0.98] text-center">
-                  Cadastre-se gratuitamente. Teste todas as funções.
-                </button>
-                <p className="text-center text-blue-200/70 text-sm mt-4 font-medium italic">
-                  Teste a plataforma sem restrições. Experimente e assine.
-                </p>
+                <div className="pt-4 text-center">
+                  <p className="text-sm text-blue-200/70 font-medium italic">
+                    Inicie sua jornada para entender o poder da gestão consciente.
+                  </p>
+                </div>
               </div>
             </div>
-            
-            <div className="relative z-10 pt-8 border-t border-white/10">
-              <p className="text-[10px] font-black text-blue-200/60 uppercase mb-4 text-center tracking-widest">Conheça</p>
-              <div className="flex items-center gap-3 justify-center">
-                <Info size={18} className="text-blue-200" />
-                <p className="text-[12px] text-blue-200 uppercase tracking-widest font-black">Sem cobrança prévia</p>
+
+            <div className="relative z-10 space-y-6">
+              <div className="p-6 bg-white/10 border border-white/10 rounded-[2rem] space-y-4">
+                <p className="text-[10px] font-black text-blue-200/60 uppercase tracking-widest text-center">Acesso Imediato</p>
+                
+                <div className="w-full">
+                   <button className="w-full py-5 bg-white text-blue-600 rounded-[1.5rem] font-bold text-xs uppercase tracking-[0.2em] hover:bg-blue-50 transition-all shadow-xl shadow-blue-900/40 text-center">
+                    Começar agora gratuitamente.
+                  </button>
+                  
+                  <div className="mt-4 pt-4 border-t border-white/10">
+                    <p className="text-[10px] font-black text-blue-200/60 uppercase mb-4 text-center tracking-widest">
+                      Após o período:
+                    </p>
+                    <p className="text-center text-blue-100/70 text-[11px] font-medium italic mb-2">
+                      Teste a plataforma sem restrições. Experimente e assine.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 mt-12">
+                <div className="h-px bg-white/10 flex-1"></div>
+                <span className="text-[9px] font-black text-blue-200/60 uppercase">Compromisso</span>
+                <div className="h-px bg-white/10 flex-1"></div>
+              </div>
+
+              <div className="w-full p-4 bg-white/10 border border-dashed border-white/20 rounded-2xl flex flex-col items-center justify-center transition-all hover:bg-white/20 text-center">
+                <div className="bg-white/20 p-2 rounded-lg text-white mb-2">
+                  <Info size={20} />
+                </div>
+                <p className="text-[11px] font-black text-white uppercase tracking-tight">Sem cobrança prévia</p>
+                <p className="text-[10px] text-blue-200 font-medium">Inicie sem cartão</p>
               </div>
             </div>
             
@@ -244,7 +279,6 @@ export default function PaginaDePlanos() {
             </div>
 
             <div className="space-y-6">
-              {/* AJUSTE: CONTAINER EM VOLTA DO CARTÃO */}
               <div className="p-6 bg-gray-50/50 border border-gray-100 rounded-[2rem] space-y-4">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Pagamento via Cartão</p>
                 <CheckoutForm 
@@ -254,8 +288,7 @@ export default function PaginaDePlanos() {
                   className="w-full py-5 bg-gray-900 text-white rounded-[1.5rem] font-bold text-xs uppercase tracking-[0.2em] hover:bg-black shadow-xl shadow-gray-200 text-center"
                 />
                 
-                {/* BLOCO DE CICLOS LONGOS - COPIAR E COLAR ESTE TRECHO NO LUGAR DO ANTERIOR */}
-                <div className="mt-8 pt-8 border-t border-gray-100">
+                <div className="mt-4 pt-4 border-t border-gray-100">
                     <p className="text-[10px] font-black text-gray-300 uppercase mb-4 text-center tracking-widest">
                         Ciclos Longos Essencial:
                     </p>
@@ -348,7 +381,6 @@ export default function PaginaDePlanos() {
             </div>
 
             <div className="relative z-10 space-y-6">
-              {/* AJUSTE: CONTAINER EM VOLTA DO CARTÃO */}
               <div className="p-6 bg-white/5 border border-white/10 rounded-[2rem] space-y-4">
                 <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">Pagamento via Cartão</p>
                 <CheckoutForm 
@@ -358,7 +390,6 @@ export default function PaginaDePlanos() {
                   className="w-full py-5 bg-blue-600 text-white rounded-[1.5rem] font-bold text-xs uppercase tracking-[0.2em] hover:bg-blue-500 shadow-lg shadow-blue-900/40 relative z-10 text-center"
                 />
 
-                {/* BLOCO DE CICLOS DE PERFORMANCE (PRO) - COPIAR E COLAR ESTE TRECHO NO LUGAR DO ANTERIOR */}
                 <div className="mt-8 pt-8 border-t border-white/10 relative z-10 text-center">
                     <p className="text-[10px] font-black text-gray-500 uppercase mb-4 tracking-widest">
                         Ciclos de Performance Plano Pro:

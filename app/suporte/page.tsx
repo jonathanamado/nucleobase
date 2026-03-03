@@ -28,11 +28,12 @@ export default function SuportePage() {
     },
     {
       title: "Vídeos e Dicas",
-      desc: "Aprenda visualmente como configurar sua conta em menos de 5 minutos.",
+      desc: "Aprenda na prática a configurar sua conta e dominar o NucleoBase em poucos minutos.",
       icon: <Video size={24} />,
-      link: "#",
+      link: "https://www.youtube.com/@nucleobaseapp",
       color: "text-purple-600",
-      bg: "bg-purple-50"
+      bg: "bg-purple-50",
+      external: true // Propriedade opcional caso seu componente use para definir o target="_blank"
     },
     {
       title: "Configurações da Conta",
@@ -46,7 +47,7 @@ export default function SuportePage() {
       title: "Segurança e Dados",
       desc: "Entenda como protegemos suas informações e conformidade LGPD.",
       icon: <Lock size={24} />,
-      link: "/privacidade",
+      link: "/seguranca_privacidade",
       color: "text-emerald-600",
       bg: "bg-emerald-50"
     }

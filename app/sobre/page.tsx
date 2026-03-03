@@ -53,7 +53,7 @@ export default function SobreNucleobase() {
           </h1>
           
           <h2 className="text-gray-500 text-xl font-medium max-w-2xl leading-relaxed mt-0">
-            Simplicidade em seu orçamento doméstico.
+            Simplicidade em seu controle financeiro.
           </h2>
         </div>
 
@@ -103,14 +103,15 @@ export default function SobreNucleobase() {
             </div>
 
             <p className="mb-8 text-gray-700">
-              Cada pessoa possui um método único para gerir seu orçamento doméstico... Na <span className="font-bold text-blue-600">nucleobase.app</span>, transformamos essa rotina em um <span className="text-gray-900 font-bold italic">game de alta performance</span>. 
+              Sabemos que cada pessoa possui um método único para gerir seu orçamento, mas o controle manual impõe limites ao crescimento. Na <span className="font-bold text-blue-600">nucleobase.app</span>, elevamos esse compromisso, transformando a rotina financeira em um <span className="text-gray-900 font-bold italic">game de alta performance</span>: onde cada lançamento é um movimento estratégico para expandir seu real poder de compra e eliminar decisões equivocadas.
             </p>
           </div>
           
           <p className="text-gray-700">
-            Acreditamos no <span className="text-gray-900 font-bold underline decoration-blue-200 underline-offset-4 decoration-2">controle consciente</span> como o primeiro nível de conquista.
+            Acreditamos no <span className="text-gray-900 font-bold underline decoration-blue-200 underline-offset-4 decoration-2">controle consciente</span> como o primeiro nível de conquista para quem decidiu abandonar a incerteza e dominar o próprio destino com absoluta precisão e constância no dia a dia.
           </p>
         </div>
+
 
         {/* SIDEBAR DE DESTAQUES */}
         <div className="lg:col-span-5 flex flex-col gap-6">

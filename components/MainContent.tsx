@@ -180,8 +180,8 @@ export function MainContent() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch mb-12">
           <div className="lg:col-span-6 flex items-up">
             <p className="text-gray-700 text-lg leading-[1.8] mb-0 pr-4">
-              A nucleobase.app é uma plataforma digital criada para ajudar pessoas comuns na organização
-              de orçamentos domésticos de forma <span className="text-gray-900 font-semibold">simples, clara e consciente.</span> Nosso objetivo é oferecer total autonomia ao usuário, de forma que as decisões financeiras deixem de ser um fardo e se tornem o alicerce para a realização de novos projetos baseados em informações relevantes e consistentes.
+              A nucleobase.app é uma plataforma digital, totalmente online, criada para ajudar pessoas na organização
+              de orçamentos de forma <span className="text-gray-900 font-semibold">simples, clara e consciente.</span> Nosso objetivo é oferecer total autonomia ao usuário, de forma que as decisões financeiras deixem de ser um fardo e se tornem o alicerce para a realização de novos projetos baseados em informações relevantes e consistentes.
             </p>
           </div>
 

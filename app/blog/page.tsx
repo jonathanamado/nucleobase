@@ -4,16 +4,23 @@ import {
   Newspaper, 
   ArrowRight, 
   Clock, 
-  User, 
   PenTool, 
   Mail, 
   Plus, 
   X, 
   CheckCircle2, 
   Loader2,
-  Instagram
+  Instagram,
+  // Ícones para os "desenhos" dos artigos
+  Wallet,
+  LineChart,
+  Gem,
+  Building2,
+  BarChart3,
+  Target
 } from "lucide-react";
 import { supabase } from "@/lib/supabase"; 
+import Link from "next/link";
 
 export default function BlogDaNucleo() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,12 +28,72 @@ export default function BlogDaNucleo() {
   const [enviado, setEnviado] = useState(false);
 
   const posts = [
-    { id: 1, tag: "Gestão", titulo: "A ciência por trás da separação de contas (PF e PJ).", preview: "Por que misturar seus gastos pessoais com os do lançamento é o erro número 1 que destrói o ROI.", autor: "Mauro Sérgio", cargo: "Estrategista", tempo: "5 min" },
-    { id: 2, tag: "Estratégia", titulo: "Flux de caixa: Como prever o fôlego financeiro.", preview: "Entenda como a antecipação de recebíveis impacta sua saúde patrimonial no carrinho aberto.", autor: "Ana Rocha", cargo: "Gestora de Tráfego", tempo: "8 min" },
-    { id: 3, tag: "Mentalidade", titulo: "O lucro consciente: O que fazer após o 6 em 7.", preview: "Bateu a meta? Saiba como reinvestir inteligentemente na estrutura da sua empresa.", autor: "Almeida Santos", cargo: "Infoprodutor", tempo: "6 min" },
-    { id: 4, tag: "Tributário", titulo: "Holdings no Mercado Digital: Vale a pena?", preview: "A estrutura societária correta pode economizar milhares de reais em impostos no longo prazo.", autor: "Lu Andrade", cargo: "Advogada Tributarista", tempo: "10 min" },
-    { id: 5, tag: "Escala", titulo: "KPIs que realmente importam para o seu Financeiro.", preview: "Pare de olhar apenas para o faturamento bruto e comece a analisar sua margem líquida real.", autor: "Felipe Sales", cargo: "CFO as a Service", tempo: "7 min" },
-    { id: 6, tag: "Lançamento", titulo: "Custo por Lead vs. Lucratividade Final.", preview: "Como equilibrar o investimento em captação sem comprometer o caixa da operação.", autor: "Ju Mendes", cargo: "Copywriter & Estrategista", tempo: "5 min" }
+    { 
+      id: 1, 
+      tag: "Gestão", 
+      titulo: "A ciência por trás da separação de contas (PF e PJ).", 
+      preview: "Por que misturar seus gastos pessoais com os do lançamento é o erro número 1 que destrói o ROI.", 
+      editoria: "Estratégia de Negócios", 
+      foco: "Organização Patrimonial", 
+      tempo: "5 min",
+      slug: "a-ciencia-por-tras-da-separacao-de-contas",
+      icon: <Wallet size={20} />
+    },
+    { 
+      id: 2, 
+      tag: "Estratégia", 
+      titulo: "Flux de caixa: Como prever o fôlego financeiro.", 
+      preview: "Entenda como a antecipação de recebíveis impacta sua saúde patrimonial no carrinho aberto.", 
+      editoria: "Gestão de Tráfego", 
+      foco: "Previsibilidade de Caixa", 
+      tempo: "8 min",
+      slug: "fluxo-de-caixa-como-prever-o-folego-financeiro",
+      icon: <LineChart size={20} />
+    },
+    { 
+      id: 3, 
+      tag: "Mentalidade", 
+      titulo: "O lucro consciente: O que fazer após o 6 em 7.", 
+      preview: "Bateu a meta? Saiba como reinvestir inteligentemente na estrutura da sua empresa.", 
+      editoria: "Mercado de Infoprodutos", 
+      foco: "Cultura de Reinvestimento", 
+      tempo: "6 min",
+      slug: "o-lucro-consciente-o-que-fazer-apos-o-6-em-7",
+      icon: <Gem size={20} />
+    },
+    { 
+      id: 4, 
+      tag: "Tributário", 
+      titulo: "Holdings no Mercado Digital: Vale a pena?", 
+      preview: "A estrutura societária correta pode economizar milhares de reais em impostos no longo prazo.", 
+      editoria: "Direito Tributário", 
+      foco: "Eficiência Fiscal", 
+      tempo: "10 min",
+      slug: "holdings-no-mercado-digital-vale-a-pena",
+      icon: <Building2 size={20} />
+    },
+    { 
+      id: 5, 
+      tag: "Escala", 
+      titulo: "KPIs que realmente importam para o seu Financeiro.", 
+      preview: "Pare de olhar apenas para o faturamento bruto e comece a analisar sua margem líquida real.", 
+      editoria: "Controladoria Digital", 
+      foco: "Métricas de Sobrevivência", 
+      tempo: "7 min",
+      slug: "kpis-que-realmente-importam-para-o-seu-financeiro",
+      icon: <BarChart3 size={20} />
+    },
+    { 
+      id: 6, 
+      tag: "Lançamento", 
+      titulo: "Custo por Lead vs. Lucratividade Final.", 
+      preview: "Como equilibrar o investimento em captação sem comprometer o caixa da operação.", 
+      editoria: "Copy & Estratégia", 
+      foco: "Análise de ROI Real", 
+      tempo: "5 min",
+      slug: "custo-por-lead-vs-lucratividade-final",
+      icon: <Target size={20} />
+    }
   ];
 
   const handleSubscribe = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -54,7 +121,6 @@ export default function BlogDaNucleo() {
       if (data.success) setEnviado(true);
     } catch (err) {
       console.error("Erro no processamento:", err);
-      alert("Erro ao processar assinatura.");
     } finally {
       setLoading(false);
     }
@@ -123,7 +189,7 @@ export default function BlogDaNucleo() {
         </div>
       )}
 
-      {/* HEADER DA PÁGINA - ADAPTADO PARA LARGURA TOTAL */}
+      {/* HEADER DA PÁGINA */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
           <h1 className="text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center">
@@ -160,23 +226,22 @@ export default function BlogDaNucleo() {
           Experiências que <span className="text-blue-600">transformam</span> resultados.
         </h3>
         <p className="text-gray-500 text-base md:text-lg font-medium leading-relaxed max-w-4xl">
-          Conheça quem vive a Núcleo e prepare-se pra se apaixonar 
-          por uma nova forma de gerir seus controles:
+          Conheça os pilares da inteligência financeira aplicados ao mercado digital e domine seus números:
         </p>
       </div>
 
-      {/* GRID DE POSTS - LARGURA TOTAL COM 3 COLUNAS EM TELAS GRANDES (LG) */}
+      {/* GRID DE POSTS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
         {posts.map((post) => (
           <div key={post.id} className="group bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm hover:shadow-xl hover:shadow-blue-50/50 transition-all flex flex-col min-h-[420px]">
             <div className="flex items-start justify-between mb-8">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
-                  <User size={20} />
+                  {post.icon}
                 </div>
                 <div>
-                  <p className="text-[12px] font-black text-gray-900 uppercase tracking-wider">{post.autor}</p>
-                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">{post.cargo}</p>
+                  <p className="text-[12px] font-black text-gray-900 uppercase tracking-wider">{post.editoria}</p>
+                  <p className="text-[10px] text-blue-600 font-bold uppercase tracking-tight">{post.foco}</p>
                 </div>
               </div>
               <div className="ml-auto flex items-center gap-1.5 text-[10px] font-black text-blue-600/40 uppercase tracking-widest pt-1">
@@ -184,30 +249,34 @@ export default function BlogDaNucleo() {
               </div>
             </div>
             <div className="mb-4">
-              <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] bg-blue-50/50 px-3 py-1 rounded-md">{post.tag}</span>
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] bg-gray-50 px-3 py-1 rounded-md group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">{post.tag}</span>
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors leading-tight">{post.titulo}</h3>
             <p className="text-gray-500 text-sm leading-relaxed mb-8 font-medium italic">"{post.preview}"</p>
-            <div className="mt-auto flex items-center text-gray-900 text-[11px] font-black uppercase tracking-widest gap-2 group-hover:gap-4 transition-all cursor-pointer">
+            
+            <Link 
+              href={`/blog/contribuicoes/${post.slug}`}
+              className="mt-auto flex items-center text-gray-900 text-[11px] font-black uppercase tracking-widest gap-2 group-hover:gap-4 transition-all cursor-pointer"
+            >
               Ler artigo completo <ArrowRight size={16} className="text-blue-600" />
-            </div>
+            </Link>
           </div>
         ))}
       </div>
 
-      {/* FOOTER CTA - ADAPTADO */}
+      {/* FOOTER CTA */}
       <div className="bg-gray-50 rounded-[3rem] p-12 text-center border border-gray-100 relative overflow-hidden mb-12">
         <PenTool size={140} className="absolute -top-10 -left-10 text-blue-100 opacity-30 -rotate-12 pointer-events-none" />
         <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 relative z-10">Sua expertise na Nucleobase.</h3>
         <p className="text-gray-500 mb-8 max-w-2xl mx-auto font-medium text-lg relative z-10">
-          Escreva e posicione-se como uma autoridade no mercado digital.
+          Compartilhe conhecimento e posicione-se como uma autoridade no mercado digital.
         </p>
         <a href="/blog/contribuir" className="relative z-10 inline-block px-12 py-4 bg-gray-900 text-white rounded-full font-bold text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-gray-200">
           Criar artigo agora
         </a>
       </div>
 
-      {/* BANNER INSTAGRAM - 3 COLUNAS LARGURA TOTAL */}
+      {/* BANNER INSTAGRAM */}
       <a 
         href="https://instagram.com/nucleobase.app" 
         target="_blank" 
@@ -217,7 +286,6 @@ export default function BlogDaNucleo() {
         <Instagram size={180} className="absolute -right-10 -bottom-10 text-blue-500 opacity-[0.05] group-hover:rotate-12 transition-transform duration-700" />
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center relative z-10">
-          
           <div className="flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 py-4 md:py-0 text-center">
             <div className="flex items-center gap-2 text-blue-600 mb-2">
               <Instagram size={20} strokeWidth={2.5} />
@@ -242,7 +310,6 @@ export default function BlogDaNucleo() {
           </div>
         </div>
       </a>
-
     </div>
   );
 }
