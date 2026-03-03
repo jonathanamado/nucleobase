@@ -352,37 +352,40 @@ export default function AcessoUsuarioPage() {
                 <div className="relative z-10 flex-1 flex flex-col">
                     <div className="flex items-center gap-2 mb-4 bg-white/20 w-fit px-3 py-1.5 rounded-full">
                         <Clock size={14} className="text-blue-200" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Período de Experiência</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest">14 Dias Liberados</span>
                     </div>
                     
-                    <h4 className="text-2xl font-bold mb-2 tracking-tight">14 Dias Liberados<span className="text-blue-300">.</span></h4>
                     <p className="text-blue-100 text-sm leading-relaxed mb-6 font-medium">
-                      Explore todas as ferramentas sem restrições. Após o trial, escolha o plano que melhor se adapta à sua gestão.
+                      Explore todas as ferramentas sem restrição. Após o trial, escolha seu plano desejado (Essencial x PRO):
                     </p>
 
                     <div className="space-y-4 mb-8">
-                        <div className="flex items-center gap-3 bg-white/5 p-3 rounded-2xl border border-white/10 group hover:bg-white/10 transition-colors">
-                            <div className="bg-white/20 p-2 rounded-xl text-white">
-                                <ShieldCheck size={18} />
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-[11px] font-black uppercase tracking-tight">Plano Essencial</span>
-                                <span className="text-xs text-blue-200">R$ 9,90/mês • Controle prático</span>
-                            </div>
-                        </div>
+                      <a href="/planos/essencial" className="block no-underline">
+                          <div className="flex items-center gap-3 bg-white/5 p-3 rounded-2xl border border-white/10 group hover:bg-white/10 hover:border-white/30 hover:scale-[1.02] transition-all cursor-pointer">
+                              <div className="bg-white/20 p-2 rounded-xl text-white group-hover:bg-blue-500 transition-colors">
+                                  <ShieldCheck size={18} />
+                              </div>
+                              <div className="flex flex-col">
+                                  <span className="text-[11px] font-black uppercase tracking-tight">Plano Essencial</span>
+                                  <span className="text-xs text-blue-200">R$ 9,90/mês • Controle prático</span>
+                              </div>
+                          </div>
+                      </a>
 
-                        <div className="flex items-center gap-3 bg-white/10 p-3 rounded-2xl border border-white/20 border-l-4 border-l-amber-400 group hover:bg-white/20 transition-colors">
-                            <div className="bg-amber-400 p-2 rounded-xl text-blue-900">
-                                <Gem size={18} />
-                            </div>
-                            <div className="flex flex-col">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[11px] font-black uppercase tracking-tight">Plano Pro</span>
-                                    <span className="text-[8px] bg-white text-blue-600 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tighter">Top</span>
-                                </div>
-                                <span className="text-xs text-blue-100 font-bold">R$ 19,90/mês • Gestão Total</span>
-                            </div>
-                        </div>
+                      <a href="/planos/pro" className="block no-underline">
+                          <div className="flex items-center gap-3 bg-white/10 p-3 rounded-2xl border border-white/20 border-l-4 border-l-amber-400 group hover:bg-white/20 hover:scale-[1.02] transition-all cursor-pointer">
+                              <div className="bg-amber-400 p-2 rounded-xl text-blue-900 group-hover:bg-amber-300 transition-colors">
+                                  <Gem size={18} />
+                              </div>
+                              <div className="flex flex-col">
+                                  <div className="flex items-center gap-2">
+                                      <span className="text-[11px] font-black uppercase tracking-tight text-white">Plano Pro</span>
+                                      <span className="text-[8px] bg-white text-blue-600 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tighter">Top</span>
+                                  </div>
+                                  <span className="text-xs text-blue-100 font-bold">R$ 19,90/mês • Gestão Total</span>
+                              </div>
+                          </div>
+                      </a>
                     </div>
 
                     <div className="mt-auto pt-4 border-t border-white/10">

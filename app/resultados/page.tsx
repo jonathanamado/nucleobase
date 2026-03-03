@@ -42,6 +42,7 @@ export default function DashboardResultados() {
   const [availableMonthsForYear, setAvailableMonthsForYear] = useState<string[]>([]);
   const [mesesCategoriasMap, setMesesCategoriasMap] = useState<any>({});
   const [anoCategoriasMap, setAnoCategoriasMap] = useState<any>({});
+  const [geralCategoriasMap, setGeralCategoriasMap] = useState<any[]>([]);
   
   const [stats, setStats] = useState({
     totalGeral: 0, 
@@ -90,6 +91,7 @@ export default function DashboardResultados() {
     const mesesMap: { [key: string]: { gastos: number, receita: number } } = {};
     const localMesesCategoriasMap: { [key: string]: { [key: string]: number } } = {};
     const localAnoCategoriasMap: { [key: string]: { [key: string]: number } } = {};
+    const localGeralCategorias: { [key: string]: number } = {};
     const anosEncontrados = new Set<string>();
     const nomesMeses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
@@ -122,6 +124,9 @@ export default function DashboardResultados() {
         if (!localMesesCategoriasMap[chaveMesAno]) localMesesCategoriasMap[chaveMesAno] = {};
         if (!localMesesCategoriasMap[chaveMesAno][cat]) localMesesCategoriasMap[chaveMesAno][cat] = 0;
         localMesesCategoriasMap[chaveMesAno][cat] += valorAbsoluto;
+
+        if (!localGeralCategorias[cat]) localGeralCategorias[cat] = 0;
+        localGeralCategorias[cat] += valorAbsoluto;
       }
 
       if (!mesesMap[mesNome]) mesesMap[mesNome] = { gastos: 0, receita: 0 };
@@ -129,7 +134,8 @@ export default function DashboardResultados() {
       else mesesMap[mesNome].gastos += valorAbsoluto;
     });
 
-    const anosOrdenados = Array.from(anosEncontrados).sort((a, b) => b.localeCompare(a));
+    // AJUSTE: Anos sequenciados de forma crescente (2025, 2026...)
+    const anosOrdenados = Array.from(anosEncontrados).sort((a, b) => a.localeCompare(b));
     setAvailableYears(anosOrdenados);
     if (!selectedYear && anosOrdenados.length > 0) setSelectedYear(anosOrdenados[0]);
 
@@ -167,6 +173,7 @@ export default function DashboardResultados() {
       anosFormatados[a] = formatarBarras(localAnoCategoriasMap[a]);
     });
     setAnoCategoriasMap(anosFormatados);
+    setGeralCategoriasMap(formatarBarras(localGeralCategorias));
 
     setStats({
       totalGeral: receitaTotal - despesaTotal,
@@ -279,7 +286,6 @@ export default function DashboardResultados() {
           </h1>
         </div>
 
-        {/* BOTOES AJUSTADOS PARA LARGURA DO CARD (1/3 da linha no desktop) */}
         <div className="flex flex-col items-end gap-3 w-full md:w-1/3">
           <div className="flex gap-2 w-full">
             <a href="/lancamentos" className="flex-1 flex items-center justify-center gap-2 text-[10px] font-black text-white text-center hover:bg-orange-600 transition-colors bg-orange-500 px-3 py-3 rounded-xl uppercase tracking-widest shadow-sm shadow-orange-100">
@@ -364,6 +370,16 @@ export default function DashboardResultados() {
         
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex bg-gray-100 p-1.5 rounded-2xl w-fit">
+            {/* NOVO BOTÃO GERAL */}
+            <button 
+              onClick={() => {
+                setSelectedYear("GERAL");
+                setSelectedMonthCategory("GERAL");
+              }} 
+              className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedYear === "GERAL" ? "bg-white text-blue-600 shadow-sm" : "text-gray-400"}`}
+            >
+              Geral
+            </button>
             {availableYears.map(ano => (
               <button 
                 key={ano} 
@@ -383,9 +399,9 @@ export default function DashboardResultados() {
               onClick={() => setSelectedMonthCategory("GERAL")} 
               className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${selectedMonthCategory === "GERAL" ? "bg-white text-blue-600 shadow-sm" : "text-gray-400"}`}
             >
-              Geral do Ano
+              {selectedYear === "GERAL" ? "Acumulado Total" : "Geral do Ano"}
             </button>
-            {availableMonthsForYear.map(mes => (
+            {selectedYear !== "GERAL" && availableMonthsForYear.map(mes => (
               <button 
                 key={mes} 
                 onClick={() => setSelectedMonthCategory(mes)} 
@@ -404,15 +420,22 @@ export default function DashboardResultados() {
             <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm"><Layers size={24} /></div>
             <h4 className="text-2xl font-black text-gray-900 mb-4 tracking-tight">Distribuição Crítica</h4>
             <p className="text-gray-500 text-sm leading-relaxed font-medium">
-              Análise focal de: <span className="text-blue-600 font-bold uppercase">{selectedMonthCategory === "GERAL" ? `Consolidado ${selectedYear}` : `${selectedMonthCategory} / ${selectedYear}`}</span>
+              Análise focal de: <span className="text-blue-600 font-bold uppercase">
+                {selectedYear === "GERAL" 
+                  ? "Consolidado Geral" 
+                  : (selectedMonthCategory === "GERAL" ? `Consolidado ${selectedYear}` : `${selectedMonthCategory} / ${selectedYear}`)}
+              </span>
             </p>
           </div>
           <div className="lg:col-span-8 h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart 
-                data={selectedMonthCategory === "GERAL" 
-                  ? (anoCategoriasMap[selectedYear] || [])
-                  : (mesesCategoriasMap[`${selectedMonthCategory}/${selectedYear}`] || [])
+                data={selectedYear === "GERAL"
+                  ? geralCategoriasMap
+                  : (selectedMonthCategory === "GERAL" 
+                      ? (anoCategoriasMap[selectedYear] || [])
+                      : (mesesCategoriasMap[`${selectedMonthCategory}/${selectedYear}`] || [])
+                    )
                 } 
                 layout="vertical" 
                 margin={{ left: 20, right: 30 }}
@@ -434,7 +457,6 @@ export default function DashboardResultados() {
           <div className="h-px bg-gradient-to-r from-transparent via-blue-100 to-blue-200 flex-1"></div>
           <div className="flex flex-col items-center gap-2">
             <div className="bg-blue-50 px-4 py-1.5 rounded-full flex items-center gap-2">
-              <Sparkles size={14} className="text-blue-500" />
               <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">Horizonte de Inteligência</span>
             </div>
             <h2 className="text-2xl font-bold text-gray-900">O que vem por aí?</h2>
@@ -458,7 +480,6 @@ export default function DashboardResultados() {
             <h5 className="font-bold text-gray-900 uppercase text-[11px] tracking-widest">Benchmarking</h5>
             <p className="text-xs text-gray-500 leading-relaxed">Compare sua eficiência de gastos com a média do mercado e descubra onde você está performando melhor.</p>
           </div>
-          {/* CARD CONSULTORIA PRO */}
           <div className="bg-blue-50/50 border border-blue-100 p-8 rounded-[2.5rem] flex flex-col gap-4 transition-all hover:shadow-xl hover:shadow-blue-100/50">
             <div className="flex justify-between items-start">
               <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white">
@@ -480,6 +501,41 @@ export default function DashboardResultados() {
             >
               Solicitar Consultoria
             </a>
+          </div>
+        </div>
+      </div>
+
+      {/* NOVA SEÇÃO DE MELHORIA DE PRODUTO */}
+      <div className="mt-12">
+        <div className="flex items-center gap-4 mb-8">
+          <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
+            Personalização & Evolução
+          </h3>
+          <div className="h-px bg-gray-200 flex-1"></div>
+        </div>
+        
+        <div className="bg-white border border-gray-100 rounded-[3rem] p-10 shadow-sm">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="max-w-xl">
+              <h4 className="text-2xl font-black text-gray-900 mb-4 tracking-tight">Sua visão personalizada.</h4>
+              <p className="text-gray-500 text-sm leading-relaxed font-medium">
+                Precisa de uma análise específica que ainda não encontrou aqui? Queremos ouvir você. Solicite novas visões ou relatórios customizados que atendam à sua necessidade e contribua para a evolução do nosso produto.
+              </p>
+            </div>
+            <div className="flex flex-col items-center md:items-end gap-3 min-w-[280px]">
+              <div className="bg-blue-50 px-6 py-4 rounded-2xl border border-blue-100 w-full">
+                <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">Enviar sugestão para:</p>
+                <p className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                  <Mail size={16} className="text-blue-500" /> contato@nucleobase.app
+                </p>
+              </div>
+              <a 
+                href="mailto:contato@nucleobase.app" 
+                className="w-full py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2"
+              >
+                Solicitar Melhoria <Send size={14} />
+              </a>
+            </div>
           </div>
         </div>
       </div>

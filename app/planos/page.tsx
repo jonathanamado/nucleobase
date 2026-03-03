@@ -34,25 +34,40 @@ export default function PaginaDePlanos() {
     lookupKey, 
     label, 
     className, 
-    description 
+    description,
+    href // Nova prop opcional para redirecionamento direto
   }: { 
     lookupKey: string, 
     label: string, 
     className?: string,
-    description: string 
-  }) => (
-    <form action="/api/stripe" method="POST" className="w-full">
-      <input type="hidden" name="lookup_key" value={lookupKey} />
-      <a href={`#checkout-${lookupKey}`} title={description} className="block w-full cursor-pointer decoration-transparent">
-        <button 
-          type="submit" 
-          className={`${className} cursor-pointer transition-transform active:scale-[0.98]`}
-        >
-          {label}
-        </button>
-      </a>
-    </form>
-  );
+    description: string,
+    href?: string
+  }) => {
+    // Se houver um href, renderiza um link simples em vez do form do Stripe
+    if (href) {
+      return (
+        <a href={href} className="block w-full no-underline">
+          <button className={`${className} cursor-pointer transition-transform active:scale-[0.98]`}>
+            {label}
+          </button>
+        </a>
+      );
+    }
+
+    return (
+      <form action="/api/stripe" method="POST" className="w-full">
+        <input type="hidden" name="lookup_key" value={lookupKey} />
+        <a href={`#checkout-${lookupKey}`} title={description} className="block w-full cursor-pointer decoration-transparent">
+          <button 
+            type="submit" 
+            className={`${className} cursor-pointer transition-transform active:scale-[0.98]`}
+          >
+            {label}
+          </button>
+        </a>
+      </form>
+    );
+  };
 
   return (
     <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
@@ -176,13 +191,13 @@ export default function PaginaDePlanos() {
                   <div className="bg-white/10 p-1 rounded-lg">
                     <CheckCircle2 size={20} className="text-blue-200 shrink-0" />
                   </div>
-                  <p className="text-base text-blue-50 font-medium">Painel de Resultados</p>
+                  <p className="text-base text-blue-50 font-medium">Lançamentos online</p>
                 </div>
                 <div className="flex items-start gap-4">
                   <div className="bg-white/10 p-1 rounded-lg">
                     <CheckCircle2 size={20} className="text-blue-200 shrink-0" />
                   </div>
-                  <p className="text-base text-blue-50 font-medium">Lançamentos online</p>
+                  <p className="text-base text-blue-50 font-medium">Painel de Resultados</p>
                 </div>
 
                 <div className="pt-4 text-center">
@@ -256,13 +271,13 @@ export default function PaginaDePlanos() {
                 <div className="bg-emerald-50 p-1 rounded-lg">
                   <CheckCircle2 size={20} className="text-emerald-500 shrink-0" />
                 </div>
-                <p className="text-base text-gray-600 font-medium">Registro <strong className="text-gray-900">ilimitado</strong> de dados</p>
+                <p className="text-base text-gray-600 font-medium">Registros <strong className="text-gray-900">ilimitados</strong></p>
               </div>
               <div className="flex items-start gap-4">
                 <div className="bg-emerald-50 p-1 rounded-lg">
                   <CheckCircle2 size={20} className="text-emerald-500 shrink-0" />
                 </div>
-                <p className="text-base text-gray-600 font-medium">Importação via tela</p>
+                <p className="text-base text-gray-600 font-medium">Lançamentos online</p>
               </div>
               <div className="flex items-start gap-4">
                 <div className="bg-emerald-50 p-1 rounded-lg">
@@ -280,10 +295,11 @@ export default function PaginaDePlanos() {
 
             <div className="space-y-6">
               <div className="p-6 bg-gray-50/50 border border-gray-100 rounded-[2rem] space-y-4">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Pagamento via Cartão</p>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Opções de Pagamento via Cartão</p>
                 <CheckoutForm 
                   lookupKey="essencial_mensal" 
-                  label="Assinar Essencial Mensal" 
+                  href="/planos/essencial"
+                  label="Conheça + Essencial (Opção 'Mensal')" 
                   description="Finalizar assinatura: Plano Essencial Mensal"
                   className="w-full py-5 bg-gray-900 text-white rounded-[1.5rem] font-bold text-xs uppercase tracking-[0.2em] hover:bg-black shadow-xl shadow-gray-200 text-center"
                 />
@@ -382,10 +398,11 @@ export default function PaginaDePlanos() {
 
             <div className="relative z-10 space-y-6">
               <div className="p-6 bg-white/5 border border-white/10 rounded-[2rem] space-y-4">
-                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">Pagamento via Cartão</p>
+                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">Opções de Pagamento via Cartão</p>
                 <CheckoutForm 
                   lookupKey="pro_mensal" 
-                  label="Assinar Plano Pro Mensal" 
+                  href="/planos/pro"
+                  label="Conheça + Pro (Opção 'Mensal')" 
                   description="Finalizar assinatura: Plano Pro Mensal"
                   className="w-full py-5 bg-blue-600 text-white rounded-[1.5rem] font-bold text-xs uppercase tracking-[0.2em] hover:bg-blue-500 shadow-lg shadow-blue-900/40 relative z-10 text-center"
                 />

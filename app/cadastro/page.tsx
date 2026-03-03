@@ -182,10 +182,10 @@ export default function CadastroPage() {
         <div className="w-full max-w-md mx-auto pt-4 lg:pt-12 pb-12">
           <div className="mb-8 pt-0 text-left">
             <h2 className="text-3xl font-bold text-gray-900 mb-1 tracking-tight">
-              Crie sua conta gratuitamente para testar<span className="text-blue-600">.</span>
+              Crie sua conta gratuitamente para testar e conhecer as vantagens de sua digitalização<span className="text-blue-600">.</span>
             </h2>
             <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em]">
-              Inicie sua gestão estratégica hoje
+              Inicie sua gestão estratégica hoje ainda.
             </p>
           </div>
 
