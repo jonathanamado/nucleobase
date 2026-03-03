@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { ShieldCheck, Zap, Star, CheckCircle2, Globe, Eye, EyeOff, UserCircle, AlertTriangle, Crown, Gem } from "lucide-react";
+import { ShieldCheck, Zap, Star, CheckCircle2, Globe, Eye, EyeOff, UserCircle, AlertTriangle } from "lucide-react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,9 +17,7 @@ export default function CadastroPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
-  // Estado para a seleção do plano inicial
-  const [planoSelecionado, setPlanoSelecionado] = useState("free");
-  
+  // Estados para a advertência condicional
   const [showWarning, setShowWarning] = useState(false);
   const [cienteSemEmail, setCienteSemEmail] = useState(false);
 
@@ -41,7 +39,7 @@ export default function CadastroPage() {
         body: JSON.stringify({
           access_key: "9ef5a274-150a-4664-a885-0b052efd06f7",
           subject: "🚀 Nova Indicação Registrada!",
-          message: `O usuário ${nomeNovo || "Anônimo"} (${emailNovo || "Sem e-mail"}) cadastrou-se com intenção no plano: ${planoSelecionado}.`
+          message: `O usuário ${nomeNovo || "Anônimo"} (${emailNovo || "Sem e-mail"}) acabou de se cadastrar.`
         }),
       });
     } catch (e) { console.error("Erro ao enviar e-mail adm", e); }
@@ -50,10 +48,11 @@ export default function CadastroPage() {
   const handleCadastro = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // LOGICA DE ADVERTÊNCIA: Só aparece se o e-mail estiver em branco
     if (!email.trim()) {
       if (!showWarning) {
         setShowWarning(true);
-        return;
+        return; // Para a execução para o usuário ver o aviso e marcar o checkbox
       }
       if (!cienteSemEmail) {
         alert("Por favor, aceite os termos de ciência para prosseguir sem e-mail.");
@@ -64,6 +63,7 @@ export default function CadastroPage() {
     setLoading(true);
     const slugFinal = formatarSlug(slugDesejado);
 
+    // 1. Verificar disponibilidade do slug
     const { data: slugExistente } = await supabase
       .from('profiles')
       .select('slug')
@@ -76,8 +76,11 @@ export default function CadastroPage() {
       return;
     }
 
+    // 2. DEFINIÇÃO DO E-MAIL DE ACESSO (O ponto principal do seu ajuste)
+    // Se o usuário preencheu o e-mail, usa o dele. Caso contrário, gera o @nucleobase.app
     const emailParaAuth = email.trim() ? email.trim() : `${slugFinal}@nucleobase.app`;
 
+    // 3. Criar o usuário no Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: emailParaAuth,
       password,
@@ -91,13 +94,14 @@ export default function CadastroPage() {
     }
 
     if (authData.user) {
+      // 4. Salvar na tabela profiles
       await supabase.from('profiles').insert([
         { 
           id: authData.user.id, 
-          email: emailParaAuth, 
-          email_contato: email.trim() || null, 
+          email: emailParaAuth, // E-mail usado no login
+          email_contato: email.trim() || null, // E-mail real (se houver) para notificações
           nome_completo: nome || "Anônimo", 
-          plan_type: planoSelecionado, // Salva o plano escolhido no cadastro
+          plan_type: 'free',
           slug: slugFinal 
         }
       ]);
@@ -120,7 +124,7 @@ export default function CadastroPage() {
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-white font-sans">
       
-      {/* LADO ESQUERDO: BRANDING */}
+      {/* LADO ESQUERDO: BRANDING (Mantido original) */}
       <div className="w-full lg:w-1/2 bg-gray-900 p-8 lg:p-12 flex flex-col justify-start relative border-r border-white/5">
         <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
             <Globe size={400} className="absolute -bottom-20 -left-20 text-blue-500" />
@@ -223,50 +227,12 @@ export default function CadastroPage() {
                 className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium" 
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  if (e.target.value.trim()) setShowWarning(false);
+                  if (e.target.value.trim()) setShowWarning(false); // Esconde o aviso se o usuário começar a digitar
                 }} 
               />
             </div>
 
-            {/* SELEÇÃO DE PLANO (ATUALIZADO COM ESSENCIAL E PRO) */}
-            <div className="py-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-3 block">Plano Desejado (Opcional)</label>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPlanoSelecionado("free")}
-                  className={`p-3 rounded-xl border-2 transition-all flex flex-col gap-0.5 text-center ${planoSelecionado === 'free' ? 'border-blue-500 bg-blue-50/50' : 'border-gray-100 bg-white hover:border-gray-200'}`}
-                >
-                  <span className={`text-[8px] font-black uppercase ${planoSelecionado === 'free' ? 'text-blue-600' : 'text-gray-400'}`}>Free</span>
-                  <span className="text-[10px] font-bold text-gray-900">Grátis</span>
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={() => setPlanoSelecionado("essencial")}
-                  className={`p-3 rounded-xl border-2 transition-all flex flex-col gap-0.5 text-center ${planoSelecionado === 'essencial' ? 'border-blue-500 bg-blue-50/50' : 'border-gray-100 bg-white hover:border-gray-200'}`}
-                >
-                  <div className="flex items-center justify-center gap-1">
-                    <span className={`text-[8px] font-black uppercase ${planoSelecionado === 'essencial' ? 'text-blue-600' : 'text-gray-400'}`}>Essencial</span>
-                    <ShieldCheck size={10} className={planoSelecionado === 'essencial' ? 'text-blue-600' : 'text-gray-300'} />
-                  </div>
-                  <span className="text-[10px] font-bold text-gray-900">R$ 9,90</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPlanoSelecionado("pro")}
-                  className={`p-3 rounded-xl border-2 transition-all flex flex-col gap-0.5 text-center ${planoSelecionado === 'pro' ? 'border-blue-600 bg-blue-50' : 'border-gray-100 bg-white hover:border-gray-200'}`}
-                >
-                  <div className="flex items-center justify-center gap-1">
-                    <span className={`text-[8px] font-black uppercase ${planoSelecionado === 'pro' ? 'text-blue-600' : 'text-gray-400'}`}>Pro</span>
-                    <Gem size={10} className={planoSelecionado === 'pro' ? 'text-blue-600' : 'text-gray-300'} />
-                  </div>
-                  <span className="text-[10px] font-bold text-gray-900">R$ 19,90</span>
-                </button>
-              </div>
-            </div>
-
+            {/* ADVERTÊNCIA CONDICIONAL: Aparece apenas no "Finalizar" se e-mail estiver vazio */}
             {showWarning && !email.trim() && (
               <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 animate-in fade-in zoom-in-95 duration-200">
                 <div className="flex gap-3">
