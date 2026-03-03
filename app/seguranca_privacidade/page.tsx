@@ -57,12 +57,14 @@ export default function PrivacidadeSeguranca() {
              <h3 className="text-2xl font-bold text-gray-900 mb-4 relative z-10 flex items-center gap-3">
                <Fingerprint className="text-blue-600" /> Autenticação Blindada
              </h3>
-             <p className="relative z-10 text-gray-600">
-               Para assegurar que apenas você tenha acesso às suas informações, o cadastro na plataforma é obrigatoriamente 
-               vinculado a um e-mail de identificação único. Além disso, implementamos um sistema de 
-               <strong className="text-gray-900 font-bold"> validação de dois fatores (2FA)</strong>, como o uso de PIN, garantindo que o seu primeiro acesso 
-               e movimentações sensíveis passem por uma camada extra de verificação.
-             </p>
+            <p className="relative z-10 text-gray-600 leading-relaxed">
+              Para assegurar a total confidencialidade do seu ecossistema financeiro, o acesso é restrito via 
+              <strong className="text-gray-900 font-bold"> autenticação criptografada</strong> vinculada a um identificador único. 
+              Implementamos protocolos rigorosos de segurança onde sua 
+              <strong className="text-gray-900 font-bold"> identificação pessoal é opcional</strong>, permitindo o uso da plataforma sob 
+              <strong className="text-gray-900 font-bold"> pseudonimato</strong>. Seus dados são tratados como ativos sensíveis, protegidos por camadas de validação 
+              que garantem que a soberania sobre cada movimentação registrada pertença exclusivamente a você.
+            </p>
           </div>
 
           <div className="bg-blue-50/40 border-l-4 border-blue-600 p-10 my-12 rounded-r-[3rem] relative overflow-hidden group transition-all hover:bg-blue-50/60">
