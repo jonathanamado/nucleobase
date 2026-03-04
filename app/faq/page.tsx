@@ -22,7 +22,7 @@ export default function FAQ() {
     {
       icon: <ShieldCheck className="text-blue-600" size={20} />,
       pergunta: "Meus dados financeiros estão seguros na Nucleobase?",
-      resposta: "Sim. Utilizamos criptografia de ponta a ponta e infraestrutura bancária para garantir que suas informações estratégicas e financeiras estejam protegidas sob os mais rígidos padrões de segurança da LGPD."
+      resposta: "Sim. Utilizamos criptografia de ponta a ponta e infraestrutura para garantir que suas informações estratégicas e financeiras estejam protegidas sob os mais rígidos padrões de segurança da LGPD."
     },
     {
       icon: <Zap className="text-amber-500" size={20} />,

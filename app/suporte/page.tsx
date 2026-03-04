@@ -163,7 +163,7 @@ export default function SuportePage() {
           </div>
           <div>
             <h4 className="font-bold text-gray-900 text-lg tracking-tight">Privacidade e Segurança</h4>
-            <p className="text-sm text-gray-500 font-medium italic">Seus dados financeiros são protegidos por criptografia de nível bancário.</p>
+            <p className="text-sm text-gray-500 font-medium italic">Seus dados financeiros são protegidos por criptografia de alto nível.</p>
           </div>
         </div>
         <div className="flex items-center gap-4">

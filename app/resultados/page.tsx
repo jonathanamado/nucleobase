@@ -10,7 +10,7 @@ import {
   X, LifeBuoy, LogOut, Sparkles, Target, 
   Layers, Instagram, MessageCircle, Send,
   Zap, Rocket, Crown, Timer, Cpu, Microscope,
-  UserCheck
+  UserCheck, CalendarDays
 } from "lucide-react";
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, 
@@ -44,6 +44,9 @@ export default function DashboardResultados() {
   const [anoCategoriasMap, setAnoCategoriasMap] = useState<any>({});
   const [geralCategoriasMap, setGeralCategoriasMap] = useState<any[]>([]);
   
+  // Estado para análise do mês atual
+  const [currentMonthData, setCurrentMonthData] = useState({ receita: 0, despesa: 0, saldo: 0, nome: "" });
+
   const [stats, setStats] = useState({
     totalGeral: 0, 
     totalReceita: 0,
@@ -95,6 +98,13 @@ export default function DashboardResultados() {
     const anosEncontrados = new Set<string>();
     const nomesMeses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
+    // Identificação do mês atual para o resumo rápido
+    const hoje = new Date();
+    const mesAtualIndex = hoje.getUTCMonth();
+    const anoAtualStr = hoje.getUTCFullYear().toString();
+    const nomeMesAtual = nomesMeses[mesAtualIndex];
+    let recMes = 0, desMes = 0;
+
     const dadosFiltrados = filtro === "TODOS" 
       ? dados 
       : dados.filter(item => item.tipo_origem === filtro);
@@ -106,20 +116,27 @@ export default function DashboardResultados() {
       const cat = item.categoria || "Outros";
       
       const data = new Date(item.data_competencia);
-      const ano = data.getUTCFullYear().toString();
-      const mesNome = nomesMeses[data.getUTCMonth()];
-      const chaveMesAno = `${mesNome}/${ano}`;
+      const itemAno = data.getUTCFullYear().toString();
+      const itemMesIndex = data.getUTCMonth();
+      const mesNome = nomesMeses[itemMesIndex];
+      const chaveMesAno = `${mesNome}/${itemAno}`;
 
-      anosEncontrados.add(ano);
+      anosEncontrados.add(itemAno);
+
+      // Soma para o mês atual (leitura rápida)
+      if (itemAno === anoAtualStr && itemMesIndex === mesAtualIndex) {
+        if (isReceita) recMes += valorAbsoluto;
+        else desMes += valorAbsoluto;
+      }
 
       if (isReceita) {
         receitaTotal += valorAbsoluto;
       } else {
         despesaTotal += valorAbsoluto;
         
-        if (!localAnoCategoriasMap[ano]) localAnoCategoriasMap[ano] = {};
-        if (!localAnoCategoriasMap[ano][cat]) localAnoCategoriasMap[ano][cat] = 0;
-        localAnoCategoriasMap[ano][cat] += valorAbsoluto;
+        if (!localAnoCategoriasMap[itemAno]) localAnoCategoriasMap[itemAno] = {};
+        if (!localAnoCategoriasMap[itemAno][cat]) localAnoCategoriasMap[itemAno][cat] = 0;
+        localAnoCategoriasMap[itemAno][cat] += valorAbsoluto;
 
         if (!localMesesCategoriasMap[chaveMesAno]) localMesesCategoriasMap[chaveMesAno] = {};
         if (!localMesesCategoriasMap[chaveMesAno][cat]) localMesesCategoriasMap[chaveMesAno][cat] = 0;
@@ -134,10 +151,16 @@ export default function DashboardResultados() {
       else mesesMap[mesNome].gastos += valorAbsoluto;
     });
 
-    // AJUSTE: Anos sequenciados de forma crescente (2025, 2026...)
+    setCurrentMonthData({ receita: recMes, despesa: desMes, saldo: recMes - desMes, nome: nomeMesAtual });
+
     const anosOrdenados = Array.from(anosEncontrados).sort((a, b) => a.localeCompare(b));
     setAvailableYears(anosOrdenados);
-    if (!selectedYear && anosOrdenados.length > 0) setSelectedYear(anosOrdenados[0]);
+    
+    // Define o ano atual como padrão se disponível, senão o primeiro da lista
+    if (!selectedYear && anosOrdenados.length > 0) {
+      const temAnoAtual = anosOrdenados.includes(anoAtualStr);
+      setSelectedYear(temAnoAtual ? anoAtualStr : anosOrdenados[0]);
+    }
 
     const mesesDisponiveis = nomesMeses.filter(mes => mesesMap[mes]);
     const dadosMensais = mesesDisponiveis.map(mes => ({
@@ -274,16 +297,22 @@ export default function DashboardResultados() {
   return (
     <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
       
+      {/* HEADER E CONTEXTO */}
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
-        <div className="space-y-4">
+        <div className="space-y-3">
           <h3 className="text-blue-600 font-black text-[10px] uppercase tracking-[0.3em] flex items-center gap-2">
             <span className="animate-pulse w-2 h-2 bg-blue-600 rounded-full"></span>
             <LayoutDashboard size={14} /> Painel Exclusivo de {userName.split(' ')[0]}
           </h3>
-          <h1 className="text-5xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
-            Resultados<span className="text-blue-600">.</span>
-            <Sparkles className="text-blue-500 animate-bounce" size={32} />
-          </h1>
+          <div>
+            <h1 className="text-5xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
+              Resultados<span className="text-blue-600">.</span>
+              <Sparkles className="text-blue-500 animate-bounce" size={32} />
+            </h1>
+            <p className="text-gray-500 text-sm mt-2 max-w-2xl leading-relaxed">
+              Sua saúde financeira é o reflexo direto da coerência entre suas receitas e despesas. O <strong>Total Disponível</strong> abaixo consolida cada lançamento realizado, oferecendo uma visão real da sua liquidez atual.
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-col items-end gap-3 w-full md:w-1/3">
@@ -303,19 +332,58 @@ export default function DashboardResultados() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <SummaryCard title="Total Disponível (Saldo)" value={`R$ ${stats.totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} trend="Receita - Despesa" isPositive={stats.totalGeral > 0} />
-        <SummaryCard title="Total Receitas" value={`R$ ${stats.totalReceita.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} trend="Entradas" icon={<ArrowUpRight size={20} className="text-emerald-500"/>} isPositive={true} />
-        <SummaryCard title="Total Despesas" value={`R$ ${stats.totalDespesa.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} trend="Saídas" isNegative={true} />
+      {/* CARDS DE RESUMO */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <SummaryCard title="Total Disponível (Saldo)" value={`R$ ${stats.totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} trend="Patrimônio Consolidado (Receitas - Despesas)" isPositive={stats.totalGeral > 0} />
+        <SummaryCard title="Total Receitas" value={`R$ ${stats.totalReceita.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} trend="Entradas Totais (Receitas)" icon={<ArrowUpRight size={20} className="text-emerald-500"/>} isPositive={true} />
+        <SummaryCard title="Total Despesas" value={`R$ ${stats.totalDespesa.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} trend="Saídas Totais (Despesas)" isNegative={true} />
       </div>
 
+      {/* LEITURA DO MÊS ATUAL (FOCO NA REALIDADE) */}
+      <div className="bg-blue-50/30 border border-blue-100 rounded-[2.5rem] p-6 mb-10 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <div className="bg-white p-3 rounded-2xl shadow-sm text-blue-600">
+            <CalendarDays size={24} />
+          </div>
+          <div>
+            <h4 className="text-xs font-black text-blue-600 uppercase tracking-widest">Leitura do Mês Atual</h4>
+            <p className="text-lg font-bold text-gray-900">{currentMonthData.nome} de 2026</p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-8 flex-1 px-4">
+          <div>
+            <p className="text-[10px] font-bold text-gray-400 uppercase">Receita no Mês</p>
+            <p className="text-sm font-black text-emerald-600">R$ {currentMonthData.receita.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-gray-400 uppercase">Despesa no Mês</p>
+            <p className="text-sm font-black text-red-500">R$ {currentMonthData.despesa.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          </div>
+          <div className="hidden md:block">
+            <p className="text-[10px] font-bold text-gray-400 uppercase">Saldo Mensal</p>
+            <p className={`text-sm font-black ${currentMonthData.saldo >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>R$ {currentMonthData.saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          </div>
+        </div>
+
+        <div className="text-right">
+          <span className="text-[9px] bg-blue-600 text-white px-3 py-1 rounded-full font-black uppercase tracking-tighter">Foco Imediato</span>
+        </div>
+      </div>
+
+      {/* GRÁFICO COMPARATIVO */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch mb-12">
         <div className="lg:col-span-8 bg-white border border-gray-100 rounded-[3rem] p-8 shadow-sm">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
-            <h3 className="text-sm font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
-              <BarChart3 size={16} className="text-blue-600" /> 
-              Comparativo Orçamentário (Real)
-            </h3>
+            <div className="flex flex-col gap-1">
+              <h3 className="text-sm font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                <BarChart3 size={16} className="text-blue-600" /> 
+                Comparativo Orçamentário (Real)
+              </h3>
+              <p className="text-[10px] text-gray-400 font-medium leading-relaxed">
+                Dando continuidade na visão acima, você poderá acompanhar os meses subsequentes na visão oferecida neste gráfico.
+              </p>
+            </div>
 
             <div className="flex bg-gray-50 p-1 rounded-xl self-end sm:self-auto">
               <button onClick={() => setChartType('MENSAL')} className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${chartType === 'MENSAL' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>Mês a Mês</button>
@@ -360,6 +428,7 @@ export default function DashboardResultados() {
         </div>
       </div>
 
+      {/* SEGMENTOS E CATEGORIAS */}
       <div className="flex flex-col gap-6 mb-10">
         <div className="flex items-center gap-4">
           <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
@@ -370,7 +439,6 @@ export default function DashboardResultados() {
         
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex bg-gray-100 p-1.5 rounded-2xl w-fit">
-            {/* NOVO BOTÃO GERAL */}
             <button 
               onClick={() => {
                 setSelectedYear("GERAL");
@@ -378,7 +446,7 @@ export default function DashboardResultados() {
               }} 
               className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedYear === "GERAL" ? "bg-white text-blue-600 shadow-sm" : "text-gray-400"}`}
             >
-              Geral
+              Acumulado [Anos]
             </button>
             {availableYears.map(ano => (
               <button 
@@ -399,7 +467,7 @@ export default function DashboardResultados() {
               onClick={() => setSelectedMonthCategory("GERAL")} 
               className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${selectedMonthCategory === "GERAL" ? "bg-white text-blue-600 shadow-sm" : "text-gray-400"}`}
             >
-              {selectedYear === "GERAL" ? "Acumulado Total" : "Geral do Ano"}
+              {selectedYear === "GERAL" ? "Acumulado Total" : "Acumulado [Meses]"}
             </button>
             {selectedYear !== "GERAL" && availableMonthsForYear.map(mes => (
               <button 
@@ -452,6 +520,7 @@ export default function DashboardResultados() {
         </div>
       </div>
 
+      {/* ROADMAP E FUTURO */}
       <div className="relative py-12">
         <div className="flex items-center gap-6 mb-12">
           <div className="h-px bg-gradient-to-r from-transparent via-blue-100 to-blue-200 flex-1"></div>
@@ -465,52 +534,26 @@ export default function DashboardResultados() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white border border-dashed border-gray-200 p-8 rounded-[2.5rem] flex flex-col gap-4 opacity-60 grayscale hover:grayscale-0 transition-all">
-            <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400"><Microscope size={20} /></div>
-            <h5 className="font-bold text-gray-900 uppercase text-[11px] tracking-widest">Análise Preditiva</h5>
-            <p className="text-xs text-gray-500 leading-relaxed">Algoritmos de IA que antecipam seus gastos fixos e alertam sobre desvios antes do fechamento do mês.</p>
-          </div>
-          <div className="bg-white border border-dashed border-gray-200 p-8 rounded-[2.5rem] flex flex-col gap-4 opacity-60 grayscale hover:grayscale-0 transition-all">
-            <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400"><Target size={20} /></div>
-            <h5 className="font-bold text-gray-900 uppercase text-[11px] tracking-widest">Metas Dinâmicas</h5>
-            <p className="text-xs text-gray-500 leading-relaxed">Defina objetivos de economia e acompanhe em tempo real sua distância para a liberdade financeira.</p>
-          </div>
-          <div className="bg-white border border-dashed border-gray-200 p-8 rounded-[2.5rem] flex flex-col gap-4 opacity-60 grayscale hover:grayscale-0 transition-all">
-            <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400"><Cpu size={20} /></div>
-            <h5 className="font-bold text-gray-900 uppercase text-[11px] tracking-widest">Benchmarking</h5>
-            <p className="text-xs text-gray-500 leading-relaxed">Compare sua eficiência de gastos com a média do mercado e descubra onde você está performando melhor.</p>
-          </div>
+          <FeatureCard icon={<Microscope size={20} />} title="Análise Preditiva" desc="Algoritmos de IA que antecipam seus gastos fixos e alertam sobre desvios." />
+          <FeatureCard icon={<Target size={20} />} title="Metas Dinâmicas" desc="Defina objetivos de economia e acompanhe sua distância para a liberdade." />
+          <FeatureCard icon={<Cpu size={20} />} title="Benchmarking" desc="Compare sua eficiência de gastos com a média do mercado." />
+          
           <div className="bg-blue-50/50 border border-blue-100 p-8 rounded-[2.5rem] flex flex-col gap-4 transition-all hover:shadow-xl hover:shadow-blue-100/50">
             <div className="flex justify-between items-start">
-              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white">
-                <UserCheck size={20} />
-              </div>
-              <span className="bg-blue-600 text-white text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1">
-                <Crown size={10} /> PRO
-              </span>
+              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white"><UserCheck size={20} /></div>
+              <span className="bg-blue-600 text-white text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1"><Crown size={10} /> PRO</span>
             </div>
-            <h5 className="font-bold text-gray-900 uppercase text-[11px] tracking-widest">
-              Consultoria
-            </h5>
-            <p className="text-xs text-blue-700/70 font-medium leading-relaxed">
-              Análise técnica do seu relatório individual para oferecer uma visão profunda do seu perfil financeiro.
-            </p>
-            <a 
-              href="/consultoria" 
-              className="mt-2 w-full py-3 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center justify-center shadow-lg shadow-blue-600/20 active:scale-[0.98] text-center"
-            >
-              Solicitar Consultoria
-            </a>
+            <h5 className="font-bold text-gray-900 uppercase text-[11px] tracking-widest">Consultoria</h5>
+            <p className="text-xs text-blue-700/70 font-medium leading-relaxed">Análise técnica do seu relatório individual para oferecer uma visão profunda.</p>
+            <a href="/consultoria" className="mt-2 w-full py-3 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center justify-center shadow-lg shadow-blue-600/20 text-center">Solicitar Consultoria</a>
           </div>
         </div>
       </div>
 
-      {/* NOVA SEÇÃO DE MELHORIA DE PRODUTO */}
+      {/* FEEDBACK */}
       <div className="mt-12">
         <div className="flex items-center gap-4 mb-8">
-          <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
-            Personalização & Evolução
-          </h3>
+          <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Personalização & Evolução</h3>
           <div className="h-px bg-gray-200 flex-1"></div>
         </div>
         
@@ -518,23 +561,14 @@ export default function DashboardResultados() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="max-w-xl">
               <h4 className="text-2xl font-black text-gray-900 mb-4 tracking-tight">Sua visão personalizada.</h4>
-              <p className="text-gray-500 text-sm leading-relaxed font-medium">
-                Precisa de uma análise específica que ainda não encontrou aqui? Queremos ouvir você. Solicite novas visões ou relatórios customizados que atendam à sua necessidade e contribua para a evolução do nosso produto.
-              </p>
+              <p className="text-gray-500 text-sm leading-relaxed font-medium">Precisa de uma análise específica? Queremos ouvir você. Solicite novas visões ou relatórios customizados.</p>
             </div>
             <div className="flex flex-col items-center md:items-end gap-3 min-w-[280px]">
               <div className="bg-blue-50 px-6 py-4 rounded-2xl border border-blue-100 w-full">
                 <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">Enviar sugestão para:</p>
-                <p className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                  <Mail size={16} className="text-blue-500" /> contato@nucleobase.app
-                </p>
+                <p className="text-sm font-bold text-gray-900 flex items-center gap-2"><Mail size={16} className="text-blue-500" /> contato@nucleobase.app</p>
               </div>
-              <a 
-                href="mailto:contato@nucleobase.app" 
-                className="w-full py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2"
-              >
-                Solicitar Melhoria <Send size={14} />
-              </a>
+              <a href="mailto:contato@nucleobase.app" className="w-full py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2">Solicitar Melhoria <Send size={14} /></a>
             </div>
           </div>
         </div>
@@ -554,6 +588,16 @@ function SummaryCard({ title, value, trend, isPositive, isNegative, icon }: any)
           {trend}
         </div>
       </div>
+    </div>
+  );
+}
+
+function FeatureCard({ icon, title, desc }: any) {
+  return (
+    <div className="bg-white border border-dashed border-gray-200 p-8 rounded-[2.5rem] flex flex-col gap-4 opacity-60 grayscale hover:grayscale-0 transition-all">
+      <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400">{icon}</div>
+      <h5 className="font-bold text-gray-900 uppercase text-[11px] tracking-widest">{title}</h5>
+      <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
     </div>
   );
 }

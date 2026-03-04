@@ -213,7 +213,7 @@ export default function AcessoUsuarioPage() {
                         <Lock size={14} /> 100% Privado
                     </div>
                     <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90">
-                        <Shield size={14} /> Segurança Bancária SSL
+                        <Shield size={14} /> Segurança SSL
                     </div>
                   </div>
 
@@ -246,7 +246,7 @@ export default function AcessoUsuarioPage() {
                         <Lock size={14} className="text-orange-500" /> 100% Privado
                     </div>
                     <div className="flex items-center gap-2 text-[13px] text-gray-400 font-bold">
-                        <Shield size={14} className="text-orange-500" /> Segurança Bancária SSL
+                        <Shield size={14} className="text-orange-500" /> Segurança SSL
                     </div>
                   </div>
 
@@ -326,7 +326,7 @@ export default function AcessoUsuarioPage() {
                         <TrendingUp size={14} className="text-blue-500" /> Dashboards Interativos
                     </div>
                     <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-blue-600 transition-colors">
-                        <Sparkles size={14} className="text-blue-500" /> Insights de IA Nucleo
+                        <Sparkles size={14} className="text-blue-500" /> Insights Nucleo IA
                     </div>
                     <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-blue-600 transition-colors">
                         <FileSpreadsheet size={14} className="text-blue-500" /> Relatórios Analíticos
