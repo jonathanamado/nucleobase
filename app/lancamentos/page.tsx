@@ -189,7 +189,7 @@ export default function LancamentosPage() {
       </div>
 
       <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
-        Formulário de Entrada (Lançamento manual) <div className="h-px bg-gray-200 flex-1"></div>
+        Formulário de Entrada (Lançamento manual em 3 etapas) <div className="h-px bg-gray-200 flex-1"></div>
       </h3>
 
       {sucesso && (
@@ -355,7 +355,7 @@ export default function LancamentosPage() {
                   {!isReceita && formData.tipo_origem === "CARTAO" && (
                    <div className="p-4 bg-orange-500/10 rounded-xl border border-orange-500/20">
                      <div className="flex justify-between items-center mb-3">
-                       <span className="text-[10px] text-orange-400 font-bold uppercase">Parcelar?</span>
+                       <span className="text-[10px] text-orange-400 font-bold uppercase">Informe o nº de Parcelas e o Mês do 1º pagamento</span>
                        <input type="checkbox" checked={formData.parcelado} onChange={(e) => setFormData({...formData, parcelado: e.target.checked})} />
                      </div>
                      {formData.parcelado && (
@@ -392,7 +392,7 @@ export default function LancamentosPage() {
               <div>
                 <h4 className="text-lg font-bold tracking-tight mb-1">Dados atualizados com sucesso!</h4>
                 <p className="text-blue-100 text-sm font-medium opacity-90">
-                  Seus novos lançamentos já foram processados. Deseja visualizar sua análise completa?
+                  Seus lançamentos são processados em tempo real. Navegue pelo Painel de Resultados e faça sua gestão online.
                 </p>
               </div>
             </div>
