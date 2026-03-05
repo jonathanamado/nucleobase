@@ -147,44 +147,49 @@ export default function LancamentosPage() {
   return (
     <div className="w-full min-h-screen animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 lg:px-8 pt-0 mt-0 max-w-[1600px] mx-auto">
       
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mb-4 mt-0 pt-4">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mb-12 mt-0 pt-4">
         <div className="flex-1">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center flex-wrap">
-            <span>Lançamentos<span className="text-orange-500">.</span></span>
+            <span>Lançamentos facilitados<span className="text-orange-500">.</span></span>
             <Activity size={40} className="text-orange-500 skew-x-12 opacity-20 ml-4 hidden sm:block" strokeWidth={1.5} />
           </h1>
-          <h2 className="text-gray-500 text-lg md:text-xl font-medium max-w-2xl leading-relaxed mt-1">
-            Alimente sua base de dados com precisão.
+          <h2 className="text-gray-500 text-lg md:text-base font-medium max-w-2xl leading-relaxed mt-5">
+            Realize lançamentos por tela ou importação (múltiplos registros).
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full xl:w-[45%]">
-          <Link href="/lancamentos/importar" className="flex flex-col items-center text-center bg-gray-50 border border-gray-200 rounded-2xl py-4 px-4 hover:bg-orange-50 hover:border-orange-200 transition-all group shadow-sm"> 
-            <span className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 mb-2 group-hover:text-orange-500 transition-colors">Upload Arquivo XLS</span>
-            <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
-                <span className="text-[10px] font-bold text-gray-500">Importação Dinâmica</span>
-            </div>
-          </Link>
-          <Link href="/lancamentos/integrar" className="flex flex-col items-center text-center bg-gray-50 border border-gray-200 rounded-2xl py-4 px-4 hover:bg-emerald-50 hover:border-emerald-200 transition-all group shadow-sm"> 
-            <span className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 mb-2 group-hover:text-emerald-500 transition-colors">Integração API</span>
-            <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span className="text-[10px] font-bold text-gray-500">Automação Integrada</span>
-            </div>
-          </Link>
+        {/* Ajustado para xl:w-[41.66%] para alinhar com a largura da coluna de classificação (5/12) */}
+        <div className="flex flex-col gap-4 w-full xl:w-[41.66%]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Link href="/lancamentos/importar" className="relative flex flex-col items-center text-center bg-orange-50/30 border-2 border-orange-200 rounded-2xl py-4 px-4 hover:bg-orange-50 hover:border-orange-300 transition-all group shadow-sm"> 
+              <div className="absolute -top-2 -right-2 bg-orange-500 text-white text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-tighter shadow-sm animate-bounce">Recomendado</div>
+              <span className="text-[11px] font-black uppercase tracking-[0.15em] text-orange-600 mb-2 transition-colors">Upload Arquivo XLS</span>
+              <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
+                  <span className="text-[10px] font-bold text-gray-500">Importação Dinâmica</span>
+              </div>
+            </Link>
+            <Link href="/lancamentos/integrar" className="relative flex flex-col items-center text-center bg-gray-50 border border-gray-200 rounded-2xl py-4 px-4 hover:bg-emerald-50 hover:border-emerald-200 transition-all group shadow-sm"> 
+              <div className="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-tighter shadow-sm">Em desenvolvimento</div>
+              <span className="text-[11px] font-black uppercase tracking-[0.15em] text-gray-400 mb-2 group-hover:text-emerald-500 transition-colors">Automação Cloud</span>
+              <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span className="text-[10px] font-bold text-gray-500">Integração contínua</span>
+              </div>
+            </Link>
+          </div>
+          
+          <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl">
+            <Zap size={14} className="text-orange-500 fill-orange-500" />
+            <p className="text-[12px] font-bold text-gray-500 leading-tight">
+              A importação via arquivo é a solução <span className="text-orange-600">mais rápida</span> no seu processo de múltiplos lançamentos.
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* DICA DE NAVEGAÇÃO: Explicação clara para o usuário */}
-      <div className="flex flex-wrap items-center gap-4 mb-10">
-        <Link href="/resultados" className="flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-100 hover:bg-blue-600 hover:text-white transition-all group">
-          <BarChart3 size={14} /> Analisar Resultados <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
-        </Link>
-      </div>
-
       <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
-        Formulário de Entrada <div className="h-px bg-gray-200 flex-1"></div>
+        Formulário de Entrada (Lançamento manual) <div className="h-px bg-gray-200 flex-1"></div>
       </h3>
 
       {sucesso && (

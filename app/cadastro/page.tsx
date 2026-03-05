@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { ShieldCheck, Zap, Star, CheckCircle2, Globe, Eye, EyeOff, UserCircle, AlertTriangle } from "lucide-react";
+import { ShieldCheck, Zap, Star, CheckCircle2, Globe, Eye, EyeOff, UserCircle, AlertTriangle, Gift } from "lucide-react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,7 +17,6 @@ export default function CadastroPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
-  // Estados para a advertência condicional
   const [showWarning, setShowWarning] = useState(false);
   const [cienteSemEmail, setCienteSemEmail] = useState(false);
 
@@ -48,11 +47,10 @@ export default function CadastroPage() {
   const handleCadastro = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // LOGICA DE ADVERTÊNCIA: Só aparece se o e-mail estiver em branco
     if (!email.trim()) {
       if (!showWarning) {
         setShowWarning(true);
-        return; // Para a execução para o usuário ver o aviso e marcar o checkbox
+        return;
       }
       if (!cienteSemEmail) {
         alert("Por favor, aceite os termos de ciência para prosseguir sem e-mail.");
@@ -63,7 +61,6 @@ export default function CadastroPage() {
     setLoading(true);
     const slugFinal = formatarSlug(slugDesejado);
 
-    // 1. Verificar disponibilidade do slug
     const { data: slugExistente } = await supabase
       .from('profiles')
       .select('slug')
@@ -76,11 +73,8 @@ export default function CadastroPage() {
       return;
     }
 
-    // 2. DEFINIÇÃO DO E-MAIL DE ACESSO (O ponto principal do seu ajuste)
-    // Se o usuário preencheu o e-mail, usa o dele. Caso contrário, gera o @nucleobase.app
     const emailParaAuth = email.trim() ? email.trim() : `${slugFinal}@nucleobase.app`;
 
-    // 3. Criar o usuário no Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: emailParaAuth,
       password,
@@ -94,12 +88,11 @@ export default function CadastroPage() {
     }
 
     if (authData.user) {
-      // 4. Salvar na tabela profiles
       await supabase.from('profiles').insert([
         { 
           id: authData.user.id, 
-          email: emailParaAuth, // E-mail usado no login
-          email_contato: email.trim() || null, // E-mail real (se houver) para notificações
+          email: emailParaAuth, 
+          email_contato: email.trim() || null, 
           nome_completo: nome || "Anônimo", 
           plan_type: 'free',
           slug: slugFinal 
@@ -124,7 +117,7 @@ export default function CadastroPage() {
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-white font-sans">
       
-      {/* LADO ESQUERDO: BRANDING (Mantido original) */}
+      {/* LADO ESQUERDO: BRANDING */}
       <div className="w-full lg:w-1/2 bg-gray-900 p-8 lg:p-12 flex flex-col justify-start relative border-r border-white/5">
         <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
             <Globe size={400} className="absolute -bottom-20 -left-20 text-blue-500" />
@@ -143,7 +136,7 @@ export default function CadastroPage() {
               {[
                   { icon: <ShieldCheck size={20} className="text-emerald-500" />, text: "Segurança de dados nível bancário" },
                   { icon: <Zap size={20} className="text-blue-500" />, text: "Interface ultra-rápida e intuitiva" },
-                  { icon: <CheckCircle2 size={20} className="text-blue-500" />, text: "Relatórios gerados em tempo real" }
+                  { icon: <CheckCircle2 size={20} className="text-blue-500" />, text: "Degustação total por 90 dias" }
               ].map((item, i) => (
                   <div key={i} className="flex items-center gap-4 text-white/80 font-medium text-sm">
                       <div className="p-2 bg-white/5 rounded-xl">{item.icon}</div>
@@ -180,12 +173,26 @@ export default function CadastroPage() {
       {/* LADO DIREITO: FORMULÁRIO */}
       <div className="flex-1 flex flex-col p-8 lg:px-16 justify-start bg-white">
         <div className="w-full max-w-md mx-auto pt-4 lg:pt-12 pb-12">
-          <div className="mb-8 pt-0 text-left">
+          
+          {/* BANNER DE BOAS-VINDAS / TRIAL */}
+          <div className="mb-10 bg-blue-50/50 border border-blue-100 rounded-[2rem] p-6 flex items-start gap-4 shadow-sm">
+            <div className="bg-blue-600 p-2.5 rounded-xl text-white shadow-md shadow-blue-100 shrink-0">
+              <Gift size={20} />
+            </div>
+            <div>
+              <p className="text-[12px] font-black text-blue-600 uppercase tracking-widest mb-1">Oferta Exclusiva</p>
+              <p className="text-xs text-blue-900 font-semibold leading-relaxed">
+                Você acaba de ganhar <strong>90 dias de acesso total</strong> para experimentar cada detalhe da nossa inteligência financeira. Sem compromisso inicial.
+              </p>
+            </div>
+          </div>
+
+          <div className="mb-8 text-left">
             <h2 className="text-3xl font-bold text-gray-900 mb-1 tracking-tight">
-              Crie sua conta gratuitamente para testar e conhecer as vantagens de sua digitalização<span className="text-blue-600">.</span>
+              Crie sua conta para iniciar o seu <span className="text-blue-600 font-black">controle financeiro pessoal ou profissional.</span>
             </h2>
             <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em]">
-              Inicie sua gestão estratégica hoje ainda.
+              Explore o poder da digitalização financeira hoje.
             </p>
           </div>
 
@@ -200,7 +207,7 @@ export default function CadastroPage() {
                   type="text" 
                   placeholder="Exemplo: joao-silva" 
                   required 
-                  className="w-full px-6 py-4 bg-blue-50/50 border-2 border-blue-100 rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-400 transition-all text-sm pr-12" 
+                  className="w-full px-6 py-4 bg-blue-50/30 border-2 border-blue-50 rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-400 transition-all text-sm pr-12 font-medium" 
                   onChange={(e) => setSlugDesejado(e.target.value)} 
                 />
                 <UserCircle className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-300" size={20} />
@@ -227,12 +234,12 @@ export default function CadastroPage() {
                 className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium" 
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  if (e.target.value.trim()) setShowWarning(false); // Esconde o aviso se o usuário começar a digitar
+                  if (e.target.value.trim()) setShowWarning(false);
                 }} 
               />
             </div>
 
-            {/* ADVERTÊNCIA CONDICIONAL: Aparece apenas no "Finalizar" se e-mail estiver vazio */}
+            {/* ADVERTÊNCIA CONDICIONAL */}
             {showWarning && !email.trim() && (
               <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 animate-in fade-in zoom-in-95 duration-200">
                 <div className="flex gap-3">
@@ -283,10 +290,10 @@ export default function CadastroPage() {
               className="w-full bg-gray-900 text-white py-5 rounded-2xl hover:bg-black transition-all font-bold text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-gray-200 disabled:bg-gray-400 mt-2 flex items-center justify-center gap-3 group"
             >
               {loading ? (
-                <span className="animate-pulse">Sincronizando...</span>
+                <span className="animate-pulse">Sincronizando sua conta...</span>
               ) : (
                 <>
-                  Finalizar Cadastro 
+                  Começar meu teste de 90 dias 
                   <CheckCircle2 size={18} className="text-blue-500 group-hover:scale-110 transition-transform" />
                 </>
               )}

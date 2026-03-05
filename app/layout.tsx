@@ -5,10 +5,11 @@ import "./globals.css";
 import { MessageCircle, LayoutDashboard, Undo2 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
+import CookieNotice from "@/components/CookieNotice"; 
 import { usePathname } from "next/navigation";
 import Script from "next/script";
+import Link from "next/link";
 
-// Tipagem global para evitar erros de compilação ao usar o dataLayer no projeto
 declare global {
   interface Window {
     dataLayer: any[];
@@ -53,7 +54,6 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
-        {/* Inicialização segura do dataLayer antes do script do GTM */}
         <Script id="gtm-datalayer-init" strategy="beforeInteractive">
           {`window.dataLayer = window.dataLayer || [];`}
         </Script>
@@ -116,7 +116,7 @@ export default function RootLayout({
               </div>
             )}
 
-            <footer className="mt-12 mb-10 flex justify-center w-full">
+            <footer className="mt-12 mb-10 flex flex-col items-center gap-4 w-full">
               <div className="inline-flex px-6 py-3 bg-white/50 rounded-2xl md:rounded-full border border-gray-100 shadow-sm">
                 <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] flex flex-wrap items-center justify-center gap-x-2 gap-y-1 md:whitespace-nowrap text-center">
                   <span>© {new Date().getFullYear()} Nucleobase</span>
@@ -124,11 +124,22 @@ export default function RootLayout({
                   <span>Todos os direitos reservados</span>
                 </p>
               </div>
+              
+              <Link 
+                href="/politica-de-cookies" 
+                className="text-[8px] font-black uppercase tracking-[0.3em] text-gray-300 hover:text-blue-500 transition-colors"
+              >
+                Política de Cookies & Privacidade
+              </Link>
             </footer>
           </section>
         </main>
         
-        <WhatsAppFloating />
+        {/* Renderização dos elementos flutuantes */}
+        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+          <CookieNotice />
+          <WhatsAppFloating />
+        </div>
       </body>
     </html>
   );

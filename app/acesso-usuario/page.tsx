@@ -136,9 +136,9 @@ export default function AcessoUsuarioPage() {
   return (
     <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
       
-      {/* Cabeçalho com Desenho do Dashboard */}
-      <div className="mb-6 mt-2 flex justify-between items-start p-0 w-full">
-        <div className="text-left w-full">
+      {/* Cabeçalho Ajustado */}
+      <div className="mb-10 mt-2 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
+        <div className="lg:col-span-8 text-left">
           <h1 className="text-5xl font-bold text-gray-900 mb-2 tracking-tight flex items-center">
             <span>
               {isLoggedIn ? `Olá, ${userName}!` : "Área do Usuário"}
@@ -160,97 +160,26 @@ export default function AcessoUsuarioPage() {
             {isLoggedIn ? (
               <>
                 Seu plano atual é o <span className="text-blue-600 uppercase tracking-tighter">{userPlan}</span>. Substitua o controle manual pela inteligência da Nucleo para obter total visibilidade 
-                e resultados fantásticos na gestão das suas finanças.
+                e resultados fantásticos na gestão das suas finanças. Navegue pelo APP para lançar seus registros e visualizar seus resultados.
               </>
             ) : (
-              "Use seu ID de usuário para acessar o APP e gerenciar seus dados."
+              "Nesta área você terá acesso livre para realizar lançamentos e também visualizar seus resultados, analisando grupos e classificações. Use seu ID de usuário para logar e gerenciar os seus dados de maneira exclusiva."
             )}
           </p>
         </div>
 
-        {isLoggedIn && (
-          <button onClick={handleLogout} className="flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-red-500 transition-colors bg-gray-50 px-3 py-2 rounded-xl shrink-0 ml-4">
-            <LogOut size={16} /> Logoff
-          </button>
-        )}
-      </div>
-
-      {/* Linha Divisória */}
-      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4 w-full">
-        Navegação e Acessos <div className="h-px bg-gray-300 flex-1"></div>
-      </h3>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-10">
-        
-        {/* LADO ESQUERDO: MENU DE CARDS PRINCIPAIS */}
-        <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-5 h-full">
-            {/* CARD 1: ACESSO APP */}
-            <div className="min-h-[440px] flex">
-              {isLoggedIn ? (
-                <a 
-                  href="/lancamentos"
-                  className="p-8 rounded-[2.5rem] shadow-lg transition-all border flex flex-col text-left bg-orange-500 border-orange-400 hover:bg-orange-600 group w-full h-full relative overflow-hidden"
-                >
-                  <div className="p-3 rounded-2xl mb-4 w-fit bg-white/20 text-white group-hover:scale-110 transition-transform">
-                    <Rocket size={28} />
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-3">Acesso APP</h3>
-                  <p className="text-orange-50 text-[16px] leading-relaxed mb-6 font-medium">
-                    Realize lançamentos manuais, importações via arquivo ou integração D-1 de suas contas e cartões:
-                  </p>
-                  
-                  <div className="flex flex-col gap-2 mb-6 text-left">
-                    <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90">
-                        <Database size={14} /> Integração D-1
-                    </div>
-                    <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90">
-                        <PlusCircle size={14} /> Lançamento Manual
-                    </div>
-                    <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90">
-                        <Upload size={14} /> Importação CSV/OFX
-                    </div>
-                    <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90">
-                        <Lock size={14} /> 100% Privado
-                    </div>
-                    <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90">
-                        <Shield size={14} /> Segurança SSL
-                    </div>
-                  </div>
-
-                  <div className="mt-auto flex items-center justify-center gap-2 bg-white text-orange-500 h-[56px] rounded-2xl font-bold shadow-md text-sm group-hover:shadow-xl transition-all">
-                    Entrar no Sistema <ArrowRight size={16} />
-                  </div>
-                </a>
-              ) : (
-                <div className="group p-8 rounded-[2.5rem] shadow-md transition-all border flex flex-col text-left bg-white border-gray-100 w-full h-full">
-                  <div className="bg-orange-50 p-3 rounded-2xl mb-4 w-fit text-orange-500 group-hover:bg-orange-100 transition-all duration-300">
-                    <Rocket size={28} />
-                  </div>
-                  
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">Acesso APP</h3>
-                  <p className="text-gray-500 text-[15px] leading-relaxed mb-6 font-medium">
-                    Realize lançamentos manuais, importações via arquivo ou integração D-1 de suas contas e cartões:
-                  </p>
-
-                  <div className="flex flex-col gap-2 mb-8 text-left">
-                    <div className="flex items-center gap-2 text-[13px] text-gray-400 font-bold">
-                        <Database size={14} className="text-orange-500" /> Integração D-1
-                    </div>
-                    <div className="flex items-center gap-2 text-[13px] text-gray-400 font-bold">
-                        <PlusCircle size={14} className="text-orange-500" /> Lançamento Manual
-                    </div>
-                    <div className="flex items-center gap-2 text-[13px] text-gray-400 font-bold">
-                        <Upload size={14} className="text-orange-500" /> Importação CSV/OFX
-                    </div>
-                    <div className="flex items-center gap-2 text-[13px] text-gray-400 font-bold">
-                        <Lock size={14} className="text-orange-500" /> 100% Privado
-                    </div>
-                    <div className="flex items-center gap-2 text-[13px] text-gray-400 font-bold">
-                        <Shield size={14} className="text-orange-500" /> Segurança SSL
-                    </div>
-                  </div>
-
-                  <form onSubmit={handleLogin} className="flex flex-col gap-2 mt-auto">
+        <div className="lg:col-span-4 flex flex-col items-end">
+          {isLoggedIn ? (
+            <button onClick={handleLogout} className="flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-red-500 transition-colors bg-gray-50 px-3 py-2 rounded-xl shrink-0">
+              <LogOut size={16} /> Logoff
+            </button>
+          ) : (
+            /* FORM DE LOGIN NA NOVA POSIÇÃO */
+            <div className="w-full bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
+                <h2 className="text-lg font-bold text-gray-900 mb-4 px-1">
+                  Realizar login<span className="text-orange-500">.</span>
+                </h2>
+                <form onSubmit={handleLogin} className="flex flex-col gap-2">
                     <div className="space-y-2">
                       <input 
                         type="text" 
@@ -289,23 +218,107 @@ export default function AcessoUsuarioPage() {
 
                     <button 
                       disabled={loading}
-                      className="w-full bg-orange-500 text-white h-[52px] rounded-xl font-bold hover:bg-orange-600 transition shadow-lg text-xs disabled:opacity-50 mt-2"
+                      className="w-full bg-orange-500 text-white h-[48px] rounded-xl font-bold hover:bg-orange-600 transition shadow-lg text-xs disabled:opacity-50 mt-1"
                     >
                       {loading ? "Verificando..." : "Acessar Plataforma"}
                     </button>
-                  </form>
+                </form>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Linha Divisória */}
+      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4 w-full">
+        Navegação e Acessos <div className="h-px bg-gray-300 flex-1"></div>
+      </h3>
+
+      {/* Grid de Cards Padronizados */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-10">
+        
+        {/* LADO ESQUERDO: DOIS CARDS (Acesso e Resultados) */}
+        <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* CARD 1: ACESSO APP */}
+            <div className="min-h-[480px] flex">
+              {isLoggedIn ? (
+                <a 
+                  href="/lancamentos"
+                  className="p-8 rounded-[2.5rem] shadow-lg transition-all border flex flex-col text-left bg-orange-500 border-orange-400 hover:bg-orange-600 group w-full h-full relative overflow-hidden"
+                >
+                  <div className="p-3 rounded-2xl mb-4 w-fit bg-white/20 text-white group-hover:scale-110 transition-transform">
+                    <Rocket size={28} />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-3">Acesso APP</h3>
+                  <p className="text-orange-50 text-[16px] leading-relaxed mb-6 font-medium">
+                    Realize lançamentos manuais, importações via arquivo ou integração D-1 de suas contas e cartões:
+                  </p>
+                  
+                  <div className="flex flex-col gap-2 mb-6 text-left">
+                    <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90">
+                        <Database size={14} /> Integração D-1
+                    </div>
+                    <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90">
+                        <PlusCircle size={14} /> Lançamento Manual
+                    </div>
+                    <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90">
+                        <Upload size={14} /> Importação XLS
+                    </div>
+                    <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90">
+                        <Lock size={14} /> 100% Privado
+                    </div>
+                    <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90">
+                        <Shield size={14} /> Segurança SSL
+                    </div>
+                  </div>
+
+                  <div className="mt-auto flex items-center justify-center gap-2 bg-white text-orange-500 h-[56px] rounded-2xl font-bold shadow-md text-sm group-hover:shadow-xl transition-all">
+                    Entrar no Sistema <ArrowRight size={16} />
+                  </div>
+                </a>
+              ) : (
+                <div className="group p-8 rounded-[2.5rem] shadow-md transition-all border flex flex-col text-left bg-white border-gray-100 w-full h-full">
+                  <div className="bg-orange-50 p-3 rounded-2xl mb-4 w-fit text-orange-500 group-hover:bg-orange-100 transition-all duration-300">
+                    <Rocket size={28} />
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">Acesso APP</h3>
+                  <p className="text-gray-500 text-[15px] leading-relaxed mb-6 font-medium">
+                    Realize lançamentos manuais, importações via arquivo ou integração D-1 de suas contas e cartões:
+                  </p>
+
+                  <div className="flex flex-col gap-2 mb-8 text-left">
+                    <div className="flex items-center gap-2 text-[13px] text-gray-400 font-bold">
+                        <Database size={14} className="text-orange-500" /> Integração D-1
+                    </div>
+                    <div className="flex items-center gap-2 text-[13px] text-gray-400 font-bold">
+                        <PlusCircle size={14} className="text-orange-500" /> Lançamento Manual
+                    </div>
+                    <div className="flex items-center gap-2 text-[13px] text-gray-400 font-bold">
+                        <Upload size={14} className="text-orange-500" /> Importação XLS
+                    </div>
+                    <div className="flex items-center gap-2 text-[13px] text-gray-400 font-bold">
+                        <Lock size={14} className="text-orange-500" /> 100% Privado
+                    </div>
+                    <div className="flex items-center gap-2 text-[13px] text-gray-400 font-bold">
+                        <Shield size={14} className="text-orange-500" /> Segurança SSL
+                    </div>
+                  </div>
+                  
+                  <div className="mt-auto bg-gray-50 p-4 rounded-2xl border border-dashed border-gray-200">
+                    <p className="text-[11px] text-gray-400 font-bold text-center uppercase tracking-widest">Realize o Login pelo formulário acima para acessar o APP</p>
+                  </div>
                 </div>
               )}
             </div>
 
             {/* CARD 2: RESULTADOS (DASHBOARD) */}
-            <div className="min-h-[440px] flex">
+            <div className="min-h-[480px] flex">
               <a 
                 href="/resultados" 
                 className="group bg-white p-8 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-gray-100 flex flex-col text-left w-full h-full relative overflow-hidden"
               >
-                <div className="absolute top-6 right-6 bg-blue-600 text-white text-[9px] font-black px-2 py-1 rounded-full uppercase tracking-tighter animate-pulse">
-                  Premium
+                <div className="absolute top-6 right-6 bg-blue-600 text-white text-[9px] font-black px-2 py-1 rounded-full uppercase tracking-tighter animate-pulse text-center">
+                  Visualização <br /> realtime 
                 </div>
 
                 <div className="bg-blue-50 p-4 rounded-2xl mb-4 w-fit text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm">
@@ -346,17 +359,17 @@ export default function AcessoUsuarioPage() {
             </div>
         </div>
 
-        {/* LADO DIREITO: BANNER DE OFERTA / TRIAL */}
-        <div className="lg:col-span-4 space-y-5">
-            <div className="bg-blue-600 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl shadow-blue-100 min-h-[440px] flex flex-col">
+        {/* LADO DIREITO: BANNER 90 DIAS */}
+        <div className="lg:col-span-4 min-h-[480px] flex">
+            <div className="bg-blue-600 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl shadow-blue-100 w-full h-full flex flex-col">
                 <div className="relative z-10 flex-1 flex flex-col">
                     <div className="flex items-center gap-2 mb-4 bg-white/20 w-fit px-3 py-1.5 rounded-full">
                         <Clock size={14} className="text-blue-200" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">14 Dias Liberados</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest">90 Dias de Experiência</span>
                     </div>
                     
                     <p className="text-blue-100 text-sm leading-relaxed mb-6 font-medium">
-                      Explore todas as ferramentas sem restrição. Após o trial, escolha seu plano desejado (Essencial x PRO):
+                      Domine suas finanças com tempo de sobra. Explore todas as funções livremente por 3 meses e decida seu plano depois:
                     </p>
 
                     <div className="space-y-4 mb-8">
@@ -367,7 +380,7 @@ export default function AcessoUsuarioPage() {
                               </div>
                               <div className="flex flex-col">
                                   <span className="text-[11px] font-black uppercase tracking-tight">Plano Essencial</span>
-                                  <span className="text-xs text-blue-200">R$ 9,90/mês • Controle prático</span>
+                                  <span className="text-xs text-blue-200">R$ 9,90/mês • Após o período livre</span>
                               </div>
                           </div>
                       </a>
@@ -391,34 +404,17 @@ export default function AcessoUsuarioPage() {
                     <div className="mt-auto pt-4 border-t border-white/10">
                         <div className="flex items-start gap-2 mb-4">
                             <CheckCircle2 size={14} className="text-blue-300 shrink-0 mt-0.5" />
-                            <p className="text-[10px] text-blue-100/80 italic font-medium">
-                                Sem fidelidade ou taxas de cancelamento. Upgrade/Downgrade a qualquer momento.
+                            <p className="text-[12px] text-blue-100/80 font-medium">
+                                Acesso sem compromisso. Explore seu "período de teste" com calma, organizando seus lançamentos.
                             </p>
                         </div>
                         <a href="/planos" className="block w-full py-4 bg-white text-blue-600 rounded-2xl font-bold text-[10px] uppercase tracking-widest text-center hover:bg-blue-50 transition-all shadow-lg shadow-blue-900/20">
-                            Ver detalhes e descontos
+                            Saiba mais detalhes clicando aqui
                         </a>
                     </div>
                 </div>
                 <Sparkles size={200} className="absolute -right-20 -bottom-20 text-white/5 -rotate-12 pointer-events-none" />
             </div>
-
-            {/* CARD MEU PERFIL */}
-            <a 
-              href={isLoggedIn ? "/minha-conta" : "/cadastro"} 
-              className="group bg-white p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all border border-gray-100 flex items-center gap-5 w-full"
-            >
-              <div className="bg-gray-50 p-4 rounded-2xl text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all duration-300">
-                <UserCog size={24} />
-              </div>
-              <div className="text-left">
-                <h3 className="text-sm font-bold text-gray-900 mb-0.5">Meu Perfil</h3>
-                <p className="text-gray-400 text-[10px] font-medium leading-relaxed">
-                    {isLoggedIn ? "Gerenciar dados e segurança" : "Criar nova conta gratuita"}
-                </p>
-              </div>
-              <ArrowRight size={16} className="ml-auto text-gray-300 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
-            </a>
         </div>
       </div>
 

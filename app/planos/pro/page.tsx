@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { 
   Gem, CheckCircle2, QrCode, X, Copy, Check, 
   MessageCircle, ArrowLeft, Zap, Shield, RefreshCw,
-  BarChart3, Headphones, Globe, Star
+  BarChart3, Headphones, Globe, Star, Gift
 } from "lucide-react";
 
 export default function PaginaPlanoPro() {
@@ -30,11 +30,16 @@ export default function PaginaPlanoPro() {
     window.open(`https://wa.link/${WHATSAPP_LINK_ID}?text=${message}`, '_blank');
   };
 
-  const CheckoutForm = ({ lookupKey, label, className, description }: { lookupKey: string, label: string, className?: string, description: string }) => (
+  const CheckoutForm = ({ lookupKey, label, className, description, discount }: { lookupKey: string, label: string, className?: string, description: string, discount?: string }) => (
     <form action="/api/stripe" method="POST" className="w-full">
       <input type="hidden" name="lookup_key" value={lookupKey} />
-      <button type="submit" title={description} className={`${className} cursor-pointer transition-transform active:scale-[0.98]`}>
+      <button type="submit" title={description} className={`${className} cursor-pointer transition-transform active:scale-[0.98] flex items-center justify-center gap-2 w-full`}>
         {label}
+        {discount && (
+          <span className="bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-md text-[10px] font-black">
+            {discount}
+          </span>
+        )}
       </button>
     </form>
   );
@@ -129,71 +134,87 @@ export default function PaginaPlanoPro() {
         </div>
 
         {/* LADO DIREITO: CARD DE ASSINATURA PRO */}
-        <div className="lg:col-span-5 sticky top-8">
-          <div className="bg-white border-2 border-amber-500 rounded-[3rem] p-8 shadow-2xl shadow-amber-100 relative overflow-hidden">
-            <div className="absolute top-0 right-0 bg-amber-500 text-white px-6 py-2 rounded-bl-3xl font-black text-[10px] uppercase tracking-tighter">
+        <div className="lg:col-span-5 sticky top-8 flex flex-col">
+          
+          {/* BANNER DEGUSTAÇÃO - AUMENTADO E COM MAIS ESPAÇAMENTO */}
+          <div className="mb-6 bg-amber-50 border border-amber-100 rounded-[2.5rem] p-7 flex items-center gap-5 animate-pulse">
+            <div className="bg-amber-500 p-3 rounded-2xl text-white shadow-md">
+              <Gift size={24} />
+            </div>
+            <div className="space-y-1">
+              <p className="text-[11px] font-black text-amber-600 uppercase tracking-[0.2em]">Oferta de Lançamento</p>
+              <p className="text-sm text-amber-900 font-medium leading-relaxed">
+                Aproveite <strong>3 meses de degustação</strong> antes da assinatura do seu Plano. 
+                <a href="/cadastro" className="ml-2 inline-block align-middle">
+                  <span className="bg-amber-600 text-white px-2 py-1 rounded-md text-[10px] font-black shadow-sm hover:bg-amber-700 transition-colors uppercase tracking-tighter">
+                    Clique aqui.
+                  </span>
+                </a>
+              </p>
+            </div>
+          </div>
+
+          {/* CARD PRINCIPAL - COMPACTADO PARA EQUILIBRAR ALTURA */}
+          <div className="bg-white border-2 border-amber-500 rounded-[2.5rem] p-6 shadow-2xl shadow-amber-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-amber-500 text-white px-5 py-1.5 rounded-bl-2xl font-black text-[9px] uppercase tracking-tighter">
               Melhor Escolha
             </div>
 
-            <div className="text-center mb-8">
-              <span className="bg-slate-900 text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest">Plano Mensal Pro</span>
-              <div className="mt-6">
-                <span className="text-6xl font-black text-gray-900 tracking-tighter">R$ 19,90</span>
-                <span className="text-gray-400 font-bold block mt-2 tracking-widest uppercase text-xs">por mês</span>
+            <div className="text-center mb-6">
+              <span className="bg-slate-900 text-white text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest">Plano Mensal Pro</span>
+              <div className="mt-4">
+                <span className="text-5xl font-black text-gray-900 tracking-tighter">R$ 19,90</span>
+                <span className="text-gray-400 font-bold block mt-1 tracking-widest uppercase text-[10px]">por mês</span>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] text-center mb-2">Ativação Instantânea</p>
+            <div className="space-y-3">
+              <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] text-center mb-1">Ativação Instantânea</p>
               <CheckoutForm 
                 lookupKey="pro_mensal" 
                 label="Assinar Plano Pro Agora" 
                 description="Plano Pro Mensal"
-                className="w-full py-5 bg-amber-500 text-white rounded-2xl font-bold text-sm uppercase tracking-widest hover:bg-amber-600 shadow-lg shadow-amber-200 transition-all"
+                className="w-full py-4 bg-amber-500 text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-amber-600 shadow-lg shadow-amber-200 transition-all"
               />
 
-              <div className="pt-6 border-t border-gray-100">
-                <p className="text-[10px] font-black text-amber-600 uppercase tracking-[0.2em] text-center mb-4">Planos com Desconto Progressivo:</p>
-                <div className="grid grid-cols-1 gap-3">
-                  <div className="flex items-center gap-3">
-                    <CheckoutForm 
-                      lookupKey="pro_trimestral" 
-                      label="Trimestral - R$ 54,90" 
-                      description="Pro Trimestral"
-                      className="flex-1 py-4 bg-slate-50 text-slate-700 rounded-xl font-bold text-xs hover:bg-slate-100 transition-colors border border-slate-100"
-                    />
-                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">-12%</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <CheckoutForm 
-                      lookupKey="pro_semestral" 
-                      label="Semestral - R$ 99,90" 
-                      description="Pro Semestral"
-                      className="flex-1 py-4 bg-slate-50 text-slate-700 rounded-xl font-bold text-xs hover:bg-slate-100 transition-colors border border-slate-100"
-                    />
-                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">-18%</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <CheckoutForm 
-                      lookupKey="pro_anual" 
-                      label="Anual - R$ 189,90" 
-                      description="Pro Anual"
-                      className="flex-1 py-4 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-black transition-colors shadow-md"
-                    />
-                    <span className="text-[10px] font-bold text-white bg-orange-500 px-2 py-1 rounded-md">-25%</span>
-                  </div>
+              <div className="pt-4 border-t border-gray-100">
+                <p className="text-[9px] font-black text-amber-600 uppercase tracking-[0.2em] text-center mb-3">Planos com Desconto:</p>
+                <div className="grid grid-cols-1 gap-2">
+                  <CheckoutForm 
+                    lookupKey="pro_trimestral" 
+                    label="Trimestral - R$ 54,90" 
+                    discount="-12%"
+                    description="Pro Trimestral"
+                    className="py-3 bg-slate-50 text-slate-700 rounded-lg font-bold text-[11px] hover:bg-slate-100 transition-colors border border-slate-100"
+                  />
+                  
+                  <CheckoutForm 
+                    lookupKey="pro_semestral" 
+                    label="Semestral - R$ 99,90" 
+                    discount="-18%"
+                    description="Pro Semestral"
+                    className="py-3 bg-slate-50 text-slate-700 rounded-lg font-bold text-[11px] hover:bg-slate-100 transition-colors border border-slate-100"
+                  />
+                  
+                  <CheckoutForm 
+                    lookupKey="pro_anual" 
+                    label="Anual - R$ 189,90" 
+                    discount="-25%"
+                    description="Pro Anual"
+                    className="py-3 bg-slate-900 text-white rounded-lg font-bold text-[11px] hover:bg-black transition-colors shadow-md"
+                  />
                 </div>
               </div>
 
-              <div className="pt-8">
+              <div className="pt-6">
                 <button 
                   onClick={() => openPixModal("Pro Mensal", "R$ 19,90", "nucleo-qr-pro.png")}
-                  className="w-full p-4 border-2 border-dashed border-amber-100 rounded-2xl flex items-center justify-center gap-3 group hover:border-amber-300 hover:bg-amber-50/30 transition-all"
+                  className="w-full p-3 border-2 border-dashed border-amber-100 rounded-xl flex items-center justify-center gap-3 group hover:border-amber-300 hover:bg-amber-50/30 transition-all"
                 >
-                  <QrCode size={20} className="text-amber-500" />
+                  <QrCode size={18} className="text-amber-500" />
                   <div className="text-left">
-                    <p className="text-[10px] font-black text-gray-900 uppercase">Pagar via PIX</p>
-                    <p className="text-[9px] text-gray-400 font-medium italic">Liberação rápida via suporte</p>
+                    <p className="text-[9px] font-black text-gray-900 uppercase">Pagar via PIX</p>
+                    <p className="text-[8px] text-gray-400 font-medium italic">Liberação via suporte</p>
                   </div>
                 </button>
               </div>

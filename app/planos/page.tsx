@@ -174,7 +174,7 @@ export default function PaginaDePlanos() {
                 </div>
               </div>
               
-              <h3 className="text-4xl font-bold mb-6 tracking-tight">14 Dias de Experiência</h3>
+              <h3 className="text-4xl font-bold mb-6 tracking-tight">90 Dias de Experiência</h3>
               <div className="mt-6 flex flex-col mb-10">
                 <span className="text-5xl font-black text-white tracking-tighter">Grátis</span>
                 <span className="text-blue-200 text-base font-bold uppercase tracking-widest mt-1">Período de Degustação</span>
@@ -202,7 +202,7 @@ export default function PaginaDePlanos() {
 
                 <div className="pt-4 text-center">
                   <p className="text-sm text-blue-200/70 font-medium italic">
-                    Inicie sua jornada para entender o poder da gestão consciente.
+                    Utilize todo o potencial da plataforma para transformar sua gestão financeira.
                   </p>
                 </div>
               </div>
@@ -222,7 +222,7 @@ export default function PaginaDePlanos() {
                       Após o período:
                     </p>
                     <p className="text-center text-blue-100/70 text-[11px] font-medium italic mb-2">
-                      Teste a plataforma sem restrições. Experimente e assine.
+                      Teste a plataforma por 3 meses. Experimente e valide com calma.
                     </p>
                   </div>
                 </div>

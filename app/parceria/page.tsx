@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import Link from "next/link";
 import { 
   Handshake, 
   Target, 
@@ -16,28 +17,31 @@ import {
 export default function ParceirosPage() {
   const frentes = [
     {
-      title: "Consultores & Contadores",
-      desc: "Ofereça a Nucleobase como a ferramenta oficial para seus clientes e tenha um dashboard de controle centralizado.",
-      icon: <BarChart size={24} />,
-      badge: "Estratégico",
-      color: "text-blue-600",
-      bg: "bg-blue-50"
-    },
-    {
       title: "Afiliados Digitais",
       desc: "Divulgue a plataforma em seus canais e receba comissões recorrentes por cada nova assinatura convertida.",
       icon: <Target size={24} />,
       badge: "Performance",
       color: "text-emerald-600",
-      bg: "bg-emerald-50"
+      bg: "bg-emerald-50",
+      link: "/indique"
+    },
+    {
+      title: "Consultores & Contadores",
+      desc: "Ofereça a Nucleobase como a ferramenta oficial para seus clientes e tenha um dashboard de controle centralizado.",
+      icon: <BarChart size={24} />,
+      badge: "Em desenvolvimento",
+      color: "text-gray-400",
+      bg: "bg-gray-50",
+      disabled: true
     },
     {
       title: "Integração & Tech",
       desc: "Conecte seu software à nossa API e crie uma solução financeira embarcada para seus próprios usuários.",
       icon: <Globe size={24} />,
-      badge: "API First",
-      color: "text-purple-600",
-      bg: "bg-purple-50"
+      badge: "Em desenvolvimento",
+      color: "text-gray-400",
+      bg: "bg-gray-50",
+      disabled: true
     }
   ];
 
@@ -81,24 +85,43 @@ export default function ParceirosPage() {
         </div>
       </div>
 
-      {/* RESTANTE DA PÁGINA (SEM ALTERAÇÕES) */}
+      {/* MODELOS DE COLABORAÇÃO */}
       <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
         Modelos de Colaboração <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
         {frentes.map((frente, idx) => (
-          <div key={idx} className="group bg-white p-10 rounded-[3rem] border border-gray-100 hover:border-blue-100 hover:shadow-2xl hover:shadow-blue-500/5 transition-all duration-500 relative overflow-hidden">
-            <div className={`mb-8 w-16 h-16 ${frente.bg} ${frente.color} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
-              {frente.icon}
-            </div>
-            <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mb-4 block">
-              {frente.badge}
-            </span>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4 tracking-tight">{frente.title}</h3>
-            <p className="text-gray-500 text-base leading-relaxed mb-0 font-medium italic">
-              {frente.desc}
-            </p>
+          <div key={idx} className="h-full">
+            {frente.link ? (
+              <Link href={frente.link} className="block h-full group bg-white p-10 rounded-[3rem] border border-gray-100 hover:border-emerald-200 hover:shadow-2xl hover:shadow-emerald-500/5 transition-all duration-500 relative overflow-hidden">
+                <div className={`mb-8 w-16 h-16 ${frente.bg} ${frente.color} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
+                  {frente.icon}
+                </div>
+                <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-4 block">
+                  {frente.badge}
+                </span>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4 tracking-tight flex items-center gap-2">
+                  {frente.title} <ArrowRight size={20} className="text-emerald-500 opacity-0 group-hover:opacity-100 transition-all" />
+                </h3>
+                <p className="text-gray-500 text-base leading-relaxed mb-0 font-medium italic">
+                  {frente.desc}
+                </p>
+              </Link>
+            ) : (
+              <div className="h-full bg-white p-10 rounded-[3rem] border border-gray-100 opacity-80 relative overflow-hidden flex flex-col">
+                <div className={`mb-8 w-16 h-16 ${frente.bg} ${frente.color} rounded-2xl flex items-center justify-center shadow-sm grayscale`}>
+                  {frente.icon}
+                </div>
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 block">
+                  {frente.badge}
+                </span>
+                <h3 className="text-2xl font-bold text-gray-400 mb-4 tracking-tight">{frente.title}</h3>
+                <p className="text-gray-400 text-base leading-relaxed mb-0 font-medium italic">
+                  {frente.desc}
+                </p>
+              </div>
+            )}
           </div>
         ))}
       </div>
