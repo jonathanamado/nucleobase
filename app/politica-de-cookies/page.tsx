@@ -38,12 +38,6 @@ export default function CookiePolicy() {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <button 
-            onClick={() => window.history.back()}
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-white border border-gray-200 text-gray-500 rounded-full hover:border-gray-900 hover:text-gray-900 transition-all font-bold text-[10px] uppercase tracking-widest shadow-sm"
-          >
-            <ArrowLeft size={14} /> Voltar
-          </button>
         </div>
       </div>
 
@@ -54,7 +48,7 @@ export default function CookiePolicy() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
         
         {/* NARRATIVA PRINCIPAL */}
-        <div className="lg:col-span-7 text-gray-700 text-lg leading-[1.8] pr-0 lg:pr-10 flex flex-col">
+        <div className="lg:col-span-7 text-gray-700 text-lg leading-[1.8] pr-0 lg:pr-10 flex flex-col justify-between">
           <div className="space-y-8">
             <p>
               Na <strong>Nucleobase</strong>, a sua segurança é o nosso alicerce. Ao contrário da maioria das plataformas de gestão, 
@@ -78,26 +72,26 @@ export default function CookiePolicy() {
           </div>
         </div>
 
-        {/* SIDEBAR DE ATRIBUTOS TÉCNICOS */}
-        <div className="lg:col-span-5 flex flex-col gap-6">
+        {/* SIDEBAR DE ATRIBUTOS TÉCNICOS - PADRONIZADA */}
+        <div className="lg:col-span-5 flex flex-col gap-4">
           
           {/* CARD DE STATUS CRIPTOGRÁFICO */}
-          <div className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center min-h-[200px]">
+          <div className="flex-1 bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center min-h-[160px]">
             <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
               <Lock size={180} strokeWidth={1} className="text-blue-500" />
             </div>
 
             <div className="relative z-10 w-full">
-              <div className="flex items-center gap-4 mb-4 mt-2">
-                <div className="w-14 h-14 shrink-0 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20">
-                  <Fingerprint size={24} />
+              <div className="flex items-center gap-4 mb-3">
+                <div className="w-12 h-12 shrink-0 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20">
+                  <Fingerprint size={20} />
                 </div>
                 <div>
-                  <p className="text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]">Segurança Base</p>
-                  <h4 className="font-bold text-white text-xl leading-tight">Dados Blindados</h4>
+                  <p className="text-blue-400 text-[9px] font-black uppercase tracking-[0.2em]">Segurança Base</p>
+                  <h4 className="font-bold text-white text-lg leading-tight">Dados Blindados</h4>
                 </div>
               </div>
-              <p className="text-gray-400 text-sm leading-relaxed font-medium">
+              <p className="text-gray-400 text-xs leading-relaxed font-medium">
                 Cookies essenciais que protegem sua sessão contra acessos não autorizados.
               </p>
             </div>
@@ -105,21 +99,21 @@ export default function CookiePolicy() {
 
           {/* LISTA DE COOKIES NECESSÁRIOS */}
           {[
-            { id: "auth_supabase", icon: <ShieldAlert size={24} />, color: "blue", title: "Autenticação", desc: "Mantém seu login seguro e ativo." },
-            { id: "stripe_payment", icon: <Database size={24} />, color: "emerald", title: "Transacional", desc: "Garante a integridade das assinaturas." },
-            { id: "ui_preferences", icon: <Lock size={24} />, color: "purple", title: "Preferências", desc: "Retém suas escolhas de interface." }
+            { id: "auth_supabase", icon: <ShieldAlert size={20} />, color: "blue", title: "Autenticação", desc: "Mantém seu login seguro." },
+            { id: "stripe_payment", icon: <Database size={20} />, color: "emerald", title: "Transacional", desc: "Integridade das assinaturas." },
+            { id: "ui_preferences", icon: <Lock size={20} />, color: "purple", title: "Preferências", desc: "Retém suas escolhas de UI." }
           ].map((item, idx) => (
             <div 
               key={idx} 
               onMouseEnter={() => window.dataLayer?.push({ event: "hover_cookie_type", cookie_id: item.id })}
-              className="bg-white border border-gray-100 p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all group flex items-center gap-6"
+              className="flex-1 bg-white border border-gray-100 px-8 py-4 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all group flex items-center gap-6 min-h-[90px]"
             >
-              <div className={`w-14 h-14 shrink-0 bg-${item.color}-50 text-${item.color}-600 rounded-2xl flex items-center justify-center group-hover:bg-${item.color}-600 group-hover:text-white transition-all duration-500 shadow-sm`}>
+              <div className={`w-12 h-12 shrink-0 bg-${item.color}-50 text-${item.color}-600 rounded-2xl flex items-center justify-center group-hover:bg-${item.color}-600 group-hover:text-white transition-all duration-500 shadow-sm`}>
                 {item.icon}
               </div>
               <div>
-                <h4 className="font-black text-gray-900 text-lg mb-1 tracking-tight">{item.title}</h4>
-                <p className="text-[13px] text-gray-500 leading-relaxed font-medium">{item.desc}</p>
+                <h4 className="font-black text-gray-900 text-base mb-0 tracking-tight">{item.title}</h4>
+                <p className="text-[12px] text-gray-500 leading-tight font-medium">{item.desc}</p>
               </div>
             </div>
           ))}

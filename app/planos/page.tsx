@@ -154,7 +154,7 @@ export default function PaginaDePlanos() {
             <TrendingUp size={24} />
           </div>
           <p className="text-base text-gray-700 font-medium">
-            Incentivamos sua disciplina de longo prazo: garanta até <span className="text-blue-600 font-bold underline decoration-blue-200 underline-offset-4">24% de economia</span> nos ciclos estendidos.
+            Incentivamos disciplina de longo prazo: garanta até <span className="text-blue-600 font-bold underline decoration-blue-200 underline-offset-4">24% de economia</span> nos ciclos estendidos. Reforçamos antes sua opção em <span className="text-blue-600 font-bold underline decoration-blue-200 underline-offset-4">degustar da Plataforma por 90 dias</span>, pois não temos pressa e garantimos sua satisfação ofertando este benefício. Viemos pra ficar e pra ressignificar o seu conhecimento pelo seu próprio dinheiro<span className="text-blue-600 font-bold underline decoration-blue-200 underline-offset-4">.</span>
           </p>
         </div>
       </div>

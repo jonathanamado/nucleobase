@@ -54,22 +54,21 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
+        {/* Inicialização do DataLayer - Estratégia beforeInteractive para garantir disponibilidade imediata */}
         <Script id="gtm-datalayer-init" strategy="beforeInteractive">
           {`window.dataLayer = window.dataLayer || [];`}
         </Script>
         
-        <Script id="google-tag-manager" strategy="afterInteractive">
-          {`
-            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-            })(window,document,'script','dataLayer','GTM-NS5KWXFL');
-          `}
-        </Script>
+        {/* Google Tag Manager - Carregamento otimizado via SRC nativo do Next.js */}
+        <Script
+          id="google-tag-manager"
+          strategy="afterInteractive"
+          src="https://www.googletagmanager.com/gtm.js?id=GTM-NS5KWXFL"
+        />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen flex flex-col overflow-x-hidden max-w-full`}>
         
+        {/* Noscript como fallback de segurança */}
         <noscript>
           <iframe 
             src="https://www.googletagmanager.com/ns.html?id=GTM-NS5KWXFL"

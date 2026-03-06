@@ -30,36 +30,39 @@ export default function CookieNotice() {
         onMouseEnter={() => setIsExpanded(true)}
       >
         
-        {/* CONTEXTO EXPLICATIVO (Fixado após o primeiro hover) */}
+        {/* CONTEXTO EXPLICATIVO */}
         <div 
           className={`
             absolute bottom-full right-0 mb-4 w-72 p-6 bg-white border border-gray-100 rounded-[2.5rem] shadow-2xl 
-            transition-all duration-500 
+            transition-all duration-500 overflow-hidden
             ${isExpanded 
               ? "opacity-100 translate-y-0 pointer-events-auto" 
-              : "opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto"
+              : "opacity-100 translate-y-0 md:opacity-0 md:translate-y-2 md:pointer-events-none md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-hover:pointer-events-auto"
             }
           `}
         >
-          <div className="flex flex-col items-center text-center">
-            <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl mb-4">
-              <ShieldCheck size={24} />
-            </div>
-            
-            <p className="text-[16px] font-bold text-gray-900 uppercase tracking-tight mb-2">
+          {/* ÍCONE DE FUNDO (SHIELD) - DESIGN PREMIUM E MINIMALISTA */}
+          <ShieldCheck 
+            size={120} 
+            className="absolute -right-4 -top-4 text-blue-100/100 -rotate-12 pointer-events-none" 
+            strokeWidth={1}
+          />
+
+          <div className="flex flex-col items-center text-center relative z-10">
+            <p className="text-[13px] font-bold text-gray-900 uppercase tracking-tight mb-3">
               Privacidade
             </p>
             
-            <p className="text-[14px] text-gray-500 leading-relaxed font-medium mb-6">
-              Usamos apenas cookies essenciais para sua segurança. Ao clicar ao lado, você concorda com nossos termos.
+            <p className="text-[11px] text-gray-500 leading-relaxed font-medium mb-2">
+              Usamos apenas cookies essenciais para garantia da sua segurança na nossa Plataforma. Ao aceitá-los, você concorda com nossos termos, os quais estimulamos fortemente que sejam conhecidos por você.
             </p>
 
-            {/* LINK PARA POLÍTICA DENTRO DO CARD */}
+            {/* LINK PARA POLÍTICA */}
             <Link 
               href="/politica-de-cookies"
-              className="group/link flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 transition-colors border-t border-gray-50 pt-4 w-full justify-center"
+              className="group/link flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 transition-colors border-t border-gray-50 pt-2 w-full justify-center"
             >
-              Ler Política Completa
+              Saiba mais sobre a Política de Cookies e Segurança
               <ArrowRight size={12} className="group-hover/link:translate-x-1 transition-transform" />
             </Link>
           </div>

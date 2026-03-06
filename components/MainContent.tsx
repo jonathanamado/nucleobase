@@ -84,7 +84,7 @@ export function MainContent() {
       )}
 
       {/* ============================================================
-          LAYOUT MOBILE (Recuperado e Otimizado)
+          LAYOUT MOBILE
           ============================================================ */}
       <div className="block lg:hidden px-4 pb-20 space-y-8 animate-in fade-in duration-700">
         <div className="mt-8 space-y-6">
@@ -102,9 +102,12 @@ export function MainContent() {
               Diferente de planilhas complexas, traduzimos seu fluxo de caixa em inteligência estratégica.
             </p>
             
-            <Link href="/acesso-usuario" className="flex items-center justify-between w-full p-4 bg-gray-900 text-white rounded-2xl font-bold text-sm shadow-lg group active:scale-[0.98] transition-all">
+            <Link 
+              href="/acesso-usuario" 
+              className="flex items-center justify-between w-full p-4 bg-orange-500 text-white rounded-2xl font-bold text-sm shadow-lg group active:scale-[0.98] transition-all"
+            >
               <span>Acessar minha plataforma</span>
-              <div className="bg-blue-600 p-2 rounded-xl group-hover:bg-blue-500 transition-colors">
+              <div className="bg-white/20 p-2 rounded-xl group-hover:bg-white/30 transition-colors">
                 <LayoutDashboard size={18} />
               </div>
             </Link>
@@ -115,7 +118,7 @@ export function MainContent() {
               Acreditamos que a verdadeira inteligência financeira nasce da clareza de dados.
             </p>
             <Link href="/sobre" className="inline-flex items-center gap-2 text-blue-600 font-bold text-[10px] uppercase tracking-widest">
-                Clique aqui e saiba mais <ArrowRight size={14} />
+                Clique aqui e saiba mais sobre a nossa história <ArrowRight size={14} />
             </Link>
           </div>
         </div>
@@ -124,17 +127,39 @@ export function MainContent() {
             <div className="relative z-10">
                 <p className="text-blue-400 text-[10px] uppercase font-black tracking-widest mb-2">O seu controle</p>
                 <h4 className="text-base font-bold mb-6">Pronto para o próximo nível?</h4>
-                <Link href="/planos" className="flex items-center justify-center gap-2 w-full py-4 bg-blue-600 rounded-xl font-bold text-xs uppercase tracking-widest">
-                    Conhecer Planos <ArrowRight size={16} />
+                <Link href="/cadastro" className="flex items-center justify-center gap-2 w-full py-4 bg-blue-600 rounded-xl font-bold text-xs uppercase tracking-widest">
+                    Criar conta <ArrowRight size={16} />
                 </Link>
             </div>
             <ShieldCheck size={120} className="absolute -right-8 -bottom-8 text-white opacity-5" />
         </div>
 
+        {/* NOVA SEÇÃO DE SEGURANÇA MOBILE */}
+        <section>
+          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-4">
+            Segurança <div className="h-px bg-gray-300 flex-1"></div>
+          </h3>
+          <Link href="/seguranca_privacidade" className="block bg-emerald-50/50 border border-emerald-100 p-8 rounded-[2.5rem] relative overflow-hidden group">
+            <div className="relative z-10">
+              <div className="w-12 h-12 bg-white text-emerald-600 rounded-2xl flex items-center justify-center shadow-sm mb-4">
+                <Lock size={24} />
+              </div>
+              <h4 className="text-lg font-bold text-gray-900 mb-1">Privacidade e Dados</h4>
+              <p className="text-gray-500 text-xs font-medium mb-4">Sua soberania digital é nossa prioridade.</p>
+              <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-2 w-fit">
+                Acesse aqui <ArrowRight size={10} />
+              </span>
+            </div>
+          </Link>
+        </section>
+
         <section>
           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4 flex items-center gap-4">
             Canais e Contato <div className="h-px bg-gray-300 flex-1"></div>
           </h3>
+          <p className="text-gray-500 text-sm font-medium leading-relaxed mb-6">
+            Neste espaço você realiza a abertura de chamados técnicos, entra em contato com nossa equipe, indica a plataforma para sua rede ou estabelece novas parcerias estratégicas. Conte conosco <span className="font-bold text-gray-900">em qualquer etapa</span> de sua jornada:
+          </p>
           <div className="grid grid-cols-2 gap-3">
             <Link href="/suporte" className="bg-gray-50 p-6 rounded-3xl flex flex-col gap-2 border border-gray-100">
                 <FileWarning size={20} className="text-amber-500" />
@@ -154,10 +179,11 @@ export function MainContent() {
             </Link>
           </div>
         </section>
+
       </div>
 
       {/* ============================================================
-          LAYOUT DESKTOP (Alinhado com a página Sobre - pr-10)
+          LAYOUT DESKTOP
           ============================================================ */}
       <div className="hidden lg:block w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
         
@@ -178,15 +204,15 @@ export function MainContent() {
         </h3>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch mb-12">
-          <div className="lg:col-span-6 flex items-up">
+          <div className="lg:col-span-6 flex flex-col justify-center">
             <p className="text-gray-700 text-lg leading-[1.8] mb-0 pr-4">
               A nucleobase.app é uma plataforma digital, totalmente online, criada para ajudar pessoas na organização
-              de orçamentos de forma <span className="text-gray-900 font-semibold">simples, clara e consciente.</span> Nosso objetivo é oferecer total autonomia ao usuário, de forma que as decisões financeiras deixem de ser um fardo e se tornem o alicerce para a realização de novos projetos baseados em informações relevantes e consistentes.
+              de orçamentos de forma <span className="text-gray-900 font-semibold">simples, clara e consciente.</span> Nosso objetivo é oferecer total autonomia ao usuário, de forma que as decisões financeiras deixem de ser um fardo e se tornem o alicerce para a realização de projetos baseados em informações consistentes.
             </p>
           </div>
 
           <div className="lg:col-span-3 flex">
-            <div className="bg-white border border-gray-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
+            <div className="flex-1 bg-white border border-gray-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
               <div className="bg-blue-50 p-3 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 mb-4">
                 <Newspaper size={24} />
               </div>
@@ -199,7 +225,7 @@ export function MainContent() {
           </div>
 
           <div className="lg:col-span-3 flex">
-            <div className="bg-blue-50/50 border border-blue-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
+            <div className="flex-1 bg-blue-50/50 border border-blue-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
               <div className="bg-white p-3 rounded-2xl text-blue-600 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 mb-4">
                 <Mail size={24} />
               </div>
@@ -229,12 +255,12 @@ export function MainContent() {
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex-1">
               <p className="text-blue-400 text-xs uppercase tracking-[0.3em] font-black mb-4">A ferramenta certa</p>
-              <h4 className="text-2xl md:text-3xl font-bold leading-tight">
-                Você já sabe o que fazer, só precisa do controle em seu dia a dia. Saiba mais sobre o APP da Nucleobase.
+              <h4 className="text-2xl md:text-3base font-bold leading-tight">
+                Você já sabe o que fazer, só precisa do controle em mãos. Saiba mais sobre o APP da Nucleobase criando sua conta e aproveitando o período de degustação estendido (90 dias gratuitos para teste).
               </h4>
             </div>
-            <a href="/planos" className="shrink-0 inline-flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-full transition-all font-bold text-sm uppercase tracking-widest shadow-lg shadow-blue-900/20 group-hover:scale-105">
-              Conhecer Planos <ArrowRight size={20} />
+            <a href="/cadastro" className="shrink-0 inline-flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-full transition-all font-bold text-sm uppercase tracking-widest shadow-lg shadow-blue-900/20 group-hover:scale-105">
+              Criar conta <ArrowRight size={20} />
             </a>
           </div>
           <ShieldCheck size={240} className="absolute -right-10 -bottom-20 text-white opacity-5 rotate-12 group-hover:rotate-0 transition-transform duration-700" />
@@ -266,19 +292,19 @@ export function MainContent() {
             <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4">
               Painel de Resultados <div className="h-px bg-gray-300 flex-1"></div>
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-center">
-              <div className="md:col-span-7 text-left">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-stretch">
+              <div className="md:col-span-7 text-left flex flex-col justify-center">
                 <h4 className="text-3xl font-bold text-gray-900 mb-6 tracking-tight leading-[1.1]">Sua visão 360º diretamente no seu Painel</h4>
                 <p className="text-gray-600 text-[16px] leading-relaxed mb-8">
                   Mais do que números, entregamos inteligência financeira. O Dashboard da Nucleobase processa seus dados para oferecer diagnósticos precisos.
                 </p>
-                <Link href="/resultados" className="group">
+                <Link href="/resultados" className="group w-fit">
                   <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest inline-flex items-center gap-2">
                     CLIQUE AQUI <ArrowRight size={12} />
                   </span>
                 </Link>
               </div>
-              <div className="md:col-span-5 bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl group hover:border-blue-100 transition-all h-full flex flex-col justify-center">
+              <div className="md:col-span-5 bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl group hover:border-blue-100 transition-all flex flex-col justify-center min-h-[280px]">
                 <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
                   <BarChart3 size={32} />
                 </div>
