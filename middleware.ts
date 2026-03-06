@@ -9,10 +9,26 @@ export function middleware(request: NextRequest) {
   const MAIN_DOMAIN = 'nucleobase.app';
   const DASHBOARD_DOMAIN = 'dashboard.nucleobase.app';
 
+  // --- 1. LÓGICA PARA O GOOGLE TAG GATEWAY (SERVER-SIDE) ---
+  // Esta regra deve vir primeiro para garantir o roteamento correto dos dados
+  if (pathname.startsWith('/metrics')) {
+    const googleTarget = new URL(
+      pathname + url.search,
+      'https://G-BNPVR4P74H.fps.goog'
+    );
+
+    return NextResponse.rewrite(googleTarget, {
+      request: {
+        // Repassa os cabeçalhos originais (incluindo cookies e geo-localização da Vercel)
+        headers: new Headers(request.headers),
+      },
+    });
+  }
+
   // Detecta se é uma requisição de dados do Next.js (Prefetch ou navegação SPA)
   const isNextDataRequest = url.searchParams.has('_rsc');
 
-  // --- LÓGICA PARA O SUBDOMÍNIO DASHBOARD ---
+  // --- 2. LÓGICA PARA O SUBDOMÍNIO DASHBOARD ---
   if (hostname.includes(DASHBOARD_DOMAIN)) {
     
     // 1. Rewrite silencioso da raiz para lançamentos
@@ -20,22 +36,18 @@ export function middleware(request: NextRequest) {
       return NextResponse.rewrite(new URL('/lancamentos', request.url));
     }
 
-    // 2. CORREÇÃO DE CORS: Se for uma requisição de dados do Next.js para páginas 
-    // que não existem no dashboard, não redirecione. Apenas ignore ou mande 404.
-    // Isso evita que o navegador tente seguir um redirect cross-origin proibido.
+    // 2. CORREÇÃO DE CORS
     const institutionalPages = ['/sobre', '/contato', '/precos'];
     
     if (institutionalPages.includes(pathname)) {
       if (isNextDataRequest) {
-        // Retorna um 404 limpo para o prefetch não quebrar o log
         return new NextResponse(null, { status: 404 });
       }
-      // Redirecionamento completo só se o usuário DIGITAR na barra de endereços
       return NextResponse.redirect(new URL(`https://${MAIN_DOMAIN}${pathname}`, request.url));
     }
   }
 
-  // --- LÓGICA PARA O DOMÍNIO PRINCIPAL ---
+  // --- 3. LÓGICA PARA O DOMÍNIO PRINCIPAL ---
   if (hostname === MAIN_DOMAIN) {
     if (pathname.startsWith('/lancamentos')) {
       return NextResponse.redirect(new URL(`https://${DASHBOARD_DOMAIN}/lancamentos`, request.url));
@@ -46,6 +58,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Mantendo o matcher original, mas ele agora ignora os arquivos estáticos corretamente
+  // O matcher permite que o middleware processe a rota /metrics
   matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };

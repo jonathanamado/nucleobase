@@ -84,8 +84,12 @@ export default function SobreNucleobase() {
         {/* NARRATIVA PRINCIPAL */}
         <div className="lg:col-span-7 text-gray-700 text-lg leading-[1.8] pr-0 lg:pr-10 flex flex-col justify-between">
           <div>
-            <p className="mb-8">
-              A Nucleobase nasceu de uma necessidade real tendo sua implantação digital no ano de 2025. O que começou como uma ferramenta de controle pessoal, 
+            <p className="mb-8 leading-relaxed text-gray-700">
+              A Nucleobase nasceu de uma necessidade real tendo sua implantação{" "}
+              <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
+                Digital
+              </span>{" "}
+              no ano de 2025. O que começou antes disso como uma ferramenta de controle pessoal em uma planilha de excel, 
               lapidada pelo tempo e demanda deste nicho, evoluiu para uma plataforma robusta, 
               focada em levar clareza e praticidade às pessoas.
             </p>
