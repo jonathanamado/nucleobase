@@ -229,7 +229,6 @@ export function Header() {
                   ) : (
                     <div className="flex flex-col gap-3">
                       <a href="/acesso-usuario" className="flex items-center justify-center gap-2 w-full py-4 bg-orange-500 text-white rounded-2xl font-bold text-sm shadow-lg">
-                        <padding />
                         <LayoutDashboard size={18} /> Painel Acesso APP
                       </a>
                       
