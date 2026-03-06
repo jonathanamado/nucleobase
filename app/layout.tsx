@@ -59,19 +59,19 @@ export default function RootLayout({
           {`window.dataLayer = window.dataLayer || [];`}
         </Script>
         
-        {/* Google Tag Manager - Carregamento otimizado via SRC nativo do Next.js */}
+        {/* Google Tag Manager - Carregamento via Proxy /metrics para First-Party Tracking */}
         <Script
           id="google-tag-manager"
           strategy="afterInteractive"
-          src="https://www.googletagmanager.com/gtm.js?id=GTM-NS5KWXFL"
+          src="/metrics/gtm.js?id=GTM-NS5KWXFL"
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen flex flex-col overflow-x-hidden max-w-full`}>
         
-        {/* Noscript como fallback de segurança */}
+        {/* Noscript como fallback de segurança via Proxy /metrics */}
         <noscript>
           <iframe 
-            src="https://www.googletagmanager.com/ns.html?id=GTM-NS5KWXFL"
+            src="/metrics/ns.html?id=GTM-NS5KWXFL"
             height="0" 
             width="0" 
             style={{ display: 'none', visibility: 'hidden' }}
