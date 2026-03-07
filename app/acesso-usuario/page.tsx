@@ -141,25 +141,30 @@ export default function AcessoUsuarioPage() {
             </span>
           </h1>
 
-          <p className="text-xl md:text-3xl text-gray-900 max-w-none leading-tight mb-4 flex items-center">
+          <div className="text-xl md:text-3xl text-gray-900 max-w-none leading-tight mb-4 flex items-center flex-wrap">
             <span className="font-bold tracking-tight">
-              {isLoggedIn ? (
-                userName.split(" ")[0]
-              ) : (
-                <>
-                  à Plataforma da <span className="text-orange-500">Nucleobase!</span>
-                </>
-              )}
+              {isLoggedIn ? userName.split(" ")[0] : <>à Plataforma da <span className="text-orange-500">Nucleobase!</span></>}
             </span>
-            <span className="text-orange-500 font-bold ml-2">
-              {isLoggedIn ? `(Plano ${userPlan}).` : ""}
-            </span>
-            <BarChart3 
+            
+            {/* Ícone Gem após Nucleobase! no Mobile */}
+            {!isLoggedIn && (
+              <Gem size={24} className="text-orange-500 md:hidden ml-2" strokeWidth={2.5} />
+            )}
+
+            {isLoggedIn && (
+              <span className="text-orange-50 font-bold ml-2 flex items-center gap-2">
+                <span className="text-orange-500">(Plano {userPlan}).</span>
+                <Gem size={24} className="text-orange-500 md:hidden" strokeWidth={2.5} />
+              </span>
+            )}
+
+            {/* Ícone Gem substitui o BarChart3 no Desktop */}
+            <Gem 
               size={40} 
-              className="text-blue-600 skew-x-2 opacity-35 ml-6 hidden md:block" 
+              className="text-orange-500 skew-x-2 opacity-35 ml-6 hidden md:block" 
               strokeWidth={1} 
             />
-          </p>
+          </div>
 
           <p className="text-base text-gray-600 w-full font-bold leading-tight mb-4">
             {isLoggedIn ? (
@@ -278,7 +283,8 @@ export default function AcessoUsuarioPage() {
                     <Rocket size={28} />
                   </div>
                   <h3 className="text-lg md:text-xl font-bold text-white mb-3">
-                    Acesso <br className="md:hidden" /> ao APP
+                    <span className="md:hidden">Acesso ao APP</span>
+                    <span className="hidden md:block">Acesso <br /> ao APP</span>
                   </h3>
                   
                   <p className="text-orange-50 text-[14px] md:text-[16px] leading-relaxed mb-6 font-medium md:block hidden">
@@ -310,7 +316,8 @@ export default function AcessoUsuarioPage() {
                     <BarChart3 size={28} />
                   </div>
                   <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 tracking-tight">
-                    Painel de <br className="md:hidden" /> Resultados
+                    <span className="md:hidden">Painel de Resultados</span>
+                    <span className="hidden md:block">Painel de <br /> Resultados</span>
                   </h3>                  
                   <p className="text-gray-500 text-[14px] md:text-[16px] leading-relaxed font-medium mb-6 md:block hidden">
                     Acompanhe a evolução da sua saúde financeira com relatórios e insights poderosos:
