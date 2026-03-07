@@ -6,43 +6,45 @@ export function middleware(request: NextRequest) {
   const hostname = request.headers.get('host') || '';
   const pathname = url.pathname;
 
+  // Nome do cookie que seu componente CookieNotice deve usar
+  const COOKIE_CONSENT_NAME = 'nucleobase-consent'; 
+  const hasConsent = request.cookies.has(COOKIE_CONSENT_NAME);
+
   const MAIN_DOMAIN = 'nucleobase.app';
   const DASHBOARD_DOMAIN = 'dashboard.nucleobase.app';
 
   // --- 1. LÓGICA PARA O GOOGLE TAG GATEWAY (SERVER-SIDE) ---
-  // Esta regra deve vir primeiro para garantir o roteamento correto dos dados
   if (pathname.startsWith('/metrics')) {
+    // Se NÃO tem consentimento, bloqueamos a ida para o servidor do Google aqui mesmo
+    if (!hasConsent) {
+      return new NextResponse(null, { status: 204 }); // Retorna "No Content" para não dar erro no console
+    }
+
+    // Proxy para o Google Analytics (Modo First Party)
+    // Importante: Verifique se este ID está correto no seu painel de Fluxo de Dados do GA4
     const googleTarget = new URL(
       pathname + url.search,
-      'https://G-BNPVR4P74H.fps.goog'
+      'https://www.google-analytics.com' // Alvo padrão para proxying se o fps.goog falhar
     );
 
-    return NextResponse.rewrite(googleTarget, {
-      request: {
-        // Repassa os cabeçalhos originais (incluindo cookies e geo-localização da Vercel)
-        headers: new Headers(request.headers),
-      },
-    });
+    const response = NextResponse.rewrite(googleTarget);
+    
+    // Repassa headers essenciais para evitar bloqueio de CORS
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    return response;
   }
 
-  // Detecta se é uma requisição de dados do Next.js (Prefetch ou navegação SPA)
   const isNextDataRequest = url.searchParams.has('_rsc');
 
   // --- 2. LÓGICA PARA O SUBDOMÍNIO DASHBOARD ---
   if (hostname.includes(DASHBOARD_DOMAIN)) {
-    
-    // 1. Rewrite silencioso da raiz para lançamentos
     if (pathname === '/') {
       return NextResponse.rewrite(new URL('/lancamentos', request.url));
     }
 
-    // 2. CORREÇÃO DE CORS
     const institutionalPages = ['/sobre', '/contato', '/precos'];
-    
     if (institutionalPages.includes(pathname)) {
-      if (isNextDataRequest) {
-        return new NextResponse(null, { status: 404 });
-      }
+      if (isNextDataRequest) return new NextResponse(null, { status: 404 });
       return NextResponse.redirect(new URL(`https://${MAIN_DOMAIN}${pathname}`, request.url));
     }
   }
@@ -58,6 +60,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // O matcher permite que o middleware processe a rota /metrics
   matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };
