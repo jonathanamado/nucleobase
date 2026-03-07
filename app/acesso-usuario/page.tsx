@@ -165,7 +165,13 @@ export default function AcessoUsuarioPage() {
                 <span className="md:hidden inline">Explore o APP para lançamentos e análise de resultados.</span>
               </>
             ) : (
-              "Nesta área você terá acesso livre para realizar lançamentos e também visualizar seus resultados, analisando grupos e classificações. Use seu ID de usuário para logar e gerenciar os seus dados de maneira exclusiva."
+              <span>
+                Para prosseguir em sua conta, realize o login. Caso não possua uma conta,{" "}
+                <Link href="/cadastro" className="text-orange-600 hover:underline">
+                  cadastre-se gratuitamente
+                </Link>
+                .
+              </span>
             )}
           </p>
 
@@ -225,7 +231,7 @@ export default function AcessoUsuarioPage() {
         </div>
       </div>
 
-      {/* Seção Condicional - mt-2 para reduzir o gap quando logado */}
+      {/* Seção Condicional */}
       <div className={!isLoggedIn ? "hidden md:block mt-10" : "block mt-2"}>
         
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-3 flex items-center gap-4 w-full">
@@ -233,7 +239,8 @@ export default function AcessoUsuarioPage() {
         </h3>
 
         <div className="mb-12 px-2">
-          <p className="text-sm md:text-base text-gray-600 leading-relaxed">
+          {/* Versão Desktop - Texto Completo */}
+          <p className="hidden md:block text-base text-gray-600 leading-relaxed">
             Através do{" "}
             <span className="inline-flex items-center justify-center bg-orange-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
               Acesso ao APP
@@ -246,6 +253,10 @@ export default function AcessoUsuarioPage() {
             <span className="text-gray-900 underline decoration-2 decoration-orange-500/30 underline-offset-4 font-medium">
               permitindo que você visualize onde economizar e como acelerar seus objetivos.
             </span>{" "}
+          </p>
+          {/* Versão Mobile - Texto Simplificado */}
+          <p className="md:hidden text-sm text-gray-600 leading-relaxed">
+            Acesse o <span className="font-bold text-orange-600">APP</span> para novos lançamentos ou o <span className="font-bold text-blue-600">Painel</span> para análise estratégica de seus resultados em tempo real.
           </p>
         </div>
 
@@ -260,7 +271,9 @@ export default function AcessoUsuarioPage() {
                   <div className="p-3 rounded-2xl mb-4 w-fit bg-white/20 text-white group-hover:scale-110 transition-transform">
                     <Rocket size={28} />
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-3">Acesso APP</h3>
+                  <h3 className="text-lg md:text-xl font-bold text-white mb-3 text-center">
+                    Acesso <br /> ao APP
+                  </h3>
                   
                   <p className="text-orange-50 text-[14px] md:text-[16px] leading-relaxed mb-6 font-medium md:block hidden">
                     Realize lançamentos manuais em tela, importações via arquivo ou integrações em D-1:
@@ -273,7 +286,7 @@ export default function AcessoUsuarioPage() {
                   </div>
 
                   <div className="mt-auto flex items-center justify-center gap-3 bg-white text-orange-500 h-[48px] md:h-[56px] rounded-2xl font-black shadow-md text-[10px] uppercase tracking-widest group-hover:shadow-xl transition-all">
-                    Acessar <span className="md:inline hidden">o APP</span> 
+                    Acessar <span className="md:inline hidden">APP</span> 
                     <Zap size={16} className="fill-orange-500 group-hover:scale-125 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </a>
@@ -290,10 +303,9 @@ export default function AcessoUsuarioPage() {
                   <div className="bg-blue-50 p-3 rounded-2xl mb-4 w-fit text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm">
                     <BarChart3 size={28} />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3 tracking-tight flex items-center gap-2">
-                    Painel de Resultados
-                  </h3>
-                  
+                  <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 tracking-tight text-center">
+                    Painel de <br /> Resultados
+                  </h3>                  
                   <p className="text-gray-500 text-[14px] md:text-[16px] leading-relaxed font-medium mb-6 md:block hidden">
                     Acompanhe a evolução da sua saúde financeira com relatórios e insights poderosos:
                   </p>
@@ -362,8 +374,8 @@ export default function AcessoUsuarioPage() {
                     <Link href="/minha-conta" className="bg-white text-black px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all whitespace-nowrap text-center">
                       Configurações de Perfil
                     </Link>
-                    <Link href="/minha-conta" className="bg-white/5 border border-white/10 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all whitespace-nowrap text-center">
-                      Alterar Senha
+                    <Link href="/seguranca_privacidade" className="bg-white/5 border border-white/10 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all whitespace-nowrap text-center">
+                      Segurança e Privacidade
                     </Link>
                   </div>
                   
