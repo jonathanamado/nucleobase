@@ -17,6 +17,7 @@ export default function CookieNotice() {
 
   useEffect(() => {
     const consent = localStorage.getItem("nucleo-consent");
+
     if (!consent) {
       const timer = setTimeout(() => setIsVisible(true), 1500);
       return () => clearTimeout(timer);
@@ -24,37 +25,37 @@ export default function CookieNotice() {
   }, []);
 
   const handleAccept = () => {
-    if (typeof window !== 'undefined') {
-      // 1. Garante que o dataLayer existe
+    console.log("COOKIE CLICK FUNCIONOU");
+
+    if (typeof window !== "undefined") {
+
       window.dataLayer = window.dataLayer || [];
-      
-      /**
-       * CORREÇÃO DO ERRO DE TIPO:
-       * Definimos a função aceitando argumentos (variadic) para que o 
-       * compilador não reclame ao passarmos 'consent', 'update', etc.
-       */
-      const gtag = function(...args: any[]) {
-        // O GTM espera que os argumentos sejam empurrados para o dataLayer
-        // usando o objeto especial 'arguments'
-        window.dataLayer.push(arguments);
-      };
 
-      // 2. Atualiza o Consentimento: Muda de 'denied' para 'granted'
-      gtag('consent', 'update', {
-        'analytics_storage': 'granted',
-        'ad_storage': 'granted',
-        'ad_user_data': 'granted',
-        'ad_personalization': 'granted'
-      });
+      // Atualiza consentimento
+      window.dataLayer.push([
+        "consent",
+        "update",
+        {
+          analytics_storage: "granted",
+          ad_storage: "granted",
+          ad_user_data: "granted",
+          ad_personalization: "granted",
+        },
+      ]);
 
-      // 3. Dispara o evento customizado para o GTM
-      window.dataLayer.push({ 
+      // Evento customizado
+      window.dataLayer.push({
         event: "cookie_consent_accepted",
-        consent_type: "full" 
+        consent_type: "full",
       });
 
-      // 4. Persistência e UI
+      // CRIA O COOKIE PARA O MIDDLEWARE
+      document.cookie =
+        "nucleobase-consent=true; path=/; max-age=31536000; SameSite=Lax";
+      
+      // Persistência local
       localStorage.setItem("nucleo-consent", "true");
+
       setIsVisible(false);
     }
   };
@@ -63,25 +64,23 @@ export default function CookieNotice() {
 
   return (
     <div className="fixed bottom-32 right-6 z-[70] animate-in fade-in zoom-in slide-in-from-right-10 duration-700">
-      <div 
-        className="relative group"
-        onMouseEnter={() => setIsExpanded(true)}
-      >
+      <div className="relative group" onMouseEnter={() => setIsExpanded(true)}>
         
         {/* CONTEXTO EXPLICATIVO */}
-        <div 
+        <div
           className={`
             absolute bottom-full right-0 mb-4 w-72 p-6 bg-white border border-gray-100 rounded-[2.5rem] shadow-2xl 
             transition-all duration-500 overflow-hidden
-            ${isExpanded 
-              ? "opacity-100 translate-y-0 pointer-events-auto" 
-              : "opacity-100 translate-y-0 md:opacity-0 md:translate-y-2 md:pointer-events-none md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-hover:pointer-events-auto"
+            ${
+              isExpanded
+                ? "opacity-100 translate-y-0 pointer-events-auto"
+                : "opacity-100 translate-y-0 md:opacity-0 md:translate-y-2 md:pointer-events-none md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-hover:pointer-events-auto"
             }
           `}
         >
-          <ShieldCheck 
-            size={120} 
-            className="absolute -right-4 -top-4 text-blue-100/100 -rotate-12 pointer-events-none" 
+          <ShieldCheck
+            size={120}
+            className="absolute -right-4 -top-4 text-blue-100/100 -rotate-12 pointer-events-none"
             strokeWidth={1}
           />
 
@@ -89,22 +88,28 @@ export default function CookieNotice() {
             <p className="text-[13px] font-bold text-gray-900 uppercase tracking-tight mb-3">
               Privacidade
             </p>
-            
+
             <p className="text-[11px] text-gray-500 leading-relaxed font-medium mb-2">
-              Usamos apenas cookies essenciais para garantia da sua segurança na nossa Plataforma. Ao aceitá-los, você concorda com nossos termos, os quais estimulamos fortemente que sejam conhecidos por você.
+              Usamos apenas cookies essenciais para garantia da sua segurança
+              na nossa Plataforma. Ao aceitá-los, você concorda com nossos
+              termos, os quais estimulamos fortemente que sejam conhecidos por
+              você.
             </p>
 
-            <Link 
+            <Link
               href="/politica-de-cookies"
               className="group/link flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 transition-colors border-t border-gray-50 pt-2 w-full justify-center"
             >
               Saiba mais sobre a Política de Cookies e Segurança
-              <ArrowRight size={12} className="group-hover/link:translate-x-1 transition-transform" />
+              <ArrowRight
+                size={12}
+                className="group-hover/link:translate-x-1 transition-transform"
+              />
             </Link>
           </div>
         </div>
 
-        {/* O BOTÃO EM SI */}
+        {/* BOTÃO */}
         <button
           onClick={handleAccept}
           className="
@@ -120,18 +125,23 @@ export default function CookieNotice() {
           "
         >
           <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-          
-          <Cookie 
-            size={32} 
-            className="text-blue-400 group-hover:rotate-12 transition-transform duration-500 relative z-10" 
+
+          <Cookie
+            size={32}
+            className="text-blue-400 group-hover:rotate-12 transition-transform duration-500 relative z-10"
             strokeWidth={1.5}
           />
-          
+
           <div className="flex flex-col items-center relative z-10">
             <span className="text-[14px] font-black uppercase tracking-[0.2em] leading-none">
               Cookies
             </span>
-            <span className={`text-[12px] font-bold text-blue-400/80 uppercase tracking-widest mt-1.5 transition-opacity ${isExpanded ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+
+            <span
+              className={`text-[12px] font-bold text-blue-400/80 uppercase tracking-widest mt-1.5 transition-opacity ${
+                isExpanded ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+              }`}
+            >
               Aceitar
             </span>
           </div>

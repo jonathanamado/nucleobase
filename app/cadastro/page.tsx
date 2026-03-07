@@ -115,15 +115,30 @@ export default function CadastroPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-white font-sans">
+    <div className="min-h-screen w-full flex flex-col-reverse lg:flex-row bg-white font-sans">
       
-      {/* LADO ESQUERDO: BRANDING */}
+      {/* LADO: BRANDING E DEPOIMENTOS */}
       <div className="w-full lg:w-1/2 bg-gray-900 p-8 lg:p-12 flex flex-col justify-start relative border-r border-white/5">
         <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
             <Globe size={400} className="absolute -bottom-20 -left-20 text-blue-500" />
         </div>
 
-        <div className="relative z-10 w-full max-w-md mx-auto space-y-10 pt-4 lg:pt-12 pb-8">
+        {/* Ajustado lg:pt-0 para iniciar no topo no Desktop */}
+        <div className="relative z-10 w-full max-w-md mx-auto space-y-10 pt-4 lg:pt-0 pb-8">
+          
+          {/* BANNER DE OFERTA EXCLUSIVA (Desktop) */}
+          <div className="hidden lg:flex bg-blue-500/10 border border-blue-500/20 rounded-[2rem] p-6 items-start gap-4 backdrop-blur-sm">
+            <div className="bg-blue-600 p-2.5 rounded-xl text-white shadow-md shrink-0">
+              <Gift size={20} />
+            </div>
+            <div>
+              <p className="text-[12px] font-black text-blue-400 uppercase tracking-widest mb-1">Oferta Exclusiva</p>
+              <p className="text-xs text-white/90 font-semibold leading-relaxed">
+                Você acaba de ganhar <strong>90 dias de acesso total</strong> para experimentar cada detalhe da nossa inteligência financeira. Aproveite!
+              </p>
+            </div>
+          </div>
+
           <div>
             <div className="flex items-center gap-2 text-blue-500 mb-6">
               <Zap fill="currentColor" size={24} />
@@ -170,24 +185,28 @@ export default function CadastroPage() {
         </div>
       </div>
 
-      {/* LADO DIREITO: FORMULÁRIO */}
-      <div className="flex-1 flex flex-col p-8 lg:px-16 justify-start bg-white">
-        <div className="w-full max-w-md mx-auto pt-4 lg:pt-12 pb-12">
+      {/* LADO: FORMULÁRIO */}
+      <div className="flex-1 flex flex-col p-2 lg:px-16 justify-start bg-white">
+        {/* Ajustado lg:pt-0 para iniciar no topo no Desktop */}
+        <div className="w-full max-w-md mx-auto pt-0 lg:pt-0 pb-12">
           
-          {/* BANNER DE BOAS-VINDAS / TRIAL */}
-          <div className="mb-10 bg-blue-50/50 border border-blue-100 rounded-[2rem] p-6 flex items-start gap-4 shadow-sm">
-            <div className="bg-blue-600 p-2.5 rounded-xl text-white shadow-md shadow-blue-100 shrink-0">
-              <Gift size={20} />
+          {/* DIVISÃO INTELIGENTE MOBILE (Banner + Título no mesmo bloco visual de topo) */}
+          <div className="lg:hidden flex flex-col gap-4 mb-8 pt-4">
+            <div className="bg-blue-600 rounded-2xl p-4 flex items-center gap-4 text-white shadow-lg shadow-blue-100">
+              <Gift size={20} className="shrink-0" />
+              <p className="text-[11px] font-bold leading-tight">
+                Acesso liberado: <span className="opacity-80">90 dias para degustação com 100% dos benefícios da Plataforma. São 3 meses para monitoramento do seu orçamento, sem custos.</span>
+              </p>
             </div>
             <div>
-              <p className="text-[12px] font-black text-blue-600 uppercase tracking-widest mb-1">Oferta Exclusiva</p>
-              <p className="text-xs text-blue-900 font-semibold leading-relaxed">
-                Você acaba de ganhar <strong>90 dias de acesso total</strong> para experimentar cada detalhe da nossa inteligência financeira. Sem compromisso inicial.
-              </p>
+              <h2 className="text-2xl font-bold text-gray-900 leading-tight">
+                Crie sua conta para realização do seu <span className="text-blue-600">controle financeiro.</span>
+              </h2>
             </div>
           </div>
 
-          <div className="mb-8 text-left">
+          {/* TÍTULO DESKTOP (Inicia direto no topo) */}
+          <div className="hidden lg:block mb-8 text-left">
             <h2 className="text-3xl font-bold text-gray-900 mb-1 tracking-tight">
               Crie sua conta para iniciar o seu <span className="text-blue-600 font-black">controle financeiro pessoal ou profissional.</span>
             </h2>
@@ -197,7 +216,6 @@ export default function CadastroPage() {
           </div>
 
           <form onSubmit={handleCadastro} className="space-y-4">
-            {/* ID DE USUÁRIO */}
             <div className="group">
               <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-2 block">
                 ID de Usuário (Obrigatório)
@@ -214,7 +232,6 @@ export default function CadastroPage() {
               </div>
             </div>
 
-            {/* NOME COMPLETO */}
             <div className="group">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block group-focus-within:text-blue-600 transition-colors">Nome Completo (Opcional)</label>
               <input 
@@ -225,7 +242,6 @@ export default function CadastroPage() {
               />
             </div>
             
-            {/* E-MAIL RECOMENDADO */}
             <div className="group">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block group-focus-within:text-blue-600 transition-colors">E-mail (Recomendado)</label>
               <input 
@@ -239,7 +255,6 @@ export default function CadastroPage() {
               />
             </div>
 
-            {/* ADVERTÊNCIA CONDICIONAL */}
             {showWarning && !email.trim() && (
               <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 animate-in fade-in zoom-in-95 duration-200">
                 <div className="flex gap-3">
@@ -262,7 +277,6 @@ export default function CadastroPage() {
               </div>
             )}
             
-            {/* SENHA */}
             <div className="group">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block group-focus-within:text-blue-600 transition-colors">Senha (Obrigatório)</label>
               <div className="relative">
@@ -283,7 +297,6 @@ export default function CadastroPage() {
               </div>
             </div>
             
-            {/* BOTÃO FINALIZAR */}
             <button 
               disabled={loading} 
               type="submit" 

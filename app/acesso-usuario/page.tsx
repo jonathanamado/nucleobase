@@ -7,8 +7,9 @@ import {
   CheckCircle2, LogOut, X, Mail, LifeBuoy, AtSign,
   Eye, EyeOff, BarChart3, Sparkles, TrendingUp,
   Clock, Gem, ShieldCheck, Zap, Lock, Database, FileSpreadsheet,
-  PlusCircle, Upload, Shield, Target
+  PlusCircle, Upload, Shield, Target, Fingerprint, Globe, LayoutDashboard
 } from "lucide-react";
+import Link from "next/link";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -113,11 +114,6 @@ export default function AcessoUsuarioPage() {
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.reload();
-  };
-
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setResetLoading(true);
@@ -134,33 +130,39 @@ export default function AcessoUsuarioPage() {
   };
 
   return (
-    <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
+    <div className="w-full pr-0 md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
       
-      {/* Cabeçalho Ajustado */}
+      {/* Cabeçalho */}
       <div className="mb-10 mt-2 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
-        <div className="lg:col-span-8 text-left">
-          <h1 className="text-5xl font-bold text-gray-900 mb-2 tracking-tight flex items-center">
+        <div className="lg:col-span-12 text-left">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
             <span>
-              {isLoggedIn ? `Olá, ${userName}!` : "Área do Usuário"}
-              <span className="text-orange-500">.</span>
+              Seja bem vindo(a)<span className="text-orange-500">,</span>
             </span>
-            <BarChart3 
-              size={60} 
-              className="text-blue-600 skew-x-12 opacity-35 ml-4" 
-              strokeWidth={1.2} 
-            />
           </h1>
 
-          <p className="text-base text-gray-600 max-w-none leading-tight mb-8">
-            <span className="font-bold text-gray-900">Seja bem vindo(a)</span> 
-            {" "}ao Painel para acesso à Plataforma e ao seu Perfil cadastrado.
+          <p className="text-xl md:text-3xl text-gray-900 max-w-none leading-tight mb-4 flex items-center">
+            <span className="font-bold tracking-tight">
+              {isLoggedIn ? userName.split(" ")[0] : "Usuário"}
+            </span>
+            <span className="text-orange-500 font-bold ml-2">
+              ({isLoggedIn ? `Plano ${userPlan}` : "Acesse sua conta"})
+            </span>
+            <BarChart3 
+              size={40} 
+              className="text-blue-600 skew-x-2 opacity-35 ml-6 hidden md:block" 
+              strokeWidth={1} 
+            />
           </p>
 
           <p className="text-base text-gray-600 w-full font-bold leading-tight">
             {isLoggedIn ? (
               <>
-                Seu plano atual é o <span className="text-blue-600 uppercase tracking-tighter">{userPlan}</span>. Substitua o controle manual pela inteligência da Nucleo para obter total visibilidade 
-                e resultados fantásticos na gestão das suas finanças. Navegue pelo APP para lançar seus registros e visualizar seus resultados.
+                <span className="md:inline hidden">
+                  Substitua controles manuais pela inteligência da Nucleo para obter total visibilidade 
+                  de suas finanças.
+                </span>
+                <span className="md:hidden inline">Explore o APP para lançamentos e análise de resultados.</span>
               </>
             ) : (
               "Nesta área você terá acesso livre para realizar lançamentos e também visualizar seus resultados, analisando grupos e classificações. Use seu ID de usuário para logar e gerenciar os seus dados de maneira exclusiva."
@@ -168,14 +170,10 @@ export default function AcessoUsuarioPage() {
           </p>
         </div>
 
-        <div className="lg:col-span-4 flex flex-col items-end">
-          {isLoggedIn ? (
-            <button onClick={handleLogout} className="flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-red-500 transition-colors bg-gray-50 px-3 py-2 rounded-xl shrink-0">
-              <LogOut size={16} /> Logoff
-            </button>
-          ) : (
-            /* FORM DE LOGIN NA NOVA POSIÇÃO */
-            <div className="w-full bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
+        {/* Login Card (Apenas se deslogado) */}
+        {!isLoggedIn && (
+          <div className="lg:col-span-4 lg:col-start-9 flex flex-col items-end -mt-32 hidden lg:flex">
+             <div className="w-full bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
                 <h2 className="text-lg font-bold text-gray-900 mb-4 px-1">
                   Realizar login<span className="text-orange-500">.</span>
                 </h2>
@@ -224,197 +222,165 @@ export default function AcessoUsuarioPage() {
                     </button>
                 </form>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
-      {/* Linha Divisória */}
-      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4 w-full">
-        Navegação e Acessos <div className="h-px bg-gray-300 flex-1"></div>
-      </h3>
-
-      {/* Grid de Cards Padronizados */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-10">
+      {/* Seção Condicional */}
+      <div className={!isLoggedIn ? "hidden md:block" : "block"}>
         
-        {/* LADO ESQUERDO: DOIS CARDS (Acesso e Resultados) */}
-        <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* CARD 1: ACESSO APP */}
-            <div className="min-h-[480px] flex">
-              {isLoggedIn ? (
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4 w-full">
+          Navegação e Acessos <div className="h-px bg-gray-300 flex-1"></div>
+        </h3>
+
+        {/* Contextualização mobile/desktop elegante */}
+        <div className="mb-12 px-2">
+          <p className="text-sm md:text-base text-gray-600 leading-relaxed">
+            Através do{" "}
+            <span className="inline-flex items-center justify-center bg-orange-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
+              Acesso APP
+            </span>{" "}
+            você centraliza sua vida financeira com **liberdade total**, desde registros cotidianos até custos parcelados de longo prazo. Na consulta dos seus {" "}
+            <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
+              Resultados
+            </span>{" "}
+            , a Nucleo transforma dados em **clareza estratégica**, {" "}
+            <span className="text-gray-900 underline decoration-2 decoration-orange-500/30 underline-offset-4 font-medium italic">
+              permitindo que você visualize onde economizar e como acelerar seus objetivos.
+            </span>{" "}
+          </p>
+        </div>
+
+        {/* Grid: Acesso APP e Resultados */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-16">
+          <div className={`lg:col-span-12 grid gap-5 ${isLoggedIn ? "grid-cols-2 md:grid-cols-2" : "grid-cols-1 md:grid-cols-2"}`}>
+              
+              {/* CARD 1: ACESSO APP */}
+              <div className="md:min-h-[480px] min-h-[200px] flex">
                 <a 
                   href="/lancamentos"
-                  className="p-8 rounded-[2.5rem] shadow-lg transition-all border flex flex-col text-left bg-orange-500 border-orange-400 hover:bg-orange-600 group w-full h-full relative overflow-hidden"
+                  className={`p-6 md:p-8 rounded-[2.5rem] shadow-lg transition-all border flex flex-col text-left bg-orange-500 border-orange-400 hover:bg-orange-600 group w-full h-full relative overflow-hidden ${!isLoggedIn && "pointer-events-none opacity-50"}`}
                 >
                   <div className="p-3 rounded-2xl mb-4 w-fit bg-white/20 text-white group-hover:scale-110 transition-transform">
                     <Rocket size={28} />
                   </div>
                   <h3 className="text-xl font-bold text-white mb-3">Acesso APP</h3>
-                  <p className="text-orange-50 text-[16px] leading-relaxed mb-6 font-medium">
-                    Realize lançamentos manuais, importações via arquivo ou integração D-1 de suas contas e cartões:
+                  
+                  <p className="text-orange-50 text-[14px] md:text-[16px] leading-relaxed mb-6 font-medium md:block hidden">
+                    Realize lançamentos manuais em tela, importações via arquivo ou integrações em D-1:
                   </p>
                   
-                  <div className="flex flex-col gap-2 mb-6 text-left">
-                    <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90">
-                        <Database size={14} /> Integração D-1
-                    </div>
-                    <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90">
-                        <PlusCircle size={14} /> Lançamento Manual
-                    </div>
-                    <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90">
-                        <Upload size={14} /> Importação XLS
-                    </div>
-                    <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90">
-                        <Lock size={14} /> 100% Privado
-                    </div>
-                    <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90">
-                        <Shield size={14} /> Segurança SSL
-                    </div>
+                  <div className="md:flex hidden flex-col gap-2 mb-6 text-left">
+                    <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90"><PlusCircle size={14} /> Lançamento manual</div>
+                    <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90"><Upload size={14} /> Importação XLS</div>
+                    <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90"><Database size={14} /> Integração D-1</div>
                   </div>
 
-                  <div className="mt-auto flex items-center justify-center gap-2 bg-white text-orange-500 h-[56px] rounded-2xl font-bold shadow-md text-sm group-hover:shadow-xl transition-all">
-                    Entrar no Sistema <ArrowRight size={16} />
+                  <div className="mt-auto flex items-center justify-center gap-3 bg-white text-orange-500 h-[48px] md:h-[56px] rounded-2xl font-black shadow-md text-[10px] uppercase tracking-widest group-hover:shadow-xl transition-all">
+                    Acessar <span className="md:inline hidden">o APP</span> 
+                    <Zap size={16} className="fill-orange-500 group-hover:scale-125 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </a>
-              ) : (
-                <div className="group p-8 rounded-[2.5rem] shadow-md transition-all border flex flex-col text-left bg-white border-gray-100 w-full h-full">
-                  <div className="bg-orange-50 p-3 rounded-2xl mb-4 w-fit text-orange-500 group-hover:bg-orange-100 transition-all duration-300">
-                    <Rocket size={28} />
+              </div>
+
+              {/* CARD 2: RESULTADOS */}
+              <div className="md:min-h-[480px] min-h-[200px] flex">
+                <a 
+                  href="/resultados" 
+                  className="group bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-gray-100 flex flex-col text-left w-full h-full relative overflow-hidden"
+                >
+                  <div className="absolute top-6 right-6 bg-blue-600 text-white text-[9px] font-black px-2 py-1 rounded-full uppercase tracking-tighter animate-pulse text-center hidden md:block">
+                    Visualização <br /> realtime 
                   </div>
+                  <div className="bg-blue-50 p-3 rounded-2xl mb-4 w-fit text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm">
+                    <BarChart3 size={28} />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3 tracking-tight flex items-center gap-2">
+                    Painel de Resultados
+                  </h3>
                   
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">Acesso APP</h3>
-                  <p className="text-gray-500 text-[15px] leading-relaxed mb-6 font-medium">
-                    Realize lançamentos manuais, importações via arquivo ou integração D-1 de suas contas e cartões:
+                  <p className="text-gray-500 text-[14px] md:text-[16px] leading-relaxed font-medium mb-6 md:block hidden">
+                    Acompanhe a evolução da sua saúde financeira com relatórios e insights poderosos:
                   </p>
-
-                  <div className="flex flex-col gap-2 mb-8 text-left">
-                    <div className="flex items-center gap-2 text-[13px] text-gray-400 font-bold">
-                        <Database size={14} className="text-orange-500" /> Integração D-1
-                    </div>
-                    <div className="flex items-center gap-2 text-[13px] text-gray-400 font-bold">
-                        <PlusCircle size={14} className="text-orange-500" /> Lançamento Manual
-                    </div>
-                    <div className="flex items-center gap-2 text-[13px] text-gray-400 font-bold">
-                        <Upload size={14} className="text-orange-500" /> Importação XLS
-                    </div>
-                    <div className="flex items-center gap-2 text-[13px] text-gray-400 font-bold">
-                        <Lock size={14} className="text-orange-500" /> 100% Privado
-                    </div>
-                    <div className="flex items-center gap-2 text-[13px] text-gray-400 font-bold">
-                        <Shield size={14} className="text-orange-500" /> Segurança SSL
-                    </div>
+                  
+                  <div className="md:flex hidden flex-col gap-2 mb-6 text-left">
+                      <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-blue-600 transition-colors"><TrendingUp size={14} className="text-blue-500" /> Dashboards exclusivos</div>
+                      <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-blue-600 transition-colors"><Target size={14} className="text-blue-500" /> Metas e orçamentos</div>
+                      <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-blue-600 transition-colors"><Sparkles size={14} className="text-blue-500" /> Relatórios analíticos</div>
                   </div>
                   
-                  <div className="mt-auto bg-gray-50 p-4 rounded-2xl border border-dashed border-gray-200">
-                    <p className="text-[11px] text-gray-400 font-bold text-center uppercase tracking-widest">Realize o Login pelo formulário acima para acessar o APP</p>
+                  <div className="mt-auto flex items-center justify-center gap-3 w-full bg-gray-900 text-white h-[48px] md:h-[56px] rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest shadow-lg group-hover:scale-[1.02]">
+                    Acessar <span className="md:inline hidden"> Dashboard</span> 
+                    <LayoutDashboard size={16} className="text-blue-400 group-hover:rotate-6 transition-transform" />
                   </div>
-                </div>
-              )}
-            </div>
-
-            {/* CARD 2: RESULTADOS (DASHBOARD) */}
-            <div className="min-h-[480px] flex">
-              <a 
-                href="/resultados" 
-                className="group bg-white p-8 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-gray-100 flex flex-col text-left w-full h-full relative overflow-hidden"
-              >
-                <div className="absolute top-6 right-6 bg-blue-600 text-white text-[9px] font-black px-2 py-1 rounded-full uppercase tracking-tighter animate-pulse text-center">
-                  Visualização <br /> realtime 
-                </div>
-
-                <div className="bg-blue-50 p-4 rounded-2xl mb-4 w-fit text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm">
-                  <BarChart3 size={32} />
-                </div>
-
-                <h3 className="text-xl font-bold text-gray-900 mb-2 tracking-tight flex items-center gap-2">
-                  Resultados
-                  <BarChart3 size={20} className="text-blue-600 skew-x-12 opacity-40" strokeWidth={1.5} />
-                </h3>
-                
-                <p className="text-gray-500 text-[16px] leading-relaxed font-medium mb-6">
-                  Acompanhe a evolução da sua saúde financeira com relatórios e insights poderosos.
-                </p>
-
-                <div className="flex flex-col gap-2 mb-6 text-left">
-                    <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-blue-600 transition-colors">
-                        <TrendingUp size={14} className="text-blue-500" /> Dashboards Interativos
-                    </div>
-                    <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-blue-600 transition-colors">
-                        <Sparkles size={14} className="text-blue-500" /> Insights Nucleo IA
-                    </div>
-                    <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-blue-600 transition-colors">
-                        <FileSpreadsheet size={14} className="text-blue-500" /> Relatórios Analíticos
-                    </div>
-                    <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-blue-600 transition-colors">
-                        <Zap size={14} className="text-blue-500" /> Evolução Patrimonial
-                    </div>
-                    <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-blue-600 transition-colors">
-                        <Target size={14} className="text-blue-500" /> Metas e Orçamentos
-                    </div>
-                </div>
-                
-                <div className="mt-auto flex items-center justify-center w-full bg-gray-900 text-white h-[56px] rounded-2xl hover:bg-black transition-all font-bold text-[10px] uppercase tracking-widest shadow-lg group-hover:scale-105">
-                  Visualizar Dashboard
-                </div>
-              </a>
-            </div>
+                </a>
+              </div>
+          </div>
         </div>
 
-        {/* LADO DIREITO: BANNER 90 DIAS */}
-        <div className="lg:col-span-4 min-h-[480px] flex">
-            <div className="bg-blue-600 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl shadow-blue-100 w-full h-full flex flex-col">
-                <div className="relative z-10 flex-1 flex flex-col">
-                    <div className="flex items-center gap-2 mb-4 bg-white/20 w-fit px-3 py-1.5 rounded-full">
-                        <Clock size={14} className="text-blue-200" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">90 Dias de Experiência</span>
-                    </div>
-                    
-                    <p className="text-blue-100 text-sm leading-relaxed mb-6 font-medium">
-                      Domine suas finanças com tempo de sobra. Explore todas as funções livremente por 3 meses e decida seu plano depois:
-                    </p>
+        {/* Linha Divisória: Segurança e Identidade */}
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4 w-full">
+          Segurança e Identidade <div className="h-px bg-gray-300 flex-1"></div>
+        </h3>
 
-                    <div className="space-y-4 mb-8">
-                      <a href="/planos/essencial" className="block no-underline">
-                          <div className="flex items-center gap-3 bg-white/5 p-3 rounded-2xl border border-white/10 group hover:bg-white/10 hover:border-white/30 hover:scale-[1.02] transition-all cursor-pointer">
-                              <div className="bg-white/20 p-2 rounded-xl text-white group-hover:bg-blue-500 transition-colors">
-                                  <ShieldCheck size={18} />
-                              </div>
-                              <div className="flex flex-col">
-                                  <span className="text-[11px] font-black uppercase tracking-tight">Plano Essencial</span>
-                                  <span className="text-xs text-blue-200">R$ 9,90/mês • Após o período livre</span>
-                              </div>
-                          </div>
-                      </a>
+        {/* Contexto Segurança Resumido */}
+        <div className="mb-8 px-2">
+          <p className="text-xs md:text-sm text-gray-500 font-medium">
+            Sua privacidade é nossa prioridade absoluta. Atuamos com as camadas mais modernas de proteção para que seus dados financeiros permaneçam exclusivamente sob seu controle.
+          </p>
+        </div>
 
-                      <a href="/planos/pro" className="block no-underline">
-                          <div className="flex items-center gap-3 bg-white/10 p-3 rounded-2xl border border-white/20 border-l-4 border-l-amber-400 group hover:bg-white/20 hover:scale-[1.02] transition-all cursor-pointer">
-                              <div className="bg-amber-400 p-2 rounded-xl text-blue-900 group-hover:bg-amber-300 transition-colors">
-                                  <Gem size={18} />
-                              </div>
-                              <div className="flex flex-col">
-                                  <div className="flex items-center gap-2">
-                                      <span className="text-[11px] font-black uppercase tracking-tight text-white">Plano Pro</span>
-                                      <span className="text-[8px] bg-white text-blue-600 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tighter">Top</span>
-                                  </div>
-                                  <span className="text-xs text-blue-100 font-bold">R$ 19,90/mês • Gestão Total</span>
-                              </div>
-                          </div>
-                      </a>
-                    </div>
+        {/* Grid: Card de Acesso Usuário */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-10">
+          <div className="lg:col-span-12 min-h-[320px] flex">
+              <div className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl w-full h-full flex flex-col md:flex-row gap-12 items-center">
+                  <div className="relative z-10 flex-1 flex flex-col h-full">
+                      <div className="flex items-center gap-2 mb-4 bg-white/10 w-fit px-3 py-1.5 rounded-full border border-white/10">
+                          <Fingerprint size={14} className="text-orange-400" />
+                          <span className="text-[10px] font-black uppercase tracking-widest text-orange-400">Privacidade Blindada</span>
+                      </div>
+                      
+                      <h4 className="text-2xl font-bold mb-3">Sua conta, suas regras.</h4>
+                      <p className="text-gray-400 text-sm leading-relaxed mb-8 max-w-2xl font-medium">
+                        Na Nucleo, a segurança dos seus dados é o pilar central. Utilizamos criptografia de ponta a ponta e Row Level Security (RLS) para garantir que apenas você tenha acesso às suas informações financeiras.
+                      </p>
 
-                    <div className="mt-auto pt-4 border-t border-white/10">
-                        <div className="flex items-start gap-2 mb-4">
-                            <CheckCircle2 size={14} className="text-blue-300 shrink-0 mt-0.5" />
-                            <p className="text-[12px] text-blue-100/80 font-medium">
-                                Acesso sem compromisso. Explore seu "período de teste" com calma, organizando seus lançamentos.
-                            </p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {/* Coluna 1 */}
+                        <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0">
+                          <ShieldCheck size={28} className="text-blue-400 row-span-2 self-start mt-1" />
+                          <span className="text-white font-bold text-xs uppercase tracking-tighter">Criptografia</span>
+                          <span className="text-[10px] text-gray-500 font-medium">Proteção total SSL/TLS 1.3</span>
                         </div>
-                        <a href="/planos" className="block w-full py-4 bg-white text-blue-600 rounded-2xl font-bold text-[10px] uppercase tracking-widest text-center hover:bg-blue-50 transition-all shadow-lg shadow-blue-900/20">
-                            Saiba mais detalhes clicando aqui
-                        </a>
-                    </div>
-                </div>
-                <Sparkles size={200} className="absolute -right-20 -bottom-20 text-white/5 -rotate-12 pointer-events-none" />
-            </div>
+                        
+                        {/* Coluna 2 */}
+                        <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0">
+                          <Lock size={28} className="text-blue-400 row-span-2 self-start mt-1" />
+                          <span className="text-white font-bold text-xs uppercase tracking-tighter">Acesso Restrito</span>
+                          <span className="text-[10px] text-gray-500 font-medium">Políticas RLS ativas</span>
+                        </div>
+
+                        {/* Coluna 3 */}
+                        <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0">
+                          <Globe size={28} className="text-blue-400 row-span-2 self-start mt-1" />
+                          <span className="text-white font-bold text-xs uppercase tracking-tighter">Backup em Nuvem</span>
+                          <span className="text-[10px] text-gray-500 font-medium">Sincronização realtime</span>
+                        </div>
+                      </div>
+                  </div>
+                  
+                  <div className="flex flex-col gap-4 relative z-10 w-full md:w-auto">
+                    <Link href="/minha-conta" className="bg-white text-black px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all whitespace-nowrap text-center">
+                      Configurações de Perfil
+                    </Link>
+                    <Link href="/minha-conta" className="bg-white/5 border border-white/10 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all whitespace-nowrap text-center">
+                      Alterar Senha
+                    </Link>
+                  </div>
+                  
+                  <Database size={300} className="absolute -left-20 -bottom-20 text-white/[0.03] -rotate-12 pointer-events-none" />
+              </div>
+          </div>
         </div>
       </div>
 
