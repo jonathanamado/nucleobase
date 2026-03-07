@@ -137,16 +137,22 @@ export default function AcessoUsuarioPage() {
         <div className="lg:col-span-12 text-left">
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
             <span>
-              Seja bem vindo(a)<span className="text-orange-500">,</span>
+              Seja bem vindo <span className="text-orange-500">{isLoggedIn ? "(a)," : "(a)"}</span>
             </span>
           </h1>
 
           <p className="text-xl md:text-3xl text-gray-900 max-w-none leading-tight mb-4 flex items-center">
             <span className="font-bold tracking-tight">
-              {isLoggedIn ? userName.split(" ")[0] : "Usuário"}
+              {isLoggedIn ? (
+                userName.split(" ")[0]
+              ) : (
+                <>
+                  à Plataforma da <span className="text-orange-500">Nucleobase!</span>
+                </>
+              )}
             </span>
             <span className="text-orange-500 font-bold ml-2">
-              ({isLoggedIn ? `Plano ${userPlan}` : "Acesse sua conta"})
+              {isLoggedIn ? `(Plano ${userPlan}).` : ""}
             </span>
             <BarChart3 
               size={40} 
@@ -266,13 +272,13 @@ export default function AcessoUsuarioPage() {
               <div className="md:min-h-[480px] min-h-[200px] flex">
                 <a 
                   href="/lancamentos"
-                  className={`p-6 md:p-8 rounded-[2.5rem] shadow-lg transition-all border flex flex-col text-left bg-orange-500 border-orange-400 hover:bg-orange-600 group w-full h-full relative overflow-hidden ${!isLoggedIn && "pointer-events-none opacity-50"}`}
+                  className={`p-6 md:p-8 rounded-[2.5rem] shadow-lg transition-all border flex flex-col text-center md:text-left bg-orange-500 border-orange-400 hover:bg-orange-600 group w-full h-full relative overflow-hidden ${!isLoggedIn && "pointer-events-none opacity-50"}`}
                 >
-                  <div className="p-3 rounded-2xl mb-4 w-fit bg-white/20 text-white group-hover:scale-110 transition-transform">
+                  <div className="p-3 rounded-2xl mb-4 w-fit bg-white/20 text-white group-hover:scale-110 transition-transform mx-auto md:mx-0">
                     <Rocket size={28} />
                   </div>
-                  <h3 className="text-lg md:text-xl font-bold text-white mb-3 text-center">
-                    Acesso <br /> ao APP
+                  <h3 className="text-lg md:text-xl font-bold text-white mb-3">
+                    Acesso <br className="md:hidden" /> ao APP
                   </h3>
                   
                   <p className="text-orange-50 text-[14px] md:text-[16px] leading-relaxed mb-6 font-medium md:block hidden">
@@ -295,16 +301,16 @@ export default function AcessoUsuarioPage() {
               <div className="md:min-h-[480px] min-h-[200px] flex">
                 <a 
                   href="/resultados" 
-                  className="group bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-gray-100 flex flex-col text-left w-full h-full relative overflow-hidden"
+                  className="group bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-gray-100 flex flex-col text-center md:text-left w-full h-full relative overflow-hidden"
                 >
                   <div className="absolute top-6 right-6 bg-blue-600 text-white text-[9px] font-black px-2 py-1 rounded-full uppercase tracking-tighter animate-pulse text-center hidden md:block">
                     Visualização <br /> realtime 
                   </div>
-                  <div className="bg-blue-50 p-3 rounded-2xl mb-4 w-fit text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm">
+                  <div className="bg-blue-50 p-3 rounded-2xl mb-4 w-fit text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm mx-auto md:mx-0">
                     <BarChart3 size={28} />
                   </div>
-                  <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 tracking-tight text-center">
-                    Painel de <br /> Resultados
+                  <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 tracking-tight">
+                    Painel de <br className="md:hidden" /> Resultados
                   </h3>                  
                   <p className="text-gray-500 text-[14px] md:text-[16px] leading-relaxed font-medium mb-6 md:block hidden">
                     Acompanhe a evolução da sua saúde financeira com relatórios e insights poderosos:
