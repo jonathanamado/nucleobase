@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Cookie, ShieldCheck, X, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
-// Tipagem para o objeto window
+// Tipagem global para o objeto window
 declare global {
   interface Window {
     dataLayer: any[];
@@ -25,15 +25,21 @@ export default function CookieNotice() {
 
   const handleAccept = () => {
     if (typeof window !== 'undefined') {
-      // 1. Garante que o dataLayer existe e define a função gtag localmente para evitar erros
+      // 1. Garante que o dataLayer existe
       window.dataLayer = window.dataLayer || [];
       
-      // Função auxiliar para garantir que o comando chegue ao GTM
-      const gtag = function() {
+      /**
+       * CORREÇÃO DO ERRO DE TIPO:
+       * Definimos a função aceitando argumentos (variadic) para que o 
+       * compilador não reclame ao passarmos 'consent', 'update', etc.
+       */
+      const gtag = function(...args: any[]) {
+        // O GTM espera que os argumentos sejam empurrados para o dataLayer
+        // usando o objeto especial 'arguments'
         window.dataLayer.push(arguments);
       };
 
-      // 2. Atualiza o Consentimento: Muda de 'denied' (no layout) para 'granted'
+      // 2. Atualiza o Consentimento: Muda de 'denied' para 'granted'
       gtag('consent', 'update', {
         'analytics_storage': 'granted',
         'ad_storage': 'granted',
@@ -41,7 +47,7 @@ export default function CookieNotice() {
         'ad_personalization': 'granted'
       });
 
-      // 3. Dispara o evento que o GTM está "escutando" no acionador
+      // 3. Dispara o evento customizado para o GTM
       window.dataLayer.push({ 
         event: "cookie_consent_accepted",
         consent_type: "full" 
@@ -73,7 +79,6 @@ export default function CookieNotice() {
             }
           `}
         >
-          {/* ÍCONE DE FUNDO */}
           <ShieldCheck 
             size={120} 
             className="absolute -right-4 -top-4 text-blue-100/100 -rotate-12 pointer-events-none" 
@@ -89,7 +94,6 @@ export default function CookieNotice() {
               Usamos apenas cookies essenciais para garantia da sua segurança na nossa Plataforma. Ao aceitá-los, você concorda com nossos termos, os quais estimulamos fortemente que sejam conhecidos por você.
             </p>
 
-            {/* LINK PARA POLÍTICA */}
             <Link 
               href="/politica-de-cookies"
               className="group/link flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 transition-colors border-t border-gray-50 pt-2 w-full justify-center"
