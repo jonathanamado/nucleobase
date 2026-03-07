@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Cookie, ShieldCheck, X, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
-// Declaração para o TypeScript não reclamar do gtag
+// Tipagem para o objeto window
 declare global {
   interface Window {
     dataLayer: any[];
@@ -24,25 +24,33 @@ export default function CookieNotice() {
   }, []);
 
   const handleAccept = () => {
-    // 1. Atualiza o Consentimento no GTM/GA4
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('consent', 'update', {
+    if (typeof window !== 'undefined') {
+      // 1. Garante que o dataLayer existe e define a função gtag localmente para evitar erros
+      window.dataLayer = window.dataLayer || [];
+      
+      // Função auxiliar para garantir que o comando chegue ao GTM
+      const gtag = function() {
+        window.dataLayer.push(arguments);
+      };
+
+      // 2. Atualiza o Consentimento: Muda de 'denied' (no layout) para 'granted'
+      gtag('consent', 'update', {
         'analytics_storage': 'granted',
         'ad_storage': 'granted',
         'ad_user_data': 'granted',
         'ad_personalization': 'granted'
       });
+
+      // 3. Dispara o evento que o GTM está "escutando" no acionador
+      window.dataLayer.push({ 
+        event: "cookie_consent_accepted",
+        consent_type: "full" 
+      });
+
+      // 4. Persistência e UI
+      localStorage.setItem("nucleo-consent", "true");
+      setIsVisible(false);
     }
-
-    // 2. Dispara o evento customizado no DataLayer
-    window.dataLayer?.push({ 
-      event: "cookie_consent_accepted",
-      consent_type: "full" 
-    });
-
-    // 3. Persistência e UI
-    localStorage.setItem("nucleo-consent", "true");
-    setIsVisible(false);
   };
 
   if (!isVisible) return null;
@@ -65,6 +73,7 @@ export default function CookieNotice() {
             }
           `}
         >
+          {/* ÍCONE DE FUNDO */}
           <ShieldCheck 
             size={120} 
             className="absolute -right-4 -top-4 text-blue-100/100 -rotate-12 pointer-events-none" 
@@ -80,6 +89,7 @@ export default function CookieNotice() {
               Usamos apenas cookies essenciais para garantia da sua segurança na nossa Plataforma. Ao aceitá-los, você concorda com nossos termos, os quais estimulamos fortemente que sejam conhecidos por você.
             </p>
 
+            {/* LINK PARA POLÍTICA */}
             <Link 
               href="/politica-de-cookies"
               className="group/link flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 transition-colors border-t border-gray-50 pt-2 w-full justify-center"

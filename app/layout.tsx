@@ -13,6 +13,7 @@ import Link from "next/link";
 declare global {
   interface Window {
     dataLayer: any[];
+    gtag: (...args: any[]) => void;
   }
 }
 
@@ -54,12 +55,23 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
-        {/* Inicialização do DataLayer - Estratégia beforeInteractive para garantir disponibilidade imediata */}
-        <Script id="gtm-datalayer-init" strategy="beforeInteractive">
-          {`window.dataLayer = window.dataLayer || [];`}
+        {/* Inicialização do DataLayer e Função GTAG Global */}
+        <Script id="gtm-init" strategy="beforeInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){window.dataLayer.push(arguments);}
+            
+            // Define o consentimento padrão como negado inicialmente
+            gtag('consent', 'default', {
+              'analytics_storage': 'denied',
+              'ad_storage': 'denied',
+              'ad_user_data': 'denied',
+              'ad_personalization': 'denied'
+            });
+          `}
         </Script>
         
-        {/* Google Tag Manager - Carregamento via Proxy /metrics para First-Party Tracking */}
+        {/* Google Tag Manager - Carregamento via Proxy /metrics */}
         <Script
           id="google-tag-manager"
           strategy="afterInteractive"
@@ -68,7 +80,7 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen flex flex-col overflow-x-hidden max-w-full`}>
         
-        {/* Noscript como fallback de segurança via Proxy /metrics */}
+        {/* Noscript Fallback via Proxy */}
         <noscript>
           <iframe 
             src="/metrics/ns.html?id=GTM-NS5KWXFL"
@@ -81,7 +93,6 @@ export default function RootLayout({
         <Header />
 
         <main className="flex-1 flex w-full max-w-full overflow-x-hidden">
-          
           <Sidebar />
           
           <section className="flex-1 w-full max-w-full px-4 md:px-10 py-6 scroll-smooth md:ml-80 overflow-x-hidden flex flex-col">
