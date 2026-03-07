@@ -155,7 +155,7 @@ export default function AcessoUsuarioPage() {
             />
           </p>
 
-          <p className="text-base text-gray-600 w-full font-bold leading-tight">
+          <p className="text-base text-gray-600 w-full font-bold leading-tight mb-8">
             {isLoggedIn ? (
               <>
                 <span className="md:inline hidden">
@@ -168,62 +168,62 @@ export default function AcessoUsuarioPage() {
               "Nesta área você terá acesso livre para realizar lançamentos e também visualizar seus resultados, analisando grupos e classificações. Use seu ID de usuário para logar e gerenciar os seus dados de maneira exclusiva."
             )}
           </p>
-        </div>
 
-        {/* Login Card (Apenas se deslogado) */}
-        {!isLoggedIn && (
-          <div className="lg:col-span-4 lg:col-start-9 flex flex-col items-end -mt-32 hidden lg:flex">
-             <div className="w-full bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
-                <h2 className="text-lg font-bold text-gray-900 mb-4 px-1">
-                  Realizar login<span className="text-orange-500">.</span>
-                </h2>
-                <form onSubmit={handleLogin} className="flex flex-col gap-2">
-                    <div className="space-y-2">
-                      <input 
-                        type="text" 
-                        placeholder="ID de Usuário ou E-mail" 
-                        required
-                        value={slug}
-                        className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900 font-bold"
-                        onChange={(e) => setSlug(e.target.value)}
-                      />
-                      <div className="relative">
+          {/* Login Card (Ajustado para logo abaixo do texto se deslogado) */}
+          {!isLoggedIn && (
+            <div className="max-w-md">
+                <div className="w-full bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
+                  <h2 className="text-lg font-bold text-gray-900 mb-4 px-1">
+                    Realizar login<span className="text-orange-500">.</span>
+                  </h2>
+                  <form onSubmit={handleLogin} className="flex flex-col gap-2">
+                      <div className="space-y-2">
                         <input 
-                          type={showPassword ? "text" : "password"} 
-                          placeholder="Senha" 
+                          type="text" 
+                          placeholder="ID de Usuário ou E-mail" 
                           required
-                          value={password}
-                          className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900 pr-10"
-                          onChange={(e) => setPassword(e.target.value)}
+                          value={slug}
+                          className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900 font-bold"
+                          onChange={(e) => setSlug(e.target.value)}
                         />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition-colors"
-                        >
-                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
+                        <div className="relative">
+                          <input 
+                            type={showPassword ? "text" : "password"} 
+                            placeholder="Senha" 
+                            required
+                            value={password}
+                            className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900 pr-10"
+                            onChange={(e) => setPassword(e.target.value)}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition-colors"
+                          >
+                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                    
-                    <button 
-                      type="button"
-                      onClick={() => setShowForgotModal(true)}
-                      className="text-[10px] text-gray-400 font-bold hover:text-orange-500 transition-colors text-right pr-1"
-                    >
-                      Esqueceu a senha?
-                    </button>
+                      
+                      <button 
+                        type="button"
+                        onClick={() => setShowForgotModal(true)}
+                        className="text-[10px] text-gray-400 font-bold hover:text-orange-500 transition-colors text-right pr-1"
+                      >
+                        Esqueceu a senha?
+                      </button>
 
-                    <button 
-                      disabled={loading}
-                      className="w-full bg-orange-500 text-white h-[48px] rounded-xl font-bold hover:bg-orange-600 transition shadow-lg text-xs disabled:opacity-50 mt-1"
-                    >
-                      {loading ? "Verificando..." : "Acessar Plataforma"}
-                    </button>
-                </form>
+                      <button 
+                        disabled={loading}
+                        className="w-full bg-orange-500 text-white h-[48px] rounded-xl font-bold hover:bg-orange-600 transition shadow-lg text-xs disabled:opacity-50 mt-1"
+                      >
+                        {loading ? "Verificando..." : "Acessar Plataforma"}
+                      </button>
+                  </form>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Seção Condicional */}
