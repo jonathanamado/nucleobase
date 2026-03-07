@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Cookie, ShieldCheck, X, ArrowRight } from "lucide-react";
+import { Cookie, ShieldCheck, X, ExternalLink } from "lucide-react";
 import Link from "next/link";
 
 // Tipagem global para o objeto window
@@ -25,10 +25,7 @@ export default function CookieNotice() {
   }, []);
 
   const handleAccept = () => {
-    console.log("COOKIE CLICK FUNCIONOU");
-
     if (typeof window !== "undefined") {
-
       window.dataLayer = window.dataLayer || [];
 
       // Atualiza consentimento
@@ -85,25 +82,27 @@ export default function CookieNotice() {
           />
 
           <div className="flex flex-col items-center text-center relative z-10">
-            <p className="text-[13px] font-bold text-gray-900 uppercase tracking-tight mb-3">
-              Privacidade
-            </p>
+            {/* Ajuste do design de Privacidade para o estilo do selo DIGITAL */}
+            <div className="mb-4">
+              <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] font-black uppercase shadow-sm inline-block tracking-widest">
+                Privacidade
+              </span>
+            </div>
 
-            <p className="text-[11px] text-gray-500 leading-relaxed font-medium mb-2">
-              Usamos apenas cookies essenciais para garantia da sua segurança
-              na nossa Plataforma. Ao aceitá-los, você concorda com nossos
-              termos, os quais estimulamos fortemente que sejam conhecidos por
-              você.
+            <p className="text-[12px] text-gray-500 leading-relaxed font-medium mb-2">
+              Usamos cookies essenciais para sua segurança. Ao continuar, você concorda com nossos termos, criados para a garantia de sua privacidade.
             </p>
 
             <Link
               href="/politica-de-cookies"
-              className="group/link flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 transition-colors border-t border-gray-50 pt-2 w-full justify-center"
+              className="group/link flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 transition-colors border-t border-gray-50 pt-2 w-full justify-center text-center"
             >
-              Saiba mais sobre a Política de Cookies e Segurança
-              <ArrowRight
-                size={12}
-                className="group-hover/link:translate-x-1 transition-transform"
+              <span>
+                Saiba mais sobre a <br /> Política da Nucleo
+              </span>
+              <ExternalLink
+                size={11}
+                className="group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5 transition-transform duration-300"
               />
             </Link>
           </div>
