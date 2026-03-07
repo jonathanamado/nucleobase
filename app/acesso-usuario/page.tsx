@@ -161,8 +161,8 @@ export default function AcessoUsuarioPage() {
             {/* Ícone Gem substitui o BarChart3 no Desktop */}
             <Gem 
               size={40} 
-              className="text-orange-500 skew-x-2 opacity-35 ml-6 hidden md:block" 
-              strokeWidth={1} 
+              className="text-orange-500 skew-x-2 ml-6 hidden md:block" 
+              strokeWidth={2.0} // Aumente de 1 para 2.5 ou 3 para o efeito de negrito
             />
           </div>
 
@@ -178,7 +178,7 @@ export default function AcessoUsuarioPage() {
             ) : (
               <span>
                 Para prosseguir em sua conta, realize o login. Caso não possua uma conta,{" "}
-                <Link href="/cadastro" className="text-orange-600 hover:underline">
+                <Link href="/cadastro" className="text-blue-600 hover:underline">
                   cadastre-se gratuitamente
                 </Link>
                 .
@@ -307,7 +307,7 @@ export default function AcessoUsuarioPage() {
               <div className="md:min-h-[480px] min-h-[200px] flex">
                 <a 
                   href="/resultados" 
-                  className="group bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-gray-100 flex flex-col text-center md:text-left w-full h-full relative overflow-hidden"
+                  className="group bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-gray-300 flex flex-col text-center md:text-left w-full h-full relative overflow-hidden"
                 >
                   <div className="absolute top-6 right-6 bg-blue-600 text-white text-[9px] font-black px-2 py-1 rounded-full uppercase tracking-tighter animate-pulse text-center hidden md:block">
                     Visualização <br /> realtime 

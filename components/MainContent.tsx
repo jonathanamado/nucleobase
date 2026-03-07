@@ -118,7 +118,7 @@ export function MainContent() {
               Acreditamos que a verdadeira inteligência financeira nasce da clareza de dados.
             </p>
             <Link href="/sobre" className="inline-flex items-center gap-2 text-blue-600 font-bold text-[10px] uppercase tracking-widest">
-                Clique aqui e saiba mais sobre a nossa história <ArrowRight size={14} />
+                Clique aqui e conheça nossa história <ArrowRight size={14} />
             </Link>
           </div>
         </div>
