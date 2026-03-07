@@ -133,7 +133,7 @@ export default function AcessoUsuarioPage() {
     <div className="w-full pr-0 md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
       
       {/* Cabeçalho */}
-      <div className="mb-10 mt-2 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
+      <div className="mb-6 mt-2 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
         <div className="lg:col-span-12 text-left">
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
             <span>
@@ -155,7 +155,7 @@ export default function AcessoUsuarioPage() {
             />
           </p>
 
-          <p className="text-base text-gray-600 w-full font-bold leading-tight mb-8">
+          <p className="text-base text-gray-600 w-full font-bold leading-tight mb-4">
             {isLoggedIn ? (
               <>
                 <span className="md:inline hidden">
@@ -169,9 +169,8 @@ export default function AcessoUsuarioPage() {
             )}
           </p>
 
-          {/* Login Card (Ajustado para logo abaixo do texto se deslogado) */}
           {!isLoggedIn && (
-            <div className="max-w-md">
+            <div className="max-w-md mt-6">
                 <div className="w-full bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
                   <h2 className="text-lg font-bold text-gray-900 mb-4 px-1">
                     Realizar login<span className="text-orange-500">.</span>
@@ -226,14 +225,13 @@ export default function AcessoUsuarioPage() {
         </div>
       </div>
 
-      {/* Seção Condicional */}
-      <div className={!isLoggedIn ? "hidden md:block" : "block"}>
+      {/* Seção Condicional - mt-2 para reduzir o gap quando logado */}
+      <div className={!isLoggedIn ? "hidden md:block mt-10" : "block mt-2"}>
         
-        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4 w-full">
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-3 flex items-center gap-4 w-full">
           Navegação e Acessos <div className="h-px bg-gray-300 flex-1"></div>
         </h3>
 
-        {/* Contextualização mobile/desktop elegante */}
         <div className="mb-12 px-2">
           <p className="text-sm md:text-base text-gray-600 leading-relaxed">
             Através do{" "}
@@ -251,11 +249,9 @@ export default function AcessoUsuarioPage() {
           </p>
         </div>
 
-        {/* Grid: Acesso APP e Resultados */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-16">
           <div className={`lg:col-span-12 grid gap-5 ${isLoggedIn ? "grid-cols-2 md:grid-cols-2" : "grid-cols-1 md:grid-cols-2"}`}>
               
-              {/* CARD 1: ACESSO APP */}
               <div className="md:min-h-[480px] min-h-[200px] flex">
                 <a 
                   href="/lancamentos"
@@ -283,7 +279,6 @@ export default function AcessoUsuarioPage() {
                 </a>
               </div>
 
-              {/* CARD 2: RESULTADOS */}
               <div className="md:min-h-[480px] min-h-[200px] flex">
                 <a 
                   href="/resultados" 
@@ -318,19 +313,16 @@ export default function AcessoUsuarioPage() {
           </div>
         </div>
 
-        {/* Linha Divisória: Segurança e Identidade */}
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4 w-full">
           Segurança e Identidade <div className="h-px bg-gray-300 flex-1"></div>
         </h3>
 
-        {/* Contexto Segurança Resumido */}
         <div className="mb-8 px-2">
           <p className="text-xs md:text-sm text-gray-500 font-medium">
             Sua privacidade é nossa prioridade absoluta. Atuamos com as camadas mais modernas de proteção para que seus dados financeiros permaneçam exclusivamente sob seu controle.
           </p>
         </div>
 
-        {/* Grid: Card de Acesso Usuário */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-10">
           <div className="lg:col-span-12 min-h-[320px] flex">
               <div className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl w-full h-full flex flex-col md:flex-row gap-12 items-center">
@@ -346,21 +338,18 @@ export default function AcessoUsuarioPage() {
                       </p>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {/* Coluna 1 */}
                         <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0">
                           <ShieldCheck size={28} className="text-blue-400 row-span-2 self-start mt-1" />
                           <span className="text-white font-bold text-xs uppercase tracking-tighter">Criptografia</span>
                           <span className="text-[10px] text-gray-500 font-medium">Proteção total SSL/TLS 1.3</span>
                         </div>
                         
-                        {/* Coluna 2 */}
                         <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0">
                           <Lock size={28} className="text-blue-400 row-span-2 self-start mt-1" />
                           <span className="text-white font-bold text-xs uppercase tracking-tighter">Acesso Restrito</span>
                           <span className="text-[10px] text-gray-500 font-medium">Políticas RLS ativas</span>
                         </div>
 
-                        {/* Coluna 3 */}
                         <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0">
                           <Globe size={28} className="text-blue-400 row-span-2 self-start mt-1" />
                           <span className="text-white font-bold text-xs uppercase tracking-tighter">Backup em Nuvem</span>
@@ -384,7 +373,6 @@ export default function AcessoUsuarioPage() {
         </div>
       </div>
 
-      {/* MODAL DE RECUPERAÇÃO */}
       {showForgotModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
