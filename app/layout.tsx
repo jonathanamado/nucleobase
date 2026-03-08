@@ -5,6 +5,7 @@ import "./globals.css";
 import { MessageCircle, LayoutDashboard, Undo2 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
+import { MobileTabBar } from "@/components/MobileTabBar"; // Importação do novo componente
 import CookieNotice from "@/components/CookieNotice"; 
 import { usePathname } from "next/navigation";
 import Script from "next/script";
@@ -33,7 +34,7 @@ function WhatsAppFloating() {
       href="https://wa.link/qbxg9f"
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 z-50 bg-green-500 text-white pl-4 pr-3 py-2.5 rounded-full shadow-lg hover:bg-green-600 hover:scale-105 transition-all duration-300 flex items-center gap-2 opacity-95 hover:opacity-100"
+      className="fixed bottom-24 md:bottom-6 right-6 z-50 bg-green-500 text-white pl-4 pr-3 py-2.5 rounded-full shadow-lg hover:bg-green-600 hover:scale-105 transition-all duration-300 flex items-center gap-2 opacity-95 hover:opacity-100"
       aria-label="WhatsApp"
     >
       <span className="text-[11px] font-semibold tracking-wide uppercase">
@@ -95,7 +96,8 @@ export default function RootLayout({
         <main className="flex-1 flex w-full max-w-full overflow-x-hidden">
           <Sidebar />
           
-          <section className="flex-1 w-full max-w-full px-4 md:px-10 py-6 scroll-smooth md:ml-80 overflow-x-hidden flex flex-col">
+          {/* Adicionado pb-20 no mobile para dar espaço à TabBar */}
+          <section className="flex-1 w-full max-w-full px-4 md:px-10 py-6 pb-20 md:pb-6 scroll-smooth md:ml-80 overflow-x-hidden flex flex-col">
             <div className="min-h-[calc(100vh-200px)] w-full">
               {children}
             </div>
@@ -145,6 +147,9 @@ export default function RootLayout({
           </section>
         </main>
         
+        {/* Componente MobileTabBar adicionado aqui */}
+        <MobileTabBar />
+
         {/* Renderização dos elementos flutuantes */}
         <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
           <CookieNotice />

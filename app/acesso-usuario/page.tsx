@@ -249,8 +249,8 @@ export default function AcessoUsuarioPage() {
           Navegação e Acessos <div className="h-px bg-gray-300 flex-1"></div>
         </h3>
 
-        <div className="mb-12 px-4">
-          {/* Versão Desktop - Texto Completo */}
+        <div className="mb-12">
+          {/* Versão Desktop - Texto Completo (Sem o recuo px-4) */}
           <p className="hidden md:block text-base text-gray-600 leading-relaxed">
             Através do{" "}
             <span className="inline-flex items-center justify-center bg-orange-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
@@ -265,7 +265,8 @@ export default function AcessoUsuarioPage() {
               permitindo que você visualize onde economizar e como acelerar seus objetivos.
             </span>{" "}
           </p>
-          {/* Versão Mobile - Texto Simplificado */}
+          
+          {/* Versão Mobile - Texto Simplificado (Sem o recuo px-4) */}
           <p className="md:hidden text-sm text-gray-600 leading-relaxed">
             Acesse o <span className="font-bold text-orange-600">APP</span> para novos lançamentos ou o <span className="font-bold text-blue-600">Painel</span> para análise estratégica de seus resultados em tempo real.
           </p>
@@ -342,8 +343,8 @@ export default function AcessoUsuarioPage() {
           Segurança e Identidade <div className="h-px bg-gray-300 flex-1"></div>
         </h3>
 
-        <div className="mb-8 px-2">
-          <p className="text-xs md:text-sm text-gray-500 font-medium">
+        <div className="mb-8">
+          <p className="text-xs md:text-sm text-gray-500 font-medium leading-relaxed">
             Sua privacidade é nossa prioridade absoluta. Atuamos com as camadas mais modernas de proteção para que seus dados financeiros permaneçam exclusivamente sob seu controle.
           </p>
         </div>

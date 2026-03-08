@@ -185,30 +185,30 @@ export default function MinhaContaPage() {
           
           {/* TEXTO DE IDENTIFICAÇÃO (OCUPA A MESMA LARGURA DO FORMULÁRIO) */}
           <div className="lg:col-span-8">
-            <div className="flex flex-wrap items-center gap-x-2 text-sm text-gray-500 font-medium leading-relaxed">
+            <div className="text-sm text-gray-500 font-medium leading-relaxed">
               {/* VERSÃO DESKTOP */}
               <span className="hidden md:inline">
-                Olá{nome ? ` ${nome.split(' ')[0]}` : ","} , você poderá logar em qualquer dispositivo utilizando seu id ou e-mail e sua senha de acesso. Suas identificações na Nucleo são:
+                Olá{nome ? ` ${nome.split(' ')[0]}` : ","}, conecte-se em seus dispositivos utilizando seu id{" "}
               </span>
               
               {/* VERSÃO MOBILE RESUMIDA */}
               <span className="inline md:hidden">
-                Olá{nome ? ` ${nome.split(' ')[0]}` : ""}, acesse sua conta com:
+                Olá{nome ? ` ${nome.split(' ')[0]}` : ""}, conecte-se em qualquer dispositivo utilizando seu id{" "}
               </span>
               
-              <div className="flex flex-col text-[11px] font-bold text-gray-900 leading-tight tracking-tighter select-none">
-                <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[10px] shadow-sm inline-block lowercase">
+              <span className="inline-flex align-middle">
+                <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[10px] font-bold shadow-sm lowercase leading-none select-none">
                   #{slug?.toLowerCase() || "---"}
                 </span>
-              </div>
+              </span>
 
-              <span>e</span>
+              <span className="mx-1">ou e-mail</span>
 
-              <div className="flex flex-col text-[11px] font-bold text-gray-900 leading-tight tracking-tighter select-none">
-                <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[10px] shadow-sm inline-block lowercase">
-                  {email.toLowerCase()} .
+              <span className="inline-flex align-middle">
+                <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[10px] font-bold shadow-sm lowercase leading-none select-none">
+                  {email.toLowerCase()}.
                 </span>
-              </div>
+              </span>
             </div>
           </div>
 
@@ -228,16 +228,16 @@ export default function MinhaContaPage() {
         
         {/* COLUNA ESQUERDA: FORMULÁRIO */}
         <div className="lg:col-span-8">
-          <section className="bg-white rounded-[2.5rem] p-10 border border-gray-100 shadow-sm relative flex flex-col h-full">
+          <section className="bg-white rounded-[2.5rem] px-5 py-10 md:p-10 border border-gray-100 shadow-sm relative flex flex-col h-full">
             
             <div className="flex flex-col xl:flex-row justify-between items-start mb-12 gap-8">
-              {/* BLOCO DA FOTO */}
-              <div className="flex flex-col md:flex-row items-center md:items-center gap-6">
+              {/* BLOCO DA FOTO - Ajustado para manter lateralidade no mobile */}
+              <div className="flex flex-row items-start md:items-center gap-6">
                 <div className="relative group shrink-0">
-                  <div className={`w-24 h-24 rounded-[2.5rem] bg-gray-50 border-4 border-white shadow-xl overflow-hidden flex items-center justify-center transition-all ${uploadingAvatar ? 'opacity-40' : 'opacity-100'}`}>
+                  <div className={`w-20 h-20 md:w-24 md:h-24 rounded-[2rem] md:rounded-[2.5rem] bg-gray-50 border-4 border-white shadow-xl overflow-hidden flex items-center justify-center transition-all ${uploadingAvatar ? 'opacity-40' : 'opacity-100'}`}>
                     {avatarUrl ? <img src={avatarUrl} alt="Perfil" className="w-full h-full object-cover" /> : <UserCircle size={48} className="text-gray-200" />}
                   </div>
-                  <label className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 rounded-[2.5rem] cursor-pointer transition-all">
+                  <label className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 rounded-[2rem] md:rounded-[2.5rem] cursor-pointer transition-all">
                     <Camera size={24} />
                     <input type="file" className="hidden" accept="image/*" onChange={handleUploadAvatar} disabled={uploadingAvatar} />
                   </label>
@@ -247,9 +247,9 @@ export default function MinhaContaPage() {
                     </div>
                   )}
                 </div>
-                <div className="text-center md:text-left">
-                  <h4 className="text-xl font-bold text-gray-900 mb-1">Dados Cadastrais</h4>
-                  <p className="text-[11px] text-gray-400 font-medium leading-tight max-w-[200px]">
+                <div className="text-left">
+                  <h4 className="text-lg md:text-xl font-bold text-gray-900 mb-1">Dados Cadastrais</h4>
+                  <p className="text-[10px] md:text-[11px] text-gray-400 font-medium leading-tight max-w-[180px] md:max-w-[200px]">
                     Clique sobre o ícone da câmera para incluir ou editar sua imagem de perfil.
                   </p>
                 </div>
@@ -408,7 +408,7 @@ export default function MinhaContaPage() {
             <div className="mt-12 pt-8 border-t border-white/10 relative z-10">
               <div className="p-6 bg-white/5 rounded-[2rem] border border-white/5 group-hover:bg-white/10 transition-all">
                 <p className="text-[11px] text-blue-100/60 leading-relaxed italic font-medium">
-                  Estes dados otimizam a sua experiência no ecossistema <span className="text-blue-400">nucleobase.app</span>.
+                  Seus dados atualizados otimizam a sua experiência no ecossistema <span className="text-blue-400">nucleobase.app</span>.
                 </p>
               </div>
             </div>

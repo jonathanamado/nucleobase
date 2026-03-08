@@ -156,7 +156,7 @@ export function Header() {
           )}
         </nav>
 
-        {/* BOTÃO MOBILE E PROFILE */}
+        {/* BOTÃO MOBILE E MENU (Perfil removido daqui e movido para a TabBar) */}
         <div className="md:hidden flex items-center gap-2">
           {pathname !== "/" && (
               <a href="/" className="p-2.5 text-gray-400 active:text-blue-600 transition-colors bg-gray-50 rounded-2xl border border-gray-100">
@@ -164,18 +164,7 @@ export function Header() {
               </a>
           )}
 
-          {isLoggedIn && (
-            <button 
-              onClick={() => router.push("/minha-conta")}
-              className="flex items-center justify-center w-10 h-10 rounded-full border border-gray-100 active:border-blue-500 transition-all overflow-hidden bg-gray-50"
-            >
-              {userProfile.avatar ? (
-                <img src={userProfile.avatar} alt="Perfil" className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-[10px] font-black text-blue-600 tracking-tighter">{getInitials(userProfile.nome)}</span>
-              )}
-            </button>
-          )}
+          {/* O botão de perfil que ficava aqui foi removido para evitar duplicidade com a nova TabBar inferior */}
 
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -232,7 +221,6 @@ export function Header() {
                         <LayoutDashboard size={18} /> Painel Acesso APP
                       </a>
                       
-                      {/* Novo Destaque para Painel de Resultados */}
                       <a href="/resultados" className="flex items-center justify-center gap-2 w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-sm shadow-lg">
                         <BarChart3 size={18} /> Visão de Resultados
                       </a>
