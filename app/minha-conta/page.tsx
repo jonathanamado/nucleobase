@@ -29,7 +29,6 @@ export default function MinhaContaPage() {
   const [objetivoFinanceiro, setObjetivoFinanceiro] = useState("");
   const [origem, setOrigem] = useState("");
   
-  // NOVOS CAMPOS
   const [possuiFilhos, setPossuiFilhos] = useState("");
   const [objetivoPlataforma, setObjetivoPlataforma] = useState("");
   
@@ -45,11 +44,6 @@ export default function MinhaContaPage() {
 
   const aplicarMascaraTelefone = (value: string) => {
     return value.replace(/\D/g, "").replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2").replace(/(-\d{4})\d+?$/, "$1");
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/";
   };
 
   const handleUploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -169,30 +163,65 @@ export default function MinhaContaPage() {
       {/* HEADER DA PÁGINA MINHA CONTA */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
-          <h1 className="text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
             <span>Minha conta<span className="text-blue-600">.</span></span>
-            {/* REMOVIDO skew-x-12 PARA RETIRAR O ITÁLICO DO ÍCONE */}
-            <UserCircle size={60} className="text-blue-600 opacity-35 ml-4" strokeWidth={1.2} />
+            <UserCircle size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
           </h1>
           
-          <h2 className="text-gray-500 text-xl font-medium max-w-2xl leading-relaxed mt-0">
-            Gerencie suas informações e preferências.
+          <h2 className="text-gray-500 text-lg font-medium max-w-2xl leading-relaxed mt-0">
+            <span className="hidden md:block">Gerencie suas informações e preferências.</span>
+            <span className="block md:hidden">Gerencie seus dados.</span>
           </h2>
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          <button onClick={() => window.location.href = "/acesso-usuario"} className="inline-flex items-center gap-2 px-6 py-2.5 bg-white border border-gray-200 text-gray-500 rounded-full hover:border-blue-600 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest shadow-sm">
-            <LayoutDashboard size={14} /> Painel do usuário
-          </button>
-          <button onClick={handleLogout} className="inline-flex items-center gap-2 px-6 py-2.5 bg-gray-900 text-white rounded-full hover:bg-black transition-all font-bold text-[10px] uppercase tracking-widest shadow-lg">
-            <LogOut size={14} /> Realizar logoff
-          </button>
         </div>
       </div>
 
-      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
-        Perfil e Segurança <div className="h-px bg-gray-300 flex-1"></div>
-      </h3>
+      <div className="mb-6">
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-2 flex items-center gap-4">
+          Perfil e Segurança <div className="h-px bg-gray-300 flex-1"></div>
+        </h3>
+        
+        {/* GRID SINCRONIZADO COM O CONTEÚDO ABAIXO */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          
+          {/* TEXTO DE IDENTIFICAÇÃO (OCUPA A MESMA LARGURA DO FORMULÁRIO) */}
+          <div className="lg:col-span-8">
+            <div className="flex flex-wrap items-center gap-x-2 text-sm text-gray-500 font-medium leading-relaxed">
+              {/* VERSÃO DESKTOP */}
+              <span className="hidden md:inline">
+                Olá{nome ? ` ${nome.split(' ')[0]}` : ","} , você poderá logar em qualquer dispositivo utilizando seu id ou e-mail e sua senha de acesso. Suas identificações na Nucleo são:
+              </span>
+              
+              {/* VERSÃO MOBILE RESUMIDA */}
+              <span className="inline md:hidden">
+                Olá{nome ? ` ${nome.split(' ')[0]}` : ""}, acesse sua conta com:
+              </span>
+              
+              <div className="flex flex-col text-[11px] font-bold text-gray-900 leading-tight tracking-tighter select-none">
+                <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[10px] shadow-sm inline-block lowercase">
+                  #{slug?.toLowerCase() || "---"}
+                </span>
+              </div>
+
+              <span>e</span>
+
+              <div className="flex flex-col text-[11px] font-bold text-gray-900 leading-tight tracking-tighter select-none">
+                <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[10px] shadow-sm inline-block lowercase">
+                  {email.toLowerCase()} .
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* BOTÃO ALTERAR SENHA (OCUPA A MESMA LARGURA DO CARD DE PREFERÊNCIAS) - OCULTO NO MOBILE NESTA POSIÇÃO */}
+          <div className="lg:col-span-4 hidden md:block">
+            <div className="w-full bg-gray-50/80 p-2 rounded-[2rem] border border-gray-100 shadow-inner flex items-center justify-center">
+              <button onClick={() => setShowPassModal(true)} className="w-full flex items-center justify-center gap-2 py-4 bg-white border border-gray-200 rounded-2xl text-[10px] font-black text-gray-500 uppercase hover:text-blue-600 hover:border-blue-200 transition-all active:scale-95 shadow-sm">
+                <KeyRound size={14} /> Alterar senha de acesso
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* GRID PRINCIPAL */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
@@ -202,8 +231,8 @@ export default function MinhaContaPage() {
           <section className="bg-white rounded-[2.5rem] p-10 border border-gray-100 shadow-sm relative flex flex-col h-full">
             
             <div className="flex flex-col xl:flex-row justify-between items-start mb-12 gap-8">
-              {/* BLOCO DA FOTO E TEXTOS ABAIXO */}
-              <div className="flex flex-col items-center xl:items-start gap-4">
+              {/* BLOCO DA FOTO */}
+              <div className="flex flex-col md:flex-row items-center md:items-center gap-6">
                 <div className="relative group shrink-0">
                   <div className={`w-24 h-24 rounded-[2.5rem] bg-gray-50 border-4 border-white shadow-xl overflow-hidden flex items-center justify-center transition-all ${uploadingAvatar ? 'opacity-40' : 'opacity-100'}`}>
                     {avatarUrl ? <img src={avatarUrl} alt="Perfil" className="w-full h-full object-cover" /> : <UserCircle size={48} className="text-gray-200" />}
@@ -218,27 +247,12 @@ export default function MinhaContaPage() {
                     </div>
                   )}
                 </div>
-                {/* TEXTOS ABAIXO DA FOTO */}
-                <div className="text-center xl:text-left">
-                  <h4 className="text-xl font-bold text-gray-900 mb-1 text-center">Dados Cadastrais</h4>
+                <div className="text-center md:text-left">
+                  <h4 className="text-xl font-bold text-gray-900 mb-1">Dados Cadastrais</h4>
+                  <p className="text-[11px] text-gray-400 font-medium leading-tight max-w-[200px]">
+                    Clique sobre o ícone da câmera para incluir ou editar sua imagem de perfil.
+                  </p>
                 </div>
-              </div>
-
-              {/* BLOCO ID USUÁRIO E LOGIN COM DISTÂNCIA DA BORDA */}
-              <div className="w-full xl:max-w-md bg-gray-50/80 p-6 rounded-[2.5rem] border border-gray-100 space-y-4 shadow-inner xl:mr-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between gap-4 px-1">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter flex items-center gap-2 shrink-0"><AtSign size={12}/> ID Usuário</span>
-                    <span className="text-xs font-bold text-gray-700 truncate text-right">{slug || "---"}</span>
-                  </div>
-                  <div className="flex items-center justify-between gap-4 border-t border-gray-200/50 pt-3 px-1">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter flex items-center gap-2 shrink-0"><Mail size={12}/> Login </span>
-                    <span className="text-xs font-medium text-gray-500 italic truncate text-right">{email}</span>
-                  </div>
-                </div>
-                <button onClick={() => setShowPassModal(true)} className="w-full flex items-center justify-center gap-2 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-black text-gray-500 uppercase hover:text-blue-600 hover:border-blue-200 transition-all active:scale-95 shadow-sm">
-                  <KeyRound size={14} /> Alterar senha de acesso
-                </button>
               </div>
             </div>
 
@@ -327,7 +341,7 @@ export default function MinhaContaPage() {
           </section>
         </div>
 
-        {/* COLUNA DIREITA: SIDEBAR DE PREFERÊNCIAS */}
+        {/* COLUNA DIREITA: PREFERÊNCIAS */}
         <div className="lg:col-span-4 flex flex-col gap-8">
           
           <section className="bg-gray-900 p-10 rounded-[3rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-between flex-1">
@@ -400,11 +414,21 @@ export default function MinhaContaPage() {
             </div>
           </section>
 
-          {/* BOTÃO DE SALVAR */}
-          <button onClick={handleUpdate} disabled={updating} className="w-full bg-blue-600 text-white py-6 rounded-[2.5rem] hover:bg-blue-700 transition-all font-black text-[12px] uppercase tracking-[0.3em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-4 active:scale-[0.98] disabled:opacity-50 group">
-            <Save size={18} className="group-hover:rotate-12 transition-transform" /> 
-            {updating ? "Sincronizando..." : "Salvar Alterações"}
-          </button>
+          {/* ÁREA DE BOTÕES - MOBILE FRIENDLY */}
+          <div className="flex flex-col gap-4">
+            {/* BOTÃO ALTERAR SENHA (VISÍVEL APENAS NO MOBILE NESTA POSIÇÃO) */}
+            <div className="w-full bg-gray-50/80 p-2 rounded-[2rem] border border-gray-100 shadow-inner flex md:hidden items-center justify-center">
+              <button onClick={() => setShowPassModal(true)} className="w-full flex items-center justify-center gap-2 py-4 bg-white border border-gray-200 rounded-2xl text-[10px] font-black text-gray-500 uppercase hover:text-blue-600 hover:border-blue-200 transition-all active:scale-95 shadow-sm">
+                <KeyRound size={14} /> Alterar senha de acesso
+              </button>
+            </div>
+
+            {/* BOTÃO DE SALVAR */}
+            <button onClick={handleUpdate} disabled={updating} className="w-full bg-blue-600 text-white py-6 rounded-[2.5rem] hover:bg-blue-700 transition-all font-black text-[12px] uppercase tracking-[0.3em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-4 active:scale-[0.98] disabled:opacity-50 group">
+              <Save size={18} className="group-hover:rotate-12 transition-transform" /> 
+              {updating ? "Sincronizando..." : "Salvar Alterações"}
+            </button>
+          </div>
         </div>
       </div>
 

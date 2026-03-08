@@ -243,13 +243,13 @@ export default function AcessoUsuarioPage() {
       </div>
 
       {/* Seção Condicional */}
-      <div className={!isLoggedIn ? "hidden md:block mt-10" : "block mt-2"}>
+      <div className={!isLoggedIn ? "hidden md:block mt-14" : "block mt-8"}>
         
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-3 flex items-center gap-4 w-full">
           Navegação e Acessos <div className="h-px bg-gray-300 flex-1"></div>
         </h3>
 
-        <div className="mb-12 px-2">
+        <div className="mb-12 px-4">
           {/* Versão Desktop - Texto Completo */}
           <p className="hidden md:block text-base text-gray-600 leading-relaxed">
             Através do{" "}
