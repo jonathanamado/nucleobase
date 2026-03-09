@@ -256,13 +256,13 @@ export default function AcessoUsuarioPage() {
             <span className="inline-flex items-center justify-center bg-orange-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
               Acesso ao APP
             </span>{" "}
-            você centraliza sua vida financeira com liberdade total, desde registros cotidianos até custos parcelados de longo prazo. Na consulta dos seus {" "}
+            você centraliza sua vida financeira com total liberdade, de registros cotidianos a custos parcelados de longo prazo. Na consulta dos seus {" "}
             <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
-              Resultados consolidados
+              Resultados
             </span>{" "}
-            , a Nucleo transforma dados em clareza estratégica, {" "}
+            , transformamos dados em clareza estratégica, {" "}
             <span className="text-gray-900 underline decoration-2 decoration-orange-500/30 underline-offset-4 font-medium">
-              permitindo que você visualize onde economizar e como acelerar seus objetivos.
+              permitindo seu entendimento sobre onde economizar e como acelerar objetivos.
             </span>{" "}
           </p>
           

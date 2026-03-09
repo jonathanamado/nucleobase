@@ -6,12 +6,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { 
   UserCircle, LayoutDashboard, X, Menu, 
   Info, Newspaper, CreditCard, BarChart3, Star, HelpCircle, 
-  MessageSquare, Shield, LifeBuoy, ChevronRight, Undo2, AppWindow
+  MessageSquare, Shield, LifeBuoy, ChevronRight, Undo2, AppWindow, LogOut
 } from "lucide-react";
 
 export function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<{ nome: string; avatar: string | null }>({
     nome: "",
     avatar: null,
@@ -65,10 +66,10 @@ export function Header() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setIsMenuOpen(false);
+    setIsUserDropdownOpen(false);
     router.push("/");
   };
 
-  // Filtrado para remover o Painel de Resultados da listagem padrão
   const menuLinks = [
     { name: "Sobre a Plataforma", href: "/sobre", icon: <Info size={18} /> },
     { name: "Blog da Núcleo", href: "/blog", icon: <Newspaper size={18} /> },
@@ -129,7 +130,7 @@ export function Header() {
               </a>
             </>
           ) : (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 relative">
               {pathname !== "/" && (
                 <a href="/" className="flex items-center gap-2.5 text-gray-400 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest mr-2 group">
                   <div className="bg-gray-50 p-2 rounded-full group-hover:bg-blue-50 transition-colors border border-gray-100 group-hover:border-blue-100">
@@ -142,29 +143,54 @@ export function Header() {
                 <LayoutDashboard size={18} />
                 Acessar Plataforma
               </a>
-              <button 
-                onClick={() => router.push("/minha-conta")}
-                className="ml-1 flex items-center justify-center w-10 h-10 rounded-full border-2 border-gray-100 hover:border-blue-500 transition-all overflow-hidden bg-gray-50"
-              >
-                {userProfile.avatar ? (
-                  <img src={userProfile.avatar} alt="Perfil" className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-xs font-black text-blue-600 tracking-tighter">{getInitials(userProfile.nome)}</span>
-                )}
-              </button>
+              
+              {/* Avatar/Iniciais - Escondido na página minha-conta */}
+              {pathname !== "/minha-conta" && (
+                <div className="relative">
+                  <button 
+                    onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+                    className="ml-1 flex items-center justify-center w-10 h-10 rounded-full border-2 border-gray-100 hover:border-blue-500 transition-all overflow-hidden bg-gray-50"
+                  >
+                    {userProfile.avatar ? (
+                      <img src={userProfile.avatar} alt="Perfil" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-xs font-black text-blue-600 tracking-tighter">{getInitials(userProfile.nome)}</span>
+                    )}
+                  </button>
+
+                  {/* Menu de Logoff Desktop */}
+                  {isUserDropdownOpen && (
+                    <>
+                      <div className="fixed inset-0 z-[-1]" onClick={() => setIsUserDropdownOpen(false)}></div>
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <button
+                          onClick={() => router.push("/minha-conta")}
+                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                        >
+                          <UserCircle size={18} /> Minha Conta
+                        </button>
+                        <button
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors font-semibold"
+                        >
+                          <LogOut size={18} /> Sair da conta
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </nav>
 
-        {/* BOTÃO MOBILE E MENU (Perfil removido daqui e movido para a TabBar) */}
+        {/* BOTÃO MOBILE */}
         <div className="md:hidden flex items-center gap-2">
           {pathname !== "/" && (
               <a href="/" className="p-2.5 text-gray-400 active:text-blue-600 transition-colors bg-gray-50 rounded-2xl border border-gray-100">
                 <AppWindow size={20} strokeWidth={2} />
               </a>
           )}
-
-          {/* O botão de perfil que ficava aqui foi removido para evitar duplicidade com a nova TabBar inferior */}
 
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)}

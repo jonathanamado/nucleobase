@@ -183,7 +183,7 @@ export default function MinhaContaPage() {
         {/* GRID SINCRONIZADO COM O CONTEÚDO ABAIXO */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
-          {/* TEXTO DE IDENTIFICAÇÃO (OCUPA A MESMA LARGURA DO FORMULÁRIO) */}
+          {/* TEXTO DE IDENTIFICAÇÃO */}
           <div className="lg:col-span-8">
             <div className="text-sm text-gray-500 font-medium leading-relaxed">
               {/* VERSÃO DESKTOP */}
@@ -206,13 +206,17 @@ export default function MinhaContaPage() {
 
               <span className="inline-flex align-middle">
                 <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[10px] font-bold shadow-sm lowercase leading-none select-none">
-                  {email.toLowerCase()}.
+                  {email.toLowerCase()}
                 </span>
               </span>
+
+              {/* AJUSTE SOLICITADO: TEXTO CONDICIONAL APÓS O EMAIL */}
+              <span className="hidden md:inline"> e aproveite todas as funções da Plataforma da Nucleo.</span>
+              <span className="inline md:hidden">.</span>
             </div>
           </div>
 
-          {/* BOTÃO ALTERAR SENHA (OCUPA A MESMA LARGURA DO CARD DE PREFERÊNCIAS) - OCULTO NO MOBILE NESTA POSIÇÃO */}
+          {/* BOTÃO ALTERAR SENHA (DESKTOP) */}
           <div className="lg:col-span-4 hidden md:block">
             <div className="w-full bg-gray-50/80 p-2 rounded-[2rem] border border-gray-100 shadow-inner flex items-center justify-center">
               <button onClick={() => setShowPassModal(true)} className="w-full flex items-center justify-center gap-2 py-4 bg-white border border-gray-200 rounded-2xl text-[10px] font-black text-gray-500 uppercase hover:text-blue-600 hover:border-blue-200 transition-all active:scale-95 shadow-sm">
@@ -231,7 +235,6 @@ export default function MinhaContaPage() {
           <section className="bg-white rounded-[2.5rem] px-5 py-10 md:p-10 border border-gray-100 shadow-sm relative flex flex-col h-full">
             
             <div className="flex flex-col xl:flex-row justify-between items-start mb-12 gap-8">
-              {/* BLOCO DA FOTO - Ajustado para manter lateralidade no mobile */}
               <div className="flex flex-row items-start md:items-center gap-6">
                 <div className="relative group shrink-0">
                   <div className={`w-20 h-20 md:w-24 md:h-24 rounded-[2rem] md:rounded-[2.5rem] bg-gray-50 border-4 border-white shadow-xl overflow-hidden flex items-center justify-center transition-all ${uploadingAvatar ? 'opacity-40' : 'opacity-100'}`}>
@@ -414,16 +417,13 @@ export default function MinhaContaPage() {
             </div>
           </section>
 
-          {/* ÁREA DE BOTÕES - MOBILE FRIENDLY */}
           <div className="flex flex-col gap-4">
-            {/* BOTÃO ALTERAR SENHA (VISÍVEL APENAS NO MOBILE NESTA POSIÇÃO) */}
             <div className="w-full bg-gray-50/80 p-2 rounded-[2rem] border border-gray-100 shadow-inner flex md:hidden items-center justify-center">
               <button onClick={() => setShowPassModal(true)} className="w-full flex items-center justify-center gap-2 py-4 bg-white border border-gray-200 rounded-2xl text-[10px] font-black text-gray-500 uppercase hover:text-blue-600 hover:border-blue-200 transition-all active:scale-95 shadow-sm">
                 <KeyRound size={14} /> Alterar senha de acesso
               </button>
             </div>
 
-            {/* BOTÃO DE SALVAR */}
             <button onClick={handleUpdate} disabled={updating} className="w-full bg-blue-600 text-white py-6 rounded-[2.5rem] hover:bg-blue-700 transition-all font-black text-[12px] uppercase tracking-[0.3em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-4 active:scale-[0.98] disabled:opacity-50 group">
               <Save size={18} className="group-hover:rotate-12 transition-transform" /> 
               {updating ? "Sincronizando..." : "Salvar Alterações"}

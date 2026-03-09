@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { 
   Save, CreditCard, Wallet, Calendar, 
   Tag, DollarSign, CheckCircle2, Layers, Repeat, 
-  Rocket, Activity, Clock, AlertCircle, BarChart3, ArrowRight, LineChart, Zap
+  Rocket, Activity, Clock, AlertCircle, BarChart3, ArrowRight, LineChart, Zap, X
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
@@ -18,7 +18,7 @@ export default function LancamentosPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [sucesso, setSucesso] = useState(false);
-  const [erroValidacao, setErroValidacao] = useState(false);
+  const [showAviso, setShowAviso] = useState(false);
   const [ultimosLancamentos, setUltimosLancamentos] = useState<any[]>([]);
 
   const getLocalDate = () => {
@@ -102,6 +102,12 @@ export default function LancamentosPage() {
       }
     };
     getUser();
+
+    const timer = setTimeout(() => {
+      setShowAviso(true);
+    }, 5000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -145,51 +151,65 @@ export default function LancamentosPage() {
   const isReceita = formData.natureza === "Receita";
 
   return (
-    <div className="w-full min-h-screen animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 lg:px-8 pt-0 mt-0 max-w-[1600px] mx-auto">
+    <div className="w-full min-h-screen animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative">
       
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mb-12 mt-0 pt-4">
-        <div className="flex-1">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center flex-wrap">
-            <span>Lançamentos facilitados<span className="text-orange-500">.</span></span>
-            <Activity size={40} className="text-orange-500 skew-x-12 opacity-20 ml-4 hidden sm:block" strokeWidth={1.5} />
+      {showAviso && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl border border-gray-100 flex flex-col items-center text-center animate-in zoom-in-95 duration-300">
+            <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mb-6">
+              <Zap size={32} className="text-orange-500 fill-orange-500 animate-pulse" />
+            </div>
+            <h4 className="text-lg font-bold text-gray-900 mb-3 tracking-tight">Nota de Eficiência</h4>
+            <p className="text-sm text-gray-500 font-medium leading-relaxed mb-8">
+              A importação via "Upload arquivo" é a solução <span className="text-orange-600 font-bold">mais rápida</span> no seu processo de múltiplos lançamentos.
+            </p>
+            <button 
+              onClick={() => setShowAviso(false)}
+              className="w-full py-4 bg-gray-900 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-gray-800 transition-all shadow-lg shadow-gray-200"
+            >
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Grid de Título e Atalhos Superiores */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12 items-end">
+        <div className="lg:col-span-7">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-4 tracking-tight flex items-center flex-wrap">
+            <span>Gestão de Lançamentos<span className="text-orange-500">.</span></span>
+            <Activity size={32} className="text-orange-500 skew-x-12 ml-4 hidden sm:block" strokeWidth={1.5} />
           </h1>
-          <h2 className="text-gray-500 text-lg md:text-base font-medium max-w-2xl leading-relaxed mt-5">
+          <h2 className="text-base text-gray-600 w-full font-bold leading-tight mb-4 lg:mb-0">
             Realize lançamentos por tela ou importação (múltiplos registros).
           </h2>
         </div>
 
-        {/* Ajustado para xl:w-[41.66%] para alinhar com a largura da coluna de classificação (5/12) */}
-        <div className="flex flex-col gap-4 w-full xl:w-[41.66%]">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Link href="/lancamentos/importar" className="relative flex flex-col items-center text-center bg-orange-50/30 border-2 border-orange-200 rounded-2xl py-4 px-4 hover:bg-orange-50 hover:border-orange-300 transition-all group shadow-sm"> 
-              <div className="absolute -top-2 -right-2 bg-orange-500 text-white text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-tighter shadow-sm animate-bounce">Recomendado</div>
-              <span className="text-[11px] font-black uppercase tracking-[0.15em] text-orange-600 mb-2 transition-colors">Upload Arquivo XLS</span>
-              <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
-                  <span className="text-[10px] font-bold text-gray-500">Importação Dinâmica</span>
-              </div>
-            </Link>
-            <Link href="/lancamentos/integrar" className="relative flex flex-col items-center text-center bg-gray-50 border border-gray-200 rounded-2xl py-4 px-4 hover:bg-emerald-50 hover:border-emerald-200 transition-all group shadow-sm"> 
-              <div className="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-tighter shadow-sm">Em desenvolvimento</div>
-              <span className="text-[11px] font-black uppercase tracking-[0.15em] text-gray-400 mb-2 group-hover:text-emerald-500 transition-colors">Automação Cloud</span>
-              <div className="flex items-center gap-2">
+        {/* Alinhamento de largura exato com a coluna 03 (lg:col-span-5) */}
+        <div className="lg:col-span-5">
+          <div className="grid grid-cols-2 gap-3">
+            <Link href="/lancamentos/integrar" className="relative flex flex-col items-center text-center bg-gray-50 border border-gray-200 rounded-2xl py-4 px-2 hover:bg-emerald-50 hover:border-emerald-200 transition-all group shadow-sm"> 
+              <div className="absolute -top-2 -right-1 bg-blue-600 text-white text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-sm">Em dev</div>
+              <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-[0.1em] sm:tracking-[0.15em] text-gray-400 mb-2 group-hover:text-emerald-500 transition-colors">Automação Cloud</span>
+              <div className="flex items-center gap-1 sm:gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                  <span className="text-[10px] font-bold text-gray-500">Integração contínua</span>
+                  <span className="text-[8px] sm:text-[10px] font-bold text-gray-500">Integração</span>
               </div>
             </Link>
-          </div>
-          
-          <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl">
-            <Zap size={14} className="text-orange-500 fill-orange-500" />
-            <p className="text-[12px] font-bold text-gray-500 leading-tight">
-              A importação via arquivo é a solução <span className="text-orange-600">mais rápida</span> no seu processo de múltiplos lançamentos.
-            </p>
+            <Link href="/lancamentos/importar" className="relative flex flex-col items-center text-center bg-orange-50/30 border-2 border-orange-200 rounded-2xl py-4 px-2 hover:bg-orange-50 hover:border-orange-300 transition-all group shadow-sm"> 
+              <div className="absolute -top-2 -right-1 bg-orange-500 text-white text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-sm animate-bounce">Recomendado</div>
+              <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-[0.1em] sm:tracking-[0.15em] text-orange-600 mb-2 transition-colors">Upload Arquivo</span>
+              <div className="flex items-center gap-1 sm:gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
+                  <span className="text-[8px] sm:text-[10px] font-bold text-gray-500">Dinâmica</span>
+              </div>
+            </Link>
           </div>
         </div>
       </div>
 
-      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
-        Formulário de Entrada (Lançamento manual em 3 etapas) <div className="h-px bg-gray-200 flex-1"></div>
+      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-4 flex items-center gap-4">
+        Formulário em 3 etapas <div className="h-px bg-gray-200 flex-1"></div>
       </h3>
 
       {sucesso && (
@@ -204,59 +224,62 @@ export default function LancamentosPage() {
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
         <div className="lg:col-span-7 flex flex-col h-full space-y-10">
-          <section className="flex-1 flex flex-col">
+          
+          {/* Bloco 01 - Origem dos Recursos */}
+          <section className="flex-1 flex flex-col bg-white rounded-[2.5rem] p-8 border border-gray-100 border-t-4 border-t-blue-600 shadow-sm transition-all">
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-3">
               <span className="w-8 h-px bg-gray-200"></span> 01. Origem dos Recursos
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 mb-6">
               <button
                 type="button"
                 onClick={() => setFormData({...formData, tipo_origem: "CONTA_CORRENTE", parcelado: false})}
-                className={`p-6 rounded-[2rem] border-2 transition-all text-left h-full ${formData.tipo_origem === "CONTA_CORRENTE" ? 'border-orange-500 bg-orange-50/50 shadow-md' : 'border-gray-100 bg-white'}`}
+                className={`p-4 sm:p-6 rounded-[2rem] border-2 transition-all text-left flex flex-col items-start ${formData.tipo_origem === "CONTA_CORRENTE" ? 'border-blue-600 bg-blue-50/30 shadow-md' : 'border-gray-100 bg-white'}`}
               >
-                <div className={`p-3 rounded-xl w-fit mb-4 ${formData.tipo_origem === "CONTA_CORRENTE" ? 'bg-orange-500 text-white' : 'bg-gray-50 text-gray-400'}`}>
+                <div className={`p-3 rounded-xl w-fit mb-4 ${formData.tipo_origem === "CONTA_CORRENTE" ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-400'}`}>
                    <Wallet size={20} />
                 </div>
-                <span className="block font-bold text-sm text-gray-900 uppercase">Conta Corrente</span>
+                <span className="block font-bold text-[10px] sm:text-sm text-gray-900 uppercase leading-tight">Conta Corrente</span>
               </button>
 
               <button
                 type="button"
                 disabled={isReceita}
                 onClick={() => setFormData({...formData, tipo_origem: "CARTAO"})}
-                className={`p-6 rounded-[2rem] border-2 transition-all text-left h-full ${formData.tipo_origem === "CARTAO" ? 'border-orange-500 bg-orange-50/50 shadow-md' : 'border-gray-100 bg-white'} disabled:opacity-40 disabled:grayscale`}
+                className={`p-4 sm:p-6 rounded-[2rem] border-2 transition-all text-left flex flex-col items-start ${formData.tipo_origem === "CARTAO" ? 'border-blue-600 bg-blue-50/30 shadow-md' : 'border-gray-100 bg-white'} disabled:opacity-40 disabled:grayscale`}
               >
-                <div className={`p-3 rounded-xl w-fit mb-4 ${formData.tipo_origem === "CARTAO" ? 'bg-orange-500 text-white' : 'bg-gray-50 text-gray-400'}`}>
+                <div className={`p-3 rounded-xl w-fit mb-4 ${formData.tipo_origem === "CARTAO" ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-400'}`}>
                    <CreditCard size={20} />
                 </div>
-                <span className="block font-bold text-sm text-gray-900 uppercase">Cartão de Crédito</span>
+                <span className="block font-bold text-[10px] sm:text-sm text-gray-900 uppercase leading-tight">Cartão de Crédito</span>
               </button>
             </div>
             <input required type="text" placeholder="Instituição (Ex: Nubank)" value={formData.origem}
-                className="w-full px-6 py-4 bg-white border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm mt-auto"
+                className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm mt-auto"
                 onChange={(e) => setFormData({...formData, origem: e.target.value})} />
           </section>
 
-          <section className="flex-1 flex flex-col justify-end">
+          {/* Bloco 02 - Detalhes Financeiros */}
+          <section className="flex-1 flex flex-col bg-white rounded-[2.5rem] p-8 border border-gray-100 border-t-4 border-t-blue-600 shadow-sm transition-all">
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-3">
               <span className="w-8 h-px bg-gray-200"></span> 02. Detalhes Financeiros
             </h3>
             <div className="space-y-4">
               <input required type="text" placeholder="Descrição do Lançamento" value={formData.descricao}
-                className="w-full px-6 py-5 bg-white border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm"
+                className="w-full px-6 py-5 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm"
                 onChange={(e) => setFormData({...formData, descricao: e.target.value})} />
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="relative">
                   <DollarSign className={`absolute left-5 top-1/2 -translate-y-1/2 ${isReceita ? 'text-emerald-500' : 'text-red-500'}`} size={18} />
                   <input required type="number" step="0.01" placeholder="Valor Total (R$)" value={formData.valorTotal || ""}
-                    className="w-full pl-14 pr-6 py-4 bg-white border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm"
+                    className="w-full pl-14 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm"
                     onChange={(e) => setFormData({...formData, valorTotal: parseFloat(e.target.value) || 0})} />
                 </div>
                 <div className="relative">
                   <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                   <input required type="date" value={formData.dataCompetencia}
-                    className="w-full pl-14 pr-6 py-4 bg-white border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm text-gray-600"
+                    className="w-full pl-14 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm text-gray-600"
                     onChange={(e) => setFormData({...formData, dataCompetencia: e.target.value})} />
                 </div>
               </div>
@@ -264,16 +287,14 @@ export default function LancamentosPage() {
           </section>
         </div>
 
+        {/* Bloco 03 - Classificação */}
         <div className="lg:col-span-5 h-full">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-3">
-            <span className="w-8 h-px bg-gray-200"></span> 03. Classificação
-          </h3>
-          
           <div className={`rounded-[2.5rem] p-8 shadow-2xl transition-all duration-500 border-t-4 h-full flex flex-col ${isReceita ? 'bg-emerald-950 border-emerald-500' : 'bg-gray-900 border-orange-500'}`}>
             <div className="space-y-8 flex-1">
               <div>
-                <h3 className={`text-[10px] font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-2 ${isReceita ? 'text-emerald-400' : 'text-orange-400'}`}>
-                   <Tag size={14} /> Inteligência e Filtros
+                {/* Título Ajustado com a Linha à Esquerda */}
+                <h3 className={`text-[10px] font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-3 ${isReceita ? 'text-emerald-400' : 'text-orange-400'}`}>
+                  <span className={`w-8 h-px ${isReceita ? 'bg-emerald-400/30' : 'bg-orange-400/30'}`}></span> 03. Classificação
                 </h3>
 
                 <div className="grid grid-cols-2 gap-4 mb-6">
@@ -355,7 +376,7 @@ export default function LancamentosPage() {
                   {!isReceita && formData.tipo_origem === "CARTAO" && (
                    <div className="p-4 bg-orange-500/10 rounded-xl border border-orange-500/20">
                      <div className="flex justify-between items-center mb-3">
-                       <span className="text-[10px] text-orange-400 font-bold uppercase">Informe o nº de Parcelas e o Mês do 1º pagamento</span>
+                       <span className="text-[10px] text-orange-400 font-bold uppercase">Parcelamento ativo</span>
                        <input type="checkbox" checked={formData.parcelado} onChange={(e) => setFormData({...formData, parcelado: e.target.checked})} />
                      </div>
                      {formData.parcelado && (
@@ -378,16 +399,15 @@ export default function LancamentosPage() {
       </form>
 
       <div className="mt-20">
-        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-4 flex items-center gap-4">
           Histórico Recente <div className="h-px bg-gray-100 flex-1"></div>
         </h3>
 
-        {/* CARD DE CONVITE PARA RESULTADOS */}
         <div className="mb-10 p-8 bg-blue-600 rounded-[2.5rem] text-white relative overflow-hidden shadow-xl shadow-blue-900/10 group">
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-6">
               <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
-                <LineChart className="text-white" size={28} />
+                <BarChart3 className="text-white" size={28} />
               </div>
               <div>
                 <h4 className="text-lg font-bold tracking-tight mb-1">Dados atualizados com sucesso!</h4>
@@ -404,7 +424,6 @@ export default function LancamentosPage() {
               Acessar Resultados <ArrowRight size={16} />
             </Link>
           </div>
-          
           <Zap size={200} className="absolute -right-16 -bottom-16 text-white opacity-10 -rotate-12 pointer-events-none group-hover:rotate-0 transition-transform duration-700" />
         </div>
 
