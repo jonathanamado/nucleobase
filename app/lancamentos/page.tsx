@@ -178,7 +178,7 @@ export default function LancamentosPage() {
         <div className="lg:col-span-7">
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-4 tracking-tight flex items-center flex-wrap">
             <span>Gestão de Lançamentos<span className="text-orange-500">.</span></span>
-            <Activity size={32} className="text-orange-500 skew-x-12 ml-4 hidden sm:block" strokeWidth={1.5} />
+            <Activity size={32} className="text-orange-500 skew-x-12 ml-4" strokeWidth={1.5} />
           </h1>
           <h2 className="text-base text-gray-600 w-full font-bold leading-tight mb-4 lg:mb-0">
             Realize lançamentos via tela ou importação (múltiplos registros).
@@ -189,11 +189,11 @@ export default function LancamentosPage() {
         <div className="lg:col-span-5">
           <div className="grid grid-cols-2 gap-3">
             <Link href="/lancamentos/integrar" className="relative flex flex-col items-center text-center bg-gray-50 border border-gray-200 rounded-2xl py-4 px-2 hover:bg-emerald-50 hover:border-emerald-200 transition-all group shadow-sm"> 
-              <div className="absolute -top-2 -right-1 bg-blue-600 text-white text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-sm">Em dev</div>
+              <div className="absolute -top-2 -right-1 bg-blue-600 text-white text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-sm">Em desenvolvimento</div>
               <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-[0.1em] sm:tracking-[0.15em] text-gray-400 mb-2 group-hover:text-emerald-500 transition-colors">Automação Cloud</span>
               <div className="flex items-center gap-1 sm:gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                  <span className="text-[8px] sm:text-[10px] font-bold text-gray-500">Integração</span>
+                  <span className="text-[8px] sm:text-[10px] font-bold text-gray-500">Integração em nuvem </span>
               </div>
             </Link>
             <Link href="/lancamentos/importar" className="relative flex flex-col items-center text-center bg-orange-50/30 border-2 border-orange-200 rounded-2xl py-4 px-2 hover:bg-orange-50 hover:border-orange-300 transition-all group shadow-sm"> 
@@ -201,7 +201,7 @@ export default function LancamentosPage() {
               <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-[0.1em] sm:tracking-[0.15em] text-orange-600 mb-2 transition-colors">Upload Arquivo</span>
               <div className="flex items-center gap-1 sm:gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
-                  <span className="text-[8px] sm:text-[10px] font-bold text-gray-500">Dinâmica</span>
+                  <span className="text-[8px] sm:text-[10px] font-bold text-gray-500">Importação dinâmica</span>
               </div>
             </Link>
           </div>
@@ -403,6 +403,10 @@ export default function LancamentosPage() {
           Histórico Recente <div className="h-px bg-gray-100 flex-1"></div>
         </h3>
 
+        <p className="text-sm text-gray-500 font-medium mb-8">
+          Confira abaixo o link rápido para seu Painel de BI e a listagem dos seus últimos registros processados.
+        </p>
+
         <div className="mb-10 p-8 bg-blue-600 rounded-[2.5rem] text-white relative overflow-hidden shadow-xl shadow-blue-900/10 group">
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-6">
@@ -410,9 +414,9 @@ export default function LancamentosPage() {
                 <BarChart3 className="text-white" size={28} />
               </div>
               <div>
-                <h4 className="text-lg font-bold tracking-tight mb-1">Dados atualizados com sucesso!</h4>
+                <h4 className="text-lg font-bold tracking-tight mb-1">Painel de Resultados</h4>
                 <p className="text-blue-100 text-sm font-medium opacity-90">
-                  Seus lançamentos são processados em tempo real. Navegue pelo Painel de Resultados e faça sua gestão online.
+                  Seus lançamentos são processados em tempo real. Navegue e faça sua gestão online.
                 </p>
               </div>
             </div>
@@ -421,7 +425,7 @@ export default function LancamentosPage() {
               href="/resultados" 
               className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-50 transition-all flex items-center gap-3 shadow-lg active:scale-95 whitespace-nowrap"
             >
-              Acessar Resultados <ArrowRight size={16} />
+              Acessar Painel <ArrowRight size={16} />
             </Link>
           </div>
           <Zap size={200} className="absolute -right-16 -bottom-16 text-white opacity-10 -rotate-12 pointer-events-none group-hover:rotate-0 transition-transform duration-700" />

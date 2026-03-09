@@ -18,7 +18,6 @@ export default function SobreNucleobase() {
 
   useEffect(() => {
     // 1. EVENTO DE VISUALIZAÇÃO DE CONTEXTO
-    // Informa ao GTM que o usuário está conhecendo a visão da empresa
     window.dataLayer?.push({
       event: "view_page_content",
       content_category: "institucional",
@@ -31,7 +30,7 @@ export default function SobreNucleobase() {
     return () => clearTimeout(timer);
   }, []);
 
-  // FUNÇÃO PADRÃO DE CLIQUE (Reutilizável)
+  // FUNÇÃO PADRÃO DE CLIQUE
   const trackClick = (label: string, destination: string) => {
     window.dataLayer?.push({
       event: "click_conversion_button",
@@ -44,15 +43,15 @@ export default function SobreNucleobase() {
   return (
     <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
       
-      {/* HEADER DA PÁGINA SOBRE */}
+      {/* HEADER DA PÁGINA SOBRE - SINCRONIZADO COM MINHA CONTA */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
-          <h1 className="text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
             <span>Sobre a gente<span className="text-blue-600">.</span></span>
-            <Dna size={60} className="text-blue-600 skew-x-12 opacity-35 ml-4" strokeWidth={1.2} />
+            <Dna size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
           </h1>
           
-          <h2 className="text-gray-500 text-xl font-medium max-w-2xl leading-relaxed mt-0">
+          <h2 className="text-gray-500 text-lg font-medium max-w-2xl leading-relaxed mt-0">
             Simplicidade em seu controle financeiro.
           </h2>
         </div>
@@ -94,7 +93,6 @@ export default function SobreNucleobase() {
               focada em levar clareza e praticidade às pessoas.
             </p>
 
-            {/* EVENTO DE LEITURA (Observação de bloco importante) */}
             <div 
               onMouseEnter={() => window.dataLayer?.push({ event: "reading_manifesto_section" })}
               className="bg-blue-50/40 border-l-4 border-blue-600 p-10 my-12 rounded-r-[3rem] relative overflow-hidden group transition-all hover:bg-blue-50/60"
@@ -119,8 +117,6 @@ export default function SobreNucleobase() {
 
         {/* SIDEBAR DE DESTAQUES */}
         <div className="lg:col-span-5 flex flex-col gap-6">
-          
-          {/* Card de Nível */}
           <div className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center flex-1">
             <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
               <Zap size={180} strokeWidth={1} className="text-blue-500" />
@@ -154,7 +150,6 @@ export default function SobreNucleobase() {
             </div>
           </div>
 
-          {/* Mapeamento de Atributos */}
           {[
             { id: "foco_clareza", icon: <Target size={24} />, color: "blue", title: "Foco em Clareza" },
             { id: "fluxo_eficiente", icon: <Zap size={24} />, color: "emerald", title: "Fluxo Eficiente" },
@@ -165,8 +160,7 @@ export default function SobreNucleobase() {
               onMouseEnter={() => window.dataLayer?.push({ event: "hover_feature_card", feature_name: item.id })}
               className="bg-white border border-gray-100 p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all group flex items-center gap-6 flex-1"
             >
-               {/* ... Conteúdo do Card (Mantido original) ... */}
-               <div className={`w-14 h-14 shrink-0 bg-${item.color}-50 text-${item.color}-600 rounded-2xl flex items-center justify-center group-hover:bg-${item.color}-600 group-hover:text-white transition-all duration-500 shadow-sm`}>
+               <div className={`w-14 h-14 shrink-0 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm`}>
                 {item.icon}
               </div>
               <div>
@@ -175,6 +169,74 @@ export default function SobreNucleobase() {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* SEÇÃO DE VALORES E PILARES - SUGESTÃO INTEGRADA */}
+      <div className="mt-20">
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
+          Nossos Pilares <div className="h-px bg-gray-300 flex-1"></div>
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[
+            {
+              title: "Privacidade",
+              desc: "Seus dados financeiros não são produtos. Criptografia e sigilo total são a nossa base.",
+              icon: <LockKeyhole size={28} />,
+            },
+            {
+              title: "Performance",
+              desc: "Interface ultra-rápida projetada para que o registro não seja um fardo, mas um hábito.",
+              icon: <Zap size={28} />,
+            },
+            {
+              title: "Evolução",
+              desc: "Nascemos do Excel e evoluímos com você. A melhoria contínua está em nosso DNA.",
+              icon: <Dna size={28} />,
+            }
+          ].map((pilar, i) => (
+            <div key={i} className="p-10 bg-white border border-gray-100 rounded-[3rem] shadow-sm hover:border-blue-100 transition-all">
+              <div className="text-blue-600 mb-6 bg-blue-50 w-16 h-16 rounded-[1.5rem] flex items-center justify-center">
+                {pilar.icon}
+              </div>
+              <h4 className="text-xl font-bold text-gray-900 mb-3">{pilar.title}</h4>
+              <p className="text-gray-500 text-sm leading-relaxed font-medium">
+                {pilar.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* CTA DE FECHAMENTO */}
+      <div className="mt-20 bg-blue-600 rounded-[4rem] p-12 md:p-20 text-center relative overflow-hidden group">
+        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+        
+        <div className="relative z-10">
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 tracking-tight">
+            Pronto para dominar seu <br className="hidden md:block" /> fluxo financeiro?
+          </h2>
+          <p className="text-blue-100 text-lg mb-10 max-w-xl mx-auto font-medium opacity-80">
+            Junte-se a centenas de usuários que transformaram a gestão de gastos em uma vantagem estratégica.
+          </p>
+          
+          <div className="flex flex-col md:flex-row items-center justify-center gap-6">
+            <a 
+              href="/cadastro"
+              onClick={() => trackClick("Começar Agora - Sobre", "/cadastro")}
+              className="bg-white text-blue-600 px-10 py-6 rounded-[2.5rem] font-black text-[12px] uppercase tracking-[0.2em] shadow-xl hover:scale-105 active:scale-95 transition-all w-full md:w-auto text-center"
+            >
+              Começar agora (Gratuitamente por 90 dias)
+            </a>
+            <a 
+              href="/planos"
+              onClick={() => trackClick("Ver Planos - Sobre", "/planos")}
+              className="bg-blue-700 text-white border border-white/20 px-10 py-6 rounded-[2.5rem] font-black text-[12px] uppercase tracking-[0.2em] hover:bg-blue-800 transition-all w-full md:w-auto text-center"
+            >
+              Conhecer Planos (Do curto ao longo prazo)
+            </a>
+          </div>
         </div>
       </div>
     </div>

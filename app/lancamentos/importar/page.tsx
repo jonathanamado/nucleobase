@@ -247,7 +247,7 @@ export default function ImportarXLSPage() {
         
         <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
           <span>Importar XLS<span className="text-orange-500">.</span></span>
-          <FileUp size={60} className="text-orange-500 skew-x-12 opacity-35 ml-4" strokeWidth={1.2} />
+          <FileUp size={50} className="text-orange-500 skew-x-2 ml-4" strokeWidth={1.2} />
         </h1>
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -367,13 +367,20 @@ export default function ImportarXLSPage() {
 
       {/* NOVA LINHA DIVISÓRIA E CONTEXTO */}
       <div className="mt-12 mb-8">
-        <hr className="border-gray-100 mb-8" />
-        <div className="flex flex-col md:flex-row gap-4 md:items-center">
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-2 flex items-center gap-4 w-full">
+          Contexto de Importação <div className="h-px bg-gray-200 flex-1"></div>
+        </h3>
+        <p className="text-gray-500 text-[13px] font-medium leading-relaxed max-w-1xl">
+          Abaixo você encontra a auditoria de logs. Cada integração é processada pelo Núcleo IA para garantir a normalização dos dados antes da inserção no banco.
+        </p>
+      </div>
+
+      <div className="mt-2 mb-4">
+        <div className="flex flex-col md:flex-row gap-2 md:items-center">
             <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center text-orange-500">
                     <Info size={16} />
                 </div>
-                <h4 className="text-[12px] font-black uppercase tracking-widest text-gray-900">Contexto de Importação</h4>
             </div>
             <p className="text-[11px] md:text-xs text-gray-400 font-medium">
                 Os dados importados são processados pelo Núcleo de Inteligência para evitar duplicidade e garantir a integridade das bases.

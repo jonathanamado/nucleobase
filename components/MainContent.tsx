@@ -89,11 +89,11 @@ export function MainContent() {
       <div className="block lg:hidden px-4 pb-20 space-y-8 animate-in fade-in duration-700">
         <div className="mt-8 space-y-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
+            <h1 className="text-xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
               Nucleobase<span className="text-blue-600">.APP</span>
-              <Zap size={24} className="text-blue-600 opacity-40" />
+              <Zap size={20} className="text-blue-600 opacity-40" />
             </h1>
-            <p className="text-gray-500 text-base font-medium mt-1">Organização financeira inteligente.</p>
+            <p className="text-gray-500 text-lg font-medium mt-1">Organização financeira inteligente.</p>
           </div>
 
           <div className="space-y-4">
@@ -117,7 +117,7 @@ export function MainContent() {
             <p className="text-gray-600 text-[14px] leading-relaxed italic opacity-80">
               Acreditamos que a verdadeira inteligência financeira nasce da clareza de dados.
             </p>
-            <Link href="/sobre" className="inline-flex items-center gap-2 text-blue-600 font-bold text-[10px] uppercase tracking-widest">
+            <Link href="/sobre" className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full font-bold text-[10px] uppercase tracking-widest border border-blue-100 shadow-sm animate-pulse">
                 Clique aqui e conheça nossa história <ArrowRight size={14} />
             </Link>
           </div>
@@ -134,7 +134,6 @@ export function MainContent() {
             <ShieldCheck size={120} className="absolute -right-8 -bottom-8 text-white opacity-5" />
         </div>
 
-        {/* NOVA SEÇÃO DE SEGURANÇA MOBILE */}
         <section>
           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-4">
             Segurança <div className="h-px bg-gray-300 flex-1"></div>
@@ -157,9 +156,6 @@ export function MainContent() {
           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4 flex items-center gap-4">
             Canais e Contato <div className="h-px bg-gray-300 flex-1"></div>
           </h3>
-          <p className="text-gray-500 text-sm font-medium leading-relaxed mb-6">
-            Neste espaço você realiza a abertura de chamados técnicos, entra em contato com nossa equipe, indica a plataforma para sua rede ou estabelece novas parcerias estratégicas. Conte conosco <span className="font-bold text-gray-900">em qualquer etapa</span> de sua jornada:
-          </p>
           <div className="grid grid-cols-2 gap-3">
             <Link href="/suporte" className="bg-gray-50 p-6 rounded-3xl flex flex-col gap-2 border border-gray-100">
                 <FileWarning size={20} className="text-amber-500" />
@@ -179,7 +175,6 @@ export function MainContent() {
             </Link>
           </div>
         </section>
-
       </div>
 
       {/* ============================================================
@@ -187,13 +182,13 @@ export function MainContent() {
           ============================================================ */}
       <div className="hidden lg:block w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
         
-        {/* HEADER PRINCIPAL */}
+        {/* HEADER PRINCIPAL - SINCRONIZADO */}
         <div className="mb-6 mt-0">
-          <h1 className="text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
             <span>Nucleobase<span className="text-blue-600">.APP</span></span>
-            <Zap size={58} className="text-blue-600 skew-x-[-15deg] opacity-30 ml-4" strokeWidth={1.5} />
+            <Zap size={32} className="text-blue-600 skew-x-[-15deg] opacity-30 ml-4" strokeWidth={2} />
           </h1>
-          <h2 className="text-gray-500 text-xl font-medium leading-relaxed -mt-0">
+          <h2 className="text-gray-500 text-lg font-medium leading-relaxed mt-0">
             Organização financeira com clareza e inteligência.
           </h2>
         </div>
@@ -272,18 +267,40 @@ export function MainContent() {
             <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4">
               Segurança de Dados <div className="h-px bg-gray-300 flex-1"></div>
             </h3>
-            <div className="bg-emerald-50/50 border border-emerald-100 p-10 rounded-[3rem] flex flex-col md:flex-row gap-8 items-center">
-              <div className="w-20 h-20 bg-white text-emerald-600 rounded-[2rem] flex items-center justify-center shadow-sm shrink-0">
-                <Lock size={40} />
+            {/* CARD PRIVACIDADE REESTRUTURADO (DESKTOP) */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-stretch">
+              <div className="md:col-span-7 bg-emerald-50/50 border border-emerald-100 p-10 rounded-[3rem] flex flex-row gap-8 items-center relative overflow-hidden">
+                <div className="w-20 h-20 bg-white text-emerald-600 rounded-[2rem] flex items-center justify-center shadow-sm shrink-0">
+                  <Lock size={40} />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-2xl font-bold text-gray-900 mb-1 tracking-tight">Segurança e Privacidade</h4>
+                  <p className="text-gray-600 text-[16px] font-medium leading-relaxed mb-4">Custódia integral sob o princípio do Zero-Knowledge.</p>
+                  
+                  <div className="flex gap-2">
+                    <Link href="/seguranca_privacidade" className="group flex-1">
+                        <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest flex items-center justify-center gap-2 w-full">
+                          Acesse a Página de Segurança aqui <ArrowRight size={12} />
+                        </span>
+                    </Link>
+                    <Link href="/politica-de-cookies" className="group flex-1">
+                        <span className="bg-gray-900 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-black transition-all uppercase tracking-widest flex items-center justify-center gap-2 w-full">
+                          Conheça nossa política de Cookies aqui <ArrowRight size={12} />
+                        </span>
+                    </Link>
+                  </div>
+                </div>
               </div>
-              <div className="flex-1">
-                <h4 className="text-2xl font-bold text-gray-900 mb-3 tracking-tight">Privacidade e Soberania</h4>
-                <p className="text-gray-600 text-[16px] leading-relaxed mb-6">Custódia integral sob o princípio do Zero-Knowledge.</p>
-                <Link href="/seguranca_privacidade" className="group w-fit">
-                    <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest flex items-center gap-2">
-                      Acesse aqui <ArrowRight size={12} />
-                    </span>
-                </Link>
+              <div className="md:col-span-5 flex flex-col justify-center text-right pr-6">
+                 <h4 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight leading-tight">Soberania digital reconhecida</h4>
+                 <p className="text-gray-500 text-sm font-medium leading-relaxed mb-6">
+                    Sua soberania digital é nossa prioridade. Implementamos padrões de criptografia de ponta para garantir que apenas você acesse seus dados. Conheça a história de pessoas e registre a sua.
+                 </p>
+                 <Link href="/depoimentos" className="group w-fit ml-auto">
+                   <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest inline-flex items-center gap-2">
+                     CLIQUE AQUI <ArrowRight size={12} />
+                   </span>
+                 </Link>
               </div>
             </div>
           </section>
@@ -304,13 +321,13 @@ export function MainContent() {
                   </span>
                 </Link>
               </div>
-              <div className="md:col-span-5 bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl group hover:border-blue-100 transition-all flex flex-col justify-center min-h-[280px]">
+              <Link href="/resultados" className="md:col-span-5 bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl group hover:border-blue-100 transition-all flex flex-col justify-center min-h-[280px]">
                 <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
                   <BarChart3 size={32} />
                 </div>
                 <h5 className="font-bold text-gray-900 mb-2">Análise de Performance</h5>
                 <p className="text-gray-500 text-sm leading-relaxed">Visualize tendências e identifique gargalos.</p>
-              </div>
+              </Link>
             </div>
           </section>
           

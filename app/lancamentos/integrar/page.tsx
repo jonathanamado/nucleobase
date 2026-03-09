@@ -223,7 +223,7 @@ export default function IntegrarPage() {
       {/* HEADER */}
       <div className="mb-6 mt-2 flex flex-col text-left w-full">
         <Link href="/lancamentos" className="flex items-center gap-2 text-gray-400 hover:text-orange-500 transition-colors font-black text-[10px] uppercase tracking-widest mb-4 w-fit">
-          <ArrowLeft size={14} /> Voltar para Lançamentos
+          <ArrowLeft size={14} /> Voltar para Lançamentos Manuais
         </Link>
         
         <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
