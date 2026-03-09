@@ -30,10 +30,6 @@ function BuscaContent() {
       
       {/* Header da Busca */}
       <div className="mb-10">
-        <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-orange-500 transition-colors text-[10px] font-black uppercase tracking-widest mb-6 group">
-          <MoveLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> Voltar
-        </Link>
-        
         <div className="flex items-end gap-3 mb-2">
           <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tighter">
             Resultados<span className="text-orange-500">.</span>

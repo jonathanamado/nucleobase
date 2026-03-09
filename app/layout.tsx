@@ -128,22 +128,25 @@ export default function RootLayout({
             <footer className="mt-16 mb-10 w-full flex flex-col items-center">
               <div className="w-full max-w-2xl bg-white/40 border border-gray-100 rounded-3xl md:rounded-full p-5 flex flex-col md:flex-row items-center justify-between gap-4 backdrop-blur-sm">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-blue-600/5 rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-blue-600/5 rounded-lg flex items-center justify-center shrink-0">
                     <span className="text-blue-600 font-black text-[10px]">N</span>
                   </div>
-                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em]">
-                    © {new Date().getFullYear()} Nucleobase <span className="mx-2 text-gray-200">|</span> Todos os direitos reservados
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] text-center md:text-left">
+                    © {new Date().getFullYear()} Nucleobase 
+                    <br className="block md:hidden" /> 
+                    <span className="hidden md:inline mx-2 text-gray-200">|</span> 
+                    <span className="mt-1 md:mt-0 block md:inline">Todos os direitos reservados</span>
                   </p>
                 </div>
 
                 <div className="flex items-center">
                   <Link 
                     href="/politica-de-cookies" 
-                    className="group flex items-center gap-2 px-4 py-2 hover:bg-blue-50 rounded-full transition-all border border-transparent hover:border-blue-100"
+                    className="group flex items-center gap-2 px-3 py-1.5 hover:opacity-80 transition-all"
                   >
-                    <ShieldCheck size={12} className="text-gray-300 group-hover:text-blue-500 transition-colors" />
-                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-400 group-hover:text-blue-600 transition-colors">
-                      Privacidade & Cookies
+                    <ShieldCheck size={14} className="text-blue-600 group-hover:scale-110 transition-transform" />
+                    <span className="bg-blue-600 text-white px-2 pt-1 pb-0.5 rounded-md text-[10px] font-bold shadow-sm inline-block tracking-normal">
+                      Privacidade e Cookies
                     </span>
                   </Link>
                 </div>

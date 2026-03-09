@@ -181,7 +181,7 @@ export default function LancamentosPage() {
             <Activity size={32} className="text-orange-500 skew-x-12 ml-4 hidden sm:block" strokeWidth={1.5} />
           </h1>
           <h2 className="text-base text-gray-600 w-full font-bold leading-tight mb-4 lg:mb-0">
-            Realize lançamentos por tela ou importação (múltiplos registros).
+            Realize lançamentos via tela ou importação (múltiplos registros).
           </h2>
         </div>
 
@@ -225,10 +225,10 @@ export default function LancamentosPage() {
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
         <div className="lg:col-span-7 flex flex-col h-full space-y-10">
           
-          {/* Bloco 01 - Origem dos Recursos */}
+          {/* Bloco 01 - Origem dos Lançamentos */}
           <section className="flex-1 flex flex-col bg-white rounded-[2.5rem] p-8 border border-gray-100 border-t-4 border-t-blue-600 shadow-sm transition-all">
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-3">
-              <span className="w-8 h-px bg-gray-200"></span> 01. Origem dos Recursos
+              <span className="w-8 h-px bg-gray-200"></span> 01. Origem dos Lançamentos
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 mb-6">
               <button

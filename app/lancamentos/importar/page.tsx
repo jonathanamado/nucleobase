@@ -164,7 +164,6 @@ export default function ImportarXLSPage() {
         if (tipoImportacao === 'CARTAO' && totalParcelas > 1) {
           const valorParcela = valorTotal / totalParcelas;
           for (let i = 1; i <= totalParcelas; i++) {
-            // Lógica de Projeção: Adiciona meses para cada parcela
             const dataProjetada = new Date(dataOriginal);
             dataProjetada.setMonth(dataOriginal.getMonth() + (i - 1));
 
@@ -246,15 +245,18 @@ export default function ImportarXLSPage() {
           <ArrowLeft size={14} /> Voltar para Lançamentos Manuais
         </Link>
         
-        <h1 className="text-5xl font-bold text-gray-900 mb-2 tracking-tight flex items-center">
+        <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
           <span>Importar XLS<span className="text-orange-500">.</span></span>
           <FileUp size={60} className="text-orange-500 skew-x-12 opacity-35 ml-4" strokeWidth={1.2} />
         </h1>
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <p className="text-base text-gray-600 max-w-2xl leading-tight">
-            <span className="font-bold text-gray-900">Agilize seus lançamentos</span> enviando sua planilha diretamente para o sistema. 
-            "Baixe" o modelo adequado ao lado para evitar erros de processamento.
+            <span className="md:hidden">Envie sua planilha para agilizar seus lançamentos.</span>
+            <span className="hidden md:inline">
+                <span className="font-bold text-gray-900">Facilite seus lançamentos</span> enviando sua planilha diretamente ao Banco de Dados. 
+                "Baixe" o modelo adequado ao lado para evitar erros de processamento.
+            </span>
           </p>
           
           <div className="flex gap-3 w-full md:w-auto">
@@ -282,39 +284,39 @@ export default function ImportarXLSPage() {
         Configuração e Upload <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
-      {/* 1. SELETOR DE CONTEXTO */}
+      {/* 1. SELETOR DE CONTEXTO - Ajustado para mobile lado a lado */}
       <div className={`mb-8 transition-opacity ${dadosPreview.length > 0 ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
-         <div className="flex flex-wrap gap-4">
+         <div className="flex flex-nowrap md:flex-wrap gap-3 md:gap-4 overflow-x-auto pb-2 md:pb-0">
             <button 
                 onClick={() => setTipoImportacao('CC')}
-                className={`flex-1 min-w-[240px] md:flex-none flex items-center justify-between gap-8 p-6 rounded-[2rem] border-2 transition-all ${tipoImportacao === 'CC' ? 'border-orange-500 bg-orange-50/30 shadow-lg shadow-orange-500/5' : 'border-gray-100 bg-white'}`}
+                className={`flex-1 min-w-0 md:min-w-[240px] md:flex-none flex items-center justify-between gap-2 md:gap-8 p-4 md:p-6 rounded-2xl md:rounded-[2rem] border-2 transition-all ${tipoImportacao === 'CC' ? 'border-orange-500 bg-orange-50/30 shadow-lg shadow-orange-500/5' : 'border-gray-100 bg-white'}`}
             >
-               <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${tipoImportacao === 'CC' ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
-                     <Wallet size={20} />
+               <div className="flex items-center gap-2 md:gap-4">
+                  <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center ${tipoImportacao === 'CC' ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                     <Wallet size={18} />
                   </div>
                   <div className="text-left">
-                    <p className={`font-bold text-sm ${tipoImportacao === 'CC' ? 'text-gray-900' : 'text-gray-400'}`}>Conta Corrente</p>
-                    <p className="text-[9px] text-gray-400 uppercase font-black tracking-tighter">Extratos bancários</p>
+                    <p className={`font-bold text-xs md:text-sm ${tipoImportacao === 'CC' ? 'text-gray-900' : 'text-gray-400'}`}>Conta Corrente</p>
+                    <p className="hidden md:block text-[9px] text-gray-400 uppercase font-black tracking-tighter">Extratos bancários</p>
                   </div>
                </div>
-               {tipoImportacao === 'CC' && <CheckCircle2 size={20} className="text-orange-500" />}
+               {tipoImportacao === 'CC' && <CheckCircle2 size={16} className="text-orange-500 hidden md:block" />}
             </button>
 
             <button 
                 onClick={() => setTipoImportacao('CARTAO')}
-                className={`flex-1 min-w-[240px] md:flex-none flex items-center justify-between gap-8 p-6 rounded-[2rem] border-2 transition-all ${tipoImportacao === 'CARTAO' ? 'border-orange-500 bg-orange-50/30 shadow-lg shadow-orange-500/5' : 'border-gray-100 bg-white'}`}
+                className={`flex-1 min-w-0 md:min-w-[240px] md:flex-none flex items-center justify-between gap-2 md:gap-8 p-4 md:p-6 rounded-2xl md:rounded-[2rem] border-2 transition-all ${tipoImportacao === 'CARTAO' ? 'border-orange-500 bg-orange-50/30 shadow-lg shadow-orange-500/5' : 'border-gray-100 bg-white'}`}
             >
-               <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${tipoImportacao === 'CARTAO' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-400'}`}>
-                     <CreditCard size={20} className={tipoImportacao === 'CARTAO' ? 'text-orange-500' : ''} />
+               <div className="flex items-center gap-2 md:gap-4">
+                  <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center ${tipoImportacao === 'CARTAO' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                     <CreditCard size={18} className={tipoImportacao === 'CARTAO' ? 'text-orange-500' : ''} />
                   </div>
                   <div className="text-left">
-                    <p className={`font-bold text-sm ${tipoImportacao === 'CARTAO' ? 'text-gray-900' : 'text-gray-400'}`}>Cartão de Crédito</p>
-                    <p className="text-[9px] text-gray-400 uppercase font-black tracking-tighter">Faturas de Cartão</p>
+                    <p className={`font-bold text-xs md:text-sm ${tipoImportacao === 'CARTAO' ? 'text-gray-900' : 'text-gray-400'}`}>Cartão de Crédito</p>
+                    <p className="hidden md:block text-[9px] text-gray-400 uppercase font-black tracking-tighter">Faturas de Cartão</p>
                   </div>
                </div>
-               {tipoImportacao === 'CARTAO' && <CheckCircle2 size={20} className="text-orange-500" />}
+               {tipoImportacao === 'CARTAO' && <CheckCircle2 size={16} className="text-orange-500 hidden md:block" />}
             </button>
          </div>
       </div>
@@ -361,6 +363,22 @@ export default function ImportarXLSPage() {
                </button>
             </div>
          )}
+      </div>
+
+      {/* NOVA LINHA DIVISÓRIA E CONTEXTO */}
+      <div className="mt-12 mb-8">
+        <hr className="border-gray-100 mb-8" />
+        <div className="flex flex-col md:flex-row gap-4 md:items-center">
+            <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center text-orange-500">
+                    <Info size={16} />
+                </div>
+                <h4 className="text-[12px] font-black uppercase tracking-widest text-gray-900">Contexto de Importação</h4>
+            </div>
+            <p className="text-[11px] md:text-xs text-gray-400 font-medium">
+                Os dados importados são processados pelo Núcleo de Inteligência para evitar duplicidade e garantir a integridade das bases.
+            </p>
+        </div>
       </div>
 
       {/* 3. PREVIEW */}

@@ -144,7 +144,7 @@ export function MobileTabBar() {
         {/* Lançamentos (Foguete) */}
         <button 
           onClick={() => router.push("/lancamentos")} 
-          className={`p-2 transition-colors ${pathname === "/lancamentos" ? "text-blue-600" : "text-gray-400"}`}
+          className={`p-2 transition-colors ${pathname === "/lancamentos" ? "text-orange-500" : "text-gray-400"}`}
         >
           <Rocket size={22} strokeWidth={pathname === "/lancamentos" ? 2.5 : 2} />
         </button>
@@ -152,9 +152,9 @@ export function MobileTabBar() {
         {/* Lupa (Busca) */}
         <button 
           onClick={() => setIsSearchOpen(true)} 
-          className="p-2 text-gray-400 active:text-blue-600"
+          className={`p-2 transition-colors ${pathname === "/busca" ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}
         >
-          <Search size={22} />
+          <Search size={22} strokeWidth={pathname === "/busca" ? 2.5 : 2} />
         </button>
 
         {/* Botão de Compartilhar */}
