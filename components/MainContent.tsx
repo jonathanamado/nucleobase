@@ -5,7 +5,7 @@ import {
   Zap, ArrowRight, Mail, Newspaper, ShieldCheck, 
   BarChart3, MessageSquare, Lock, 
   Users, Gift, X, Loader2, CheckCircle2, FileWarning,
-  LayoutDashboard
+  LayoutDashboard, Instagram
 } from "lucide-react";
 import { supabase } from "@/lib/supabase"; 
 
@@ -175,6 +175,28 @@ export function MainContent() {
             </Link>
           </div>
         </section>
+
+        {/* REDES SOCIAIS MOBILE */}
+        <section className="pb-10">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4 flex items-center gap-4">
+            Social <div className="h-px bg-gray-300 flex-1"></div>
+          </h3>
+          <a 
+            href="https://www.instagram.com/nucleobase.app/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-4 p-6 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 border border-pink-100 rounded-[2rem] active:scale-95 transition-all shadow-sm"
+          >
+            <div className="w-12 h-12 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-xl flex items-center justify-center text-white shadow-lg">
+              <Instagram size={24} />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-pink-600">Siga nosso dia a dia</p>
+              <h4 className="text-lg font-bold text-gray-900">@nucleobase.app</h4>
+            </div>
+            <ArrowRight size={20} className="ml-auto text-pink-500" />
+          </a>
+        </section>
       </div>
 
       {/* ============================================================
@@ -212,7 +234,7 @@ export function MainContent() {
                 <Newspaper size={24} />
               </div>
               <h4 className="font-bold text-gray-900 text-base mb-1">Blog da Núcleo</h4>
-              <p className="text-[11px] text-gray-500 leading-tight mb-4">Conteúdos profundos sobre gestão e mercado.</p>
+              <p className="text-[11px] text-gray-500 Birding-tight mb-4">Conteúdos profundos sobre gestão e mercado.</p>
               <a href="/blog" className="w-full mt-auto py-2.5 bg-blue-50/50 border border-blue-100 text-blue-600 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center gap-2">
                 Visitar <ArrowRight size={12} />
               </a>
@@ -279,13 +301,13 @@ export function MainContent() {
                   
                   <div className="flex gap-2">
                     <Link href="/seguranca_privacidade" className="group flex-1">
-                        <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest flex items-center justify-center gap-2 w-full">
-                          Acesse a Página de Segurança aqui <ArrowRight size={12} />
+                        <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest flex items-center justify-center text-center gap-2 w-full h-full">
+                          Acesse a área de Segurança aqui <ArrowRight size={12} />
                         </span>
                     </Link>
                     <Link href="/politica-de-cookies" className="group flex-1">
-                        <span className="bg-gray-900 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-black transition-all uppercase tracking-widest flex items-center justify-center gap-2 w-full">
-                          Conheça nossa política de Cookies aqui <ArrowRight size={12} />
+                        <span className="bg-gray-900 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-black transition-all uppercase tracking-widest flex items-center justify-center text-center gap-2 w-full h-full">
+                          Conheça nossa política aqui <ArrowRight size={12} />
                         </span>
                     </Link>
                   </div>
@@ -331,11 +353,11 @@ export function MainContent() {
             </div>
           </section>
           
-          <section className="pb-20">
+          <section className="pb-12">
             <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
               Canais e Oportunidades <div className="h-px bg-gray-300 flex-1"></div>
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
               {[
                 { href: "/suporte", icon: <FileWarning size={28} className="text-amber-500" />, title: "Suporte Técnico", label: "Abrir Chamado", bg: "bg-gray-50", hover: "hover:bg-gray-900" },
                 { href: "/contato", icon: <MessageSquare size={28} className="text-emerald-600" />, title: "Fale Conosco", label: "Contactar-nos", bg: "bg-emerald-50/50", hover: "hover:bg-emerald-600" },
@@ -350,6 +372,31 @@ export function MainContent() {
                   <a href={item.href} className="w-fit bg-gray-900 text-white px-6 py-3 rounded-full font-bold text-[10px] uppercase group-hover:bg-white group-hover:text-gray-900 transition-all">{item.label}</a>
                 </div>
               ))}
+            </div>
+
+            {/* NOVA LINHA DIVISÓRIA E REDES SOCIAIS DESKTOP */}
+            <div className="pt-8 border-t border-gray-100 flex items-center justify-between gap-10">
+                <div className="flex-1">
+                    <h4 className="text-4xl font-bold text-gray-900 tracking-tighter mb-2">
+                        Fique por dentro <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+                    </h4>
+                    <p className="text-gray-500 font-medium">Insights, novidades e bastidores da Nucleobase diretamente no seu feed.</p>
+                </div>
+                
+                <a 
+                  href="https://www.instagram.com/nucleobase.app/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="shrink-0 flex items-center gap-6 p-2 pr-10 bg-white border border-gray-100 rounded-full hover:shadow-2xl hover:border-pink-100 transition-all duration-500 group"
+                >
+                    <div className="w-16 h-16 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-full flex items-center justify-center text-white shadow-lg group-hover:rotate-12 transition-transform">
+                        <Instagram size={32} />
+                    </div>
+                    <div>
+                        <span className="block text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-pink-500 transition-colors">Instagram</span>
+                        <span className="block text-xl font-bold text-gray-900">@nucleobase.app</span>
+                    </div>
+                </a>
             </div>
           </section>
         </div>
