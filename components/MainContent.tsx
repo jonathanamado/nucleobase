@@ -6,7 +6,7 @@ import {
   BarChart3, MessageSquare, Lock, 
   Users, Gift, X, Loader2, CheckCircle2, FileWarning,
   LayoutDashboard, Instagram
-} from "lucide-react";
+} from "lucide-react"; 
 import { supabase } from "@/lib/supabase"; 
 
 export function MainContent() {
@@ -176,26 +176,30 @@ export function MainContent() {
           </div>
         </section>
 
-        {/* REDES SOCIAIS MOBILE */}
-        <section className="pb-10">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4 flex items-center gap-4">
-            Social <div className="h-px bg-gray-300 flex-1"></div>
-          </h3>
-          <a 
-            href="https://www.instagram.com/nucleobase.app/" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center gap-4 p-6 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 border border-pink-100 rounded-[2rem] active:scale-95 transition-all shadow-sm"
-          >
-            <div className="w-12 h-12 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-xl flex items-center justify-center text-white shadow-lg">
-              <Instagram size={24} />
-            </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-pink-600">Siga nosso dia a dia</p>
-              <h4 className="text-lg font-bold text-gray-900">@nucleobase.app</h4>
-            </div>
-            <ArrowRight size={20} className="ml-auto text-pink-500" />
-          </a>
+        {/* REDES SOCIAIS MOBILE - AJUSTADO PARA PADRÃO LATERAL */}
+        <section className="pb-10 pt-4 border-t border-gray-100 text-center">
+          <div className="mb-6">
+              <h4 className="text-2xl font-bold text-gray-900 tracking-tighter mb-2 leading-tight">
+                  Fique por dentro <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+              </h4>
+              <p className="text-gray-500 font-medium text-sm mx-auto max-w-[280px]">Insights, novidades e bastidores da Nucleobase diretamente no seu feed.</p>
+          </div>
+          <div className="flex justify-center">
+            <a 
+              href="https://www.instagram.com/nucleobase.app/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-4 p-2 pr-6 bg-white border border-gray-100 rounded-full active:scale-95 transition-all shadow-sm group"
+            >
+              <div className="w-12 h-12 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-full flex items-center justify-center text-white shadow-lg group-hover:rotate-12 transition-transform">
+                <Instagram size={24} />
+              </div>
+              <div className="text-left">
+                <span className="block text-[8px] font-black uppercase tracking-widest text-gray-400 group-hover:text-pink-500 transition-colors">Instagram</span>
+                <span className="block text-lg font-bold text-gray-900 leading-tight">@nucleobase.app</span>
+              </div>
+            </a>
+          </div>
         </section>
       </div>
 
@@ -204,7 +208,7 @@ export function MainContent() {
           ============================================================ */}
       <div className="hidden lg:block w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
         
-        {/* HEADER PRINCIPAL - SINCRONIZADO */}
+        {/* HEADER PRINCIPAL */}
         <div className="mb-6 mt-0">
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
             <span>Nucleobase<span className="text-blue-600">.APP</span></span>
@@ -234,7 +238,7 @@ export function MainContent() {
                 <Newspaper size={24} />
               </div>
               <h4 className="font-bold text-gray-900 text-base mb-1">Blog da Núcleo</h4>
-              <p className="text-[11px] text-gray-500 Birding-tight mb-4">Conteúdos profundos sobre gestão e mercado.</p>
+              <p className="text-[11px] text-gray-500 leading-tight mb-4">Conteúdos profundos sobre gestão e mercado.</p>
               <a href="/blog" className="w-full mt-auto py-2.5 bg-blue-50/50 border border-blue-100 text-blue-600 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center gap-2">
                 Visitar <ArrowRight size={12} />
               </a>
@@ -272,7 +276,7 @@ export function MainContent() {
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex-1">
               <p className="text-blue-400 text-xs uppercase tracking-[0.3em] font-black mb-4">A ferramenta certa</p>
-              <h4 className="text-2xl md:text-3base font-bold leading-tight">
+              <h4 className="text-2xl md:text-3xl font-bold leading-tight">
                 Você já sabe o que fazer, só precisa do controle em mãos. Saiba mais sobre o APP da Nucleobase criando sua conta e aproveitando o período de degustação estendido (90 dias gratuitos para teste).
               </h4>
             </div>
@@ -289,7 +293,6 @@ export function MainContent() {
             <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4">
               Segurança de Dados <div className="h-px bg-gray-300 flex-1"></div>
             </h3>
-            {/* CARD PRIVACIDADE REESTRUTURADO (DESKTOP) */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-stretch">
               <div className="md:col-span-7 bg-emerald-50/50 border border-emerald-100 p-10 rounded-[3rem] flex flex-row gap-8 items-center relative overflow-hidden">
                 <div className="w-20 h-20 bg-white text-emerald-600 rounded-[2rem] flex items-center justify-center shadow-sm shrink-0">
@@ -316,7 +319,7 @@ export function MainContent() {
               <div className="md:col-span-5 flex flex-col justify-center text-right pr-6">
                  <h4 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight leading-tight">Soberania digital reconhecida</h4>
                  <p className="text-gray-500 text-sm font-medium leading-relaxed mb-6">
-                    Sua soberania digital é nossa prioridade. Implementamos padrões de criptografia de ponta para garantir que apenas você acesse seus dados. Conheça a história de pessoas e registre a sua.
+                    Sua soberania digital é nossa prioridade. Implementamos padrões de criptografia de ponta para garantir que apenas você acesse seus dados.
                  </p>
                  <Link href="/depoimentos" className="group w-fit ml-auto">
                    <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest inline-flex items-center gap-2">
@@ -374,26 +377,26 @@ export function MainContent() {
               ))}
             </div>
 
-            {/* NOVA LINHA DIVISÓRIA E REDES SOCIAIS DESKTOP */}
-            <div className="pt-8 border-t border-gray-100 flex items-center justify-between gap-10">
-                <div className="flex-1">
+            {/* REDES SOCIAIS DESKTOP - AJUSTADO PARA PADRÃO LATERAL CENTRALIZADO */}
+            <div className="pt-8 border-t border-gray-100 flex flex-col items-center justify-center text-center">
+                <div className="mb-8">
                     <h4 className="text-4xl font-bold text-gray-900 tracking-tighter mb-2">
                         Fique por dentro <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
                     </h4>
-                    <p className="text-gray-500 font-medium">Insights, novidades e bastidores da Nucleobase diretamente no seu feed.</p>
+                    <p className="text-gray-500 font-medium text-lg">Insights, novidades e bastidores da Nucleobase diretamente no seu feed.</p>
                 </div>
                 
                 <a 
                   href="https://www.instagram.com/nucleobase.app/" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="shrink-0 flex items-center gap-6 p-2 pr-10 bg-white border border-gray-100 rounded-full hover:shadow-2xl hover:border-pink-100 transition-all duration-500 group"
+                  className="flex items-center gap-6 p-2 pr-10 bg-white border border-gray-100 rounded-full hover:shadow-2xl hover:border-pink-100 transition-all duration-500 group"
                 >
                     <div className="w-16 h-16 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-full flex items-center justify-center text-white shadow-lg group-hover:rotate-12 transition-transform">
                         <Instagram size={32} />
                     </div>
-                    <div>
-                        <span className="block text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-pink-500 transition-colors">Instagram</span>
+                    <div className="text-left">
+                        <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 group-hover:text-pink-500 transition-colors">Instagram</span>
                         <span className="block text-xl font-bold text-gray-900">@nucleobase.app</span>
                     </div>
                 </a>

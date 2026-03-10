@@ -305,13 +305,13 @@ export default function DashboardResultados() {
             <LayoutDashboard size={14} /> Painel Exclusivo de {userName.split(' ')[0]}
           </h3>
           <div>
-            <h1 className="text-5xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
-              Resultados<span className="text-blue-600">.</span>
-              <Sparkles className="text-blue-500 animate-bounce" size={32} />
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
+              <span>Painel de Resultados<span className="text-blue-600">.</span></span>
+              <Sparkles size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
             </h1>
-            <p className="text-gray-500 text-sm mt-2 max-w-2xl leading-relaxed">
-              Sua saúde financeira é o reflexo direto da coerência entre suas receitas e despesas. O <strong>Total Disponível</strong> abaixo consolida cada lançamento realizado, oferecendo uma visão real da sua liquidez atual.
-            </p>
+            <h2 className="text-gray-500 text-base md:text-lg font-medium max-w-2xl leading-relaxed mt-0">
+              Acompanhamento para suporte em decisões. 
+            </h2>
           </div>
         </div>
 
@@ -332,43 +332,98 @@ export default function DashboardResultados() {
         </div>
       </div>
 
-      {/* CARDS DE RESUMO */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <SummaryCard title="Total Disponível (Saldo)" value={`R$ ${stats.totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} trend="Patrimônio Consolidado (Receitas - Despesas)" isPositive={stats.totalGeral > 0} />
-        <SummaryCard title="Total Receitas" value={`R$ ${stats.totalReceita.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} trend="Entradas Totais (Receitas)" icon={<ArrowUpRight size={20} className="text-emerald-500"/>} isPositive={true} />
-        <SummaryCard title="Total Despesas" value={`R$ ${stats.totalDespesa.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} trend="Saídas Totais (Despesas)" isNegative={true} />
+      {/* SEÇÃO DE RESUMO ACUMULADO */}
+      <div className="bg-blue-50/30 border border-blue-100 rounded-[2.5rem] p-6 md:p-10 mb-10 relative group transition-all hover:bg-blue-50/50">
+        
+        {/* Badge Lateral Fixa "Visão Acumulada" */}
+        <div className="absolute -top-3 -right-2 md:right-10">
+          <div className="flex items-center gap-2 bg-gray-900 text-white px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest shadow-xl animate-pulse">
+            <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-ping"></span>
+            Visão Acumulada
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-6">
+          {/* Label de contexto interna */}
+          <div className="flex items-center gap-3 mb-2">
+            <div className="h-px bg-blue-100 flex-1"></div>
+            <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Patrimônio Geral</span>
+            <div className="h-px bg-blue-100 flex-1"></div>
+          </div>
+
+          {/* Grid de Cards Existentes */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <SummaryCard 
+              title="Total Disponível (Saldo)" 
+              value={`R$ ${stats.totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} 
+              trend="Patrimônio Consolidado (Receitas - Despesas)" 
+              isPositive={stats.totalGeral > 0} 
+            />
+            <SummaryCard 
+              title="Total Receitas" 
+              value={`R$ ${stats.totalReceita.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} 
+              trend="Entradas Totais (Receitas)" 
+              icon={<ArrowUpRight size={20} className="text-emerald-500"/>} 
+              isPositive={true} 
+            />
+            <SummaryCard 
+              title="Total Despesas" 
+              value={`R$ ${stats.totalDespesa.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} 
+              trend="Saídas Totais (Despesas)" 
+              isNegative={true} 
+            />
+          </div>
+        </div>
       </div>
 
       {/* LEITURA DO MÊS ATUAL (FOCO NA REALIDADE) */}
-      <div className="bg-blue-50/30 border border-blue-100 rounded-[2.5rem] p-6 mb-10 flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
-          <div className="bg-white p-3 rounded-2xl shadow-sm text-blue-600">
+      <div className="bg-blue-50/30 border border-blue-100 rounded-[2.5rem] p-6 md:p-8 mb-10 flex flex-col md:flex-row items-center relative group transition-all hover:bg-blue-50/50">
+        
+        {/* Badge "Pingando" na Borda Superior Direita */}
+        <div className="absolute -top-3 -right-2 md:right-8">
+          <span className="flex items-center gap-2 bg-blue-600 text-white px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest shadow-lg shadow-blue-600/20 animate-pulse">
+            <span className="w-1.5 h-1.5 bg-white rounded-full animate-ping"></span>
+            Foco Imediato (Mês atual)
+          </span>
+        </div>
+
+        {/* Identificador do Mês */}
+        <div className="flex items-center gap-4 border-b md:border-b-0 md:border-r border-blue-100 pb-4 md:pb-0 md:pr-10 w-full md:w-auto">
+          <div className="bg-white p-3 rounded-2xl shadow-sm text-blue-600 shrink-0">
             <CalendarDays size={24} />
           </div>
-          <div>
-            <h4 className="text-xs font-black text-blue-600 uppercase tracking-widest">Leitura do Mês Atual</h4>
+          <div className="whitespace-nowrap">
+            <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-widest leading-none mb-1">Leitura do Mês</h4>
             <p className="text-lg font-bold text-gray-900">{currentMonthData.nome} de 2026</p>
           </div>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-8 flex-1 px-4">
-          <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase">Receita no Mês</p>
-            <p className="text-sm font-black text-emerald-600">R$ {currentMonthData.receita.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+        {/* Métricas Centralizadas */}
+        <div className="flex flex-1 justify-around items-center w-full py-4 md:py-0 px-2 md:px-10 gap-4">
+          <div className="text-center md:text-left">
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter mb-1">Receita</p>
+            <p className="text-sm md:text-base font-black text-emerald-600">
+              R$ {currentMonthData.receita.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </p>
           </div>
-          <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase">Despesa no Mês</p>
-            <p className="text-sm font-black text-red-500">R$ {currentMonthData.despesa.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+
+          <div className="text-center md:text-left">
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter mb-1">Despesa</p>
+            <p className="text-sm md:text-base font-black text-red-500">
+              R$ {currentMonthData.despesa.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </p>
           </div>
-          <div className="hidden md:block">
-            <p className="text-[10px] font-bold text-gray-400 uppercase">Saldo Mensal</p>
-            <p className={`text-sm font-black ${currentMonthData.saldo >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>R$ {currentMonthData.saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+
+          <div className="text-center md:text-left hidden sm:block">
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter mb-1">Saldo</p>
+            <p className={`text-sm md:text-base font-black ${currentMonthData.saldo >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+              R$ {currentMonthData.saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </p>
           </div>
         </div>
 
-        <div className="text-right">
-          <span className="text-[9px] bg-blue-600 text-white px-3 py-1 rounded-full font-black uppercase tracking-tighter">Foco Imediato</span>
-        </div>
+        {/* Espaçador para compensar o layout no Desktop (mantém o centro real) */}
+        <div className="hidden md:block w-[120px]"></div>
       </div>
 
       {/* GRÁFICO COMPARATIVO */}
