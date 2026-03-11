@@ -51,7 +51,6 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const isHome = pathname === "/";
 
   return (
     <html lang="pt-BR">
@@ -97,36 +96,9 @@ export default function RootLayout({
               {children}
             </div>
             
-            {/* Navegação Inferior - Estilo Header */}
-            {!isHome && (
-              <div className="mt-20 flex flex-row items-center justify-center gap-4 md:gap-8 pt-10 border-t border-gray-100">
-                <Link 
-                  href="/" 
-                  className="flex items-center gap-2.5 text-gray-400 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest group"
-                >
-                  <div className="bg-white p-2 rounded-full group-hover:bg-blue-50 transition-colors border border-gray-100 group-hover:border-blue-100 shadow-sm">
-                    <AppWindow size={16} strokeWidth={2} />
-                  </div>
-                  Início
-                </Link>
-
-                <div className="h-4 w-px bg-gray-200"></div>
-
-                <button 
-                  onClick={() => window.history.back()}
-                  className="text-gray-400 hover:text-gray-900 transition-all font-bold text-[10px] uppercase tracking-[0.2em] flex items-center gap-3 group"
-                >
-                  Página Anterior
-                  <div className="bg-white p-2.5 rounded-full shadow-sm group-hover:bg-gray-100 transition-colors border border-gray-100 group-hover:border-gray-200">
-                    <Undo2 size={14} strokeWidth={1.5} className="opacity-60" />
-                  </div>
-                </button>
-              </div>
-            )}
-
             {/* Rodapé Unificado e Minimalista */}
             <footer className="mt-16 mb-10 w-full flex flex-col items-center">
-              <div className="w-full max-w-2xl bg-white/40 border border-gray-100 rounded-3xl md:rounded-full p-5 flex flex-col md:flex-row items-center justify-between gap-4 backdrop-blur-sm">
+              <div className="w-full max-w-2xl bg-white/40 border border-gray-100 rounded-3xl md:rounded-full p-5 flex flex-col md:flex-row items-center justify-center gap-4 backdrop-blur-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-blue-600/5 rounded-lg flex items-center justify-center shrink-0">
                     <span className="text-blue-600 font-black text-[10px]">N</span>
@@ -137,18 +109,6 @@ export default function RootLayout({
                     <span className="hidden md:inline mx-2 text-gray-200">|</span> 
                     <span className="mt-1 md:mt-0 block md:inline">Todos os direitos reservados</span>
                   </p>
-                </div>
-
-                <div className="flex items-center">
-                  <Link 
-                    href="/politica-de-cookies" 
-                    className="group flex items-center gap-2 px-3 py-1.5 hover:opacity-80 transition-all"
-                  >
-                    <ShieldCheck size={14} className="text-blue-600 group-hover:scale-110 transition-transform" />
-                    <span className="bg-blue-600 text-white px-2 pt-1 pb-0.5 rounded-md text-[10px] font-bold shadow-sm inline-block tracking-normal">
-                      Privacidade e Cookies
-                    </span>
-                  </Link>
                 </div>
               </div>
             </footer>

@@ -6,7 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { 
   UserCircle, LayoutDashboard, X, Menu, 
   Info, Newspaper, CreditCard, BarChart3, Star, HelpCircle, 
-  MessageSquare, Shield, LifeBuoy, ChevronRight, Undo2, AppWindow, LogOut
+  MessageSquare, Shield, LifeBuoy, ChevronRight, Undo2, AppWindow, LogOut,
+  Search
 } from "lucide-react";
 
 export function Header() {
@@ -112,6 +113,14 @@ export function Header() {
 
         {/* NAVEGAÇÃO DESKTOP */}
         <nav className="hidden md:flex items-center gap-3 text-[13px] text-gray-600">
+          
+          {/* LUPA DE BUSCA - Apenas Home / Desktop */}
+          {pathname === "/" && (
+            <a href="/busca" className="p-2 text-gray-400 hover:text-blue-600 transition-colors mr-2">
+              <Search size={20} strokeWidth={2.5} />
+            </a>
+          )}
+
           {!isLoggedIn ? (
             <>
               {pathname !== "/" && (
