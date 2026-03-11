@@ -7,7 +7,8 @@ import {
   CheckCircle2, LogOut, X, Mail, LifeBuoy, AtSign,
   Eye, EyeOff, BarChart3, Sparkles, TrendingUp,
   Clock, Gem, ShieldCheck, Zap, Lock, Database, FileSpreadsheet,
-  PlusCircle, Upload, Shield, Target, Fingerprint, Globe, LayoutDashboard
+  PlusCircle, Upload, Shield, Target, Fingerprint, Globe, LayoutDashboard,
+  Instagram
 } from "lucide-react";
 import Link from "next/link";
 
@@ -146,7 +147,6 @@ export default function AcessoUsuarioPage() {
               {isLoggedIn ? userName.split(" ")[0] : <>à Plataforma da <span className="text-orange-500">Nucleobase!</span></>}
             </span>
             
-            {/* Ícone Gem após Nucleobase! no Mobile */}
             {!isLoggedIn && (
               <Gem size={24} className="text-orange-500 md:hidden ml-2" strokeWidth={2.5} />
             )}
@@ -158,11 +158,10 @@ export default function AcessoUsuarioPage() {
               </span>
             )}
 
-            {/* Ícone Gem substitui o BarChart3 no Desktop */}
             <Gem 
               size={40} 
               className="text-orange-500 skew-x-2 ml-6 hidden md:block" 
-              strokeWidth={2.0} // Aumente de 1 para 2.5 ou 3 para o efeito de negrito
+              strokeWidth={2.0}
             />
           </div>
 
@@ -250,7 +249,6 @@ export default function AcessoUsuarioPage() {
         </h3>
 
         <div className="mb-12">
-          {/* Versão Desktop - Texto Completo (Sem o recuo px-4) */}
           <p className="hidden md:block text-base text-gray-600 leading-relaxed">
             Através do{" "}
             <span className="inline-flex items-center justify-center bg-orange-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
@@ -266,7 +264,6 @@ export default function AcessoUsuarioPage() {
             </span>{" "}
           </p>
           
-          {/* Versão Mobile - Texto Simplificado (Sem o recuo px-4) */}
           <p className="md:hidden text-sm text-gray-600 leading-relaxed">
             Acesse o <span className="font-bold text-orange-600">APP</span> para novos lançamentos ou o <span className="font-bold text-blue-600">Painel</span> para análise estratégica de seus resultados em tempo real.
           </p>
@@ -397,6 +394,46 @@ export default function AcessoUsuarioPage() {
               </div>
           </div>
         </div>
+      </div>
+
+      {/* NOVO BLOCO: CONECTE-SE (PADRÃO SOBRE) */}
+      <div className="mt-24 flex items-center gap-4 mb-12">
+        <div className="h-px bg-gray-200 flex-1"></div>
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
+          Conecte-se
+        </h3>
+        <div className="h-px bg-gray-200 flex-1"></div>
+      </div>
+
+      <div className="flex flex-col items-center text-center">
+        <div className="max-w-3xl mb-12">
+          <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
+            Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+          </h4>
+          <p className="text-gray-500 font-medium text-sm md:text-base">
+            Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
+          </p>
+        </div>
+        
+        <a 
+          href="https://www.instagram.com/nucleobase.app/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="group relative flex flex-col items-center gap-6"
+        >
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+            
+            <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+              <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+            </div>
+          </div>
+          
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+            <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
+          </div>
+        </a>
       </div>
 
       {showForgotModal && (

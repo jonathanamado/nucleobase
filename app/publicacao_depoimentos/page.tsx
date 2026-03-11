@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { 
   Star, Send, ArrowLeft, CheckCircle2, 
   Loader2, Lock, LogIn, Quote, MessageSquareQuote,
-  Eye, EyeOff, Dna
+  Eye, EyeOff, Dna, Instagram
 } from "lucide-react";
 import { supabase } from "@/lib/supabase"; 
 
@@ -16,7 +16,7 @@ export default function PublicacaoDepoimentos() {
   
   const [user, setUser] = useState<any>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const [slug, setSlug] = useState(""); // Alterado de email para slug (ID ou E-mail)
+  const [slug, setSlug] = useState(""); 
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
@@ -24,7 +24,6 @@ export default function PublicacaoDepoimentos() {
   useEffect(() => {
     checkUser();
     
-    // Escuta mudanças na autenticação para atualizar o estado do formulário
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
@@ -51,7 +50,6 @@ export default function PublicacaoDepoimentos() {
       if (isEmail) {
         emailParaLogin = inputAcesso;
       } else {
-        // Busca o e-mail atrelado ao Slug (ID de usuário) na tabela profiles
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('email')
@@ -151,17 +149,17 @@ export default function PublicacaoDepoimentos() {
   }
 
   return (
-    <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
+    <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
       
-      {/* HEADER DA PÁGINA (PADRÃO SOBRE) */}
+      {/* HEADER DA PÁGINA */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
-          <h1 className="text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center">
+          <h1 className="text-xl md:text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center">
             <span>Sua Voz<span className="text-blue-600">.</span></span>
-            <MessageSquareQuote size={60} className="text-blue-600 skew-x-12 opacity-35 ml-4" strokeWidth={1.2} />
+            <MessageSquareQuote size={60} className="text-blue-600 skew-x-12 opacity-35 ml-4 hidden md:block" strokeWidth={1.2} />
           </h1>
           
-          <h2 className="text-gray-500 text-xl font-medium max-w-2xl leading-relaxed mt-0">
+          <h2 className="text-gray-500 text-base md:text-xl font-medium max-w-2xl leading-relaxed mt-0">
             {user ? "Sua percepção é o nosso ouro. Compartilhe seu relato." : "Conecte-se para autenticar seu relato."}
           </h2>
         </div>
@@ -172,7 +170,7 @@ export default function PublicacaoDepoimentos() {
       </h3>
 
       {/* GRID PRINCIPAL */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-24">
         
         {/* LADO ESQUERDO: CONTEÚDO/FORMULÁRIO */}
         <div className="lg:col-span-7">
@@ -295,7 +293,7 @@ export default function PublicacaoDepoimentos() {
           </div>
         </div>
 
-        {/* LADO DIREITO: DESTAQUE (PADRÃO SOBRE) */}
+        {/* LADO DIREITO: DESTAQUE */}
         <div className="lg:col-span-5 flex flex-col gap-6">
           <div className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center min-h-[300px]">
             <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
@@ -327,11 +325,48 @@ export default function PublicacaoDepoimentos() {
         </div>
       </div>
 
-      <div className="mt-12 text-center">
-        <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.4em]">
-          Transparência & Comunidade • Nucleobase 2026
-        </p>
+      {/* NOVA LINHA DIVISÓRIA "CONECTE-SE" CENTRALIZADA */}
+      <div className="mt-24 flex items-center gap-4 mb-12">
+        <div className="h-px bg-gray-200 flex-1"></div>
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
+          Conecte-se
+        </h3>
+        <div className="h-px bg-gray-200 flex-1"></div>
       </div>
+
+      {/* BLOCO INSTAGRAM CENTRALIZADO COM GRADIENTE E BRILHO */}
+      <div className="flex flex-col items-center text-center">
+        <div className="max-w-3xl mb-12">
+          <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
+            Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+          </h4>
+          <p className="text-gray-500 font-medium text-sm md:text-base">
+            Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
+          </p>
+        </div>
+        
+        <a 
+          href="https://www.instagram.com/nucleobase.app/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="group relative flex flex-col items-center gap-6"
+        >
+          <div className="relative">
+            {/* Efeito de brilho/glow ao fundo do ícone */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+            
+            <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+              <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+            </div>
+          </div>
+          
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+            <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
+          </div>
+        </a>
+      </div>
+
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { 
   ArrowLeft, RefreshCw, Settings2, Link2, 
-  Database, Cloud, HardHat
+  Database, Cloud, HardHat, Instagram
 } from "lucide-react";
 import Link from "next/link";
 import Papa from "papaparse";
@@ -251,7 +251,7 @@ export default function IntegrarPage() {
               </p>
             </div>
 
-            {/* Sync Button Box - Now Visible on Desktop too, following the divider */}
+            {/* Sync Button Box */}
             <div className="flex items-center justify-between w-full md:w-auto md:gap-8 bg-orange-50/50 p-4 rounded-2xl border border-orange-100">
                 <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">Último Check</span>
                 <button onClick={handleSyncNow} className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg font-black text-[9px] uppercase tracking-tighter hover:bg-orange-600 transition-all shadow-md shadow-orange-500/10">
@@ -291,7 +291,7 @@ export default function IntegrarPage() {
       </div>
 
       {/* LOGS / STATUS DO PROCESSADOR */}
-      <div className="bg-gray-900 rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-2xl">
+      <div className="bg-gray-900 rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-2xl mb-24">
         <div className="p-6 md:p-10 border-b border-white/5">
           <div className="flex items-center gap-3 md:gap-5">
             <div className="bg-orange-500 p-3 md:p-4 rounded-xl md:rounded-2xl shadow-xl shadow-orange-500/20">
@@ -326,6 +326,48 @@ export default function IntegrarPage() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* NOVA LINHA DIVISÓRIA "CONECTE-SE" CENTRALIZADA (PADRÃO SOBRE) */}
+      <div className="flex items-center gap-4 mb-12">
+        <div className="h-px bg-gray-200 flex-1"></div>
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
+          Conecte-se
+        </h3>
+        <div className="h-px bg-gray-200 flex-1"></div>
+      </div>
+
+      {/* BLOCO INSTAGRAM CENTRALIZADO (PADRÃO SOBRE) */}
+      <div className="flex flex-col items-center text-center">
+        <div className="max-w-3xl mb-12">
+          <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
+            Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+          </h4>
+          <p className="text-gray-500 font-medium text-sm md:text-base">
+            Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
+          </p>
+        </div>
+        
+        <a 
+          href="https://www.instagram.com/nucleobase.app/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="group relative flex flex-col items-center gap-6"
+        >
+          <div className="relative">
+            {/* Efeito de brilho/glow ao fundo do ícone */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+            
+            <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+              <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+            </div>
+          </div>
+          
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+            <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
+          </div>
+        </a>
       </div>
 
       {/* MODAL */}

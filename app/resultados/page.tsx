@@ -14,6 +14,8 @@ import {
   Tooltip, ResponsiveContainer
 } from 'recharts';
 import { createClient } from "@supabase/supabase-js";
+import VisionOfensora from "./_components/VisionOfensora";
+import VisionYoY from "./_components/VisionYoY";
 
 // CONFIGURAÇÃO SUPABASE
 const supabase = createClient(
@@ -234,15 +236,36 @@ export default function DashboardResultados() {
     );
   }
 
-  const kpiCards = [
-    <div key="mes" className="bg-gray-900 rounded-[2rem] p-5 text-white flex flex-col justify-center relative overflow-hidden shadow-xl min-h-[120px] w-full">
-        <div className="absolute top-4 right-4 text-white opacity-40"><Calendar size={18} /></div>
-        <div className="text-left">
-            <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2">Mês Atual ({currentMonthData.nome})</p>
-            <h3 className="text-xl font-bold tracking-tight whitespace-nowrap">R$ {currentMonthData.saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
-            <p className="text-[9px] uppercase font-bold opacity-40 mt-1">Saldo atual</p>
+  // DEFINIÇÃO DO CARD MÊS ATUAL CENTRALIZADO E ENRIQUECIDO
+  const CurrentMonthCard = () => (
+    <div className="bg-gray-900 rounded-[2rem] p-5 text-white flex flex-col justify-center items-center relative overflow-hidden shadow-xl min-h-[120px] w-full text-center">
+      <div className="absolute top-4 right-4 text-white opacity-40"><Calendar size={18} /></div>
+      <div className="flex flex-col items-center w-full">
+        <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2">
+          Mês Atual ({currentMonthData.nome})
+        </p>
+        <h3 className="text-xl font-bold tracking-tight whitespace-nowrap">
+          R$ {currentMonthData.saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+        </h3>
+        <p className="text-[9px] uppercase font-bold opacity-40 mt-1 mb-3">Saldo líquido mensal</p>
+        
+        {/* Informações Enriquecidas */}
+        <div className="w-full pt-3 mt-1 border-t border-white/10 grid grid-cols-2 gap-4">
+            <div className="text-center">
+                <p className="text-[8px] uppercase opacity-40 font-black mb-0.5">Receitas</p>
+                <p className="text-xs font-bold text-emerald-400">R$ {currentMonthData.receita.toLocaleString('pt-BR')}</p>
+            </div>
+            <div className="text-center">
+                <p className="text-[8px] uppercase opacity-40 font-black mb-0.5">Despesas</p>
+                <p className="text-xs font-bold text-red-400">R$ {currentMonthData.despesa.toLocaleString('pt-BR')}</p>
+            </div>
         </div>
-    </div>,
+      </div>
+    </div>
+  );
+
+  const kpiCards = [
+    <CurrentMonthCard key="mes-atual" />,
     <KPICard key="saldo" title="Saldo Líquido" value={stats.totalGeral} icon={<TrendingUp size={14}/>} color="blue" />,
     <KPICard key="receitas" title="Receitas" value={stats.totalReceita} icon={<ArrowUpRight size={14}/>} color="emerald" />,
     <KPICard key="despesas" title="Despesas" value={stats.totalDespesa} icon={<ArrowDownRight size={14}/>} color="red" />,
@@ -262,7 +285,7 @@ export default function DashboardResultados() {
   ];
 
   return (
-    <div className="w-full max-w-full mx-auto px-4 md:px-12 pt-0 pb-10 bg-inherit min-h-screen animate-in fade-in duration-700">
+    <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
       
       <header className="flex flex-col mb-4">
         <div className="space-y-1">
@@ -270,10 +293,15 @@ export default function DashboardResultados() {
               <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
               <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Nucleobase Intelligence</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
-            Dashboard<span className="text-blue-600">.</span>
-            <Sparkles size={28} className="text-blue-600 opacity-60" />
-          </h1>
+          <div className="mb-4">
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
+              <span>Dashboard<span className="text-blue-600">.</span></span>
+              <Sparkles size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
+            </h1>
+            <p className="text-gray-500 text-base md:text-lg font-medium max-w-2xl leading-relaxed mt-0">
+              Seu ecossistema de dados em tempo real.
+            </p>
+          </div>
           <p className="text-gray-500 font-medium leading-relaxed">
             <span className="hidden md:inline">
               Bem-vindo, <span className="text-gray-900 font-bold">{userName}</span>. 
@@ -288,7 +316,7 @@ export default function DashboardResultados() {
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-12 w-full">
            <div className="lg:col-span-8 flex flex-col gap-2">
              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">
-               Selecione a base desejada para analisar
+               Selecione a Visão desejada:
              </p>
              <div className="flex items-center gap-3 bg-white p-2 rounded-[2rem] border border-gray-100 shadow-sm">
              {[
@@ -318,49 +346,62 @@ export default function DashboardResultados() {
                 <KPICard title="Despesas" value={stats.totalDespesa} icon={<ArrowDownRight size={14}/>} color="red" />
             </div>
             
-            <div className="col-span-4 bg-gray-900 rounded-[2rem] p-5 text-white flex flex-col justify-center relative overflow-hidden shadow-xl min-h-[120px]">
-                <div className="absolute top-4 right-4 text-white opacity-40"><Calendar size={18} /></div>
-                <div className="text-left">
-                    <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2">Mês Atual ({currentMonthData.nome})</p>
-                    <h3 className="text-xl font-bold tracking-tight whitespace-nowrap">R$ {currentMonthData.saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
-                    <p className="text-[9px] uppercase font-bold opacity-40 mt-1">Saldo atual</p>
-                </div>
+            <div className="col-span-4">
+                <CurrentMonthCard />
             </div>
         </div>
 
-        <div className="md:hidden flex items-center justify-center relative px-10">
-            <button onClick={() => setKpiIndex((prev) => (prev === 0 ? 3 : prev - 1))} className="absolute left-0 p-2 text-gray-400 hover:text-blue-600"><ChevronLeft size={24} /></button>
+        {/* NAVEGAÇÃO MOBILE COM SETAS LATERAIS CONDICIONAIS */}
+        <div className="md:hidden flex items-center justify-center relative px-2">
+            {kpiIndex > 0 && (
+                <button 
+                    onClick={() => setKpiIndex((prev) => prev - 1)} 
+                    className="absolute left-[-10px] z-10 p-2 text-gray-400 bg-white/80 rounded-full shadow-sm"
+                >
+                    <ChevronLeft size={24} />
+                </button>
+            )}
+            
             <div className="w-full flex justify-center animate-in slide-in-from-right-4 duration-300">
                 {kpiCards[kpiIndex]}
             </div>
-            <button onClick={() => setKpiIndex((prev) => (prev === 3 ? 0 : prev + 1))} className="absolute right-0 p-2 text-gray-400 hover:text-blue-600"><ChevronRight size={24} /></button>
+
+            {kpiIndex < kpiCards.length - 1 && (
+                <button 
+                    onClick={() => setKpiIndex((prev) => prev + 1)} 
+                    className="absolute right-[-10px] z-10 p-2 text-gray-400 bg-white/80 rounded-full shadow-sm"
+                >
+                    <ChevronRight size={24} />
+                </button>
+            )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8 items-stretch">
-        <section className="lg:col-span-8 bg-white border border-gray-100 rounded-[3rem] p-8 md:p-10 shadow-sm relative overflow-hidden flex flex-col">
+        {/* AJUSTE FLUXO DE CAIXA COMPARATIVO */}
+        <section className="lg:col-span-8 bg-white border border-gray-100 rounded-[3rem] p-6 md:p-10 shadow-sm relative overflow-hidden flex flex-col min-h-[400px] md:min-h-0">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 relative z-10">
             <h3 className="font-bold text-gray-800 flex items-center gap-2 uppercase text-xs tracking-widest">
                 <BarChart3 size={18} className="text-blue-600" /> Fluxo de Caixa Comparativo
             </h3>
-            <div className="flex bg-gray-50 p-1.5 rounded-2xl">
-              <button onClick={() => setChartType('MENSAL')} className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${chartType === 'MENSAL' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}>Mensal</button>
-              <button onClick={() => setChartType('ACUMULADO')} className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${chartType === 'ACUMULADO' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}>Acumulado</button>
+            <div className="flex bg-gray-50 p-1.5 rounded-2xl w-full sm:w-auto">
+              <button onClick={() => setChartType('MENSAL')} className={`flex-1 sm:flex-none px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${chartType === 'MENSAL' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}>Mensal</button>
+              <button onClick={() => setChartType('ACUMULADO')} className={`flex-1 sm:flex-none px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${chartType === 'ACUMULADO' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}>Acumulado</button>
             </div>
           </div>
-          <div className="flex-1 h-[400px] w-full relative z-10">
-            <ResponsiveContainer>
+          <div className="flex-1 h-[300px] md:h-[400px] w-full relative z-10">
+            <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartType === 'MENSAL' ? chartData : chartDataAcumulado}>
                 <defs>
                   <linearGradient id="colorRec" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/><stop offset="95%" stopColor="#2563eb" stopOpacity={0}/></linearGradient>
                   <linearGradient id="colorDes" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ef4444" stopOpacity={0.05}/><stop offset="95%" stopColor="#ef4444" stopOpacity={0}/></linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 11, fontWeight: 700, fill: '#94A3B8'}} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 11, fill: '#94A3B8'}} tickFormatter={(v) => `R$${v >= 1000 ? v/1000 + 'k' : v}`} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#94A3B8'}} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94A3B8'}} tickFormatter={(v) => `R$${v >= 1000 ? v/1000 + 'k' : v}`} />
                 <Tooltip contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 50px rgba(0,0,0,0.1)', padding: '20px' }} />
-                <Area name="Receita" type="monotone" dataKey="receita" stroke="#2563eb" strokeWidth={4} fill="url(#colorRec)" />
-                <Area name="Despesa" type="monotone" dataKey="gastos" stroke="#F87171" strokeWidth={4} fill="url(#colorDes)" />
+                <Area name="Receita" type="monotone" dataKey="receita" stroke="#2563eb" strokeWidth={3} fill="url(#colorRec)" />
+                <Area name="Despesa" type="monotone" dataKey="gastos" stroke="#F87171" strokeWidth={3} fill="url(#colorDes)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -382,7 +423,7 @@ export default function DashboardResultados() {
                     <span className="text-gray-900">R$ {item.gastos.toLocaleString('pt-BR')}</span>
                     </div>
                     <div className="w-full bg-gray-50 h-2 rounded-full overflow-hidden">
-                    <div className="bg-blue-600 h-full rounded-full transition-all duration-1000" style={{ width: `${(item.gastos / stats.totalDespesa) * 100}%` }} />
+                    <div className="bg-blue-600 h-full rounded-full transition-all duration-1000" style={{ width: `${(item.gastos / (stats.totalDespesa || 1)) * 100}%` }} />
                     </div>
                 </div>
                 ))}
@@ -394,53 +435,87 @@ export default function DashboardResultados() {
         </section>
       </div>
 
+      <VisionOfensora data={rawLancamentos} />
+      <VisionYoY data={rawLancamentos} />
+
       <div className="mt-16 pt-10">
-        <div className="flex items-center gap-4 mb-8">
-            <div className="h-[1px] flex-1 bg-gray-100"></div>
-            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-300">Personalização & Evolução</h2>
-            <div className="h-[1px] flex-1 bg-gray-100"></div>
+        {/* LINHA DIVISÓRIA AJUSTADA COM NOVO TEXTO */}
+        <div className="flex items-center gap-4 mb-10">
+            <div className="h-px bg-gray-200 flex-1"></div>
+            <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
+              Ecossistema de Suporte
+            </h3>
+            <div className="h-px bg-gray-200 flex-1"></div>
         </div>
 
-        <p className="text-gray-400 text-sm mb-8 text-center">Acompanhe a evolução do seu ecossistema de dados e ferramentas de suporte.</p>
+        <p className="text-gray-400 text-sm mb-8 text-center px-4">Acompanhe a evolução do seu ecossistema de dados e ferramentas de suporte.</p>
 
-        <div className="mb-8 relative group">
+        {/* AJUSTE CONJUNTO DE CARDS */}
+        <div className="mb-12 relative group">
           <footer className="hidden md:grid grid-cols-4 gap-8">
               {footerItems}
           </footer>
 
-          <div className="md:hidden flex items-center justify-center relative px-10">
-              <button onClick={() => setFooterIndex((prev) => (prev === 0 ? 3 : prev - 1))} className="absolute left-0 p-2 text-gray-400 hover:text-blue-600"><ChevronLeft size={24} /></button>
-              <div className="w-full flex justify-center animate-in fade-in duration-300">
+          <div className="md:hidden flex items-center justify-center relative px-2">
+              {footerIndex > 0 && (
+                <button 
+                  onClick={() => setFooterIndex((prev) => prev - 1)} 
+                  className="absolute left-[-10px] z-10 p-2 text-gray-400 bg-white/80 rounded-full shadow-sm"
+                >
+                  <ChevronLeft size={24} />
+                </button>
+              )}
+              
+              <div className="w-full flex justify-center animate-in slide-in-from-right-4 duration-300">
                   {footerItems[footerIndex]}
               </div>
-              <button onClick={() => setFooterIndex((prev) => (prev === 3 ? 0 : prev + 1))} className="absolute right-0 p-2 text-gray-400 hover:text-blue-600"><ChevronRight size={24} /></button>
+
+              {footerIndex < footerItems.length - 1 && (
+                <button 
+                  onClick={() => setFooterIndex((prev) => prev + 1)} 
+                  className="absolute right-[-10px] z-10 p-2 text-gray-400 bg-white/80 rounded-full shadow-sm"
+                >
+                  <ChevronRight size={24} />
+                </button>
+              )}
           </div>
         </div>
 
-        <div className="relative overflow-hidden bg-white border border-gray-100 rounded-[3rem] p-8 md:p-10 shadow-sm flex flex-col md:flex-row justify-between items-center gap-10">
+        {/* AJUSTE SUA VISÃO PERSONALIZADA */}
+        <div className="relative overflow-hidden bg-white border border-gray-100 rounded-[3rem] p-6 md:p-10 shadow-sm flex flex-col md:flex-row justify-between items-center gap-10 mb-20">
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50/50 rounded-full blur-3xl -mr-32 -mt-32 z-0"></div>
             <div className="relative z-10 max-w-xl text-center md:text-left">
                 <div className="inline-flex items-center gap-3 px-4 py-2 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
                     <Zap size={14} fill="currentColor" /> Ecosystem Insight
                 </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-4 tracking-tight">Sua visão personalizada<span className="text-blue-600">.</span></h3>
-                <p className="text-gray-500 leading-relaxed text-lg font-medium opacity-80">
+                <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 tracking-tight">Sua visão personalizada<span className="text-blue-600">.</span></h3>
+                <p className="text-gray-500 leading-relaxed text-base md:text-lg font-medium opacity-80">
                     Transformamos seus padrões de uso em clareza estratégica para suas decisões financeiras diárias.
                 </p>
             </div>
-            <div className="relative z-10 flex flex-col gap-6 w-full md:w-96 p-8 bg-gray-50/50 backdrop-blur-sm rounded-[2rem] border border-white">
-                <div className="space-y-2">
+            <div className="relative z-10 flex flex-col gap-4 md:gap-6 w-full md:w-96 p-6 md:p-8 bg-gray-50/50 backdrop-blur-sm rounded-[2rem] border border-white">
+                <div className="space-y-1 md:space-y-2">
                   <p className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Canais Oficiais</p>
                   <p className="text-xs font-bold text-gray-700 break-all">contato@nucleobase.app</p>
                 </div>
-                <button className="flex items-center justify-center gap-3 px-8 py-4 bg-gray-900 text-white rounded-2xl text-xs font-bold transition-all hover:bg-blue-600 hover:shadow-xl hover:shadow-blue-100 active:scale-95">
+                <button className="flex items-center justify-center gap-3 px-6 md:px-8 py-3 md:py-4 bg-gray-900 text-white rounded-2xl text-[10px] md:text-xs font-bold transition-all hover:bg-blue-600 hover:shadow-xl hover:shadow-blue-100 active:scale-95">
                     <Send size={16} /> Solicitar Melhoria
                 </button>
             </div>
         </div>
 
-        <div className="mt-16 pt-8 border-t border-gray-100 flex flex-col items-center text-center">
-          <div className="max-w-3xl mb-8">
+        {/* NOVA LINHA DIVISÓRIA "CONECTE-SE" CENTRALIZADA (PADRÃO SOBRE) */}
+        <div className="mt-24 flex items-center gap-4 mb-12">
+          <div className="h-px bg-gray-200 flex-1"></div>
+          <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
+            Conecte-se
+          </h3>
+          <div className="h-px bg-gray-200 flex-1"></div>
+        </div>
+
+        {/* BLOCO INSTAGRAM CENTRALIZADO COM GRADIENTE E BRILHO (PADRÃO SOBRE) */}
+        <div className="flex flex-col items-center text-center">
+          <div className="max-w-3xl mb-12">
             <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
               Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
             </h4>
@@ -448,14 +523,24 @@ export default function DashboardResultados() {
               Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
             </p>
           </div>
-          <a href="https://www.instagram.com/nucleobase.app/" target="_blank" rel="noopener noreferrer" className="shrink-0 flex items-center gap-4 md:gap-6 p-2 pr-6 md:pr-10 bg-white border border-gray-100 rounded-full hover:shadow-2xl hover:border-pink-100 transition-all duration-500 group">
-            <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-full flex items-center justify-center text-white shadow-lg group-hover:rotate-12 transition-transform">
-              <Instagram size={24} className="md:hidden" />
-              <Instagram size={32} className="hidden md:block" />
+          
+          <a 
+            href="https://www.instagram.com/nucleobase.app/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="group relative flex flex-col items-center gap-6"
+          >
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+              
+              <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+                <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+              </div>
             </div>
-            <div className="text-left">
-              <span className="block text-[8px] md:text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-pink-500 transition-colors">Instagram</span>
-              <span className="block text-lg md:text-xl font-bold text-gray-900">@nucleobase.app</span>
+            
+            <div className="flex flex-col items-center">
+              <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+              <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
             </div>
           </a>
         </div>
@@ -473,11 +558,11 @@ function KPICard({ title, value, icon, color }: any) {
         red: "text-red-600 bg-red-50"
     };
     return (
-        <div className="bg-white border border-gray-100 p-5 rounded-[2rem] shadow-sm flex flex-col justify-center relative overflow-hidden transition-all hover:border-blue-200 min-h-[120px] w-full">
+        <div className="bg-white border border-gray-100 p-5 rounded-[2rem] shadow-sm flex flex-col justify-center relative overflow-hidden transition-all hover:border-blue-200 min-h-[120px] w-full items-start text-left">
             <div className={`absolute top-4 right-4 p-2 rounded-lg ${colorStyles[color]}`}>
                 {icon}
             </div>
-            <div className="text-left flex flex-col items-start">
+            <div className="flex flex-col items-start">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{title}</p>
                 <h3 className="text-lg font-bold text-gray-900 tracking-tight whitespace-nowrap">
                     R$ {value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}

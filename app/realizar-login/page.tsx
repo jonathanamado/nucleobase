@@ -9,7 +9,8 @@ import {
   ArrowRight as ArrowRightIcon, 
   CheckCircle2 as CheckCircleIcon, 
   ArrowLeft as ArrowLeftIcon,
-  LifeBuoy as LifeBuoyIcon 
+  LifeBuoy as LifeBuoyIcon,
+  Instagram as InstagramIcon
 } from "lucide-react";
 
 const supabase = createClient(
@@ -64,7 +65,7 @@ export default function RealizarLoginPage() {
   return (
     <div className="w-full bg-gray-50 flex flex-col items-center justify-center p-4 min-h-screen font-sans selection:bg-orange-100 selection:text-orange-900">
       
-      <div className="max-w-md w-full">
+      <div className="max-w-md w-full mb-16">
 
         <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-gray-200/50 border border-gray-100 p-8 md:p-10 flex flex-col relative overflow-hidden">
           
@@ -172,6 +173,45 @@ export default function RealizarLoginPage() {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* LINHA DIVISÓRIA "CONECTE-SE" PADRONIZADA */}
+      <div className="w-full max-w-md flex items-center gap-4 mb-10">
+        <div className="h-px bg-gray-200 flex-1"></div>
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
+          Conecte-se
+        </h3>
+        <div className="h-px bg-gray-200 flex-1"></div>
+      </div>
+
+      {/* BLOCO INSTAGRAM CENTRALIZADO COM PADRÃO DA PÁGINA SOBRE */}
+      <div className="flex flex-col items-center text-center">
+        <div className="max-w-md mb-8 px-4">
+          <h4 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tighter mb-2">
+            Fique por dentro <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+          </h4>
+        </div>
+        
+        <a 
+          href="https://www.instagram.com/nucleobase.app/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="group relative flex flex-col items-center gap-4"
+        >
+          <div className="relative">
+            {/* Glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[1.8rem] md:rounded-[2.2rem] blur-xl opacity-10 group-hover:opacity-30 transition-all duration-500"></div>
+            
+            <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[1.8rem] md:rounded-[2.2rem] flex items-center justify-center text-white shadow-lg relative z-10 group-hover:rotate-6 transition-all duration-500">
+              <InstagramIcon className="w-10 h-10 md:w-12 md:h-12" strokeWidth={1.5} />
+            </div>
+          </div>
+          
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+            <div className="h-0.5 w-0 bg-pink-500 mt-1.5 group-hover:w-full transition-all duration-500 rounded-full"></div>
+          </div>
+        </a>
       </div>
 
     </div>

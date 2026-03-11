@@ -37,7 +37,6 @@ export default function PaginaDePlanos() {
 
   // Lógica Carrossel Desktop (2 em 2)
   const nextCardDesktop = () => {
-    // Avança de 2 em 2, mas garante que não passe do limite (length - 2)
     setCurrentCardDesktop((prev) => (prev >= diferenciais.length - 2 ? 0 : prev + 2));
   };
   const prevCardDesktop = () => {
@@ -390,7 +389,7 @@ export default function PaginaDePlanos() {
         <div className="w-2/3 overflow-hidden">
           <div 
             className="flex transition-transform duration-700 ease-in-out gap-6" 
-            style={{ transform: `translateX(-${currentCardDesktop * (50 + 1.5)}%)` }} // 50% largura + gap proporcional
+            style={{ transform: `translateX(-${currentCardDesktop * (50 + 1.5)}%)` }} 
           >
             {diferenciais.map((item, idx) => (
               <div key={idx} className="min-w-[calc(50%-12px)] flex flex-col items-start gap-4 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100 hover:bg-white hover:shadow-xl transition-all group">
@@ -452,16 +451,22 @@ export default function PaginaDePlanos() {
         </div>
       </div>
 
-      {/* LINHA DIVISÓRIA FINAL */}
-      <div className="w-full h-px bg-gray-100 my-20"></div>
+      {/* NOVA LINHA DIVISÓRIA "CONECTE-SE" CENTRALIZADA PADRONIZADA */}
+      <div className="mt-24 flex items-center gap-4 mb-12">
+        <div className="h-px bg-gray-200 flex-1"></div>
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
+          Conecte-se
+        </h3>
+        <div className="h-px bg-gray-200 flex-1"></div>
+      </div>
 
-      {/* BANNER INSTAGRAM */}
+      {/* BLOCO INSTAGRAM CENTRALIZADO PADRONIZADO */}
       <div className="flex flex-col items-center text-center">
-        <div className="max-w-3xl">
+        <div className="max-w-3xl mb-12">
           <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
             Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
           </h4>
-          <p className="text-gray-500 font-medium text-sm md:text-base mb-8">
+          <p className="text-gray-500 font-medium text-sm md:text-base">
             Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
           </p>
         </div>
@@ -470,15 +475,20 @@ export default function PaginaDePlanos() {
           href="https://www.instagram.com/nucleobase.app/" 
           target="_blank" 
           rel="noopener noreferrer"
-          className="shrink-0 flex items-center gap-4 md:gap-6 p-2 pr-6 md:pr-10 bg-white border border-gray-100 rounded-full hover:shadow-2xl hover:border-pink-100 transition-all duration-500 group"
+          className="group relative flex flex-col items-center gap-6"
         >
-          <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-full flex items-center justify-center text-white shadow-lg group-hover:rotate-12 transition-transform">
-            <Instagram size={24} className="md:hidden" />
-            <Instagram size={32} className="hidden md:block" />
+          <div className="relative">
+            {/* Efeito de brilho/glow ao fundo do ícone */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+            
+            <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+              <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+            </div>
           </div>
-          <div className="text-left">
-            <span className="block text-[8px] md:text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-pink-500 transition-colors">Social Feed</span>
-            <span className="block text-lg md:text-xl font-bold text-gray-900">@nucleobase.app</span>
+          
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+            <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
           </div>
         </a>
       </div>

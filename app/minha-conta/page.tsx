@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { 
   Save, MapPin, Heart, LogOut, UserCircle, LayoutDashboard, KeyRound, X, Camera, 
-  GraduationCap, Share2, Briefcase, Mail, AtSign, Loader2, Eye, EyeOff, Target, Baby, User
+  GraduationCap, Share2, Briefcase, Mail, AtSign, Loader2, Eye, EyeOff, Target, Baby, User, Instagram
 } from "lucide-react";
 
 const supabase = createClient(
@@ -28,9 +28,10 @@ export default function MinhaContaPage() {
   const [usoApp, setUsoApp] = useState("");
   const [objetivoFinanceiro, setObjetivoFinanceiro] = useState("");
   const [origem, setOrigem] = useState("");
-  
   const [possuiFilhos, setPossuiFilhos] = useState("");
   const [objetivoPlataforma, setObjetivoPlataforma] = useState("");
+  
+  const [dadosOriginais, setDadosOriginais] = useState<any>(null);
   
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -89,29 +90,101 @@ export default function MinhaContaPage() {
         setEmail(user.email || ""); 
         const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
         if (profile) {
-          setNome(profile.nome_completo || "");
-          setSlug(profile.slug || "");
-          setEmailContato(profile.email_contato || "");
-          setTelefone(profile.telefone || "");
-          setProfissao(profile.profissao || "");
-          setFormacao(profile.formacao || "");
-          setDataNascimento(profile.data_nascimento || "");
-          setGenero(profile.genero || "");
-          setEstadoCivil(profile.estado_civil || "");
-          setCidade(profile.cidade || "");
-          setEstado(profile.estado || "");
-          setUsoApp(profile.uso_app || "");
-          setObjetivoFinanceiro(profile.objetivo_financeiro || "");
-          setOrigem(profile.origem || "");
+          const dados = {
+            nome: profile.nome_completo || "",
+            slug: profile.slug || "",
+            emailContato: profile.email_contato || "",
+            telefone: profile.telefone || "",
+            profissao: profile.profissao || "",
+            formacao: profile.formacao || "",
+            dataNascimento: profile.data_nascimento || "",
+            genero: profile.genero || "",
+            estadoCivil: profile.estado_civil || "",
+            cidade: profile.cidade || "",
+            estado: profile.estado || "",
+            usoApp: profile.uso_app || "",
+            objetivoFinanceiro: profile.objetivo_financeiro || "",
+            origem: profile.origem || "",
+            possuiFilhos: profile.possui_filhos || "",
+            objetivoPlataforma: profile.objetivo_plataforma || "",
+          };
+          
+          setNome(dados.nome);
+          setSlug(dados.slug);
+          setEmailContato(dados.emailContato);
+          setTelefone(dados.telefone);
+          setProfissao(dados.profissao);
+          setFormacao(dados.formacao);
+          setDataNascimento(dados.dataNascimento);
+          setGenero(dados.genero);
+          setEstadoCivil(dados.estadoCivil);
+          setCidade(dados.cidade);
+          setEstado(dados.estado);
+          setUsoApp(dados.usoApp);
+          setObjetivoFinanceiro(dados.objetivoFinanceiro);
+          setOrigem(dados.origem);
+          setPossuiFilhos(dados.possuiFilhos);
+          setObjetivoPlataforma(dados.objetivoPlataforma);
           setAvatarUrl(profile.avatar_url || null);
-          setPossuiFilhos(profile.possui_filhos || "");
-          setObjetivoPlataforma(profile.objetivo_plataforma || "");
+          
+          setDadosOriginais(dados);
         }
       } else { window.location.href = "/"; }
       setLoading(false);
     }
     carregarDados();
   }, []);
+
+  const temAlteracoes = dadosOriginais && (
+    nome !== dadosOriginais.nome ||
+    emailContato !== dadosOriginais.emailContato ||
+    telefone !== dadosOriginais.telefone ||
+    profissao !== dadosOriginais.profissao ||
+    formacao !== dadosOriginais.formacao ||
+    dataNascimento !== dadosOriginais.dataNascimento ||
+    genero !== dadosOriginais.genero ||
+    estadoCivil !== dadosOriginais.estadoCivil ||
+    cidade !== dadosOriginais.cidade ||
+    estado !== dadosOriginais.estado ||
+    usoApp !== dadosOriginais.usoApp ||
+    objetivoFinanceiro !== dadosOriginais.objetivoFinanceiro ||
+    origem !== dadosOriginais.origem ||
+    possuiFilhos !== dadosOriginais.possuiFilhos ||
+    objetivoPlataforma !== dadosOriginais.objetivoPlataforma
+  );
+
+  // Notificar navegador e interceptar botão Voltar
+  useEffect(() => {
+    // 1. Bloqueio para Fechar Aba / Recarregar (F5)
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (temAlteracoes) {
+        e.preventDefault();
+        e.returnValue = ""; 
+      }
+    };
+
+    // 2. Bloqueio para o Botão "Voltar" do Navegador
+    const handlePopState = (e: PopStateEvent) => {
+      if (temAlteracoes) {
+        const confirmacao = window.confirm("Você tem alterações não salvas. Deseja realmente sair?");
+        if (!confirmacao) {
+          // Se cancelar, "anula" a volta forçando a rota atual de novo no histórico
+          window.history.pushState(null, "", window.location.pathname);
+        }
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("popstate", handlePopState);
+
+    // Inicializa um estado no histórico para o popstate ter o que capturar
+    window.history.pushState(null, "", window.location.pathname);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [temAlteracoes]);
 
   const handleUpdate = async () => {
     setUpdating(true);
@@ -137,7 +210,14 @@ export default function MinhaContaPage() {
         updated_at: new Date()
       });
       if (error) alert("Erro: " + error.message);
-      else alert("Dados atualizados com sucesso!");
+      else {
+        alert("Dados atualizados com sucesso!");
+        setDadosOriginais({
+          nome, emailContato, telefone, profissao, formacao, dataNascimento,
+          genero, estadoCivil, cidade, estado, usoApp, objetivoFinanceiro,
+          origem, possui_filhos: possuiFilhos, objetivoPlataforma
+        });
+      }
     }
     setUpdating(false);
   };
@@ -158,16 +238,13 @@ export default function MinhaContaPage() {
   if (loading) return <div className="flex h-screen items-center justify-center text-gray-400 animate-pulse font-medium">Sincronizando perfil...</div>;
 
   return (
-    <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
-      
-      {/* HEADER DA PÁGINA MINHA CONTA */}
+    <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
             <span>Minha conta<span className="text-blue-600">.</span></span>
             <UserCircle size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
           </h1>
-          
           <h2 className="text-gray-500 text-lg font-medium max-w-2xl leading-relaxed mt-0">
             <span className="hidden md:block">Gerencie suas informações e preferências.</span>
             <span className="block md:hidden">Gerencie seus dados.</span>
@@ -179,44 +256,22 @@ export default function MinhaContaPage() {
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-2 flex items-center gap-4">
           Perfil e Segurança <div className="h-px bg-gray-300 flex-1"></div>
         </h3>
-        
-        {/* GRID SINCRONIZADO COM O CONTEÚDO ABAIXO */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          
-          {/* TEXTO DE IDENTIFICAÇÃO */}
           <div className="lg:col-span-8">
             <div className="text-sm text-gray-500 font-medium leading-relaxed">
-              {/* VERSÃO DESKTOP */}
-              <span className="hidden md:inline">
-                Olá{nome ? ` ${nome.split(' ')[0]}` : ","}, conecte-se em seus dispositivos utilizando seu id{" "}
-              </span>
-              
-              {/* VERSÃO MOBILE RESUMIDA */}
-              <span className="inline md:hidden">
-                Olá{nome ? ` ${nome.split(' ')[0]}` : ""}, conecte-se em qualquer dispositivo utilizando seu id{" "}
-              </span>
-              
+              <span className="hidden md:inline">Olá{nome ? ` ${nome.split(' ')[0]}` : ","}, conecte-se em seus dispositivos utilizando seu id{" "}</span>
+              <span className="inline md:hidden">Olá{nome ? ` ${nome.split(' ')[0]}` : ""}, conecte-se em qualquer dispositivo utilizando seu id{" "}</span>
               <span className="inline-flex align-middle">
-                <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[10px] font-bold shadow-sm lowercase leading-none select-none">
-                  #{slug?.toLowerCase() || "---"}
-                </span>
+                <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[10px] font-bold shadow-sm lowercase leading-none select-none">#{slug?.toLowerCase() || "---"}</span>
               </span>
-
               <span className="mx-1">ou e-mail</span>
-
               <span className="inline-flex align-middle">
-                <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[10px] font-bold shadow-sm lowercase leading-none select-none">
-                  {email.toLowerCase()}
-                </span>
+                <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[10px] font-bold shadow-sm lowercase leading-none select-none">{email.toLowerCase()}</span>
               </span>
-
-              {/* AJUSTE SOLICITADO: TEXTO CONDICIONAL APÓS O EMAIL */}
               <span className="hidden md:inline"> e aproveite todas as funções da Plataforma da Nucleo.</span>
               <span className="inline md:hidden">.</span>
             </div>
           </div>
-
-          {/* BOTÃO ALTERAR SENHA (DESKTOP) */}
           <div className="lg:col-span-4 hidden md:block">
             <div className="w-full bg-gray-50/80 p-2 rounded-[2rem] border border-gray-100 shadow-inner flex items-center justify-center">
               <button onClick={() => setShowPassModal(true)} className="w-full flex items-center justify-center gap-2 py-4 bg-white border border-gray-200 rounded-2xl text-[10px] font-black text-gray-500 uppercase hover:text-blue-600 hover:border-blue-200 transition-all active:scale-95 shadow-sm">
@@ -227,13 +282,9 @@ export default function MinhaContaPage() {
         </div>
       </div>
 
-      {/* GRID PRINCIPAL */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
-        
-        {/* COLUNA ESQUERDA: FORMULÁRIO */}
         <div className="lg:col-span-8">
           <section className="bg-white rounded-[2.5rem] px-5 py-10 md:p-10 border border-gray-100 shadow-sm relative flex flex-col h-full">
-            
             <div className="flex flex-col xl:flex-row justify-between items-start mb-12 gap-8">
               <div className="flex flex-row items-start md:items-center gap-6">
                 <div className="relative group shrink-0">
@@ -252,9 +303,7 @@ export default function MinhaContaPage() {
                 </div>
                 <div className="text-left">
                   <h4 className="text-lg md:text-xl font-bold text-gray-900 mb-1">Dados Cadastrais</h4>
-                  <p className="text-[10px] md:text-[11px] text-gray-400 font-medium leading-tight max-w-[180px] md:max-w-[200px]">
-                    Clique sobre o ícone da câmera para incluir ou editar sua imagem de perfil.
-                  </p>
+                  <p className="text-[10px] md:text-[11px] text-gray-400 font-medium leading-tight max-w-[180px] md:max-w-[200px]">Clique sobre o ícone da câmera para incluir ou editar sua imagem de perfil.</p>
                 </div>
               </div>
             </div>
@@ -264,17 +313,14 @@ export default function MinhaContaPage() {
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em]">Nome Completo</label>
                 <input type="text" value={nome} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:bg-white focus:ring-4 focus:ring-blue-50 outline-none transition-all font-medium" onChange={(e) => setNome(e.target.value)} />
               </div>
-
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-blue-600 uppercase ml-1 tracking-[0.1em]">E-mail de Notificações</label>
                 <input type="email" value={emailContato} placeholder="seu-email@exemplo.com" className="w-full h-12 px-5 bg-blue-50/30 border border-blue-100 rounded-2xl text-sm focus:bg-white focus:ring-4 focus:ring-blue-50 outline-none transition-all font-medium text-blue-900" onChange={(e) => setEmailContato(e.target.value)} />
               </div>
-              
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em]">Telefone de Contato</label>
                 <input type="text" value={telefone} placeholder="(00) 00000-0000" className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:bg-white focus:ring-4 focus:ring-blue-50 outline-none transition-all" onChange={(e) => setTelefone(aplicarMascaraTelefone(e.target.value))} />
               </div>
-
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em]">Gênero</label>
                 <select value={genero} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:bg-white outline-none" onChange={(e) => setGenero(e.target.value)}>
@@ -284,7 +330,6 @@ export default function MinhaContaPage() {
                   <option value="outro">Outro / Prefiro não dizer</option>
                 </select>
               </div>
-
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em]">Estado Civil</label>
                 <select value={estadoCivil} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:bg-white outline-none" onChange={(e) => setEstadoCivil(e.target.value)}>
@@ -295,12 +340,10 @@ export default function MinhaContaPage() {
                   <option value="divorciado">Divorciado(a)</option>
                 </select>
               </div>
-
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em]">Data de Nascimento</label>
                 <input type="date" value={dataNascimento} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:bg-white outline-none transition-all" onChange={(e) => setDataNascimento(e.target.value)} />
               </div>
-
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em] flex items-center gap-2"><Baby size={14}/> Possui filhos?</label>
                 <select value={possuiFilhos} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:bg-white outline-none" onChange={(e) => setPossuiFilhos(e.target.value)}>
@@ -309,12 +352,10 @@ export default function MinhaContaPage() {
                   <option value="nao">Não</option>
                 </select>
               </div>
-
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em] flex items-center gap-2"><MapPin size={14}/> Cidade</label>
                 <input type="text" value={cidade} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:bg-white outline-none" onChange={(e) => setCidade(e.target.value)} />
               </div>
-
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em]">UF</label>
                 <select value={estado} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:bg-white outline-none" onChange={(e) => setEstado(e.target.value)}>
@@ -322,12 +363,10 @@ export default function MinhaContaPage() {
                   {["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"].map(uf => <option key={uf} value={uf}>{uf}</option>)}
                 </select>
               </div>
-
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em] flex items-center gap-2"><Briefcase size={14}/> Profissão Atual</label>
                 <input type="text" value={profissao} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:bg-white outline-none" onChange={(e) => setProfissao(e.target.value)} />
               </div>
-
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em] flex items-center gap-2"><GraduationCap size={14}/> Formação Acadêmica</label>
                 <select value={formacao} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:bg-white outline-none" onChange={(e) => setFormacao(e.target.value)}>
@@ -344,19 +383,15 @@ export default function MinhaContaPage() {
           </section>
         </div>
 
-        {/* COLUNA DIREITA: PREFERÊNCIAS */}
         <div className="lg:col-span-4 flex flex-col gap-8">
-          
           <section className="bg-gray-900 p-10 rounded-[3rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-between flex-1">
             <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
               <Heart size={200} strokeWidth={1} className="text-blue-500" />
             </div>
-
             <div className="relative z-10">
               <h3 className="text-[12px] font-black text-blue-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-10">
                 <Heart size={18} fill="currentColor"/> Preferências
               </h3>
-              
               <div className="space-y-10">
                 <div className="space-y-3">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
@@ -371,7 +406,6 @@ export default function MinhaContaPage() {
                     <option value="indicacao" className="text-gray-900">Indicação</option>
                   </select>
                 </div>
-
                 <div className="space-y-3">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                     <Target size={12}/> Objetivo Principal
@@ -385,7 +419,6 @@ export default function MinhaContaPage() {
                     <option value="liberdade_financeira" className="text-gray-900">Liberdade Financeira</option>
                   </select>
                 </div>
-
                 <div className="space-y-3">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Frequência de Uso</label>
                   <select value={usoApp} className="w-full h-12 px-4 bg-white/5 border border-white/10 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-white transition-all" onChange={(e) => setUsoApp(e.target.value)}>
@@ -395,7 +428,6 @@ export default function MinhaContaPage() {
                     <option value="estudos" className="text-gray-900">Lançamento mensal</option>
                   </select>
                 </div>
-
                 <div className="space-y-3">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Foco do Orçamento</label>
                   <select value={objetivoFinanceiro} className="w-full h-12 px-4 bg-white/5 border border-white/10 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-white transition-all" onChange={(e) => setObjetivoFinanceiro(e.target.value)}>
@@ -407,23 +439,18 @@ export default function MinhaContaPage() {
                 </div>
               </div>
             </div>
-
             <div className="mt-12 pt-8 border-t border-white/10 relative z-10">
               <div className="p-6 bg-white/5 rounded-[2rem] border border-white/5 group-hover:bg-white/10 transition-all">
-                <p className="text-[11px] text-blue-100/60 leading-relaxed italic font-medium">
-                  Seus dados atualizados otimizam a sua experiência no ecossistema <span className="text-blue-400">nucleobase.app</span>.
-                </p>
+                <p className="text-[11px] text-blue-100/60 leading-relaxed italic font-medium">Seus dados atualizados otimizam a sua experiência no ecossistema <span className="text-blue-400">nucleobase.app</span>.</p>
               </div>
             </div>
           </section>
-
           <div className="flex flex-col gap-4">
             <div className="w-full bg-gray-50/80 p-2 rounded-[2rem] border border-gray-100 shadow-inner flex md:hidden items-center justify-center">
               <button onClick={() => setShowPassModal(true)} className="w-full flex items-center justify-center gap-2 py-4 bg-white border border-gray-200 rounded-2xl text-[10px] font-black text-gray-500 uppercase hover:text-blue-600 hover:border-blue-200 transition-all active:scale-95 shadow-sm">
                 <KeyRound size={14} /> Alterar senha de acesso
               </button>
             </div>
-
             <button onClick={handleUpdate} disabled={updating} className="w-full bg-blue-600 text-white py-6 rounded-[2.5rem] hover:bg-blue-700 transition-all font-black text-[12px] uppercase tracking-[0.3em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-4 active:scale-[0.98] disabled:opacity-50 group">
               <Save size={18} className="group-hover:rotate-12 transition-transform" /> 
               {updating ? "Sincronizando..." : "Salvar Alterações"}
@@ -432,7 +459,31 @@ export default function MinhaContaPage() {
         </div>
       </div>
 
-      {/* MODAL DE SENHA */}
+      <div className="mt-24 flex items-center gap-4 mb-12">
+        <div className="h-px bg-gray-200 flex-1"></div>
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
+        <div className="h-px bg-gray-200 flex-1"></div>
+      </div>
+
+      <div className="flex flex-col items-center text-center">
+        <div className="max-w-3xl mb-12">
+          <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span></h4>
+          <p className="text-gray-500 font-medium text-sm md:text-base">Insights, novidades e bastidores da Nucleobase diretamente no seu feed.</p>
+        </div>
+        <a href="https://www.instagram.com/nucleobase.app/" target="_blank" rel="noopener noreferrer" className="group relative flex flex-col items-center gap-6">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+            <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+              <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+            </div>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+            <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
+          </div>
+        </a>
+      </div>
+
       {showPassModal && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-xl z-[100] flex items-center justify-center p-6">
           <div className="bg-white w-full max-w-md rounded-[3.5rem] p-12 shadow-2xl relative border border-gray-100 animate-in zoom-in-95 duration-300">

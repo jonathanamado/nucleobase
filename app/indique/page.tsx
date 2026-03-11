@@ -1,11 +1,11 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import { 
-  Share2, Users, Copy, Check, Megaphone, 
-  Rocket, ShieldCheck, ArrowUpRight, 
-  Mail, Send, MessageCircle, Sparkles, Trophy,
-  Gift, Stars, Heart, Eye, EyeOff, AtSign,
-  Wallet, History, Landmark, TrendingUp, Fingerprint
+  Share2, Users, Check, Megaphone, 
+  ArrowUpRight, Mail, Send, MessageCircle, 
+  Trophy, Gift, Stars, Heart, Eye, EyeOff, AtSign,
+  History, TrendingUp, ChevronLeft, ChevronRight,
+  Instagram
 } from "lucide-react";
 import { supabase } from "@/lib/supabase"; 
 
@@ -13,6 +13,7 @@ export default function IndiquePage() {
   // --- ESTADOS DE UI E NAVEGAÇÃO ---
   const [activeTab, setActiveTab] = useState<"comunidade" | "partner">("comunidade");
   const [loadingData, setLoadingData] = useState(true);
+  const [cardAtivo, setCardAtivo] = useState(0);
   
   // --- ESTADOS DE AUTENTICAÇÃO ---
   const [slug, setSlug] = useState(""); 
@@ -54,13 +55,14 @@ export default function IndiquePage() {
       setUserName(profile?.nome_completo || user.user_metadata?.full_name || user.email?.split('@')[0] || "Um amigo");
       setUserSlug(profile?.slug || user.id);
 
+      // Busca de indicações (Contagem)
       const { data: indData, error: indError, count } = await supabase
         .from("indicacoes")
         .select('id, created_at, status, indicado_id, email_indicado', { count: 'exact' })
         .eq('indicador_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (indError) throw indError;
+      if (indError) console.error("Erro indicações:", indError);
       setContagem(count || 0);
 
       if (indData && indData.length > 0) {
@@ -90,19 +92,33 @@ export default function IndiquePage() {
         setIndicadosLista([]);
       }
 
-      const { data: vendasData } = await supabase
+      // AJUSTE SEGURO PARA O ERRO 400: Busca simples sem join complexo primeiro
+      const { data: vendasData, error: vendasError } = await supabase
         .from('afiliados_vendas')
-        .select('*, usuarios(num_cracha)') 
+        .select('*') 
         .eq('consultor_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (vendasData) {
-        setVendas(vendasData);
+      if (vendasError) {
+        console.error("Erro na busca de vendas:", vendasError);
+      } else if (vendasData) {
+        // Enriquecemos os dados manualmente para evitar o erro de relação no banco
+        const vendasEnriquecidas = await Promise.all(vendasData.map(async (venda) => {
+          const { data: uData } = await supabase
+            .from('usuarios')
+            .select('num_cracha')
+            .eq('id', venda.indicado_id) // Assume que indicado_id é a FK
+            .maybeSingle();
+          return { ...venda, usuarios: uData };
+        }));
+
+        setVendas(vendasEnriquecidas);
         setSaldoValidado(vendasData.filter(v => v.status === 'validado').reduce((acc, v) => acc + v.valor_comissao, 0));
         setSaldoPendente(vendasData.filter(v => v.status === 'pendente').reduce((acc, v) => acc + v.valor_comissao, 0));
       }
+
     } catch (err) {
-      console.error("Erro ao carregar dados:", err);
+      console.error("Erro crítico ao carregar dados:", err);
     } finally {
       setLoadingData(false);
     }
@@ -181,6 +197,13 @@ export default function IndiquePage() {
     setSolicitandoSaque(false);
   };
 
+  const cardsRecompensa = [
+    { meta: "Meritocracia", premio: "Valor x Indicação", desc: "Receba o bônus de R$ 5,00 x Essencial | R$ 10,00 x Pro para cada conta ativada.", icon: <Gift className="text-blue-500" /> },
+    { meta: "Benefícios extras", premio: "+ Troféu afiliado", desc: "Acima de 10 indicações, além do cash x ativação, libere templates exclusivos e suporte prioritário.", icon: <Trophy className="text-amber-500" /> },
+    { meta: "Embaixador Master", premio: "+ Brindes únicos", desc: "Acima de 30 indicações, você se tornará parte desta história e ganhará brindes especiais.", icon: <Stars className="text-purple-500" /> },
+    { meta: "Clareza", premio: "Crescemos Juntos", desc: "Cada indicação fortalece nossa rede e expande o poder de compra da nossa comunidade.", icon: <Heart className="text-red-500" /> }
+  ];
+
   if (loadingData) {
     return (
       <div className="w-full h-[60vh] flex items-center justify-center">
@@ -190,23 +213,18 @@ export default function IndiquePage() {
   }
 
   return (
-    <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
+    <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
       
-      {/* HEADER */}
+      {/* HEADER PADRONIZADO */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
-          <div className="flex items-center gap-2 text-blue-600 mb-3">
-            <Sparkles size={16} />
-            <span className="text-[10px] font-black uppercase tracking-[0.3em]">Partner Program</span>
-          </div>
-          <h1 className="text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center flex-nowrap whitespace-nowrap">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
             <span>Sua gestão vale <span className="text-amber-500">Ouro</span><span className="text-blue-600">.</span></span>
-            <Megaphone 
-              size={64} 
-              className="text-amber-500 opacity-20 ml-6 -rotate-12 transition-all hover:scale-110 duration-700" 
-              strokeWidth={1.2}
-            />  
+            <Megaphone size={32} className="text-amber-500 opacity-35 ml-3 -rotate-12" strokeWidth={2} />
           </h1>
+          <h2 className="text-gray-500 text-base md:text-lg font-medium w-full leading-relaxed mt-0">
+            Compartilhe clareza e seja recompensado por fortalecer nossa rede.
+          </h2>
         </div>
       </div>
 
@@ -217,9 +235,12 @@ export default function IndiquePage() {
       {userId ? (
         <>
           <div className="w-full bg-blue-50/40 border-l-4 border-blue-600 p-6 mb-8 rounded-r-2xl transition-all">
-            <p className="font-medium text-blue-900 italic text-base leading-relaxed">
+            <p className="font-medium text-blue-900 italic text-base leading-relaxed hidden md:block">
               Olá, <span className="font-bold">{userName.split(' ')[0]}</span>! Sua influência transformará a gestão das pessoas, por isso você está no coração do nosso motor de crescimento. 
               Use a aba <strong className="text-blue-700">Comunidade</strong> para ajudar amigos e familiares a realizarem controles efetivos. Na aba <strong className="text-blue-700">Consultor Partner</strong> você poderá fazer seu acompanhamento de "Indicações", solicitando comissões e recebendo prêmios reais.
+            </p>
+            <p className="font-medium text-blue-900 italic text-sm leading-relaxed md:hidden">
+              Olá, <span className="font-bold">{userName.split(' ')[0]}</span>! Você está no coração do nosso motor. Indique e acompanhe suas recompensas nas abas abaixo.
             </p>
           </div>
 
@@ -248,7 +269,7 @@ export default function IndiquePage() {
                 <div className="lg:col-span-8 bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-sm flex flex-col justify-center">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="bg-blue-50 p-2 rounded-lg text-blue-600"><Share2 size={16} /></div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Link de Cadastro Gratuito (Envie aos seus contatos)</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Link de Cadastro Gratuito</span>
                   </div>
                   <div className="flex flex-col sm:flex-row items-center bg-gray-50 rounded-3xl p-2 border border-gray-100 w-full">
                     <code className="flex-1 text-xs font-mono text-blue-600 px-6 py-4 truncate w-full">{linkIndicacao}</code>
@@ -257,10 +278,19 @@ export default function IndiquePage() {
                     </button>
                   </div>
                 </div>
-                <div className="lg:col-span-4 bg-blue-600 rounded-[2.5rem] p-10 text-white flex flex-col items-center justify-center relative overflow-hidden shadow-2xl group">
+
+                <div className="hidden lg:flex lg:col-span-4 bg-blue-600 rounded-[2.5rem] p-10 text-white flex-col items-center justify-center relative overflow-hidden shadow-2xl group">
                   <Users size={120} className="absolute -right-8 -bottom-8 opacity-10 rotate-12" />
                   <span className="text-[11px] font-black uppercase tracking-[0.3em] mb-4 opacity-80 relative z-10">Cadastros indicados</span>
                   <span className="text-8xl font-black leading-none relative z-10 tabular-nums">{contagem.toString().padStart(2, '0')}</span>
+                </div>
+                
+                <div className="lg:hidden flex items-center justify-between px-6 py-4 bg-blue-50 rounded-3xl border border-blue-100">
+                    <div className="flex items-center gap-3">
+                      <Users size={20} className="text-blue-600" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-blue-900">Cadastros indicados</span>
+                    </div>
+                    <span className="text-3xl font-black text-blue-600 tabular-nums">{contagem.toString().padStart(2, '0')}</span>
                 </div>
               </div>
 
@@ -283,7 +313,6 @@ export default function IndiquePage() {
                     <tbody className="divide-y divide-gray-50">
                       {indicadosLista.length > 0 ? indicadosLista.map((item, i) => {
                         const isActive = item.plano !== 'free';
-
                         return (
                           <tr key={i} className="group hover:bg-gray-50/50 transition-colors">
                             <td className="px-10 py-6 text-sm font-mono font-bold text-blue-600">{item.cracha}</td>
@@ -309,32 +338,47 @@ export default function IndiquePage() {
                 <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-4 flex items-center gap-4">
                   Envio Direto <div className="h-px bg-gray-300 flex-1"></div>
                 </h3>
-                <p className="text-gray-500 text-lg font-medium w-full leading-relaxed mb-10">
-                  Além do seu link exclusivo via "copy", você pode acelerar o crescimento da nossa rede utilizando nossos métodos facilitados de "disparo" aos seus contatos.
-                </p>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-white p-10 rounded-[3rem] border border-gray-50 shadow-sm flex flex-col">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center"><Mail size={24} /></div>
-                    <h3 className="font-bold text-gray-900 uppercase text-sm">Via E-mail</h3>
+              <div className="grid grid-cols-2 lg:grid-cols-2 gap-4 md:gap-8">
+                <div className="bg-white p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] border border-gray-50 shadow-sm flex flex-col">
+                  <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 mb-4 md:mb-6 text-center md:text-left">
+                    <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><Mail size={20} className="md:w-6 md:h-6" /></div>
+                    <h3 className="font-bold text-gray-900 uppercase text-[10px] md:text-sm">E-mail</h3>
                   </div>
-                  <form onSubmit={handleSendInvite} className="relative w-full">
-                    <input type="email" required value={emailInvite} onChange={(e) => setEmailInvite(e.target.value)} placeholder="E-mail do convidado..." className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-blue-600 outline-none" />
-                    <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center">
-                      {inviteEnviado ? <Check size={18} /> : <Send size={18} />}
+                  <form onSubmit={handleSendInvite} className="w-full space-y-3">
+                    <input 
+                      type="email" required value={emailInvite} 
+                      onChange={(e) => setEmailInvite(e.target.value)} 
+                      placeholder="...@site.com" 
+                      className="w-full bg-gray-50 border-none rounded-xl md:rounded-2xl px-4 py-3 md:px-6 md:py-4 text-[11px] md:text-sm focus:ring-2 focus:ring-blue-600 outline-none" 
+                    />
+                    <button 
+                      type="submit" 
+                      className="w-full bg-blue-600 text-white py-3 md:py-4 rounded-xl md:rounded-2xl font-black text-[9px] md:text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-md"
+                    >
+                      {inviteEnviado ? "Convite Enviado" : "Enviar Convite"} 
+                      {inviteEnviado ? <Check size={14} /> : <Send size={14} />}
                     </button>
                   </form>
                 </div>
-                <div className="bg-white p-10 rounded-[3rem] border border-gray-50 shadow-sm flex flex-col">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><MessageCircle size={24} /></div>
-                    <h3 className="font-bold text-gray-900 uppercase text-sm">Via WhatsApp</h3>
+                
+                <div className="bg-white p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] border border-gray-50 shadow-sm flex flex-col">
+                  <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 mb-4 md:mb-6 text-center md:text-left">
+                    <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0"><MessageCircle size={20} className="md:w-6 md:h-6" /></div>
+                    <h3 className="font-bold text-gray-900 uppercase text-[10px] md:text-sm">WhatsApp</h3>
                   </div>
-                  <button onClick={handleWhatsAppInvite} className="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-emerald-700 transition-all">
-                    Enviar para o WhatsApp <ArrowUpRight size={16} />
-                  </button>
+                  <div className="w-full space-y-3">
+                    <div className="w-full bg-gray-50 rounded-xl md:rounded-2xl px-4 py-3 md:px-6 md:py-4 text-[10px] md:text-xs text-gray-500 font-medium text-center">
+                      Via wapp
+                    </div>
+                    <button 
+                      onClick={handleWhatsAppInvite} 
+                      className="w-full bg-emerald-600 text-white py-3 md:py-4 rounded-xl md:rounded-2xl font-black text-[9px] md:text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all shadow-md"
+                    >
+                      Enviar agora <ArrowUpRight size={14} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -404,8 +448,6 @@ export default function IndiquePage() {
                                   {v.valor_comissao >= 10 ? 'Ativo (Pro)' : 'Ativo (Essencial)'}
                                 </span>
                               </td>
-
-                              {/* NOVA COLUNA DE STATUS DE PAGAMENTO */}
                               <td className="px-10 py-6">
                                 <div className="flex items-center gap-2">
                                   <div className={`w-1.5 h-1.5 rounded-full ${
@@ -421,7 +463,6 @@ export default function IndiquePage() {
                                   </span>
                                 </div>
                               </td>
-
                               <td className="px-10 py-6 text-right font-black text-gray-900 text-lg">R$ {v.valor_comissao.toFixed(2)}</td>
                             </tr>
                           ))}
@@ -479,17 +520,41 @@ export default function IndiquePage() {
         </div>
       )}
 
-      {/* RECOMPENSAS */}
+      {/* RECOMPENSAS COM CARROSSEL MOBILE */}
       <div className="mb-20">
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
           Níveis de Conquista <div className="h-px bg-gray-300 flex-1"></div>
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[
-            { meta: "Meritrocacia", premio: "Valor x Indicação", desc: "Receba o bônus de R$ 5,00 x Essencial | R$ 10,00 x Pro para cada conta ativada.", icon: <Gift className="text-blue-500" /> },
-            { meta: "Benefícios extras", premio: "+ Troféu afiliado", desc: "Acima de 10 indicações, além do cash x ativação, libere templates exclusivos e suporte prioritário.", icon: <Trophy className="text-amber-500" /> },
-            { meta: "Embaixador Master", premio: "+ Brindes únicos", desc: "Acima de 30 indicações, você se tornará parte desta história e, além dos benefícios anteriores, ganhará brindes especiais.", icon: <Stars className="text-purple-500" /> }
-          ].map((item, i) => (
+        
+        {/* Mobile Carousel */}
+        <div className="relative flex items-center justify-center md:hidden">
+          {cardAtivo > 0 && (
+            <button onClick={() => setCardAtivo(cardAtivo - 1)} className="absolute left-0 z-20 bg-white shadow-lg border border-gray-100 text-blue-600 p-2 rounded-full active:scale-90 transition-all">
+              <ChevronLeft size={24} />
+            </button>
+          )}
+          
+          <div className="w-full flex items-center justify-center">
+            {cardsRecompensa.map((item, i) => (
+              <div key={i} className={`bg-white border border-gray-100 p-10 rounded-[3rem] shadow-sm transition-all w-full ${cardAtivo === i ? 'flex animate-in fade-in zoom-in-95 duration-300 flex-col items-center text-center' : 'hidden'}`}>
+                <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-6">{item.icon}</div>
+                <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] block mb-2">{item.meta}</span>
+                <h4 className="text-xl font-bold text-gray-900 mb-3 tracking-tight">{item.premio}</h4>
+                <p className="text-sm text-gray-500 leading-relaxed font-medium italic">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {cardAtivo < cardsRecompensa.length - 1 && (
+            <button onClick={() => setCardAtivo(cardAtivo + 1)} className="absolute right-0 z-20 bg-white shadow-lg border border-gray-100 text-blue-600 p-2 rounded-full active:scale-90 transition-all">
+              <ChevronRight size={24} />
+            </button>
+          )}
+        </div>
+
+        {/* Desktop Grid */}
+        <div className="hidden md:grid grid-cols-3 gap-8">
+          {cardsRecompensa.slice(0, 3).map((item, i) => (
             <div key={i} className="bg-white border border-gray-100 p-10 rounded-[2.5rem] hover:shadow-xl transition-all group relative overflow-hidden">
               <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-6">{item.icon}</div>
               <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] block mb-2">{item.meta}</span>
@@ -500,28 +565,45 @@ export default function IndiquePage() {
         </div>
       </div>
 
-      {/* FOOTER */}
-      <section className="relative mt-24">
-        <div className="bg-gray-900 rounded-[3.5rem] p-12 md:p-16 text-white relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 right-0 p-12 opacity-10"><Heart size={240} strokeWidth={1} /></div>
-          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <h3 className="text-4xl font-bold mb-6 tracking-tight leading-tight">Crescemos quando você compartilha clareza<span className="text-blue-500">.</span></h3>
-              <p className="text-gray-400 text-lg mb-10 leading-relaxed font-medium italic">Cada indicação fortalece nossa infraestrutura.</p>
-            </div>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="bg-white/5 border border-white/10 p-8 rounded-[2rem] backdrop-blur-sm">
-                <span className="block text-4xl font-black mb-2 tracking-tighter">92%</span>
-                <span className="text-[10px] text-gray-400 uppercase tracking-[0.2em] font-black">Crescimento Orgânico</span>
-              </div>
-              <div className="bg-white/5 border border-white/10 p-8 rounded-[2rem] backdrop-blur-sm">
-                <span className="block text-4xl font-black mb-2 tracking-tighter">0%</span>
-                <span className="text-[10px] text-gray-400 uppercase tracking-[0.2em] font-black">Venda de Dados</span>
-              </div>
+      {/* --- SEÇÃO FINAL CONECTE-SE (PADRÃO SOBRE) --- */}
+      <div className="mt-24 flex items-center gap-4 mb-12">
+        <div className="h-px bg-gray-200 flex-1"></div>
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
+          Conecte-se
+        </h3>
+        <div className="h-px bg-gray-200 flex-1"></div>
+      </div>
+
+      <div className="flex flex-col items-center text-center">
+        <div className="max-w-3xl mb-12">
+          <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
+            Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+          </h4>
+          <p className="text-gray-500 font-medium text-sm md:text-base">
+            Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
+          </p>
+        </div>
+        
+        <a 
+          href="https://www.instagram.com/nucleobase.app/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="group relative flex flex-col items-center gap-6"
+        >
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+            
+            <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+              <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
             </div>
           </div>
-        </div>
-      </section>
+          
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+            <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
+          </div>
+        </a>
+      </div>
     </div>
   );
 }
