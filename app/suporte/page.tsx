@@ -68,7 +68,7 @@ export default function SuportePage() {
             />
           </h1>
           <h2 className="text-gray-500 text-base md:text-lg font-medium leading-relaxed mt-0">
-            Escolha um canal abaixo. Priorizamos o contato humano para melhorar sua experiência na Núcleo.
+            Escolha um canal abaixo. Priorizamos o contato humano para melhorar sua experiência na Nucleo.
           </h2>
         </div>
       </div>

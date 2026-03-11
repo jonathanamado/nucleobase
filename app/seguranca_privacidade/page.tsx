@@ -46,7 +46,7 @@ export default function PrivacidadeSeguranca() {
         {/* NARRATIVA PRINCIPAL */}
         <div className="lg:col-span-7 text-gray-700 text-lg leading-[1.8] pr-0 lg:pr-10 flex flex-col">
           <p className="mb-8">
-            A segurança no <strong className="text-gray-900 font-bold">App da Núcleo</strong> é tratada como prioridade absoluta. Entendemos que dados financeiros 
+            A segurança no <strong className="text-gray-900 font-bold">App da Nucleo</strong> é tratada como prioridade absoluta. Entendemos que dados financeiros 
             exigem o mais alto nível de atenção, e por isso projetamos uma arquitetura focada na garantia de acesso restrito e 
             proteção da sua identidade.
           </p>

@@ -433,7 +433,7 @@ export default function IndiquePage() {
                         <th className="px-10 py-5">Data do Cadastro</th>
                         <th className="px-10 py-5">Status Plano</th>
                         <th className="px-10 py-5">Pagamento Prêmio</th>
-                        <th className="px-10 py-5 text-right">Status Comissão Núcleo</th>
+                        <th className="px-10 py-5 text-right">Status Comissão Nucleo</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">

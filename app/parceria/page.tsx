@@ -78,7 +78,7 @@ export default function ParceirosPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div className="flex-1">
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
-            <span>Cresça com a <span className="text-blue-600">Núcleo.</span></span>
+            <span>Cresça com a <span className="text-blue-600">Nucleo.</span></span>
             <Handshake 
               size={32} 
               className="text-blue-600 opacity-35 ml-3" 

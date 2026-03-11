@@ -101,7 +101,7 @@ export default function BlogDaNucleo() {
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
     formData.append("access_key", "9ef5a274-150a-4664-a885-0b052efd06f7");
-    formData.append("subject", "Nova Inscrição na Newsletter - Blog Núcleo");
+    formData.append("subject", "Nova Inscrição na Newsletter - Blog Nucleo");
 
     try {
       const { data: { user } } = await supabase.auth.getUser();

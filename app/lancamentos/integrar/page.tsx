@@ -77,7 +77,7 @@ export default function IntegrarPage() {
       { 
         horario: new Date().toLocaleString('pt-BR'), 
         acao: "Sistema Pronto", 
-        fonte: "Núcleo IA", 
+        fonte: "Nucleo IA", 
         resultado: "Aguardando" 
       }
     ]);
@@ -286,7 +286,7 @@ export default function IntegrarPage() {
           Tempo Real <div className="h-px bg-gray-200 flex-1"></div>
         </h3>
         <p className="text-gray-500 text-[13px] font-medium leading-relaxed max-w-3xl">
-          Abaixo você encontra a auditoria de logs. Cada integração é processada pelo Núcleo IA para garantir a normalização dos dados antes da inserção no banco.
+          Abaixo você encontra a auditoria de logs. Cada integração é processada pelo Nucleo IA para garantir a normalização dos dados antes da inserção no banco.
         </p>
       </div>
 

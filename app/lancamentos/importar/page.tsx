@@ -371,7 +371,7 @@ export default function ImportarXLSPage() {
           Contexto de Importação <div className="h-px bg-gray-200 flex-1"></div>
         </h3>
         <p className="text-gray-500 text-[13px] font-medium leading-relaxed max-w-1xl">
-          Abaixo você encontra a auditoria de logs. Cada integração é processada pelo Núcleo IA para garantir a normalização dos dados antes da inserção no banco.
+          Abaixo você encontra a auditoria de logs. Cada integração é processada pelo Nucleo IA para garantir a normalização dos dados antes da inserção no banco.
         </p>
       </div>
 
@@ -383,7 +383,7 @@ export default function ImportarXLSPage() {
                 </div>
             </div>
             <p className="text-[11px] md:text-xs text-gray-400 font-medium">
-                Os dados importados são processados pelo Núcleo de Inteligência para evitar duplicidade e garantir a integridade das bases.
+                Os dados importados são processados pelo Nucleo de Inteligência para evitar duplicidade e garantir a integridade das bases.
             </p>
         </div>
       </div>

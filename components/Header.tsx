@@ -71,9 +71,18 @@ export function Header() {
     router.push("/");
   };
 
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const query = formData.get("q");
+    if (query) {
+      router.push(`/busca?q=${encodeURIComponent(query.toString())}`);
+    }
+  };
+
   const menuLinks = [
     { name: "Sobre a Plataforma", href: "/sobre", icon: <Info size={18} /> },
-    { name: "Blog da Núcleo", href: "/blog", icon: <Newspaper size={18} /> },
+    { name: "Blog da Nucleo", href: "/blog", icon: <Newspaper size={18} /> },
     { name: "Assinatura digital", href: "/planos", icon: <CreditCard size={18} /> },
     { name: "Depoimentos", href: "/depoimentos", icon: <Star size={18} /> },
     { name: "FAQ", href: "/faq", icon: <HelpCircle size={18} /> },
@@ -90,7 +99,7 @@ export function Header() {
               <a href="/" rel="external" className="block hover:opacity-90 transition">
                 <img 
                   src="/logo-oficial.png?v=3" 
-                  alt="Logo Núcleo Base"
+                  alt="Logo Nucleo Base"
                   width={120} 
                   height={65} 
                   className="w-[140px] h-auto lg:w-[170px] lg:h-auto object-contain" 
@@ -114,11 +123,19 @@ export function Header() {
         {/* NAVEGAÇÃO DESKTOP */}
         <nav className="hidden md:flex items-center gap-3 text-[13px] text-gray-600">
           
-          {/* LUPA DE BUSCA - Apenas Home / Desktop */}
+          {/* CAMPO DE BUSCA - Apenas Home / Desktop */}
           {pathname === "/" && (
-            <a href="/busca" className="p-2 text-gray-400 hover:text-blue-600 transition-colors mr-2">
-              <Search size={20} strokeWidth={2.5} />
-            </a>
+            <form onSubmit={handleSearch} className="flex items-center bg-gray-50 border border-gray-100 rounded-full px-3 py-1.5 focus-within:border-blue-300 transition-all mr-2 group">
+              <input 
+                name="q"
+                type="text" 
+                placeholder="Pesquisar..." 
+                className="bg-transparent outline-none text-[12px] w-24 lg:w-40 transition-all focus:w-32 lg:focus:w-56"
+              />
+              <button type="submit" className="text-gray-400 group-hover:text-blue-600 transition-colors ml-1">
+                <Search size={18} strokeWidth={2.5} />
+              </button>
+            </form>
           )}
 
           {!isLoggedIn ? (

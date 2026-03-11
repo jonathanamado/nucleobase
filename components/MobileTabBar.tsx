@@ -1,8 +1,7 @@
-// components/MobileTabBar.tsx
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Share2, User, Home, X, Rocket, LogOut } from "lucide-react";
+import { Search, Share2, User, Home, X, Rocket, LogOut, Dna } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -58,6 +57,7 @@ export function MobileTabBar() {
   };
 
   const handleLogout = async () => {
+    // Ajuste realizado aqui: adicionado .auth para acessar o método signOut
     await supabase.auth.signOut();
     router.push("/");
   };
@@ -68,7 +68,6 @@ export function MobileTabBar() {
       return;
     }
 
-    // Se já estiver na página de conta, o clique desloga
     if (pathname === "/minha-conta") {
       const confirmLogout = window.confirm("Deseja sair da sua conta?");
       if (confirmLogout) handleLogout();
@@ -108,25 +107,40 @@ export function MobileTabBar() {
       {/* Overlay de Busca */}
       {isSearchOpen && (
         <div className="fixed inset-0 bg-white z-[110] flex flex-col p-6 animate-in slide-in-from-bottom duration-300">
-          <div className="flex justify-end mb-8">
+          <div className="flex justify-between items-center mb-8">
+            <div className="bg-blue-600 text-white px-3 py-1 rounded-md text-[10px] font-black tracking-widest uppercase shadow-sm">
+              Plataforma Digital
+            </div>
             <button onClick={() => setIsSearchOpen(false)} className="p-2 bg-gray-50 rounded-full">
               <X size={24} className="text-gray-400" />
             </button>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 tracking-tight">O que você procura?</h2>
-          <form onSubmit={handleSearch} className="relative">
-            <input 
-              autoFocus
-              type="text"
-              placeholder="Ex: Planos, Segurança, Investimentos..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-gray-900 focus:ring-2 focus:ring-blue-600 outline-none transition-all"
-            />
-            <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 bg-blue-600 text-white p-2 rounded-xl shadow-md">
-              <Search size={20} />
-            </button>
-          </form>
+
+          <div className="flex flex-col flex-1">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 tracking-tight flex items-center gap-2">
+              O que você procura? <Dna size={20} className="text-blue-600 opacity-30" />
+            </h2>
+            <form onSubmit={handleSearch} className="relative mb-8">
+              <input 
+                autoFocus
+                type="text"
+                placeholder="Ex: Cadastro, Lançamentos..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-gray-900 focus:ring-2 focus:ring-blue-600 outline-none transition-all"
+              />
+              <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 bg-blue-600 text-white p-2 rounded-xl shadow-md">
+                <Search size={20} />
+              </button>
+            </form>
+
+            <div className="mt-auto py-8 flex flex-col items-center border-t border-gray-50">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-gray-900 font-bold tracking-tighter text-lg">nucleobase<span className="text-blue-600">.</span>app</span>
+              </div>
+              <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.4em]">Sua evolução financeira</p>
+            </div>
+          </div>
         </div>
       )}
 

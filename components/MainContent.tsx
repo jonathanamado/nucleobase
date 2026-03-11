@@ -114,7 +114,7 @@ export function MainContent() {
           </div>
 
           <div className="space-y-3">
-            <p className="text-gray-600 text-[14px] leading-relaxed italic opacity-80">
+            <p className="text-gray-600 text-[14px] leading-relaxed italic opacity-80 text-center">
               Acreditamos que a verdadeira inteligência financeira nasce da clareza de dados.
             </p>
             <Link href="/sobre" className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full font-bold text-[10px] uppercase tracking-widest border border-blue-100 shadow-sm animate-pulse">
@@ -249,7 +249,7 @@ export function MainContent() {
               <div className="bg-blue-50 p-3 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 mb-4">
                 <Newspaper size={24} />
               </div>
-              <h4 className="font-bold text-gray-900 text-base mb-1">Blog da Núcleo</h4>
+              <h4 className="font-bold text-gray-900 text-base mb-1">Blog da Nucleo</h4>
               <p className="text-[11px] text-gray-500 leading-tight mb-4">Conteúdos profundos sobre gestão e mercado.</p>
               <a href="/blog" className="w-full mt-auto py-2.5 bg-blue-50/50 border border-blue-100 text-blue-600 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center gap-2">
                 Visitar <ArrowRight size={12} />

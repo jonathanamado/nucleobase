@@ -153,9 +153,7 @@ export default function MinhaContaPage() {
     objetivoPlataforma !== dadosOriginais.objetivoPlataforma
   );
 
-  // Notificar navegador e interceptar botão Voltar
   useEffect(() => {
-    // 1. Bloqueio para Fechar Aba / Recarregar (F5)
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (temAlteracoes) {
         e.preventDefault();
@@ -163,12 +161,10 @@ export default function MinhaContaPage() {
       }
     };
 
-    // 2. Bloqueio para o Botão "Voltar" do Navegador
     const handlePopState = (e: PopStateEvent) => {
       if (temAlteracoes) {
         const confirmacao = window.confirm("Você tem alterações não salvas. Deseja realmente sair?");
         if (!confirmacao) {
-          // Se cancelar, "anula" a volta forçando a rota atual de novo no histórico
           window.history.pushState(null, "", window.location.pathname);
         }
       }
@@ -176,8 +172,6 @@ export default function MinhaContaPage() {
 
     window.addEventListener("beforeunload", handleBeforeUnload);
     window.addEventListener("popstate", handlePopState);
-
-    // Inicializa um estado no histórico para o popstate ter o que capturar
     window.history.pushState(null, "", window.location.pathname);
 
     return () => {
@@ -215,7 +209,7 @@ export default function MinhaContaPage() {
         setDadosOriginais({
           nome, emailContato, telefone, profissao, formacao, dataNascimento,
           genero, estadoCivil, cidade, estado, usoApp, objetivoFinanceiro,
-          origem, possui_filhos: possuiFilhos, objetivoPlataforma
+          origem, possuiFilhos, objetivoPlataforma
         });
       }
     }
@@ -440,7 +434,7 @@ export default function MinhaContaPage() {
               </div>
             </div>
             <div className="mt-12 pt-8 border-t border-white/10 relative z-10">
-              <div className="p-6 bg-white/5 rounded-[2rem] border border-white/5 group-hover:bg-white/10 transition-all">
+              <div className="p-6 bg-white/5 rounded-[2rem] border border-white/5 group-hover:bg-white/10 transition-all text-center">
                 <p className="text-[11px] text-blue-100/60 leading-relaxed italic font-medium">Seus dados atualizados otimizam a sua experiência no ecossistema <span className="text-blue-400">nucleobase.app</span>.</p>
               </div>
             </div>
