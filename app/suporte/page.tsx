@@ -21,7 +21,7 @@ export default function SuportePage() {
     {
       title: "Base de Conhecimento",
       desc: "Tutoriais detalhados sobre fluxos de caixa, conciliação e dashboards.",
-      icon: <BookOpen size={24} />,
+      icon: <BookOpen />,
       link: "/blog",
       color: "text-blue-600",
       bg: "bg-blue-50"
@@ -29,7 +29,7 @@ export default function SuportePage() {
     {
       title: "Vídeos e Dicas",
       desc: "Aprenda na prática a configurar sua conta e dominar o NucleoBase em poucos minutos.",
-      icon: <Video size={24} />,
+      icon: <Video />,
       link: "https://www.youtube.com/@nucleobaseapp",
       color: "text-purple-600",
       bg: "bg-purple-50",
@@ -38,7 +38,7 @@ export default function SuportePage() {
     {
       title: "Configurações da Conta",
       desc: "Dúvidas sobre acessos, senhas ou integração de equipe.",
-      icon: <Settings size={24} />,
+      icon: <Settings />,
       link: "/acesso-usuario",
       color: "text-amber-600",
       bg: "bg-amber-50"
@@ -46,7 +46,7 @@ export default function SuportePage() {
     {
       title: "Segurança e Dados",
       desc: "Entenda como protegemos suas informações e conformidade LGPD.",
-      icon: <Lock size={24} />,
+      icon: <Lock />,
       link: "/seguranca_privacidade",
       color: "text-emerald-600",
       bg: "bg-emerald-50"
@@ -89,7 +89,10 @@ export default function SuportePage() {
             className="group bg-white p-4 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 hover:-translate-y-1 transition-all duration-300 flex flex-col"
           >
             <div className={`${item.bg} ${item.color} w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center mb-4 md:mb-6 group-hover:scale-110 transition-transform`}>
-              {React.cloneElement(item.icon as React.ReactElement, { size: 20, className: "md:w-6 md:h-6" })}
+              {/* Ajuste para evitar erro de compilação: usando wrapper div em vez de cloneElement */}
+              <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center">
+                {item.icon}
+              </div>
             </div>
             <h3 className="text-xs md:text-xl font-bold text-gray-900 mb-1 md:mb-2 leading-tight">{item.title}</h3>
             <p className="hidden md:block text-sm text-gray-500 leading-relaxed mb-6 flex-1">
@@ -163,10 +166,10 @@ export default function SuportePage() {
           </div>
         </div>
         <div className="flex items-center gap-4">
-           <div className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-emerald-50 text-emerald-600 text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] rounded-full border border-emerald-100">
+            <div className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-emerald-50 text-emerald-600 text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] rounded-full border border-emerald-100">
               <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-emerald-500 animate-pulse"></div>
               Status: Operacional
-           </div>
+            </div>
         </div>
       </div>
 
