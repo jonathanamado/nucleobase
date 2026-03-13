@@ -10,7 +10,7 @@ import CookieNotice from "@/components/CookieNotice";
 import { usePathname } from "next/navigation";
 import Script from "next/script";
 import { Suspense } from "react";
-import { AuthProvider } from "./context/AuthContext"; // Importação do novo contexto
+import { AuthProvider } from "./context/AuthContext";
 
 declare global {
   interface Window {
@@ -87,10 +87,7 @@ export default function RootLayout({
           ></iframe>
         </noscript>
 
-        {/* 1. O AuthProvider envolve tudo para manter o estado global vivo entre rotas */}
         <AuthProvider>
-          
-          {/* 2. O Suspense protege o Header durante a verificação inicial do Supabase */}
           <Suspense fallback={<header className="w-full h-20 bg-white border-b border-gray-200 animate-pulse" />}>
             <Header />
           </Suspense>
@@ -123,10 +120,12 @@ export default function RootLayout({
           
           <MobileTabBar />
 
-          {/* AJUSTE MOBILE: Garantindo que o contêiner não restrinja a altura e permita o texto "Aceitar" */}
-          <div className="fixed bottom-24 md:bottom-6 right-6 z-50 flex flex-col items-end gap-3 min-w-[100px]">
-            <CookieNotice />
-            <WhatsAppFloating />
+          {/* AJUSTE COOKIES MOBILE: Removido restrições que impediam a visualização do botão 'Aceitar' */}
+          <div className="fixed bottom-24 md:bottom-6 right-6 z-[60] flex flex-col items-end gap-3 pointer-events-none">
+            <div className="pointer-events-auto flex flex-col items-end gap-3">
+              <CookieNotice />
+              <WhatsAppFloating />
+            </div>
           </div>
           
         </AuthProvider>
