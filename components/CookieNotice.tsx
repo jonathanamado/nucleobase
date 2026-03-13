@@ -28,7 +28,6 @@ export default function CookieNotice() {
     if (typeof window !== "undefined") {
       window.dataLayer = window.dataLayer || [];
 
-      // Atualiza consentimento
       window.dataLayer.push([
         "consent",
         "update",
@@ -40,19 +39,15 @@ export default function CookieNotice() {
         },
       ]);
 
-      // Evento customizado
       window.dataLayer.push({
         event: "cookie_consent_accepted",
         consent_type: "full",
       });
 
-      // CRIA O COOKIE PARA O MIDDLEWARE
       document.cookie =
         "nucleobase-consent=true; path=/; max-age=31536000; SameSite=Lax";
       
-      // Persistência local
       localStorage.setItem("nucleo-consent", "true");
-
       setIsVisible(false);
     }
   };
@@ -60,8 +55,9 @@ export default function CookieNotice() {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-32 right-6 z-[70] animate-in fade-in zoom-in slide-in-from-right-10 duration-700">
-      <div className="relative group" onMouseEnter={() => setIsExpanded(true)}>
+    /* REMOVIDO fixed e bottom daqui para respeitar o container do RootLayout */
+    <div className="z-[70] animate-in fade-in zoom-in slide-in-from-right-10 duration-700">
+      <div className="relative group" onMouseEnter={() => setIsExpanded(true)} onMouseLeave={() => setIsExpanded(false)}>
         
         {/* CONTEXTO EXPLICATIVO */}
         <div
@@ -71,7 +67,7 @@ export default function CookieNotice() {
             ${
               isExpanded
                 ? "opacity-100 translate-y-0 pointer-events-auto"
-                : "opacity-100 translate-y-0 md:opacity-0 md:translate-y-2 md:pointer-events-none md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-hover:pointer-events-auto"
+                : "opacity-0 translate-y-4 pointer-events-none md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-hover:pointer-events-auto"
             }
           `}
         >
@@ -82,7 +78,6 @@ export default function CookieNotice() {
           />
 
           <div className="flex flex-col items-center text-center relative z-10">
-            {/* Ajuste do design de Privacidade para o estilo do selo DIGITAL */}
             <div className="mb-4">
               <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] font-black uppercase shadow-sm inline-block tracking-widest">
                 Privacidade
@@ -90,7 +85,7 @@ export default function CookieNotice() {
             </div>
 
             <p className="text-[12px] text-gray-500 leading-relaxed font-medium mb-2">
-              Usamos cookies essenciais para sua segurança. Ao continuar, você concorda com nossos termos, criados para a garantia de sua privacidade.
+              Usamos cookies essenciais para sua segurança. Ao continuar, você concorda com nossos termos.
             </p>
 
             <Link
@@ -136,10 +131,9 @@ export default function CookieNotice() {
               Cookies
             </span>
 
+            {/* AJUSTE: Removido o opacity-0 do mobile para o texto aparecer sempre como no desktop */}
             <span
-              className={`text-[12px] font-bold text-blue-400/80 uppercase tracking-widest mt-1.5 transition-opacity ${
-                isExpanded ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-              }`}
+              className="text-[12px] font-bold text-blue-400/80 uppercase tracking-widest mt-1.5 transition-opacity opacity-100"
             >
               Aceitar
             </span>

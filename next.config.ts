@@ -35,9 +35,6 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Desativa o log de telemetria
-  telemetry: false,
-
   // Melhora a estabilidade do HMR (Hot Module Replacement) em desenvolvimento
   reactStrictMode: true,
 };

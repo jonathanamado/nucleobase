@@ -120,9 +120,10 @@ export default function RootLayout({
           
           <MobileTabBar />
 
-          {/* AJUSTE COOKIES MOBILE: Removido restrições que impediam a visualização do botão 'Aceitar' */}
+          {/* AJUSTE FINAL: Contêiner unificado para Cookies e WhatsApp */}
           <div className="fixed bottom-24 md:bottom-6 right-6 z-[60] flex flex-col items-end gap-3 pointer-events-none">
-            <div className="pointer-events-auto flex flex-col items-end gap-3">
+            <div className="pointer-events-auto flex flex-col items-end gap-3 w-full">
+              {/* O componente CookieNotice agora tem espaço para renderizar "Aceitar" abaixo de "Cookies" */}
               <CookieNotice />
               <WhatsAppFloating />
             </div>
