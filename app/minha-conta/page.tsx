@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+// Importação ajustada para SSR
+import { createBrowserClient } from "@supabase/ssr";
 import { 
   Save, MapPin, Heart, LogOut, UserCircle, LayoutDashboard, KeyRound, X, Camera, 
   GraduationCap, Share2, Briefcase, Mail, AtSign, Loader2, Eye, EyeOff, Target, Baby, User, Instagram
 } from "lucide-react";
 
-const supabase = createClient(
+// Inicialização ajustada para ser compatível com Cookies/Middleware
+const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
@@ -88,11 +90,18 @@ export default function MinhaContaPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setEmail(user.email || ""); 
+        
         const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+        
+        // Lógica de Fallback para usuários novos (Google Auth)
+        const googleNome = user.user_metadata?.full_name || user.email?.split('@')[0] || "";
+        const googleAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
+        const fallbackSlug = user.email?.split('@')[0].replace(/[^a-zA-Z0-0]/g, '') || "user";
+
         if (profile) {
           const dados = {
-            nome: profile.nome_completo || "",
-            slug: profile.slug || "",
+            nome: profile.nome_completo || googleNome,
+            slug: profile.slug || fallbackSlug,
             emailContato: profile.email_contato || "",
             telefone: profile.telefone || "",
             profissao: profile.profissao || "",
@@ -125,9 +134,16 @@ export default function MinhaContaPage() {
           setOrigem(dados.origem);
           setPossuiFilhos(dados.possuiFilhos);
           setObjetivoPlataforma(dados.objetivoPlataforma);
-          setAvatarUrl(profile.avatar_url || null);
+          setAvatarUrl(profile.avatar_url || googleAvatar);
           
           setDadosOriginais(dados);
+        } else {
+          // Caso não tenha perfil criado no banco ainda
+          setNome(googleNome);
+          setAvatarUrl(googleAvatar);
+          setSlug(fallbackSlug);
+          setEmailContato(user.email || "");
+          setDadosOriginais({ nome: googleNome, slug: fallbackSlug, emailContato: user.email });
         }
       } else { window.location.href = "/"; }
       setLoading(false);
@@ -283,7 +299,7 @@ export default function MinhaContaPage() {
               <div className="flex flex-row items-start md:items-center gap-6">
                 <div className="relative group shrink-0">
                   <div className={`w-20 h-20 md:w-24 md:h-24 rounded-[2rem] md:rounded-[2.5rem] bg-gray-50 border-4 border-white shadow-xl overflow-hidden flex items-center justify-center transition-all ${uploadingAvatar ? 'opacity-40' : 'opacity-100'}`}>
-                    {avatarUrl ? <img src={avatarUrl} alt="Perfil" className="w-full h-full object-cover" /> : <UserCircle size={48} className="text-gray-200" />}
+                    {avatarUrl ? <img src={avatarUrl} alt="Perfil" className="w-full h-full object-cover" referrerPolicy="no-referrer" /> : <UserCircle size={48} className="text-gray-200" />}
                   </div>
                   <label className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 rounded-[2rem] md:rounded-[2.5rem] cursor-pointer transition-all">
                     <Camera size={24} />

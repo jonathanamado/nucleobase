@@ -1,49 +1,31 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Share2, User, Home, X, Rocket, LogOut, Dna } from "lucide-react";
+import { 
+  Search, Share2, User, Home, X, Rocket, LogOut, Dna, 
+  Settings, Lock, UserCircle, PlusCircle, LogIn, MonitorPlay
+} from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/app/context/AuthContext";
 
 export function MobileTabBar() {
   const router = useRouter();
   const pathname = usePathname();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userProfile, setUserProfile] = useState<{ nome: string; avatar: string | null }>({
-    nome: "",
-    avatar: null,
-  });
+  
+  const { isLoggedIn, userProfile, loading } = useAuth();
+  
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [authTrigger, setAuthTrigger] = useState(0);
 
-  // Lógica de Autenticação e Perfil
-  const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("nome_completo, avatar_url")
-      .eq("id", userId)
-      .single();
-
-    if (data) {
-      setUserProfile({
-        nome: data.nome_completo || "",
-        avatar: data.avatar_url || null,
-      });
-    }
-  };
-
+  // Listener para resolver o delay de login via Google/OAuth
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setIsLoggedIn(!!session);
-      if (session?.user) fetchProfile(session.user.id);
-    };
-    checkSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsLoggedIn(!!session);
-      if (session?.user) fetchProfile(session.user.id);
-      else setUserProfile({ nome: "", avatar: null });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+        setAuthTrigger(prev => prev + 1);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -57,23 +39,38 @@ export function MobileTabBar() {
   };
 
   const handleLogout = async () => {
-    // Ajuste realizado aqui: adicionado .auth para acessar o método signOut
-    await supabase.auth.signOut();
-    router.push("/");
+    const confirmLogout = window.confirm("Tem certeza que deseja sair?");
+    if (confirmLogout) {
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+        
+        if (typeof window !== "undefined") {
+          localStorage.clear();
+          sessionStorage.clear();
+          const databases = await window.indexedDB.databases?.();
+          databases?.forEach(db => db.name?.includes('supabase') && window.indexedDB.deleteDatabase(db.name!));
+          
+          document.cookie.split(";").forEach((c) => {
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+          });
+        }
+
+        setIsMenuOpen(false);
+        window.location.href = "/";
+      } catch (error) {
+        window.location.href = "/";
+      }
+    }
   };
 
-  const handleProfileClick = () => {
-    if (!isLoggedIn) {
-      router.push("/acesso-usuario");
-      return;
-    }
+  const handleAction = (path: string) => {
+    setIsMenuOpen(false);
+    router.push(path);
+  };
 
-    if (pathname === "/minha-conta") {
-      const confirmLogout = window.confirm("Deseja sair da sua conta?");
-      if (confirmLogout) handleLogout();
-    } else {
-      router.push("/minha-conta");
-    }
+  const handlePasswordReset = () => {
+    setIsMenuOpen(false);
+    alert("Acionando alteração de senha...");
   };
 
   const handleShare = async () => {
@@ -101,6 +98,10 @@ export function MobileTabBar() {
       setSearchQuery("");
     }
   };
+
+  const isActuallyLoggedIn = (isLoggedIn || authTrigger > 0) && !!userProfile;
+
+  if (loading) return null;
 
   return (
     <>
@@ -144,60 +145,81 @@ export function MobileTabBar() {
         </div>
       )}
 
+      {/* Menu suspenso do Perfil */}
+      {isMenuOpen && (
+        <>
+          <div className="fixed inset-0 z-[105]" onClick={() => setIsMenuOpen(false)} />
+          <div className="fixed bottom-20 right-6 w-64 bg-white rounded-3xl shadow-2xl border border-gray-100 p-2 z-[110] animate-in fade-in zoom-in-95 duration-200 origin-bottom-right">
+            <div className="flex flex-col">
+              {isActuallyLoggedIn ? (
+                <>
+                  <button onClick={() => handleAction("/minha-conta")} className="flex items-center gap-3 p-4 hover:bg-gray-50 rounded-2xl transition-colors text-gray-700 font-semibold text-sm text-left">
+                    <UserCircle size={20} className="text-blue-600" /> Minha conta
+                  </button>
+                  <button onClick={() => handleAction("/configuracoes")} className="flex items-center gap-3 p-4 hover:bg-gray-50 rounded-2xl transition-colors text-gray-700 font-semibold text-sm text-left">
+                    <Settings size={20} className="text-gray-400" /> Configurações
+                  </button>
+                  <button onClick={handlePasswordReset} className="flex items-center gap-3 p-4 hover:bg-gray-50 rounded-2xl transition-colors text-gray-700 font-semibold text-sm text-left border-b border-gray-50">
+                    <Lock size={20} className="text-orange-500" /> Alterar senha
+                  </button>
+                  <button onClick={handleLogout} className="flex items-center gap-3 p-4 hover:bg-red-50 rounded-2xl transition-colors text-red-600 font-bold text-sm text-left">
+                    <LogOut size={20} /> Sair da conta
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => handleAction("/cadastro")} className="flex items-center gap-3 p-4 hover:bg-gray-50 rounded-2xl transition-colors text-gray-700 font-semibold text-sm text-left">
+                    <PlusCircle size={20} className="text-blue-600" /> Criar conta
+                  </button>
+                  <button onClick={() => handleAction("/acesso-usuario")} className="flex items-center gap-3 p-4 hover:bg-gray-50 rounded-2xl transition-colors text-gray-700 font-semibold text-sm text-left">
+                    <LogIn size={20} className="text-orange-500" /> Realizar login
+                  </button>
+                  <button onClick={() => handleAction("/demonstracao")} className="flex items-center gap-3 p-4 hover:bg-gray-50 rounded-2xl transition-colors text-gray-700 font-semibold text-sm text-left">
+                    <MonitorPlay size={20} className="text-gray-400" /> Realizar demonstração
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Tab Bar Principal */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-3 z-[100] flex items-center justify-between shadow-[0_-4px_15px_rgba(0,0,0,0.06)] pb-safe-bottom">
         
-        {/* Home */}
-        <button 
-          onClick={() => router.push("/")} 
-          className={`p-2 transition-colors ${pathname === "/" ? "text-blue-600" : "text-gray-400"}`}
-        >
+        <button onClick={() => router.push("/")} className={`p-2 transition-colors ${pathname === "/" ? "text-blue-600" : "text-gray-400"}`}>
           <Home size={22} strokeWidth={pathname === "/" ? 2.5 : 2} />
         </button>
 
-        {/* Lançamentos (Foguete) */}
-        <button 
-          onClick={() => router.push("/lancamentos")} 
-          className={`p-2 transition-colors ${pathname === "/lancamentos" ? "text-orange-500" : "text-gray-400"}`}
-        >
+        <button onClick={() => router.push("/lancamentos")} className={`p-2 transition-colors ${pathname === "/lancamentos" ? "text-orange-500" : "text-gray-400"}`}>
           <Rocket size={22} strokeWidth={pathname === "/lancamentos" ? 2.5 : 2} />
         </button>
 
-        {/* Lupa (Busca) */}
-        <button 
-          onClick={() => setIsSearchOpen(true)} 
-          className={`p-2 transition-colors ${pathname === "/busca" ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}
-        >
+        <button onClick={() => setIsSearchOpen(true)} className={`p-2 transition-colors ${pathname === "/busca" ? "text-blue-600" : "text-gray-400"}`}>
           <Search size={22} strokeWidth={pathname === "/busca" ? 2.5 : 2} />
         </button>
 
-        {/* Botão de Compartilhar */}
-        <button 
-          onClick={handleShare}
-          className="p-2 text-gray-400 active:text-blue-600"
-        >
+        <button onClick={handleShare} className="p-2 text-gray-400 active:text-blue-600">
           <Share2 size={22} />
         </button>
 
-        {/* Perfil / Logout */}
+        {/* Perfil */}
         <button 
-          onClick={handleProfileClick}
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
           className={`w-9 h-9 rounded-full border transition-all overflow-hidden flex items-center justify-center relative ${
-            pathname === "/minha-conta" ? "border-blue-600 ring-2 ring-blue-50" : "border-gray-100 bg-gray-50"
+            isMenuOpen || pathname === "/minha-conta" ? "border-blue-600 ring-2 ring-blue-50" : "border-gray-100 bg-gray-50"
           }`}
         >
-          {isLoggedIn && userProfile.avatar ? (
-            <div className="relative w-full h-full">
-               <img src={userProfile.avatar} alt="Perfil" className="w-full h-full object-cover" />
-               {pathname === "/minha-conta" && (
-                 <div className="absolute inset-0 bg-blue-600/20 flex items-center justify-center">
-                    <LogOut size={14} className="text-white drop-shadow-md" />
-                 </div>
-               )}
-            </div>
-          ) : isLoggedIn ? (
+          {isActuallyLoggedIn && userProfile?.avatar ? (
+            <img 
+              src={userProfile.avatar} 
+              alt="Perfil" 
+              className="w-full h-full object-cover" 
+              referrerPolicy="no-referrer"
+            />
+          ) : isActuallyLoggedIn ? (
             <span className="text-[10px] font-black text-blue-600 tracking-tighter">
-              {pathname === "/minha-conta" ? <LogOut size={16} /> : getInitials(userProfile.nome)}
+              {getInitials(userProfile?.nome || "")}
             </span>
           ) : (
             <User size={20} className="text-gray-400" />
