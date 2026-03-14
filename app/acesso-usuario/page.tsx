@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-// AJUSTE: Importando do @supabase/ssr para forçar o fluxo de código (PKCE)
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { 
   UserCog, Rocket, ArrowRight, 
   CheckCircle2, LogOut, X, Mail, LifeBuoy, AtSign,
@@ -13,8 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-// AJUSTE: Criação do cliente usando createBrowserClient
-const supabase = createBrowserClient(
+const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
@@ -115,16 +113,6 @@ export default function AcessoUsuarioPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleGoogleLogin = async () => {
-    // AJUSTE: Removido queryParams manuais, o createBrowserClient gerencia o fluxo PKCE
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -246,23 +234,6 @@ export default function AcessoUsuarioPage() {
                       >
                         {loading ? "Verificando..." : "Acessar Plataforma"}
                       </button>
-
-                      {/* Divisor Visual */}
-                      <div className="flex items-center gap-3 my-2">
-                        <div className="h-px bg-gray-100 flex-1"></div>
-                        <span className="text-[10px] text-gray-300 font-bold uppercase tracking-widest">ou</span>
-                        <div className="h-px bg-gray-100 flex-1"></div>
-                      </div>
-
-                      {/* Botão Google */}
-                      <button 
-                        type="button"
-                        onClick={handleGoogleLogin}
-                        className="w-full bg-white border border-gray-200 text-gray-700 h-[48px] rounded-xl font-bold hover:bg-gray-50 transition flex items-center justify-center gap-3 text-xs shadow-sm"
-                      >
-                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-4 h-4" />
-                        Continuar com a conta Google
-                      </button>
                   </form>
               </div>
             </div>
@@ -345,7 +316,7 @@ export default function AcessoUsuarioPage() {
                   <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 tracking-tight">
                     <span className="md:hidden">Painel de Resultados</span>
                     <span className="hidden md:block">Painel de <br /> Resultados</span>
-                  </h3>                   
+                  </h3>                  
                   <p className="text-gray-500 text-[14px] md:text-[16px] leading-relaxed font-medium mb-6 md:block hidden">
                     Acompanhe a evolução da sua saúde financeira com relatórios e insights poderosos:
                   </p>

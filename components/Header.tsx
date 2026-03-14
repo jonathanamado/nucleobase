@@ -1,29 +1,69 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import Link from "next/link";
-import { useAuth } from "@/app/context/AuthContext";
 import { supabase } from "@/lib/supabase";
+import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation"; 
 import { 
   UserCircle, LayoutDashboard, X, Menu, 
-  Info, Newspaper, CreditCard, Star, HelpCircle, 
-  Shield, AppWindow, LogOut, Search, ChevronRight,
-  Settings, Lock, PlusCircle, LogIn, MonitorPlay, BarChart3
+  Info, Newspaper, CreditCard, BarChart3, Star, HelpCircle, 
+  Shield, ChevronRight, AppWindow, LogOut,
+  Search, Gift, Settings, Key, UserPlus, LogIn, PlayCircle,
+  KeyRound, Eye, EyeOff
 } from "lucide-react";
 
 export function Header() {
-  const { isLoggedIn, userProfile, loading } = useAuth();
-  
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
-  const [mounted, setMounted] = useState(false); 
+  const [userProfile, setUserProfile] = useState<{ nome: string; avatar: string | null }>({
+    nome: "",
+    avatar: null,
+  });
   
+  // Estados para o Modal de Senha (Padrão Mobile)
+  const [showPassModal, setShowPassModal] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPass, setShowPass] = useState(false);
+  const [passLoading, setPassLoading] = useState(false);
+
   const pathname = usePathname();
   const router = useRouter();
 
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("nome_completo, avatar_url")
+      .eq("id", userId)
+      .single();
+
+    if (data) {
+      setUserProfile({
+        nome: data.nome_completo || "",
+        avatar: data.avatar_url || null,
+      });
+    }
+  };
+
   useEffect(() => {
-    setMounted(true);
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+      if (session?.user) fetchProfile(session.user.id);
+    };
+
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsLoggedIn(!!session);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      } else {
+        setUserProfile({ nome: "", avatar: null });
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const getInitials = (name: string) => {
@@ -34,39 +74,26 @@ export function Header() {
   };
 
   const handleLogout = async () => {
-    const confirmLogout = window.confirm("Tem certeza que deseja sair?");
+    const confirmLogout = window.confirm("Tem certeza que deseja sair da conta?");
     if (confirmLogout) {
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-        
-        if (typeof window !== "undefined") {
-          localStorage.clear();
-          sessionStorage.clear();
-
-          const databases = await window.indexedDB.databases?.();
-          if (databases) {
-            databases.forEach(db => {
-              if (db.name?.includes('supabase')) {
-                window.indexedDB.deleteDatabase(db.name);
-              }
-            });
-          }
-
-          document.cookie.split(";").forEach((c) => {
-            document.cookie = c
-              .replace(/^ +/, "")
-              .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-          });
-        }
-
-        setIsMenuOpen(false);
-        setIsUserDropdownOpen(false);
-        window.location.href = "/";
-      } catch (error) {
-        console.error("Erro ao sair:", error);
-        window.location.href = "/";
-      }
+      await supabase.auth.signOut();
+      setIsMenuOpen(false);
+      setIsUserDropdownOpen(false);
+      router.push("/");
     }
+  };
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) return alert("As senhas não coincidem!");
+    setPassLoading(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) alert("Erro: " + error.message);
+    else {
+      alert("Senha alterada com sucesso!");
+      setShowPassModal(false);
+    }
+    setPassLoading(false);
   };
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
@@ -75,12 +102,12 @@ export function Header() {
     const query = formData.get("q");
     if (query) {
       router.push(`/busca?q=${encodeURIComponent(query.toString())}`);
-      setIsMenuOpen(false); // Fecha o menu ao pesquisar
     }
   };
 
   const menuLinks = [
     { name: "Sobre a Plataforma", href: "/sobre", icon: <Info size={18} /> },
+    { name: "Indique e ganhe", href: "/indique", icon: <Gift size={18} /> },
     { name: "Blog da Nucleo", href: "/blog", icon: <Newspaper size={18} /> },
     { name: "Assinatura digital", href: "/planos", icon: <CreditCard size={18} /> },
     { name: "Depoimentos", href: "/depoimentos", icon: <Star size={18} /> },
@@ -88,20 +115,54 @@ export function Header() {
     { name: "Segurança", href: "/seguranca_privacidade", icon: <Shield size={18} /> },
   ];
 
-  if (!mounted || loading) {
-    return <header className="w-full h-20 bg-white border-b border-gray-200 sticky top-0 z-50" />;
-  }
-
-  const isActuallyLoggedIn = isLoggedIn && userProfile;
+  const DropdownItem = ({ icon: Icon, label, onClick, color = "text-gray-600" }: any) => (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 px-4 py-3 text-sm ${color} hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl border-b border-gray-50 last:border-0`}
+    >
+      <Icon size={18} strokeWidth={2} />
+      <span className="font-bold">{label}</span>
+    </button>
+  );
 
   return (
     <header className="w-full border-b border-gray-200 bg-white sticky top-0 z-50">
+      {/* Modal de Alteração de Senha */}
+      {showPassModal && (
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-xl z-[150] flex items-center justify-center p-6">
+          <div className="bg-white w-full max-w-md rounded-[3.5rem] p-12 shadow-2xl relative border border-gray-100 animate-in zoom-in-95 duration-300">
+            <button onClick={() => setShowPassModal(false)} className="absolute right-10 top-10 text-gray-300 hover:text-gray-900 transition-colors">
+              <X size={28} strokeWidth={1.5} />
+            </button>
+            <div className="text-center mb-10">
+              <div className="bg-blue-50 w-20 h-20 rounded-[2rem] flex items-center justify-center text-blue-600 mx-auto mb-6 border border-blue-100 shadow-sm">
+                <KeyRound size={36} strokeWidth={1.5} />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Nova Senha</h2>
+              <p className="text-gray-400 text-sm mt-2 font-medium">Redefina seu acesso com segurança.</p>
+            </div>
+            <form onSubmit={handlePasswordReset} className="space-y-5">
+              <div className="relative">
+                <input type={showPass ? "text" : "password"} placeholder="Nova senha" required onChange={(e) => setNewPassword(e.target.value)} className="w-full h-14 px-6 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-gray-900" />
+                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400">
+                  {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              <input type={showPass ? "text" : "password"} placeholder="Confirmar nova senha" required onChange={(e) => setConfirmPassword(e.target.value)} className="w-full h-14 px-6 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-gray-900" />
+              <button disabled={passLoading} className="w-full bg-gray-900 text-white h-16 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-lg mt-4 active:scale-95 transition-all disabled:opacity-50">
+                {passLoading ? "Atualizando..." : "Confirmar Alteração"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div className="w-full px-4 md:px-8 lg:px-10 h-20 flex items-center justify-between relative">
         
         {/* BLOCO DA LOGO */}
         <div className="flex items-center flex-shrink-0 min-w-fit"> 
           <div className="flex-shrink-0">
-              <Link href="/" className="block hover:opacity-90 transition">
+              <a href="/" rel="external" className="block hover:opacity-90 transition">
                 <img 
                   src="/logo-oficial.png?v=3" 
                   alt="Logo Nucleo Base"
@@ -109,11 +170,11 @@ export function Header() {
                   height={65} 
                   className="w-[140px] h-auto lg:w-[170px] lg:h-auto object-contain" 
                 />
-              </Link>
+              </a>
           </div>
 
           <div className="hidden lg:flex flex-col text-[13px] font-bold text-gray-900 leading-tight tracking-tighter -ml-8 select-none">
-            <Link href="/" className="hover:opacity-80 transition flex flex-col">
+            <a href="/" rel="external" className="hover:opacity-80 transition flex flex-col">
               <span className="pl-0">Sua plataforma</span>
               <span className="pl-7.5 mt-0 text-gray-500">financeira</span>
               <span className="pl-9.5 mt-0.5">
@@ -121,7 +182,7 @@ export function Header() {
                   DIGITAL
                 </span>
               </span>
-            </Link>
+            </a>
           </div>
         </div>
 
@@ -142,99 +203,72 @@ export function Header() {
             </form>
           )}
 
-          {!isActuallyLoggedIn ? (
-            <>
-              {pathname !== "/" && (
-                <Link href="/" className="flex items-center gap-2.5 text-gray-400 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest mr-4 group">
-                  <div className="bg-gray-50 p-2 rounded-full group-hover:bg-blue-50 transition-colors border border-gray-100 group-hover:border-blue-100">
-                    <AppWindow size={16} strokeWidth={2} />
-                  </div>
-                  Página inicial
-                </Link>
-              )}
-              <Link href="/cadastro" className="min-w-[120px] inline-block text-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition font-bold shadow-sm">
-                Criar Conta
-              </Link>
-              <Link href="/acesso-usuario" className="min-w-[120px] inline-block text-center bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition font-bold shadow-sm">
-                Acessar
-              </Link>
-            </>
-          ) : (
-            <>
-              {pathname !== "/" && (
-                <Link href="/" className="flex items-center gap-2.5 text-gray-400 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest mr-2 group">
-                  <div className="bg-gray-50 p-2 rounded-full group-hover:bg-blue-50 transition-colors border border-gray-100 group-hover:border-blue-100">
-                    <AppWindow size={16} strokeWidth={2} />
-                  </div>
-                  <span className="hidden lg:inline">Início</span>
-                </Link>
-              )}
-              <Link href="/acesso-usuario" className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition font-bold shadow-sm">
+          <div className="flex items-center gap-3 relative">
+            {pathname !== "/" && (
+              <a href="/" className="flex items-center gap-2.5 text-gray-400 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest mr-2 group">
+                <div className="bg-gray-50 p-2 rounded-full group-hover:bg-blue-50 transition-colors border border-gray-100 group-hover:border-blue-100">
+                  <AppWindow size={16} strokeWidth={2} />
+                </div>
+                <span className="hidden lg:inline">Início</span>
+              </a>
+            )}
+
+            {!isLoggedIn ? (
+              <div className="flex items-center gap-3">
+                <a href="/cadastro" className="min-w-[120px] inline-block text-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition font-bold shadow-sm">
+                  Criar Conta
+                </a>
+                <a href="/acesso-usuario" className="min-w-[120px] inline-block text-center bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition font-bold shadow-sm">
+                  Acessar
+                </a>
+              </div>
+            ) : (
+              <a href="/acesso-usuario" className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition font-bold shadow-sm">
                 <LayoutDashboard size={18} />
                 Acessar Plataforma
-              </Link>
-            </>
-          )}
-
-          {/* BOTÃO DA IMAGEM DE PERFIL */}
-          <div className="relative ml-1">
-            <button 
-              onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-              className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-gray-100 hover:border-blue-500 transition-all overflow-hidden bg-gray-50"
-            >
-              {isActuallyLoggedIn && userProfile?.avatar ? (
-                <img 
-                  src={userProfile.avatar} 
-                  alt="Perfil" 
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <span className="text-xs font-black text-blue-600 tracking-tighter">
-                  {isActuallyLoggedIn ? getInitials(userProfile?.nome || "") : <UserCircle size={22} strokeWidth={2.5} />}
-                </span>
-              )}
-            </button>
-
-            {isUserDropdownOpen && (
-              <>
-                <div className="fixed inset-0 z-[-1]" onClick={() => setIsUserDropdownOpen(false)}></div>
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                  
-                  {!isActuallyLoggedIn ? (
-                    <div className="px-2">
-                      <Link href="/cadastro" onClick={() => setIsUserDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors">
-                        <PlusCircle size={18} className="text-blue-600" /> Criar conta
-                      </Link>
-                      <Link href="/acesso-usuario" onClick={() => setIsUserDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg transition-colors">
-                        <LogIn size={18} className="text-orange-500" /> Realizar Login
-                      </Link>
-                      <Link href="/demonstracao" onClick={() => setIsUserDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
-                        <MonitorPlay size={18} className="text-gray-400" /> Realizar demonstração
-                      </Link>
-                    </div>
+              </a>
+            )}
+            
+            {/* Avatar/Iniciais Desktop (Logado ou Deslogado) */}
+            {pathname !== "/minha-conta" && (
+              <div className="relative">
+                <button 
+                  onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+                  className={`ml-1 flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all overflow-hidden bg-gray-50 ${isUserDropdownOpen ? 'border-blue-500 shadow-md' : 'border-gray-100 hover:border-blue-400'}`}
+                >
+                  {isLoggedIn ? (
+                    userProfile.avatar ? (
+                      <img src={userProfile.avatar} alt="Perfil" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-xs font-black text-blue-600 tracking-tighter">{getInitials(userProfile.nome)}</span>
+                    )
                   ) : (
-                    <div className="px-2">
-                      <Link href="/minha-conta" onClick={() => setIsUserDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
-                        <UserCircle size={18} className="text-blue-600" /> Minha conta
-                      </Link>
-                      <Link href="/configuracoes" onClick={() => setIsUserDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
-                        <Settings size={18} className="text-gray-400" /> Configurações
-                      </Link>
-                      <Link href="/alterar-senha" onClick={() => setIsUserDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
-                        <Lock size={18} className="text-orange-500" /> Alterar senha
-                      </Link>
-                      <div className="my-1 border-t border-gray-100"></div>
-                      <button 
-                        onClick={handleLogout} 
-                        className="w-full flex items-center gap-3 px-3 py-2 text-sm font-bold text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <LogOut size={18} /> Sair da conta
-                      </button>
-                    </div>
+                    <UserCircle size={24} className="text-gray-300" />
                   )}
-                </div>
-              </>
+                </button>
+
+                {isUserDropdownOpen && (
+                  <>
+                    <div className="fixed inset-0 z-[-1]" onClick={() => setIsUserDropdownOpen(false)}></div>
+                    <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                      {isLoggedIn ? (
+                        <div className="flex flex-col">
+                          <DropdownItem icon={UserCircle} label="Minha Conta" onClick={() => { router.push("/minha-conta"); setIsUserDropdownOpen(false); }} />
+                          <DropdownItem icon={Settings} label="Configurações" onClick={() => { router.push("/configuracoes"); setIsUserDropdownOpen(false); }} />
+                          <DropdownItem icon={Key} label="Alterar senha" onClick={() => { setIsUserDropdownOpen(false); setShowPassModal(true); }} />
+                          <DropdownItem icon={LogOut} label="Sair da conta" color="text-red-500" onClick={handleLogout} />
+                        </div>
+                      ) : (
+                        <div className="flex flex-col">
+                          <DropdownItem icon={UserPlus} label="Criar conta" onClick={() => { router.push("/cadastro"); setIsUserDropdownOpen(false); }} />
+                          <DropdownItem icon={LogIn} label="Realizar login" onClick={() => { router.push("/acesso-usuario"); setIsUserDropdownOpen(false); }} />
+                          <DropdownItem icon={PlayCircle} label="Demonstração APP" onClick={() => { router.push("/demonstracao"); setIsUserDropdownOpen(false); }} />
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
             )}
           </div>
         </nav>
@@ -242,9 +276,9 @@ export function Header() {
         {/* BOTÃO MOBILE */}
         <div className="md:hidden flex items-center gap-2">
           {pathname !== "/" && (
-              <Link href="/" className="p-2.5 text-gray-400 active:text-blue-600 transition-colors bg-gray-50 rounded-2xl border border-gray-100">
+              <a href="/" className="p-2.5 text-gray-400 active:text-blue-600 transition-colors bg-gray-50 rounded-2xl border border-gray-100">
                 <AppWindow size={20} strokeWidth={2} />
-              </Link>
+              </a>
           )}
 
           <button 
@@ -260,7 +294,7 @@ export function Header() {
         {isMenuOpen && (
           <>
             <div 
-              className="fixed inset-0 bg-black/40 z-[90] md:hidden" 
+              className="fixed inset-0 bg-black/5 z-[90] md:hidden" 
               onClick={() => setIsMenuOpen(false)}
             />
 
@@ -269,7 +303,7 @@ export function Header() {
                 
                 <nav className="space-y-1">
                   {menuLinks.map((link) => (
-                    <Link
+                    <a
                       key={link.name}
                       href={link.href}
                       onClick={() => setIsMenuOpen(false)}
@@ -282,40 +316,29 @@ export function Header() {
                         <span className="text-sm font-semibold">{link.name}</span>
                       </div>
                       <ChevronRight size={14} className="text-gray-300 opacity-50" />
-                    </Link>
+                    </a>
                   ))}
                 </nav>
 
                 <div className="mt-6 pt-6 border-t border-gray-100 space-y-3">
-                  {!isActuallyLoggedIn ? (
+                  {!isLoggedIn ? (
                     <div className="grid grid-cols-2 gap-4">
-                      <Link 
-                        href="/acesso-usuario" 
-                        onClick={() => setIsMenuOpen(false)}
-                        className="py-4 bg-orange-500 text-white text-center rounded-2xl font-bold text-xs uppercase tracking-tighter shadow-md"
-                      >
+                      <a href="/acesso-usuario" className="py-4 bg-orange-500 text-white text-center rounded-2xl font-bold text-xs uppercase tracking-tighter shadow-md">
                         Acessar
-                      </Link>
-                      <Link 
-                        href="/cadastro" 
-                        onClick={() => setIsMenuOpen(false)}
-                        className="py-4 bg-blue-600 text-white text-center rounded-2xl font-bold text-xs uppercase tracking-tighter shadow-md"
-                      >
+                      </a>
+                      <a href="/cadastro" className="py-4 bg-blue-600 text-white text-center rounded-2xl font-bold text-xs uppercase tracking-tighter shadow-md">
                         Criar Conta
-                      </Link>
+                      </a>
                     </div>
                   ) : (
                     <div className="flex flex-col gap-3">
-                      <Link href="/acesso-usuario" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-center gap-2 w-full py-4 bg-orange-500 text-white rounded-2xl font-bold text-sm shadow-lg">
+                      <a href="/acesso-usuario" className="flex items-center justify-center gap-2 w-full py-4 bg-orange-500 text-white rounded-2xl font-bold text-sm shadow-lg">
                         <LayoutDashboard size={18} /> Painel Acesso APP
-                      </Link>
-                      <Link 
-                        href="/visao-resultados" 
-                        onClick={() => setIsMenuOpen(false)} 
-                        className="flex items-center justify-center gap-2 w-full py-4 bg-blue-600 text-white rounded-2xl font-bold text-sm shadow-lg"
-                      >
+                      </a>
+                      
+                      <a href="/resultados" className="flex items-center justify-center gap-2 w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-sm shadow-lg">
                         <BarChart3 size={18} /> Visão de Resultados
-                      </Link>
+                      </a>
                     </div>
                   )}
                 </div>

@@ -103,20 +103,25 @@ export default function LancamentosPage() {
     };
     getUser();
 
-    const timer = setTimeout(() => {
-      setShowAviso(true);
-    }, 5000);
-
-    return () => clearTimeout(timer);
+    const avisoVisto = localStorage.getItem("aviso-eficiencia-visto");
+    
+    if (!avisoVisto) {
+      const timer = setTimeout(() => {
+        setShowAviso(true);
+        localStorage.setItem("aviso-eficiencia-visto", "true");
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading || !userId) return;
 
+    const valorBase = typeof formData.valorTotal === "string" ? parseFloat(formData.valorTotal) : formData.valorTotal;
     const valorFinal = formData.natureza === "Despesa" 
-      ? -Math.abs(formData.valorTotal) 
-      : Math.abs(formData.valorTotal);
+      ? -Math.abs(valorBase) 
+      : Math.abs(valorBase);
 
     const payload = {
       ...formData,
@@ -134,7 +139,14 @@ export default function LancamentosPage() {
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) throw new Error("Erro ao salvar");
+      if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({}));
+        // Captura o erro específico de duplicidade (geralmente status 409 ou mensagem de constraint)
+        if (response.status === 409 || errorBody.message?.includes("duplicate") || errorBody.error?.includes("unique_constraint")) {
+          throw new Error("Registro duplicado: Este lançamento já existe com a mesma descrição, valor, data e origem.");
+        }
+        throw new Error(errorBody.message || "Erro ao salvar");
+      }
       
       setSucesso(true);
       setFormData(initialFormState);
@@ -173,7 +185,6 @@ export default function LancamentosPage() {
         </div>
       )}
 
-      {/* Grid de Título e Atalhos Superiores */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12 items-end px-4 md:px-0">
         <div className="lg:col-span-7">
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-4 tracking-tight flex items-center flex-wrap">
@@ -455,7 +466,6 @@ export default function LancamentosPage() {
           </div>
         </div>
 
-        {/* NOVA LINHA DIVISÓRIA "CONECTE-SE" CENTRALIZADA */}
         <div className="mt-24 flex items-center gap-4 mb-12">
           <div className="h-px bg-gray-200 flex-1"></div>
           <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
@@ -464,7 +474,6 @@ export default function LancamentosPage() {
           <div className="h-px bg-gray-200 flex-1"></div>
         </div>
 
-        {/* BLOCO INSTAGRAM CENTRALIZADO COM GRADIENTE E BRILHO */}
         <div className="flex flex-col items-center text-center">
           <div className="max-w-3xl mb-12">
             <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
@@ -482,11 +491,12 @@ export default function LancamentosPage() {
             className="group relative flex flex-col items-center gap-6"
           >
             <div className="relative">
-              {/* Efeito de brilho/glow ao fundo do ícone */}
               <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
               
               <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
-                <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+                <span className="flex items-center justify-center">
+                   <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+                </span>
               </div>
             </div>
             

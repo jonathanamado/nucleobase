@@ -1,20 +1,21 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-// Importação ajustada para SSR
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { 
-  Save, MapPin, Heart, LogOut, UserCircle, LayoutDashboard, KeyRound, X, Camera, 
-  GraduationCap, Share2, Briefcase, Mail, AtSign, Loader2, Eye, EyeOff, Target, Baby, User, Instagram
+  Save, MapPin, UserCircle, Camera, GraduationCap, Briefcase, 
+  Baby, CalendarDays, Activity, MousePointerClick, 
+  Trophy, CheckCircle2, TrendingUp, Info, KeyRound, Instagram, X, Eye, EyeOff,
+  Target, Share2, Wallet, Zap
 } from "lucide-react";
 
-// Inicialização ajustada para ser compatível com Cookies/Middleware
-const supabase = createBrowserClient(
+const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 export default function MinhaContaPage() {
+  // --- ESTADOS DE DADOS ---
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState(""); 
   const [emailContato, setEmailContato] = useState(""); 
@@ -33,8 +34,7 @@ export default function MinhaContaPage() {
   const [possuiFilhos, setPossuiFilhos] = useState("");
   const [objetivoPlataforma, setObjetivoPlataforma] = useState("");
   
-  const [dadosOriginais, setDadosOriginais] = useState<any>(null);
-  
+  // --- ESTADOS DE SISTEMA ---
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -45,189 +45,123 @@ export default function MinhaContaPage() {
   const [showPass, setShowPass] = useState(false);
   const [passLoading, setPassLoading] = useState(false);
 
+  // --- ESTATÍSTICAS REAIS ---
+  const [stats, setStats] = useState({
+    totalLancamentos: 0,
+    mesesAtivos: [] as string[],
+    ultimoLancamento: "---",
+    percentualPerfil: 100,
+    patrimonioConectado: 0,
+    mediaGastosDiarios: "R$ 0,00"
+  });
+
   const aplicarMascaraTelefone = (value: string) => {
     return value.replace(/\D/g, "").replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2").replace(/(-\d{4})\d+?$/, "$1");
   };
 
-  const handleUploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    try {
-      setUploadingAvatar(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+  async function carregarEstatisticas(userId: string) {
+    const agora = new Date();
+    const mesAtualNum = agora.getMonth() + 1;
+    const anoAtualNum = agora.getFullYear();
 
-      const file = event.target.files?.[0];
-      if (!file) return;
+    const { count, data: allRecords } = await supabase
+      .from("lancamentos_financeiros")
+      .select("created_at, origem, cartao_nome, data_competencia, natureza, valor", { count: "exact" })
+      .eq("user_id", userId);
 
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
+    if (allRecords && allRecords.length > 0) {
+      // 1. Meses Ativos (Abreviado 3 letras: mar/2026)
+      const mesesMap: Record<string, string> = {
+        '01': 'jan', '02': 'fev', '03': 'mar', '04': 'abr', '05': 'mai', '06': 'jun',
+        '07': 'jul', '08': 'ago', '09': 'set', '10': 'out', '11': 'nov', '12': 'dez'
+      };
 
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file);
+      const mesesUnicosSorted = allRecords
+        .map(l => l.data_competencia.substring(0, 7))
+        .filter((value, index, self) => self.indexOf(value) === index)
+        .sort()
+        .map(ym => {
+          const [year, month] = ym.split('-');
+          return `${mesesMap[month]}/${year}`;
+        });
 
-      if (uploadError) throw uploadError;
+      // 2. Patrimônio Conectado (Bancos + Cartões Únicos)
+      const bancosUnicos = new Set(allRecords.map(l => l.origem).filter(Boolean)).size;
+      const cartoesUnicos = new Set(allRecords.map(l => l.cartao_nome).filter(Boolean)).size;
 
-      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      // 3. Gasto Diário Médio (Baseado em natureza='Despesa' e mês atual)
+      const despesasMes = allRecords.filter(l => {
+        const [ano, mes] = l.data_competencia.split('-');
+        const isDespesa = l.natureza === 'Despesa';
+        const isMesAtual = Number(mes) === mesAtualNum && Number(ano) === anoAtualNum;
+        return isDespesa && isMesAtual;
+      });
 
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: publicUrl })
-        .eq('id', user.id);
+      const totalDespesas = despesasMes.reduce((acc, curr) => acc + Math.abs(Number(curr.valor)), 0);
+      const diaCorrente = agora.getDate();
+      const mediaDiaria = totalDespesas / diaCorrente;
 
-      if (updateError) throw updateError;
+      // 4. Última Atividade
+      const lastRecord = [...allRecords].sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )[0];
 
-      setAvatarUrl(publicUrl);
-    } catch (error: any) {
-      alert("Erro ao processar imagem: " + error.message);
-    } finally {
-      setUploadingAvatar(false);
+      setStats({
+        totalLancamentos: count || 0,
+        mesesAtivos: mesesUnicosSorted,
+        ultimoLancamento: new Date(lastRecord.created_at).toLocaleDateString('pt-BR'),
+        percentualPerfil: 100,
+        patrimonioConectado: bancosUnicos + cartoesUnicos,
+        mediaGastosDiarios: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(mediaDiaria)
+      });
     }
-  };
+  }
 
   useEffect(() => {
     async function carregarDados() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setEmail(user.email || ""); 
-        
         const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-        
-        // Lógica de Fallback para usuários novos (Google Auth)
-        const googleNome = user.user_metadata?.full_name || user.email?.split('@')[0] || "";
-        const googleAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
-        const fallbackSlug = user.email?.split('@')[0].replace(/[^a-zA-Z0-0]/g, '') || "user";
-
         if (profile) {
-          const dados = {
-            nome: profile.nome_completo || googleNome,
-            slug: profile.slug || fallbackSlug,
-            emailContato: profile.email_contato || "",
-            telefone: profile.telefone || "",
-            profissao: profile.profissao || "",
-            formacao: profile.formacao || "",
-            dataNascimento: profile.data_nascimento || "",
-            genero: profile.genero || "",
-            estadoCivil: profile.estado_civil || "",
-            cidade: profile.cidade || "",
-            estado: profile.estado || "",
-            usoApp: profile.uso_app || "",
-            objetivoFinanceiro: profile.objetivo_financeiro || "",
-            origem: profile.origem || "",
-            possuiFilhos: profile.possui_filhos || "",
-            objetivoPlataforma: profile.objetivo_plataforma || "",
-          };
-          
-          setNome(dados.nome);
-          setSlug(dados.slug);
-          setEmailContato(dados.emailContato);
-          setTelefone(dados.telefone);
-          setProfissao(dados.profissao);
-          setFormacao(dados.formacao);
-          setDataNascimento(dados.dataNascimento);
-          setGenero(dados.genero);
-          setEstadoCivil(dados.estadoCivil);
-          setCidade(dados.cidade);
-          setEstado(dados.estado);
-          setUsoApp(dados.usoApp);
-          setObjetivoFinanceiro(dados.objetivoFinanceiro);
-          setOrigem(dados.origem);
-          setPossuiFilhos(dados.possuiFilhos);
-          setObjetivoPlataforma(dados.objetivoPlataforma);
-          setAvatarUrl(profile.avatar_url || googleAvatar);
-          
-          setDadosOriginais(dados);
-        } else {
-          // Caso não tenha perfil criado no banco ainda
-          setNome(googleNome);
-          setAvatarUrl(googleAvatar);
-          setSlug(fallbackSlug);
-          setEmailContato(user.email || "");
-          setDadosOriginais({ nome: googleNome, slug: fallbackSlug, emailContato: user.email });
+          setNome(profile.nome_completo || "");
+          setSlug(profile.slug || "");
+          setEmailContato(profile.email_contato || "");
+          setTelefone(profile.telefone || "");
+          setProfissao(profile.profissao || "");
+          setFormacao(profile.formacao || "");
+          setDataNascimento(profile.data_nascimento || "");
+          setGenero(profile.genero || "");
+          setEstadoCivil(profile.estado_civil || "");
+          setCidade(profile.cidade || "");
+          setEstado(profile.estado || "");
+          setUsoApp(profile.uso_app || "");
+          setObjetivoFinanceiro(profile.objetivo_financeiro || "");
+          setOrigem(profile.origem || "");
+          setPossuiFilhos(profile.possui_filhos || "");
+          setObjetivoPlataforma(profile.objetivo_plataforma || "");
+          setAvatarUrl(profile.avatar_url || null);
         }
+        await carregarEstatisticas(user.id);
       } else { window.location.href = "/"; }
       setLoading(false);
     }
     carregarDados();
   }, []);
 
-  const temAlteracoes = dadosOriginais && (
-    nome !== dadosOriginais.nome ||
-    emailContato !== dadosOriginais.emailContato ||
-    telefone !== dadosOriginais.telefone ||
-    profissao !== dadosOriginais.profissao ||
-    formacao !== dadosOriginais.formacao ||
-    dataNascimento !== dadosOriginais.dataNascimento ||
-    genero !== dadosOriginais.genero ||
-    estadoCivil !== dadosOriginais.estadoCivil ||
-    cidade !== dadosOriginais.cidade ||
-    estado !== dadosOriginais.estado ||
-    usoApp !== dadosOriginais.usoApp ||
-    objetivoFinanceiro !== dadosOriginais.objetivoFinanceiro ||
-    origem !== dadosOriginais.origem ||
-    possuiFilhos !== dadosOriginais.possuiFilhos ||
-    objetivoPlataforma !== dadosOriginais.objetivoPlataforma
-  );
-
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (temAlteracoes) {
-        e.preventDefault();
-        e.returnValue = ""; 
-      }
-    };
-
-    const handlePopState = (e: PopStateEvent) => {
-      if (temAlteracoes) {
-        const confirmacao = window.confirm("Você tem alterações não salvas. Deseja realmente sair?");
-        if (!confirmacao) {
-          window.history.pushState(null, "", window.location.pathname);
-        }
-      }
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    window.addEventListener("popstate", handlePopState);
-    window.history.pushState(null, "", window.location.pathname);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, [temAlteracoes]);
-
   const handleUpdate = async () => {
     setUpdating(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { error } = await supabase.from("profiles").upsert({ 
-        id: user.id,
-        nome_completo: nome,
-        email_contato: emailContato,
-        telefone: telefone,
-        profissao: profissao,
-        formacao: formacao,
-        data_nascimento: dataNascimento || null,
-        genero: genero,
-        estado_civil: estadoCivil,
-        cidade: cidade,
-        estado: estado,
-        uso_app: usoApp,
-        objetivo_financeiro: objetivoFinanceiro,
-        origem: origem,
-        possui_filhos: possuiFilhos,
-        objetivo_plataforma: objetivoPlataforma,
-        updated_at: new Date()
+        id: user.id, nome_completo: nome, email_contato: emailContato, telefone: telefone,
+        profissao: profissao, formacao: formacao, data_nascimento: dataNascimento || null,
+        genero: genero, estado_civil: estadoCivil, cidade: cidade, estado: estado,
+        uso_app: usoApp, objetivo_financeiro: objetivoFinanceiro, origem: origem,
+        possui_filhos: possuiFilhos, objetivo_plataforma: objetivoPlataforma, updated_at: new Date()
       });
       if (error) alert("Erro: " + error.message);
-      else {
-        alert("Dados atualizados com sucesso!");
-        setDadosOriginais({
-          nome, emailContato, telefone, profissao, formacao, dataNascimento,
-          genero, estadoCivil, cidade, estado, usoApp, objetivoFinanceiro,
-          origem, possuiFilhos, objetivoPlataforma
-        });
-      }
+      else alert("Dados salvos!");
     }
     setUpdating(false);
   };
@@ -238,111 +172,84 @@ export default function MinhaContaPage() {
     setPassLoading(true);
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) alert("Erro: " + error.message);
-    else {
-      alert("Senha alterada com sucesso!");
-      setShowPassModal(false);
-    }
+    else { alert("Senha atualizada!"); setShowPassModal(false); }
     setPassLoading(false);
   };
 
-  if (loading) return <div className="flex h-screen items-center justify-center text-gray-400 animate-pulse font-medium">Sincronizando perfil...</div>;
+  if (loading) return <div className="flex h-screen items-center justify-center text-gray-400 animate-pulse font-medium">Sincronizando...</div>;
 
   return (
     <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
+      
+      {/* HEADER DINÂMICO */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
         <div>
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
             <span>Minha conta<span className="text-blue-600">.</span></span>
             <UserCircle size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
           </h1>
-          <h2 className="text-gray-500 text-lg font-medium max-w-2xl leading-relaxed mt-0">
-            <span className="hidden md:block">Gerencie suas informações e preferências.</span>
-            <span className="block md:hidden">Gerencie seus dados.</span>
-          </h2>
-        </div>
-      </div>
-
-      <div className="mb-6">
-        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-2 flex items-center gap-4">
-          Perfil e Segurança <div className="h-px bg-gray-300 flex-1"></div>
-        </h3>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-8">
-            <div className="text-sm text-gray-500 font-medium leading-relaxed">
-              <span className="hidden md:inline">Olá{nome ? ` ${nome.split(' ')[0]}` : ","}, conecte-se em seus dispositivos utilizando seu id{" "}</span>
-              <span className="inline md:hidden">Olá{nome ? ` ${nome.split(' ')[0]}` : ""}, conecte-se em qualquer dispositivo utilizando seu id{" "}</span>
-              <span className="inline-flex align-middle">
-                <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[10px] font-bold shadow-sm lowercase leading-none select-none">#{slug?.toLowerCase() || "---"}</span>
-              </span>
-              <span className="mx-1">ou e-mail</span>
-              <span className="inline-flex align-middle">
-                <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[10px] font-bold shadow-sm lowercase leading-none select-none">{email.toLowerCase()}</span>
-              </span>
-              <span className="hidden md:inline"> e aproveite todas as funções da Plataforma da Nucleo.</span>
-              <span className="inline md:hidden">.</span>
-            </div>
-          </div>
-          <div className="lg:col-span-4 hidden md:block">
-            <div className="w-full bg-gray-50/80 p-2 rounded-[2rem] border border-gray-100 shadow-inner flex items-center justify-center">
-              <button onClick={() => setShowPassModal(true)} className="w-full flex items-center justify-center gap-2 py-4 bg-white border border-gray-200 rounded-2xl text-[10px] font-black text-gray-500 uppercase hover:text-blue-600 hover:border-blue-200 transition-all active:scale-95 shadow-sm">
-                <KeyRound size={14} /> Alterar senha de acesso
-              </button>
-            </div>
+          <div className="flex items-center gap-3">
+             <span className="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] font-bold lowercase">#{slug || "user"}</span>
+             <p className="text-gray-500 text-sm font-medium leading-relaxed">, gerencie seus dados e acompanhe seu comportamento.</p>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
-        <div className="lg:col-span-8">
-          <section className="bg-white rounded-[2.5rem] px-5 py-10 md:p-10 border border-gray-100 shadow-sm relative flex flex-col h-full">
-            <div className="flex flex-col xl:flex-row justify-between items-start mb-12 gap-8">
-              <div className="flex flex-row items-start md:items-center gap-6">
-                <div className="relative group shrink-0">
-                  <div className={`w-20 h-20 md:w-24 md:h-24 rounded-[2rem] md:rounded-[2.5rem] bg-gray-50 border-4 border-white shadow-xl overflow-hidden flex items-center justify-center transition-all ${uploadingAvatar ? 'opacity-40' : 'opacity-100'}`}>
-                    {avatarUrl ? <img src={avatarUrl} alt="Perfil" className="w-full h-full object-cover" referrerPolicy="no-referrer" /> : <UserCircle size={48} className="text-gray-200" />}
-                  </div>
-                  <label className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 rounded-[2rem] md:rounded-[2.5rem] cursor-pointer transition-all">
-                    <Camera size={24} />
-                    <input type="file" className="hidden" accept="image/*" onChange={handleUploadAvatar} disabled={uploadingAvatar} />
-                  </label>
-                  {uploadingAvatar && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Loader2 size={24} className="animate-spin text-blue-600" />
-                    </div>
-                  )}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        
+        {/* COLUNA ESQUERDA: DADOS PESSOAIS */}
+        <div className="lg:col-span-8 h-full">
+          <section className="bg-white rounded-[2.5rem] p-8 md:p-10 border border-gray-100 shadow-sm h-full flex flex-col">
+            <div className="flex items-center gap-6 mb-12">
+              <div className="relative group shrink-0">
+                <div className={`w-24 h-24 rounded-[2.5rem] bg-gray-50 border-4 border-white shadow-xl overflow-hidden flex items-center justify-center transition-all ${uploadingAvatar ? 'opacity-40' : 'opacity-100'}`}>
+                  {avatarUrl ? <img src={avatarUrl} alt="Perfil" className="w-full h-full object-cover" /> : <UserCircle size={48} className="text-gray-200" />}
                 </div>
-                <div className="text-left">
-                  <h4 className="text-lg md:text-xl font-bold text-gray-900 mb-1">Dados Cadastrais</h4>
-                  <p className="text-[10px] md:text-[11px] text-gray-400 font-medium leading-tight max-w-[180px] md:max-w-[200px]">Clique sobre o ícone da câmera para incluir ou editar sua imagem de perfil.</p>
-                </div>
+                <label className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 rounded-[2.5rem] cursor-pointer transition-all">
+                  <Camera size={24} />
+                  <input type="file" className="hidden" accept="image/*" />
+                </label>
+              </div>
+              <div>
+                <h4 className="text-xl font-bold text-gray-900">Dados Cadastrais</h4>
+                <p className="text-[11px] text-gray-400 font-black uppercase tracking-widest mt-1 leading-tight">Identidade Nucleobase</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 flex-1">
               <div className="md:col-span-2 space-y-2">
-                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em]">Nome Completo</label>
-                <input type="text" value={nome} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:bg-white focus:ring-4 focus:ring-blue-50 outline-none transition-all font-medium" onChange={(e) => setNome(e.target.value)} />
+                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest">Nome Completo</label>
+                <input type="text" value={nome} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:bg-white outline-none font-medium transition-all" onChange={(e) => setNome(e.target.value)} />
               </div>
+              
               <div className="space-y-2">
-                <label className="text-[11px] font-black text-blue-600 uppercase ml-1 tracking-[0.1em]">E-mail de Notificações</label>
-                <input type="email" value={emailContato} placeholder="seu-email@exemplo.com" className="w-full h-12 px-5 bg-blue-50/30 border border-blue-100 rounded-2xl text-sm focus:bg-white focus:ring-4 focus:ring-blue-50 outline-none transition-all font-medium text-blue-900" onChange={(e) => setEmailContato(e.target.value)} />
+                <label className="text-[11px] font-black text-blue-600 uppercase ml-1 tracking-widest">E-mail de Notificações</label>
+                <input type="email" value={emailContato} className="w-full h-12 px-5 bg-blue-50/30 border border-blue-100 rounded-2xl text-sm text-blue-900 outline-none" onChange={(e) => setEmailContato(e.target.value)} />
               </div>
+
               <div className="space-y-2">
-                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em]">Telefone de Contato</label>
-                <input type="text" value={telefone} placeholder="(00) 00000-0000" className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:bg-white focus:ring-4 focus:ring-blue-50 outline-none transition-all" onChange={(e) => setTelefone(aplicarMascaraTelefone(e.target.value))} />
+                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest">Telefone</label>
+                <input type="text" value={telefone} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm" onChange={(e) => setTelefone(aplicarMascaraTelefone(e.target.value))} />
               </div>
+
               <div className="space-y-2">
-                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em]">Gênero</label>
-                <select value={genero} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:bg-white outline-none" onChange={(e) => setGenero(e.target.value)}>
+                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest">Data de Nascimento</label>
+                <input type="date" value={dataNascimento} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm" onChange={(e) => setDataNascimento(e.target.value)} />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest">Gênero</label>
+                <select value={genero} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => setGenero(e.target.value)}>
                   <option value=""></option>
                   <option value="masculino">Masculino</option>
                   <option value="feminino">Feminino</option>
-                  <option value="outro">Outro / Prefiro não dizer</option>
+                  <option value="outro">Prefiro não dizer</option>
                 </select>
               </div>
+
               <div className="space-y-2">
-                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em]">Estado Civil</label>
-                <select value={estadoCivil} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:bg-white outline-none" onChange={(e) => setEstadoCivil(e.target.value)}>
+                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest">Estado Civil</label>
+                <select value={estadoCivil} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => setEstadoCivil(e.target.value)}>
                   <option value=""></option>
                   <option value="solteiro">Solteiro(a)</option>
                   <option value="casado">Casado(a)</option>
@@ -350,38 +257,36 @@ export default function MinhaContaPage() {
                   <option value="divorciado">Divorciado(a)</option>
                 </select>
               </div>
+
               <div className="space-y-2">
-                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em]">Data de Nascimento</label>
-                <input type="date" value={dataNascimento} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:bg-white outline-none transition-all" onChange={(e) => setDataNascimento(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em] flex items-center gap-2"><Baby size={14}/> Possui filhos?</label>
-                <select value={possuiFilhos} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:bg-white outline-none" onChange={(e) => setPossuiFilhos(e.target.value)}>
+                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><Baby size={14}/> Possui filhos?</label>
+                <select value={possuiFilhos} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => setPossuiFilhos(e.target.value)}>
                   <option value=""></option>
                   <option value="sim">Sim</option>
                   <option value="nao">Não</option>
                 </select>
               </div>
+
               <div className="space-y-2">
-                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em] flex items-center gap-2"><MapPin size={14}/> Cidade</label>
-                <input type="text" value={cidade} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:bg-white outline-none" onChange={(e) => setCidade(e.target.value)} />
+                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><MapPin size={14}/> Cidade / UF</label>
+                <div className="flex gap-2">
+                    <input type="text" value={cidade} placeholder="Cidade" className="flex-1 h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => setCidade(e.target.value)} />
+                    <select value={estado} className="w-24 h-12 px-2 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => setEstado(e.target.value)}>
+                        <option value=""></option>
+                        {["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"].map(uf => <option key={uf} value={uf}>{uf}</option>)}
+                    </select>
+                </div>
               </div>
+
               <div className="space-y-2">
-                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em]">UF</label>
-                <select value={estado} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:bg-white outline-none" onChange={(e) => setEstado(e.target.value)}>
-                  <option value=""></option>
-                  {["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"].map(uf => <option key={uf} value={uf}>{uf}</option>)}
-                </select>
+                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><Briefcase size={14}/> Profissão Atual</label>
+                <input type="text" value={profissao} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => setProfissao(e.target.value)} />
               </div>
-              <div className="space-y-2">
-                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em] flex items-center gap-2"><Briefcase size={14}/> Profissão Atual</label>
-                <input type="text" value={profissao} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:bg-white outline-none" onChange={(e) => setProfissao(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em] flex items-center gap-2"><GraduationCap size={14}/> Formação Acadêmica</label>
-                <select value={formacao} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm focus:bg-white outline-none" onChange={(e) => setFormacao(e.target.value)}>
+
+              <div className="md:col-span-2 space-y-2">
+                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><GraduationCap size={14}/> Formação Acadêmica</label>
+                <select value={formacao} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => setFormacao(e.target.value)}>
                   <option value="">Selecione...</option>
-                  <option value="fundamental">Ensino Fundamental</option>
                   <option value="medio">Ensino Médio</option>
                   <option value="superior">Ensino Superior</option>
                   <option value="pos">Pós-graduação</option>
@@ -390,133 +295,208 @@ export default function MinhaContaPage() {
                 </select>
               </div>
             </div>
-          </section>
-        </div>
 
-        <div className="lg:col-span-4 flex flex-col gap-8">
-          <section className="bg-gray-900 p-10 rounded-[3rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-between flex-1">
-            <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
-              <Heart size={200} strokeWidth={1} className="text-blue-500" />
-            </div>
-            <div className="relative z-10">
-              <h3 className="text-[12px] font-black text-blue-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-10">
-                <Heart size={18} fill="currentColor"/> Preferências
-              </h3>
-              <div className="space-y-10">
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <Share2 size={12}/> Canal de Origem
-                  </label>
-                  <select value={origem} className="w-full h-12 px-4 bg-white/5 border border-white/10 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-white transition-all" onChange={(e) => setOrigem(e.target.value)}>
-                    <option value="" className="text-gray-900 italic">Selecione uma opção</option>
-                    <option value="instagram" className="text-gray-900">Instagram</option>
-                    <option value="google" className="text-gray-900">Google</option>
-                    <option value="linkedin" className="text-gray-900">LinkedIn</option>
-                    <option value="youtube" className="text-gray-900">YouTube</option>
-                    <option value="indicacao" className="text-gray-900">Indicação</option>
-                  </select>
-                </div>
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <Target size={12}/> Objetivo Principal
-                  </label>
-                  <select value={objetivoPlataforma} className="w-full h-12 px-4 bg-white/5 border border-white/10 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-white transition-all" onChange={(e) => setObjetivoPlataforma(e.target.value)}>
-                    <option value="" className="text-gray-900 italic">Selecione...</option>
-                    <option value="sair_dividas" className="text-gray-900">Sair de dívidas</option>
-                    <option value="organizar_gastos" className="text-gray-900">Organizar gastos</option>
-                    <option value="guardar_dinheiro" className="text-gray-900">Guardar dinheiro</option>
-                    <option value="investir" className="text-gray-900">Começar a investir</option>
-                    <option value="liberdade_financeira" className="text-gray-900">Liberdade Financeira</option>
-                  </select>
-                </div>
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Frequência de Uso</label>
-                  <select value={usoApp} className="w-full h-12 px-4 bg-white/5 border border-white/10 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-white transition-all" onChange={(e) => setUsoApp(e.target.value)}>
-                    <option value="" className="text-gray-900"></option>
-                    <option value="uso_pessoal" className="text-gray-900">Uso Diário</option>
-                    <option value="trabalho" className="text-gray-900">Constância semanal</option>
-                    <option value="estudos" className="text-gray-900">Lançamento mensal</option>
-                  </select>
-                </div>
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Foco do Orçamento</label>
-                  <select value={objetivoFinanceiro} className="w-full h-12 px-4 bg-white/5 border border-white/10 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-white transition-all" onChange={(e) => setObjetivoFinanceiro(e.target.value)}>
-                    <option value="" className="text-gray-900"></option>
-                    <option value="pessoal" className="text-gray-900">Pessoal</option>
-                    <option value="familiar" className="text-gray-900">Familiar</option>
-                    <option value="empresarial" className="text-gray-900">Empresarial</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div className="mt-12 pt-8 border-t border-white/10 relative z-10">
-              <div className="p-6 bg-white/5 rounded-[2rem] border border-white/5 group-hover:bg-white/10 transition-all text-center">
-                <p className="text-[11px] text-blue-100/60 leading-relaxed italic font-medium">Seus dados atualizados otimizam a sua experiência no ecossistema <span className="text-blue-400">nucleobase.app</span>.</p>
-              </div>
-            </div>
-          </section>
-          <div className="flex flex-col gap-4">
-            <div className="w-full bg-gray-50/80 p-2 rounded-[2rem] border border-gray-100 shadow-inner flex md:hidden items-center justify-center">
-              <button onClick={() => setShowPassModal(true)} className="w-full flex items-center justify-center gap-2 py-4 bg-white border border-gray-200 rounded-2xl text-[10px] font-black text-gray-500 uppercase hover:text-blue-600 hover:border-blue-200 transition-all active:scale-95 shadow-sm">
-                <KeyRound size={14} /> Alterar senha de acesso
+            <div className="mt-12 flex flex-col md:flex-row gap-4 justify-end border-t border-gray-50 pt-8">
+              <button onClick={() => setShowPassModal(true)} className="flex items-center justify-center gap-2 px-8 py-4 bg-gray-100 text-gray-500 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-200 transition-all">
+                <KeyRound size={16} /> Alterar Senha
+              </button>
+              <button onClick={handleUpdate} disabled={updating} className="flex items-center justify-center gap-3 px-10 py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all">
+                <Save size={16} /> {updating ? "Sincronizando..." : "Salvar Alterações"}
               </button>
             </div>
-            <button onClick={handleUpdate} disabled={updating} className="w-full bg-blue-600 text-white py-6 rounded-[2.5rem] hover:bg-blue-700 transition-all font-black text-[12px] uppercase tracking-[0.3em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-4 active:scale-[0.98] disabled:opacity-50 group">
-              <Save size={18} className="group-hover:rotate-12 transition-transform" /> 
-              {updating ? "Sincronizando..." : "Salvar Alterações"}
-            </button>
-          </div>
+          </section>
         </div>
-      </div>
 
-      <div className="mt-24 flex items-center gap-4 mb-12">
-        <div className="h-px bg-gray-200 flex-1"></div>
-        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
-        <div className="h-px bg-gray-200 flex-1"></div>
-      </div>
-
-      <div className="flex flex-col items-center text-center">
-        <div className="max-w-3xl mb-12">
-          <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span></h4>
-          <p className="text-gray-500 font-medium text-sm md:text-base">Insights, novidades e bastidores da Nucleobase diretamente no seu feed.</p>
-        </div>
-        <a href="https://www.instagram.com/nucleobase.app/" target="_blank" rel="noopener noreferrer" className="group relative flex flex-col items-center gap-6">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
-            <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
-              <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+        {/* COLUNA DIREITA: COMPORTAMENTO */}
+        <div className="lg:col-span-4 flex flex-col gap-6">
+          
+          <section className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shrink-0">
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-blue-400">Força dos Dados</h3>
+                <span className="text-xs font-bold">{stats.percentualPerfil}%</span>
+              </div>
+              <div className="h-2 bg-white/10 rounded-full mb-6 overflow-hidden">
+                <div className="h-full bg-blue-500 rounded-full transition-all duration-1000" style={{ width: `${stats.percentualPerfil}%` }}></div>
+              </div>
+              <p className="text-[11px] text-gray-400 leading-relaxed italic">
+                {stats.percentualPerfil < 100 
+                  ? "Complete seus dados para obter uma análise comparativa de mercado."
+                  : "Perfil completo! Sua precisão nos relatórios é máxima."}
+              </p>
             </div>
+          </section>
+
+          {/* DASHBOARD DE MÉTRICAS */}
+          <section className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm flex-1 flex flex-col">
+            <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2 mb-8">
+              <Activity size={16} className="text-blue-600"/> Atividade Recente
+            </h3>
+
+            <div className="space-y-6 flex-1">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 shrink-0">
+                  <MousePointerClick size={18} />
+                </div>
+                <div>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Total Lançamentos (Acumulado)</p>
+                  <p className="text-lg font-black text-gray-900">{stats.totalLancamentos}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 shrink-0">
+                  <CalendarDays size={18} />
+                </div>
+                <div>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Meses Ativos</p>
+                  <div className="flex flex-wrap gap-1 mt-0.5">
+                    {stats.mesesAtivos.length > 0 ? (
+                      stats.mesesAtivos.map(m => (
+                        <span key={m} className="text-[8px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-bold uppercase">{m}</span>
+                      ))
+                    ) : (
+                      <span className="text-[8px] bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded font-bold uppercase">---</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
+                  <Wallet size={18} />
+                </div>
+                <div>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Patrimônio Conectado</p>
+                  <p className="text-sm font-bold text-gray-900">{stats.patrimonioConectado} origens de cartão informada(s)</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-orange-600 shrink-0">
+                  <Zap size={18} />
+                </div>
+                <div>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Gasto Diário Médio (Mês atual)</p>
+                  <p className="text-sm font-bold text-gray-900">{stats.mediaGastosDiarios}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 shrink-0">
+                  <CheckCircle2 size={18} />
+                </div>
+                <div>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Última Atividade de Lançamento</p>
+                  <p className="text-sm font-bold text-gray-900">{stats.ultimoLancamento}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 p-5 bg-blue-50 rounded-3xl border border-blue-100 relative overflow-hidden group">
+               <TrendingUp size={40} className="absolute -right-2 -bottom-2 text-blue-200/40 group-hover:scale-110 transition-transform" />
+               <h4 className="text-[10px] font-black text-blue-700 uppercase mb-2 flex items-center gap-2">
+                 <Trophy size={12}/> Insight Nucleobase
+               </h4>
+               <p className="text-[11px] text-blue-900/60 font-medium leading-relaxed">
+                 O equilíbrio entre receita e despesa é o primeiro passo para a sua liberdade financeira.
+               </p>
+            </div>
+          </section>
+
+          <section className="p-6 border-2 border-dashed border-gray-100 rounded-[2.5rem] flex items-center gap-4 shrink-0">
+             <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 shrink-0">
+                <Info size={20} />
+             </div>
+             <p className="text-[10px] text-gray-400 font-medium leading-tight">
+               Seus dados demográficos são usados apenas para gerar comparativos anônimos de custo de vida na sua região.
+             </p>
+          </section>
+        </div>
+      </div>
+
+      {/* SEÇÃO DE OBJETIVOS */}
+      <div className="mt-10">
+          <section className="bg-gray-50/50 rounded-[2.5rem] p-10 border border-gray-100">
+             <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
+               Preferências da Plataforma <div className="h-px bg-gray-200 flex-1"></div>
+             </h3>
+             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><Share2 size={12}/> Canal Origem</label>
+                    <select value={origem} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs" onChange={(e) => setOrigem(e.target.value)}>
+                        <option value="">Selecione...</option>
+                        <option value="instagram">Instagram</option>
+                        <option value="google">Google</option>
+                        <option value="linkedin">LinkedIn</option>
+                        <option value="indicacao">Indicação</option>
+                    </select>
+                </div>
+                <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><Target size={12}/> Objetivo</label>
+                    <select value={objetivoPlataforma} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs" onChange={(e) => setObjetivoPlataforma(e.target.value)}>
+                        <option value="">Selecione...</option>
+                        <option value="liberdade">Liberdade Financeira</option>
+                        <option value="sair_dividas">Sair de Dívidas</option>
+                        <option value="investir">Começar a Investir</option>
+                    </select>
+                </div>
+                <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Frequência</label>
+                    <select value={usoApp} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs" onChange={(e) => setUsoApp(e.target.value)}>
+                        <option value="">Selecione...</option>
+                        <option value="diario">Diário</option>
+                        <option value="semanal">Semanal</option>
+                        <option value="mensal">Mensal</option>
+                    </select>
+                </div>
+                <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Foco Atual</label>
+                    <select value={objetivoFinanceiro} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs" onChange={(e) => setObjetivoFinanceiro(e.target.value)}>
+                        <option value="">Selecione...</option>
+                        <option value="pessoal">Pessoal</option>
+                        <option value="familiar">Familiar</option>
+                        <option value="empresa">Empresarial</option>
+                    </select>
+                </div>
+             </div>
+          </section>
+      </div>
+
+      {/* BLOCO INSTAGRAM */}
+      <div className="mt-24 text-center border-t border-gray-100 pt-20">
+        <h4 className="text-3xl font-bold text-gray-900 tracking-tighter mb-12">Fique por dentro <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span></h4>
+        <a href="https://www.instagram.com/nucleobase.app/" target="_blank" rel="noopener noreferrer" className="group inline-flex flex-col items-center gap-4 transition-all">
+          <div className="w-24 h-24 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.5rem] flex items-center justify-center text-white shadow-xl group-hover:rotate-6 transition-all duration-500">
+            <Instagram size={48} strokeWidth={1.5} />
           </div>
-          <div className="flex flex-col items-center">
-            <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
-            <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
-          </div>
+          <span className="text-[11px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-600 transition-colors">@nucleobase.app</span>
         </a>
       </div>
 
+      {/* MODAL ALTERAR SENHA */}
       {showPassModal && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-xl z-[100] flex items-center justify-center p-6">
-          <div className="bg-white w-full max-w-md rounded-[3.5rem] p-12 shadow-2xl relative border border-gray-100 animate-in zoom-in-95 duration-300">
-            <button onClick={() => setShowPassModal(false)} className="absolute right-10 top-10 text-gray-300 hover:text-gray-900 transition-colors">
-              <X size={28} strokeWidth={1.5} />
+          <div className="bg-white w-full max-w-md rounded-[3rem] p-10 shadow-2xl relative animate-in zoom-in-95 duration-300">
+            <button onClick={() => setShowPassModal(false)} className="absolute right-8 top-8 text-gray-300 hover:text-gray-900 transition-colors">
+              <X size={24} />
             </button>
-            <div className="text-center mb-10">
-              <div className="bg-blue-50 w-20 h-20 rounded-[2rem] flex items-center justify-center text-blue-600 mx-auto mb-6 border border-blue-100 shadow-sm">
-                <KeyRound size={36} strokeWidth={1.5} />
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 bg-blue-50 rounded-[1.5rem] flex items-center justify-center text-blue-600 mx-auto mb-4">
+                <KeyRound size={32} />
               </div>
-              <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Nova Senha</h2>
-              <p className="text-gray-400 text-sm mt-2 font-medium">Redefina seu acesso com segurança.</p>
+              <h2 className="text-2xl font-bold text-gray-900">Nova Senha</h2>
             </div>
-            <form onSubmit={handlePasswordReset} className="space-y-5">
+            <form onSubmit={handlePasswordReset} className="space-y-4">
               <div className="relative">
-                <input type={showPass ? "text" : "password"} placeholder="Nova senha" required onChange={(e) => setNewPassword(e.target.value)} className="w-full h-14 px-6 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all" />
+                <input type={showPass ? "text" : "password"} placeholder="Nova senha" required onChange={(e) => setNewPassword(e.target.value)} className="w-full h-14 px-6 bg-gray-50 border border-gray-100 rounded-2xl outline-none" />
                 <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400">
                   {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              <input type={showPass ? "text" : "password"} placeholder="Confirmar nova senha" required onChange={(e) => setConfirmPassword(e.target.value)} className="w-full h-14 px-6 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all" />
-              <button disabled={passLoading} className="w-full bg-gray-900 text-white h-16 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-lg mt-4 active:scale-95 transition-all disabled:opacity-50">
-                {passLoading ? "Atualizando..." : "Confirmar Alteração"}
+              <input type={showPass ? "text" : "password"} placeholder="Confirmar senha" required onChange={(e) => setConfirmPassword(e.target.value)} className="w-full h-14 px-6 bg-gray-50 border border-gray-100 rounded-2xl outline-none" />
+              <button disabled={passLoading} className="w-full bg-gray-900 text-white h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] mt-2 active:scale-95 transition-all">
+                {passLoading ? "Processando..." : "Atualizar Senha"}
               </button>
             </form>
           </div>

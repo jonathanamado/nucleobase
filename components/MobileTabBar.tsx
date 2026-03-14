@@ -1,31 +1,63 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  Search, Share2, User, Home, X, Rocket, LogOut, Dna, 
-  Settings, Lock, UserCircle, PlusCircle, LogIn, MonitorPlay
-} from "lucide-react";
+import { Search, Share2, User, Home, X, Rocket, LogOut, Dna, Settings, Key, UserPlus, PlayCircle, LogIn, KeyRound, Eye, EyeOff } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/app/context/AuthContext";
 
 export function MobileTabBar() {
   const router = useRouter();
   const pathname = usePathname();
-  
-  const { isLoggedIn, userProfile, loading } = useAuth();
-  
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [authTrigger, setAuthTrigger] = useState(0);
+  const [isSharing, setIsSharing] = useState(false);
+  const [userProfile, setUserProfile] = useState<{ nome: string; avatar: string | null }>({
+    nome: "",
+    avatar: null,
+  });
+  
+  // Estados para o Modal de Senha
+  const [showPassModal, setShowPassModal] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPass, setShowPass] = useState(false);
+  const [passLoading, setPassLoading] = useState(false);
 
-  // Listener para resolver o delay de login via Google/OAuth
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Lógica para resetar o destaque de compartilhar ao mudar de página
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-        setAuthTrigger(prev => prev + 1);
-      }
+    setIsSharing(false);
+  }, [pathname]);
+
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("nome_completo, avatar_url")
+      .eq("id", userId)
+      .single();
+
+    if (data) {
+      setUserProfile({
+        nome: data.nome_completo || "",
+        avatar: data.avatar_url || null,
+      });
+    }
+  };
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+      if (session?.user) fetchProfile(session.user.id);
+    };
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsLoggedIn(!!session);
+      if (session?.user) fetchProfile(session.user.id);
+      else setUserProfile({ nome: "", avatar: null });
     });
 
     return () => subscription.unsubscribe();
@@ -39,41 +71,33 @@ export function MobileTabBar() {
   };
 
   const handleLogout = async () => {
-    const confirmLogout = window.confirm("Tem certeza que deseja sair?");
+    const confirmLogout = window.confirm("Tem certeza que deseja sair da conta?");
     if (confirmLogout) {
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-        
-        if (typeof window !== "undefined") {
-          localStorage.clear();
-          sessionStorage.clear();
-          const databases = await window.indexedDB.databases?.();
-          databases?.forEach(db => db.name?.includes('supabase') && window.indexedDB.deleteDatabase(db.name!));
-          
-          document.cookie.split(";").forEach((c) => {
-            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-          });
-        }
-
-        setIsMenuOpen(false);
-        window.location.href = "/";
-      } catch (error) {
-        window.location.href = "/";
-      }
+      await supabase.auth.signOut();
+      setIsMenuOpen(false);
+      router.push("/");
     }
   };
 
-  const handleAction = (path: string) => {
-    setIsMenuOpen(false);
-    router.push(path);
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) return alert("As senhas não coincidem!");
+    setPassLoading(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) alert("Erro: " + error.message);
+    else {
+      alert("Senha alterada com sucesso!");
+      setShowPassModal(false);
+    }
+    setPassLoading(false);
   };
 
-  const handlePasswordReset = () => {
-    setIsMenuOpen(false);
-    alert("Acionando alteração de senha...");
+  const handleProfileClick = () => {
+    setIsMenuOpen(!isMenuOpen);
   };
 
   const handleShare = async () => {
+    setIsSharing(true);
     if (navigator.share) {
       try {
         await navigator.share({
@@ -99,12 +123,76 @@ export function MobileTabBar() {
     }
   };
 
-  const isActuallyLoggedIn = (isLoggedIn || authTrigger > 0) && !!userProfile;
-
-  if (loading) return null;
+  const MenuItem = ({ icon: Icon, label, onClick, color = "text-gray-700" }: any) => (
+    <button 
+      onClick={onClick}
+      className="w-full flex items-center gap-4 px-6 py-4 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-50 last:border-0"
+    >
+      <Icon size={20} className={color} />
+      <span className={`text-sm font-bold ${color}`}>{label}</span>
+    </button>
+  );
 
   return (
     <>
+      {/* Modal de Alteração de Senha (conforme aprendido) */}
+      {showPassModal && (
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-xl z-[150] flex items-center justify-center p-6">
+          <div className="bg-white w-full max-w-md rounded-[3.5rem] p-12 shadow-2xl relative border border-gray-100 animate-in zoom-in-95 duration-300">
+            <button onClick={() => setShowPassModal(false)} className="absolute right-10 top-10 text-gray-300 hover:text-gray-900 transition-colors">
+              <X size={28} strokeWidth={1.5} />
+            </button>
+            <div className="text-center mb-10">
+              <div className="bg-blue-50 w-20 h-20 rounded-[2rem] flex items-center justify-center text-blue-600 mx-auto mb-6 border border-blue-100 shadow-sm">
+                <KeyRound size={36} strokeWidth={1.5} />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Nova Senha</h2>
+              <p className="text-gray-400 text-sm mt-2 font-medium">Redefina seu acesso com segurança.</p>
+            </div>
+            <form onSubmit={handlePasswordReset} className="space-y-5">
+              <div className="relative">
+                <input type={showPass ? "text" : "password"} placeholder="Nova senha" required onChange={(e) => setNewPassword(e.target.value)} className="w-full h-14 px-6 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-gray-900" />
+                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400">
+                  {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              <input type={showPass ? "text" : "password"} placeholder="Confirmar nova senha" required onChange={(e) => setConfirmPassword(e.target.value)} className="w-full h-14 px-6 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-gray-900" />
+              <button disabled={passLoading} className="w-full bg-gray-900 text-white h-16 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-lg mt-4 active:scale-95 transition-all disabled:opacity-50">
+                {passLoading ? "Atualizando..." : "Confirmar Alteração"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Overlay do Menu de Perfil */}
+      {isMenuOpen && (
+        <div className="fixed inset-0 z-[120] animate-in fade-in duration-200">
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setIsMenuOpen(false)} />
+          <div className="absolute bottom-24 right-6 left-6 bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+            <div className="p-6 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Opções</span>
+              <button onClick={() => setIsMenuOpen(false)} className="text-gray-400"><X size={20}/></button>
+            </div>
+            
+            {isLoggedIn ? (
+              <div className="flex flex-col">
+                <MenuItem icon={User} label="Minha conta" onClick={() => { router.push("/minha-conta"); setIsMenuOpen(false); }} />
+                <MenuItem icon={Settings} label="Configurações" onClick={() => { router.push("/configuracoes"); setIsMenuOpen(false); }} />
+                <MenuItem icon={Key} label="Alterar senha" onClick={() => { setIsMenuOpen(false); setShowPassModal(true); }} />
+                <MenuItem icon={LogOut} label="Sair da conta" color="text-red-500" onClick={handleLogout} />
+              </div>
+            ) : (
+              <div className="flex flex-col">
+                <MenuItem icon={UserPlus} label="Criar conta gratuita" onClick={() => { router.push("/cadastro"); setIsMenuOpen(false); }} />
+                <MenuItem icon={LogIn} label="Realizar login" onClick={() => { router.push("/acesso-usuario"); setIsMenuOpen(false); }} />
+                <MenuItem icon={PlayCircle} label="Demonstração APP" onClick={() => { router.push("/demonstracao"); setIsMenuOpen(false); }} />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Overlay de Busca */}
       {isSearchOpen && (
         <div className="fixed inset-0 bg-white z-[110] flex flex-col p-6 animate-in slide-in-from-bottom duration-300">
@@ -145,84 +233,63 @@ export function MobileTabBar() {
         </div>
       )}
 
-      {/* Menu suspenso do Perfil */}
-      {isMenuOpen && (
-        <>
-          <div className="fixed inset-0 z-[105]" onClick={() => setIsMenuOpen(false)} />
-          <div className="fixed bottom-20 right-6 w-64 bg-white rounded-3xl shadow-2xl border border-gray-100 p-2 z-[110] animate-in fade-in zoom-in-95 duration-200 origin-bottom-right">
-            <div className="flex flex-col">
-              {isActuallyLoggedIn ? (
-                <>
-                  <button onClick={() => handleAction("/minha-conta")} className="flex items-center gap-3 p-4 hover:bg-gray-50 rounded-2xl transition-colors text-gray-700 font-semibold text-sm text-left">
-                    <UserCircle size={20} className="text-blue-600" /> Minha conta
-                  </button>
-                  <button onClick={() => handleAction("/configuracoes")} className="flex items-center gap-3 p-4 hover:bg-gray-50 rounded-2xl transition-colors text-gray-700 font-semibold text-sm text-left">
-                    <Settings size={20} className="text-gray-400" /> Configurações
-                  </button>
-                  <button onClick={handlePasswordReset} className="flex items-center gap-3 p-4 hover:bg-gray-50 rounded-2xl transition-colors text-gray-700 font-semibold text-sm text-left border-b border-gray-50">
-                    <Lock size={20} className="text-orange-500" /> Alterar senha
-                  </button>
-                  <button onClick={handleLogout} className="flex items-center gap-3 p-4 hover:bg-red-50 rounded-2xl transition-colors text-red-600 font-bold text-sm text-left">
-                    <LogOut size={20} /> Sair da conta
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button onClick={() => handleAction("/cadastro")} className="flex items-center gap-3 p-4 hover:bg-gray-50 rounded-2xl transition-colors text-gray-700 font-semibold text-sm text-left">
-                    <PlusCircle size={20} className="text-blue-600" /> Criar conta
-                  </button>
-                  <button onClick={() => handleAction("/acesso-usuario")} className="flex items-center gap-3 p-4 hover:bg-gray-50 rounded-2xl transition-colors text-gray-700 font-semibold text-sm text-left">
-                    <LogIn size={20} className="text-orange-500" /> Realizar login
-                  </button>
-                  <button onClick={() => handleAction("/demonstracao")} className="flex items-center gap-3 p-4 hover:bg-gray-50 rounded-2xl transition-colors text-gray-700 font-semibold text-sm text-left">
-                    <MonitorPlay size={20} className="text-gray-400" /> Realizar demonstração
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </>
-      )}
-
       {/* Tab Bar Principal */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-3 z-[100] flex items-center justify-between shadow-[0_-4px_15px_rgba(0,0,0,0.06)] pb-safe-bottom">
         
-        <button onClick={() => router.push("/")} className={`p-2 transition-colors ${pathname === "/" ? "text-blue-600" : "text-gray-400"}`}>
+        {/* Home */}
+        <button 
+          onClick={() => router.push("/")} 
+          className={`p-2 transition-colors ${pathname === "/" ? "text-blue-600" : "text-gray-400"}`}
+        >
           <Home size={22} strokeWidth={pathname === "/" ? 2.5 : 2} />
         </button>
 
-        <button onClick={() => router.push("/lancamentos")} className={`p-2 transition-colors ${pathname === "/lancamentos" ? "text-orange-500" : "text-gray-400"}`}>
+        {/* Lançamentos (Foguete) */}
+        <button 
+          onClick={() => router.push("/lancamentos")} 
+          className={`p-2 transition-colors ${pathname === "/lancamentos" ? "text-orange-500" : "text-gray-400"}`}
+        >
           <Rocket size={22} strokeWidth={pathname === "/lancamentos" ? 2.5 : 2} />
         </button>
 
-        <button onClick={() => setIsSearchOpen(true)} className={`p-2 transition-colors ${pathname === "/busca" ? "text-blue-600" : "text-gray-400"}`}>
+        {/* Lupa (Busca) */}
+        <button 
+          onClick={() => setIsSearchOpen(true)} 
+          className={`p-2 transition-colors ${pathname === "/busca" ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}
+        >
           <Search size={22} strokeWidth={pathname === "/busca" ? 2.5 : 2} />
         </button>
 
-        <button onClick={handleShare} className="p-2 text-gray-400 active:text-blue-600">
-          <Share2 size={22} />
+        {/* Botão de Compartilhar */}
+        <button 
+          onClick={handleShare}
+          className={`p-2 transition-colors ${isSharing ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}
+        >
+          <Share2 size={22} strokeWidth={isSharing ? 2.5 : 2} />
         </button>
 
-        {/* Perfil */}
+        {/* Perfil / Menu */}
         <button 
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          onClick={handleProfileClick}
           className={`w-9 h-9 rounded-full border transition-all overflow-hidden flex items-center justify-center relative ${
-            isMenuOpen || pathname === "/minha-conta" ? "border-blue-600 ring-2 ring-blue-50" : "border-gray-100 bg-gray-50"
+            isMenuOpen || pathname === "/minha-conta" ? "border-blue-600 ring-2 ring-blue-600/20 shadow-[0_0_10px_rgba(37,99,235,0.1)]" : "border-gray-100 bg-gray-50"
           }`}
         >
-          {isActuallyLoggedIn && userProfile?.avatar ? (
-            <img 
-              src={userProfile.avatar} 
-              alt="Perfil" 
-              className="w-full h-full object-cover" 
-              referrerPolicy="no-referrer"
-            />
-          ) : isActuallyLoggedIn ? (
-            <span className="text-[10px] font-black text-blue-600 tracking-tighter">
-              {getInitials(userProfile?.nome || "")}
+          {isLoggedIn && userProfile.avatar ? (
+            <div className="relative w-full h-full">
+               <img src={userProfile.avatar} alt="Perfil" className="w-full h-full object-cover" />
+               {(isMenuOpen || pathname === "/minha-conta") && (
+                 <div className="absolute inset-0 bg-blue-600/10 flex items-center justify-center">
+                    {isMenuOpen ? <X size={14} className="text-white drop-shadow-md" /> : null}
+                 </div>
+               )}
+            </div>
+          ) : isLoggedIn ? (
+            <span className={`text-[10px] font-black tracking-tighter ${isMenuOpen || pathname === "/minha-conta" ? "text-blue-600" : "text-gray-400"}`}>
+              {isMenuOpen ? <X size={16} /> : getInitials(userProfile.nome)}
             </span>
           ) : (
-            <User size={20} className="text-gray-400" />
+            <User size={20} className={isMenuOpen ? "text-blue-600" : "text-gray-400"} />
           )}
         </button>
       </div>

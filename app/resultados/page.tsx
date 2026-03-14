@@ -13,12 +13,12 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, 
   Tooltip, ResponsiveContainer
 } from 'recharts';
-import { createBrowserClient } from "@supabase/ssr"; // Ajuste para persistência SSR
+import { createClient } from "@supabase/supabase-js";
 import VisionOfensora from "./_components/VisionOfensora";
 import VisionYoY from "./_components/VisionYoY";
 
-// CONFIGURAÇÃO SUPABASE COMPATÍVEL COM COOKIES E MIDDLEWARE
-const supabase = createBrowserClient(
+// CONFIGURAÇÃO SUPABASE
+const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
@@ -30,7 +30,6 @@ export default function DashboardResultados() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasData, setHasData] = useState(false);
   const [userName, setUserName] = useState("");
-  const [userAvatar, setUserAvatar] = useState<string | null>(null); // Estado para imagem
   const [chartType, setChartType] = useState<'MENSAL' | 'ACUMULADO'>('MENSAL');
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonthCategory, setSelectedMonthCategory] = useState<string>("GERAL");
@@ -56,16 +55,8 @@ export default function DashboardResultados() {
   // --- LÓGICA DE DADOS ---
   const fetchUserData = async (user: any) => {
     setIsLoggedIn(true);
-    
-    // Busca o perfil para nome e foto
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('nome_completo, avatar_url')
-      .eq('id', user.id)
-      .single();
-    
+    const { data: profile } = await supabase.from('profiles').select('nome_completo').eq('id', user.id).single();
     setUserName(profile?.nome_completo || user.user_metadata?.full_name || "Usuário");
-    setUserAvatar(profile?.avatar_url || user.user_metadata?.avatar_url || null);
 
     const { data: lancamentos, error } = await supabase
       .from('lancamentos_financeiros')
@@ -191,11 +182,7 @@ export default function DashboardResultados() {
     const checkStatus = async () => {
       setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        await fetchUserData(session.user);
-      } else {
-        setIsLoggedIn(false);
-      }
+      if (session) await fetchUserData(session.user);
       setLoading(false);
     };
     checkStatus();
@@ -249,13 +236,20 @@ export default function DashboardResultados() {
     );
   }
 
+  // DEFINIÇÃO DO CARD MÊS ATUAL CENTRALIZADO E ENRIQUECIDO
   const CurrentMonthCard = () => (
     <div className="bg-gray-900 rounded-[2rem] p-5 text-white flex flex-col justify-center items-center relative overflow-hidden shadow-xl min-h-[120px] w-full text-center">
       <div className="absolute top-4 right-4 text-white opacity-40"><Calendar size={18} /></div>
       <div className="flex flex-col items-center w-full">
-        <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2">Mês Atual ({currentMonthData.nome})</p>
-        <h3 className="text-xl font-bold tracking-tight whitespace-nowrap">R$ {currentMonthData.saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+        <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2">
+          Mês Atual ({currentMonthData.nome})
+        </p>
+        <h3 className="text-xl font-bold tracking-tight whitespace-nowrap">
+          R$ {currentMonthData.saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+        </h3>
         <p className="text-[9px] uppercase font-bold opacity-40 mt-1 mb-3">Saldo líquido mensal</p>
+        
+        {/* Informações Enriquecidas */}
         <div className="w-full pt-3 mt-1 border-t border-white/10 grid grid-cols-2 gap-4">
             <div className="text-center">
                 <p className="text-[8px] uppercase opacity-40 font-black mb-0.5">Receitas</p>
@@ -292,6 +286,7 @@ export default function DashboardResultados() {
 
   return (
     <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
+      
       <header className="flex flex-col mb-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -303,7 +298,9 @@ export default function DashboardResultados() {
               <span>Dashboard<span className="text-blue-600">.</span></span>
               <Sparkles size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
             </h1>
-            <p className="text-gray-500 text-base md:text-lg font-medium max-w-2xl leading-relaxed mt-0">Seu ecossistema de dados em tempo real.</p>
+            <p className="text-gray-500 text-base md:text-lg font-medium max-w-2xl leading-relaxed mt-0">
+              Seu ecossistema de dados em tempo real.
+            </p>
           </div>
           <p className="text-gray-500 font-medium leading-relaxed">
             <span className="hidden md:inline">
@@ -315,9 +312,12 @@ export default function DashboardResultados() {
             </span>
           </p>
         </div>
+
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-12 w-full">
            <div className="lg:col-span-8 flex flex-col gap-2">
-             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Selecione a Visão desejada:</p>
+             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">
+               Selecione a Visão desejada:
+             </p>
              <div className="flex items-center gap-3 bg-white p-2 rounded-[2rem] border border-gray-100 shadow-sm">
              {[
                 { id: "TODOS", label: "Base consolidada", icon: <Layers size={14}/> },
@@ -337,6 +337,7 @@ export default function DashboardResultados() {
         </div>
       </header>
 
+      {/* KPIs com espaçamento reduzido (mb-4) */}
       <div className="mb-4 relative group">
         <div className="hidden md:grid grid-cols-12 gap-8 items-stretch">
             <div className="col-span-8 grid grid-cols-3 gap-8">
@@ -344,26 +345,45 @@ export default function DashboardResultados() {
                 <KPICard title="Receitas" value={stats.totalReceita} icon={<ArrowUpRight size={14}/>} color="emerald" />
                 <KPICard title="Despesas" value={stats.totalDespesa} icon={<ArrowDownRight size={14}/>} color="red" />
             </div>
+            
             <div className="col-span-4">
                 <CurrentMonthCard />
             </div>
         </div>
 
+        {/* NAVEGAÇÃO MOBILE COM SETAS LATERAIS CONDICIONAIS */}
         <div className="md:hidden flex items-center justify-center relative px-2">
             {kpiIndex > 0 && (
-                <button onClick={() => setKpiIndex((prev) => prev - 1)} className="absolute left-[-10px] z-10 p-2 text-gray-400 bg-white/80 rounded-full shadow-sm"><ChevronLeft size={24} /></button>
+                <button 
+                    onClick={() => setKpiIndex((prev) => prev - 1)} 
+                    className="absolute left-[-10px] z-10 p-2 text-gray-400 bg-white/80 rounded-full shadow-sm"
+                >
+                    <ChevronLeft size={24} />
+                </button>
             )}
-            <div className="w-full flex justify-center animate-in slide-in-from-right-4 duration-300">{kpiCards[kpiIndex]}</div>
+            
+            <div className="w-full flex justify-center animate-in slide-in-from-right-4 duration-300">
+                {kpiCards[kpiIndex]}
+            </div>
+
             {kpiIndex < kpiCards.length - 1 && (
-                <button onClick={() => setKpiIndex((prev) => prev + 1)} className="absolute right-[-10px] z-10 p-2 text-gray-400 bg-white/80 rounded-full shadow-sm"><ChevronRight size={24} /></button>
+                <button 
+                    onClick={() => setKpiIndex((prev) => prev + 1)} 
+                    className="absolute right-[-10px] z-10 p-2 text-gray-400 bg-white/80 rounded-full shadow-sm"
+                >
+                    <ChevronRight size={24} />
+                </button>
             )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8 items-stretch">
+        {/* AJUSTE FLUXO DE CAIXA COMPARATIVO */}
         <section className="lg:col-span-8 bg-white border border-gray-100 rounded-[3rem] p-6 md:p-10 shadow-sm relative overflow-hidden flex flex-col min-h-[400px] md:min-h-0">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 relative z-10">
-            <h3 className="font-bold text-gray-800 flex items-center gap-2 uppercase text-xs tracking-widest"><BarChart3 size={18} className="text-blue-600" /> Fluxo de Caixa Comparativo</h3>
+            <h3 className="font-bold text-gray-800 flex items-center gap-2 uppercase text-xs tracking-widest">
+                <BarChart3 size={18} className="text-blue-600" /> Fluxo de Caixa Comparativo
+            </h3>
             <div className="flex bg-gray-50 p-1.5 rounded-2xl w-full sm:w-auto">
               <button onClick={() => setChartType('MENSAL')} className={`flex-1 sm:flex-none px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${chartType === 'MENSAL' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}>Mensal</button>
               <button onClick={() => setChartType('ACUMULADO')} className={`flex-1 sm:flex-none px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${chartType === 'ACUMULADO' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}>Acumulado</button>
@@ -390,7 +410,9 @@ export default function DashboardResultados() {
         <section className="lg:col-span-4 bg-white border border-gray-100 rounded-[3rem] p-10 shadow-sm flex flex-col justify-between">
           <div>
             <div className="mb-8">
-                <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2 uppercase text-xs tracking-widest"><Layers size={18} className="text-blue-600" /> Distribuição Custos</h3>
+                <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2 uppercase text-xs tracking-widest">
+                <Layers size={18} className="text-blue-600" /> Distribuição
+                </h3>
                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Principais centros de custo</p>
             </div>
             <div className="space-y-6">
@@ -407,7 +429,9 @@ export default function DashboardResultados() {
                 ))}
             </div>
           </div>
-          <a href="/lancamentos" className="mt-8 w-full py-5 bg-blue-50 text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all text-center">Gerenciar Lançamentos</a>
+          <a href="/lancamentos" className="mt-8 w-full py-5 bg-blue-50 text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all text-center">
+            Gerenciar Lançamentos
+          </a>
         </section>
       </div>
 
@@ -415,59 +439,105 @@ export default function DashboardResultados() {
       <VisionYoY data={rawLancamentos} />
 
       <div className="mt-16 pt-10">
+        {/* LINHA DIVISÓRIA AJUSTADA COM NOVO TEXTO */}
         <div className="flex items-center gap-4 mb-10">
             <div className="h-px bg-gray-200 flex-1"></div>
-            <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Ecossistema de Suporte</h3>
+            <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
+              Ecossistema de Suporte
+            </h3>
             <div className="h-px bg-gray-200 flex-1"></div>
         </div>
+
         <p className="text-gray-400 text-sm mb-8 text-center px-4">Acompanhe a evolução do seu ecossistema de dados e ferramentas de suporte.</p>
+
+        {/* AJUSTE CONJUNTO DE CARDS */}
         <div className="mb-12 relative group">
-          <footer className="hidden md:grid grid-cols-4 gap-8">{footerItems}</footer>
+          <footer className="hidden md:grid grid-cols-4 gap-8">
+              {footerItems}
+          </footer>
+
           <div className="md:hidden flex items-center justify-center relative px-2">
               {footerIndex > 0 && (
-                <button onClick={() => setFooterIndex((prev) => prev - 1)} className="absolute left-[-10px] z-10 p-2 text-gray-400 bg-white/80 rounded-full shadow-sm"><ChevronLeft size={24} /></button>
+                <button 
+                  onClick={() => setFooterIndex((prev) => prev - 1)} 
+                  className="absolute left-[-10px] z-10 p-2 text-gray-400 bg-white/80 rounded-full shadow-sm"
+                >
+                  <ChevronLeft size={24} />
+                </button>
               )}
-              <div className="w-full flex justify-center animate-in slide-in-from-right-4 duration-300">{footerItems[footerIndex]}</div>
+              
+              <div className="w-full flex justify-center animate-in slide-in-from-right-4 duration-300">
+                  {footerItems[footerIndex]}
+              </div>
+
               {footerIndex < footerItems.length - 1 && (
-                <button onClick={() => setFooterIndex((prev) => prev + 1)} className="absolute right-[-10px] z-10 p-2 text-gray-400 bg-white/80 rounded-full shadow-sm"><ChevronRight size={24} /></button>
+                <button 
+                  onClick={() => setFooterIndex((prev) => prev + 1)} 
+                  className="absolute right-[-10px] z-10 p-2 text-gray-400 bg-white/80 rounded-full shadow-sm"
+                >
+                  <ChevronRight size={24} />
+                </button>
               )}
           </div>
         </div>
 
+        {/* AJUSTE SUA VISÃO PERSONALIZADA */}
         <div className="relative overflow-hidden bg-white border border-gray-100 rounded-[3rem] p-6 md:p-10 shadow-sm flex flex-col md:flex-row justify-between items-center gap-10 mb-20">
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50/50 rounded-full blur-3xl -mr-32 -mt-32 z-0"></div>
             <div className="relative z-10 max-w-xl text-center md:text-left">
-                <div className="inline-flex items-center gap-3 px-4 py-2 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-4"><Zap size={14} fill="currentColor" /> Ecosystem Insight</div>
+                <div className="inline-flex items-center gap-3 px-4 py-2 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
+                    <Zap size={14} fill="currentColor" /> Ecosystem Insight
+                </div>
                 <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 tracking-tight">Sua visão personalizada<span className="text-blue-600">.</span></h3>
-                <p className="text-gray-500 leading-relaxed text-base md:text-lg font-medium opacity-80">Transformamos seus padrões de uso em clareza estratégica para suas decisões financeiras diárias.</p>
+                <p className="text-gray-500 leading-relaxed text-base md:text-lg font-medium opacity-80">
+                    Transformamos seus padrões de uso em clareza estratégica para suas decisões financeiras diárias.
+                </p>
             </div>
             <div className="relative z-10 flex flex-col gap-4 md:gap-6 w-full md:w-96 p-6 md:p-8 bg-gray-50/50 backdrop-blur-sm rounded-[2rem] border border-white">
                 <div className="space-y-1 md:space-y-2">
                   <p className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Canais Oficiais</p>
                   <p className="text-xs font-bold text-gray-700 break-all">contato@nucleobase.app</p>
                 </div>
-                <button className="flex items-center justify-center gap-3 px-6 md:px-8 py-3 md:py-4 bg-gray-900 text-white rounded-2xl text-[10px] md:text-xs font-bold transition-all hover:bg-blue-600 hover:shadow-xl hover:shadow-blue-100 active:scale-95"><Send size={16} /> Solicitar Melhoria</button>
+                <button className="flex items-center justify-center gap-3 px-6 md:px-8 py-3 md:py-4 bg-gray-900 text-white rounded-2xl text-[10px] md:text-xs font-bold transition-all hover:bg-blue-600 hover:shadow-xl hover:shadow-blue-100 active:scale-95">
+                    <Send size={16} /> Solicitar Melhoria
+                </button>
             </div>
         </div>
 
+        {/* NOVA LINHA DIVISÓRIA "CONECTE-SE" CENTRALIZADA (PADRÃO SOBRE) */}
         <div className="mt-24 flex items-center gap-4 mb-12">
           <div className="h-px bg-gray-200 flex-1"></div>
-          <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
+          <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
+            Conecte-se
+          </h3>
           <div className="h-px bg-gray-200 flex-1"></div>
         </div>
 
+        {/* BLOCO INSTAGRAM CENTRALIZADO COM GRADIENTE E BRILHO (PADRÃO SOBRE) */}
         <div className="flex flex-col items-center text-center">
           <div className="max-w-3xl mb-12">
-            <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span></h4>
-            <p className="text-gray-500 font-medium text-sm md:text-base">Insights, novidades e bastidores da Nucleobase diretamente no seu feed.</p>
+            <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
+              Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+            </h4>
+            <p className="text-gray-500 font-medium text-sm md:text-base">
+              Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
+            </p>
           </div>
-          <a href="https://www.instagram.com/nucleobase.app/" target="_blank" rel="noopener noreferrer" className="group relative flex flex-col items-center gap-6">
+          
+          <a 
+            href="https://www.instagram.com/nucleobase.app/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="group relative flex flex-col items-center gap-6"
+          >
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+              
               <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
                 <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
               </div>
             </div>
+            
             <div className="flex flex-col items-center">
               <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
               <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
@@ -479,6 +549,8 @@ export default function DashboardResultados() {
   );
 }
 
+// --- COMPONENTES AUXILIARES ---
+
 function KPICard({ title, value, icon, color }: any) {
     const colorStyles: any = {
         blue: "text-blue-600 bg-blue-50",
@@ -487,10 +559,14 @@ function KPICard({ title, value, icon, color }: any) {
     };
     return (
         <div className="bg-white border border-gray-100 p-5 rounded-[2rem] shadow-sm flex flex-col justify-center relative overflow-hidden transition-all hover:border-blue-200 min-h-[120px] w-full items-start text-left">
-            <div className={`absolute top-4 right-4 p-2 rounded-lg ${colorStyles[color]}`}>{icon}</div>
+            <div className={`absolute top-4 right-4 p-2 rounded-lg ${colorStyles[color]}`}>
+                {icon}
+            </div>
             <div className="flex flex-col items-start">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{title}</p>
-                <h3 className="text-lg font-bold text-gray-900 tracking-tight whitespace-nowrap">R$ {value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+                <h3 className="text-lg font-bold text-gray-900 tracking-tight whitespace-nowrap">
+                    R$ {value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </h3>
             </div>
         </div>
     );
