@@ -133,7 +133,7 @@ export default function ConfiguracoesPage() {
             </div>
             
             <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-3">
-              <Fingerprint size={16} className="text-blue-600"/> Acesso ao Ecossistema (Qualquer dispositivo desejado)
+              <Fingerprint size={16} className="text-blue-600"/> Ecossistema
             </h3>
 
             <div className="space-y-8 relative z-10">

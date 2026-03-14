@@ -70,7 +70,6 @@ export default function MinhaContaPage() {
       .eq("user_id", userId);
 
     if (allRecords && allRecords.length > 0) {
-      // 1. Meses Ativos (Abreviado 3 letras: mar/2026)
       const mesesMap: Record<string, string> = {
         '01': 'jan', '02': 'fev', '03': 'mar', '04': 'abr', '05': 'mai', '06': 'jun',
         '07': 'jul', '08': 'ago', '09': 'set', '10': 'out', '11': 'nov', '12': 'dez'
@@ -85,11 +84,9 @@ export default function MinhaContaPage() {
           return `${mesesMap[month]}/${year}`;
         });
 
-      // 2. Patrimônio Conectado (Bancos + Cartões Únicos)
       const bancosUnicos = new Set(allRecords.map(l => l.origem).filter(Boolean)).size;
       const cartoesUnicos = new Set(allRecords.map(l => l.cartao_nome).filter(Boolean)).size;
 
-      // 3. Gasto Diário Médio (Baseado em natureza='Despesa' e mês atual)
       const despesasMes = allRecords.filter(l => {
         const [ano, mes] = l.data_competencia.split('-');
         const isDespesa = l.natureza === 'Despesa';
@@ -101,7 +98,6 @@ export default function MinhaContaPage() {
       const diaCorrente = agora.getDate();
       const mediaDiaria = totalDespesas / diaCorrente;
 
-      // 4. Última Atividade
       const lastRecord = [...allRecords].sort((a, b) => 
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )[0];
@@ -267,11 +263,12 @@ export default function MinhaContaPage() {
                 </select>
               </div>
 
+              {/* AJUSTE SOLICITADO: CIDADE / UF EM UMA LINHA NO MOBILE */}
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><MapPin size={14}/> Cidade / UF</label>
-                <div className="flex gap-2">
-                    <input type="text" value={cidade} placeholder="Cidade" className="flex-1 h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => setCidade(e.target.value)} />
-                    <select value={estado} className="w-24 h-12 px-2 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => setEstado(e.target.value)}>
+                <div className="flex gap-2 flex-nowrap">
+                    <input type="text" value={cidade} placeholder="Cidade" className="flex-1 min-w-0 h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => setCidade(e.target.value)} />
+                    <select value={estado} className="w-20 shrink-0 h-12 px-2 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => setEstado(e.target.value)}>
                         <option value=""></option>
                         {["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"].map(uf => <option key={uf} value={uf}>{uf}</option>)}
                     </select>
@@ -309,7 +306,6 @@ export default function MinhaContaPage() {
 
         {/* COLUNA DIREITA: COMPORTAMENTO */}
         <div className="lg:col-span-4 flex flex-col gap-6">
-          
           <section className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shrink-0">
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-4">
@@ -327,7 +323,6 @@ export default function MinhaContaPage() {
             </div>
           </section>
 
-          {/* DASHBOARD DE MÉTRICAS */}
           <section className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm flex-1 flex flex-col">
             <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2 mb-8">
               <Activity size={16} className="text-blue-600"/> Atividade Recente
