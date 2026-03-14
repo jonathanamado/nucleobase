@@ -18,7 +18,7 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
         port: '',
-        pathname: '/**', // O padrão '/**' é mais abrangente para subpastas
+        pathname: '/**', 
       },
       {
         protocol: 'https',
@@ -35,11 +35,11 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Desativa o log de telemetria
-  telemetry: false,
-
   // Melhora a estabilidade do HMR (Hot Module Replacement) em desenvolvimento
   reactStrictMode: true,
+
+  // Nota: A telemetria deve ser desativada via CLI (npx next telemetry disable) 
+  // e não por aqui, pois a chave não existe no tipo NextConfig.
 };
 
 export default nextConfig;
