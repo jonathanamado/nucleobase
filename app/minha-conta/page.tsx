@@ -239,7 +239,7 @@ export default function MinhaContaPage() {
             <div className="flex items-end justify-between gap-4">
                 <div>
                     <p className="text-2xl font-black mb-1">{stats.totalLancamentos}</p>
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter leading-none">Lançamentos Total</p>
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter leading-none">Lançamentos Acumulados</p>
                 </div>
                 <div className="text-right">
                     <p className="text-lg font-black text-blue-400 mb-1">{percentualPerfil}%</p>
