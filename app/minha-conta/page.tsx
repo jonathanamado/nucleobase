@@ -7,7 +7,7 @@ import {
   Save, MapPin, UserCircle, Camera, GraduationCap, Briefcase, 
   Baby, CalendarDays, Activity, MousePointerClick, 
   KeyRound, Instagram, X, Eye, EyeOff,
-  Target, Share2, Wallet, Zap, Rocket
+  Target, Share2, Wallet, Zap, Rocket, LayoutDashboard
 } from "lucide-react";
 
 const supabase = createClient(
@@ -108,7 +108,6 @@ export default function MinhaContaPage() {
         return `${mesesMap[month]}/${year}`;
       });
 
-      // Cálculo de meses pendentes (lacunas entre o primeiro e o último registro)
       let pendentes = 0;
       if (rawMonths.length > 1) {
         const start = new Date(rawMonths[0] + "-01");
@@ -122,8 +121,8 @@ export default function MinhaContaPage() {
         }
       }
 
-      const bancosUnicos = new Set(allRecords.map(l => l.origem).filter(Boolean)).size;
-      const cartoesUnicos = new Set(allRecords.map(l => l.cartao_nome).filter(Boolean)).size;
+      const bancosUnicos = new Set(allRecords.map(l => l.origem?.trim()).filter(Boolean)).size;
+      const cartoesUnicos = new Set(allRecords.map(l => l.cartao_nome?.trim()).filter(Boolean)).size;
 
       const despesasMes = allRecords.filter(l => {
         const [ano, mes] = l.data_competencia.split('-');
@@ -224,7 +223,7 @@ export default function MinhaContaPage() {
       </div>
 
       {/* MOBILE ONLY: STATUS E ANÁLISE */}
-      <div className="md:hidden flex flex-col gap-6 mb-10">
+      <div className="md:hidden flex flex-col gap-4 mb-10">
         <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 flex items-center gap-4 w-full">
           Análise <div className="h-px bg-gray-200 flex-1"></div>
         </h3>
@@ -247,16 +246,26 @@ export default function MinhaContaPage() {
                     <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter leading-none">Perfil Completo</p>
                 </div>
             </div>
-            <div className="h-1.5 bg-white/10 rounded-full mt-4 overflow-hidden">
+            <div className="h-1.5 bg-white/10 rounded-full mt-4 overflow-hidden mb-4">
               <div className="h-full bg-blue-50 rounded-full transition-all duration-1000" style={{ width: `${percentualPerfil}%` }}></div>
             </div>
+            
+            <button 
+              onClick={() => {
+                const element = document.getElementById('dados-cadastrais');
+                element?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+            >
+              Atualizar Perfil
+            </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         
         {/* COLUNA ESQUERDA: DADOS PESSOAIS */}
-        <div className="lg:col-span-8 h-full order-3 md:order-1">
+        <div className="lg:col-span-8 h-full order-3 md:order-1" id="dados-cadastrais">
           <section className="bg-white rounded-[2.5rem] p-8 md:p-10 border border-gray-100 shadow-sm h-full flex flex-col">
             <div className="flex items-center gap-6 mb-12">
               <div className="relative group shrink-0">
@@ -356,11 +365,11 @@ export default function MinhaContaPage() {
           </section>
         </div>
 
-        {/* COLUNA DIREITA: COMPORTAMENTO */}
+        {/* COLUNA DIREITA: COMPORTAMENTO (ATIVIDADE RECENTE) */}
         <div className="lg:col-span-4 flex flex-col gap-6 order-1 md:order-2">
           <section className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm flex-1 flex flex-col">
             <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2 mb-8">
-              <Activity size={16} className="text-blue-600"/> Atividade Recente
+              <Activity size={16} className="text-blue-600"/> Atividades Recentes
             </h3>
 
             <div className="grid grid-cols-3 md:grid-cols-1 gap-4 md:gap-6">
@@ -378,7 +387,7 @@ export default function MinhaContaPage() {
                   <Wallet className="w-4 h-4 md:w-[18px] md:h-[18px]" />
                 </div>
                 <div>
-                  <p className="text-[7px] md:text-[9px] font-black text-gray-400 uppercase tracking-tighter leading-none mb-1">Conexões</p>
+                  <p className="text-[7px] md:text-[9px] font-black text-gray-400 uppercase tracking-tighter leading-none mb-1">Cartões</p>
                   <p className="text-xs md:text-lg font-black text-gray-900">{stats.patrimonioConectado}</p>
                 </div>
               </div>
@@ -418,7 +427,6 @@ export default function MinhaContaPage() {
                       </div>
                     </div>
 
-                    {/* AJUSTE SOLICITADO: RESUMO DE PENDÊNCIAS LOGO ABAIXO DO INÍCIO/FIM */}
                     {stats.mesesPendentes > 0 && (
                       <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tight text-center pt-2 border-t border-gray-200/50">
                         Você possui <span className="text-orange-600">{stats.mesesPendentes} {stats.mesesPendentes === 1 ? 'mês pendente' : 'meses pendentes'}</span> em seu intervalo de lançamentos .
@@ -430,25 +438,38 @@ export default function MinhaContaPage() {
                 )}
               </div>
 
-              {/* AJUSTE SOLICITADO: CARD DE STATUS DE DADOS FORA DO BLOCO DE INTERVALO */}
-              {stats.mesesPendentes > 0 && (
-                <Link href="/lancamentos" className="block mt-4 p-4 bg-orange-500 rounded-xl group hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/10">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] font-black text-white/70 uppercase text-center tracking-widest mb-1">Status de Dados</p>
-                      <p className="text-white text-xs font-bold text-center leading-tight">Atualize seus registros.<br/>Clique aqui.</p>
+              <div className="flex flex-col gap-3 mt-4">
+                {stats.mesesPendentes > 0 && (
+                  <Link href="/lancamentos" className="block p-4 bg-orange-500 rounded-xl group hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/10">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[10px] font-black text-white/70 uppercase text-center tracking-widest mb-1">Novos Lançamentos</p>
+                        <p className="text-white text-xs font-bold text-center leading-tight">Atualize seus registros.<br/>Clique aqui.</p>
+                      </div>
+                      <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                        <Rocket size={20} fill="currentColor" className="text-orange-100" />
+                      </div>
                     </div>
-                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform">
-                      <Rocket size={20} fill="currentColor" className="text-orange-100" />
+                  </Link>
+                )}
+
+                <Link href="/resultados" className="block p-4 bg-blue-600 rounded-xl group hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1 text-center">Performance</p>
+                            <p className="text-white text-xs font-bold text-center leading-tight">Painel de Resultados.<br/>Acesse agora.</p>
+                        </div>
+                        <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                            <LayoutDashboard size={20} fill="currentColor" className="text-blue-100" />
+                        </div>
                     </div>
-                  </div>
                 </Link>
-              )}
+              </div>
             </div>
           </section>
 
-          {/* LINHA E TEXTO LOGO ABAIXO DA ATIVIDADE RECENTE */}
-          <div>
+          {/* Oculto no Desktop */}
+          <div className="md:hidden">
             <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 flex items-center gap-4 w-full mb-4">
               Identidade <div className="h-px bg-gray-200 flex-1"></div>
             </h3>
@@ -457,12 +478,12 @@ export default function MinhaContaPage() {
             </p>
           </div>
 
-          {/* BLOCO DE ANÁLISE */}
+          {/* BLOCO DE ANÁLISE - Desktop */}
           <div className="hidden md:flex flex-col gap-4">
-            <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 flex items-center gap-4 w-full">
+            <h3 className="md:hidden text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 flex items-center gap-4 w-full">
               Análise <div className="h-px bg-gray-200 flex-1"></div>
             </h3>
-            <div className="bg-gray-900 rounded-[2rem] p-8 text-white relative overflow-hidden shadow-xl shadow-blue-900/10">
+            <div className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl shadow-blue-900/10">
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-[10px] font-black uppercase tracking-widest text-blue-400">Força dos Dados</h3>
@@ -471,11 +492,22 @@ export default function MinhaContaPage() {
                 <div className="h-2 bg-white/10 rounded-full mb-6 overflow-hidden">
                   <div className="h-full bg-blue-500 rounded-full transition-all duration-1000" style={{ width: `${percentualPerfil}%` }}></div>
                 </div>
-                <p className="text-[11px] text-gray-400 leading-relaxed italic">
+                <p className="text-[11px] text-gray-400 leading-relaxed italic mb-8">
                   {percentualPerfil < 100 
                     ? "O preenchimento do perfil permite que nossa IA compare seu comportamento com perfis semelhantes, entregando insights mais precisos."
                     : "Perfil completo! Agora seus relatórios e benchmarking possuem precisão máxima baseada em seu contexto real."}
                 </p>
+                
+                {/* BOTÃO ADICIONADO PARA DESKTOP */}
+                <button 
+                  onClick={() => {
+                    const element = document.getElementById('dados-cadastrais');
+                    element?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                >
+                  Atualizar Perfil
+                </button>
               </div>
             </div>
           </div>
@@ -527,7 +559,6 @@ export default function MinhaContaPage() {
                     </select>
                 </div>
              </div>
-             {/* BOTÃO DE SALVAR NAS PREFERÊNCIAS */}
              <div className="flex justify-end">
                 <button onClick={handleUpdate} disabled={updating} className="flex items-center justify-center gap-3 px-10 py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-black transition-all">
                   <Save size={16} /> {updating ? "Sincronizando..." : "Salvar alterações"}
