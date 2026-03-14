@@ -108,6 +108,20 @@ export default function MinhaContaPage() {
         return `${mesesMap[month]}/${year}`;
       });
 
+      // Cálculo de meses pendentes (lacunas entre o primeiro e o último registro)
+      let pendentes = 0;
+      if (rawMonths.length > 1) {
+        const start = new Date(rawMonths[0] + "-01");
+        const end = new Date(rawMonths[rawMonths.length - 1] + "-01");
+        let current = new Date(start);
+        current.setMonth(current.getMonth() + 1);
+        while (current < end) {
+          const check = current.toISOString().substring(0, 7);
+          if (!rawMonths.includes(check)) pendentes++;
+          current.setMonth(current.getMonth() + 1);
+        }
+      }
+
       const bancosUnicos = new Set(allRecords.map(l => l.origem).filter(Boolean)).size;
       const cartoesUnicos = new Set(allRecords.map(l => l.cartao_nome).filter(Boolean)).size;
 
@@ -123,6 +137,7 @@ export default function MinhaContaPage() {
         ...stats,
         totalLancamentos: count || 0,
         mesesAtivos: mesesFormatados,
+        mesesPendentes: pendentes,
         patrimonioConectado: bancosUnicos + cartoesUnicos,
         mediaGastosDiarios: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(mediaDiaria)
       });
@@ -402,21 +417,43 @@ export default function MinhaContaPage() {
                         <p className="text-[10px] font-black text-gray-900">{stats.mesesAtivos[stats.mesesAtivos.length - 1]}</p>
                       </div>
                     </div>
+
+                    {/* AJUSTE SOLICITADO: RESUMO DE PENDÊNCIAS LOGO ABAIXO DO INÍCIO/FIM */}
+                    {stats.mesesPendentes > 0 && (
+                      <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tight text-center pt-2 border-t border-gray-200/50">
+                        Você possui <span className="text-orange-600">{stats.mesesPendentes} {stats.mesesPendentes === 1 ? 'mês pendente' : 'meses pendentes'}</span> em seu intervalo de lançamentos .
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <p className="text-[10px] text-gray-400 font-bold uppercase text-center italic">Sem registros</p>
                 )}
               </div>
+
+              {/* AJUSTE SOLICITADO: CARD DE STATUS DE DADOS FORA DO BLOCO DE INTERVALO */}
+              {stats.mesesPendentes > 0 && (
+                <Link href="/lancamentos" className="block mt-4 p-4 bg-orange-500 rounded-xl group hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/10">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-black text-white/70 uppercase text-center tracking-widest mb-1">Status de Dados</p>
+                      <p className="text-white text-xs font-bold text-center leading-tight">Atualize seus registros.<br/>Clique aqui.</p>
+                    </div>
+                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                      <Rocket size={20} fill="currentColor" className="text-orange-100" />
+                    </div>
+                  </div>
+                </Link>
+              )}
             </div>
           </section>
 
-          {/* AJUSTE SOLICITADO: LINHA E TEXTO LOGO ABAIXO DA ATIVIDADE RECENTE */}
+          {/* LINHA E TEXTO LOGO ABAIXO DA ATIVIDADE RECENTE */}
           <div>
             <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 flex items-center gap-4 w-full mb-4">
               Identidade <div className="h-px bg-gray-200 flex-1"></div>
             </h3>
-            <p className="text-[11px] text-gray-500 leading-relaxed font-medium bg-gray-50 p-5 rounded-2xl border border-gray-100">
-              Abaixo, você encontrará as seções para preenchimento de seus **dados cadastrais** e **preferências de uso** na plataforma. Mantenha-os atualizados para uma experiência personalizada.
+            <p className="text-[11px] text-gray-500 leading-relaxed font-medium text-center bg-gray-50 p-5 rounded-2xl border border-gray-100">
+              Abaixo você encontra as seções para preenchimento de seus dados cadastrais e preferências na Nucleo. Mantenha-os atualizados para uma experiência personalizada.
             </p>
           </div>
 
@@ -445,13 +482,13 @@ export default function MinhaContaPage() {
         </div>
       </div>
 
-      {/* SEÇÃO DE PREFERÊNCIAS */}
+      {/* SEÇÃO DE PREFERÊNCIAS COM BOTÃO DE SALVAR */}
       <div className="mt-12 order-4">
           <section className="bg-gray-50/50 rounded-[2.5rem] p-6 md:p-10 border border-gray-100">
              <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
                Preferências <div className="h-px bg-gray-200 flex-1"></div>
              </h3>
-             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
                 <div className="space-y-3">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><Share2 size={12}/> Canal Origem</label>
                     <select value={origem} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none" onChange={(e) => setOrigem(e.target.value)}>
@@ -489,6 +526,12 @@ export default function MinhaContaPage() {
                         <option value="empresa">Empresarial</option>
                     </select>
                 </div>
+             </div>
+             {/* BOTÃO DE SALVAR NAS PREFERÊNCIAS */}
+             <div className="flex justify-end">
+                <button onClick={handleUpdate} disabled={updating} className="flex items-center justify-center gap-3 px-10 py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-black transition-all">
+                  <Save size={16} /> {updating ? "Sincronizando..." : "Salvar alterações"}
+                </button>
              </div>
           </section>
       </div>
