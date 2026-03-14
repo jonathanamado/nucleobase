@@ -103,11 +103,13 @@ export default function LancamentosPage() {
     };
     getUser();
 
+    // Ajuste: Verifica o localStorage uma única vez na montagem
     const avisoVisto = localStorage.getItem("aviso-eficiencia-visto");
     
     if (!avisoVisto) {
       const timer = setTimeout(() => {
         setShowAviso(true);
+        // Marca como visto imediatamente ao abrir para evitar triggers em re-renders ou navegação rápida
         localStorage.setItem("aviso-eficiencia-visto", "true");
       }, 5000);
       return () => clearTimeout(timer);
@@ -141,7 +143,6 @@ export default function LancamentosPage() {
 
       if (!response.ok) {
         const errorBody = await response.json().catch(() => ({}));
-        // Captura o erro específico de duplicidade (geralmente status 409 ou mensagem de constraint)
         if (response.status === 409 || errorBody.message?.includes("duplicate") || errorBody.error?.includes("unique_constraint")) {
           throw new Error("Registro duplicado: Este lançamento já existe com a mesma descrição, valor, data e origem.");
         }

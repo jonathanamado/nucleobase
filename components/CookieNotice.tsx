@@ -66,7 +66,10 @@ export default function CookieNotice() {
 
   return (
     <div className="fixed bottom-32 right-6 z-[70] animate-in fade-in zoom-in slide-in-from-right-10 duration-700">
-      <div className="relative group" onMouseEnter={() => setIsExpanded(true)} onMouseLeave={() => setIsExpanded(false)}>
+      <div 
+        className="relative group" 
+        onMouseEnter={() => setIsExpanded(true)}
+      >
         
         {/* CONTEXTO EXPLICATIVO (CARD PRIVACIDADE) */}
         {!isPolicyPage && (
@@ -77,7 +80,7 @@ export default function CookieNotice() {
               ${
                 isExpanded
                   ? "opacity-100 translate-y-0 pointer-events-auto"
-                  : "opacity-100 translate-y-0 md:opacity-0 md:translate-y-2 md:pointer-events-none md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-hover:pointer-events-auto"
+                  : "opacity-100 translate-y-0 md:opacity-0 md:translate-y-2 md:pointer-events-none"
               }
             `}
           >
@@ -142,7 +145,6 @@ export default function CookieNotice() {
               Cookies
             </span>
 
-            {/* Ajuste Mobile: visibilidade forçada em telas pequenas, hover apenas em desktop */}
             <span
               className={`text-[12px] font-bold text-blue-400/80 uppercase tracking-widest mt-1.5 transition-opacity ${
                 isExpanded ? "opacity-100" : "opacity-100 md:opacity-0 md:group-hover:opacity-100"

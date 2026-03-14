@@ -133,9 +133,19 @@ export function MobileTabBar() {
     </button>
   );
 
+  // Lógica de Destaque do Perfil
+  const isProfileActive = 
+    isMenuOpen || 
+    showPassModal ||
+    pathname === "/minha-conta" || 
+    pathname === "/configuracoes" || 
+    pathname === "/cadastro" || 
+    pathname === "/acesso-usuario" || 
+    pathname === "/demonstracao";
+
   return (
     <>
-      {/* Modal de Alteração de Senha (conforme aprendido) */}
+      {/* Modal de Alteração de Senha */}
       {showPassModal && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-xl z-[150] flex items-center justify-center p-6">
           <div className="bg-white w-full max-w-md rounded-[3.5rem] p-12 shadow-2xl relative border border-gray-100 animate-in zoom-in-95 duration-300">
@@ -239,25 +249,25 @@ export function MobileTabBar() {
         {/* Home */}
         <button 
           onClick={() => router.push("/")} 
-          className={`p-2 transition-colors ${pathname === "/" ? "text-blue-600" : "text-gray-400"}`}
+          className={`p-2 transition-colors ${!isSharing && pathname === "/" ? "text-blue-600" : "text-gray-400"}`}
         >
-          <Home size={22} strokeWidth={pathname === "/" ? 2.5 : 2} />
+          <Home size={22} strokeWidth={!isSharing && pathname === "/" ? 2.5 : 2} />
         </button>
 
         {/* Lançamentos (Foguete) */}
         <button 
           onClick={() => router.push("/lancamentos")} 
-          className={`p-2 transition-colors ${pathname === "/lancamentos" ? "text-orange-500" : "text-gray-400"}`}
+          className={`p-2 transition-colors ${!isSharing && pathname === "/lancamentos" ? "text-orange-500" : "text-gray-400"}`}
         >
-          <Rocket size={22} strokeWidth={pathname === "/lancamentos" ? 2.5 : 2} />
+          <Rocket size={22} strokeWidth={!isSharing && pathname === "/lancamentos" ? 2.5 : 2} />
         </button>
 
         {/* Lupa (Busca) */}
         <button 
           onClick={() => setIsSearchOpen(true)} 
-          className={`p-2 transition-colors ${pathname === "/busca" ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}
+          className={`p-2 transition-colors ${!isSharing && pathname === "/busca" ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}
         >
-          <Search size={22} strokeWidth={pathname === "/busca" ? 2.5 : 2} />
+          <Search size={22} strokeWidth={!isSharing && pathname === "/busca" ? 2.5 : 2} />
         </button>
 
         {/* Botão de Compartilhar */}
@@ -272,7 +282,7 @@ export function MobileTabBar() {
         <button 
           onClick={handleProfileClick}
           className={`w-9 h-9 rounded-full border transition-all overflow-hidden flex items-center justify-center relative ${
-            isMenuOpen || pathname === "/minha-conta" ? "border-blue-600 ring-2 ring-blue-600/20 shadow-[0_0_10px_rgba(37,99,235,0.1)]" : "border-gray-100 bg-gray-50"
+            isProfileActive ? "border-blue-600 ring-2 ring-blue-600/20 shadow-[0_0_10px_rgba(37,99,235,0.1)]" : "border-gray-100 bg-gray-50"
           }`}
         >
           {isLoggedIn && userProfile.avatar ? (
@@ -285,11 +295,17 @@ export function MobileTabBar() {
                )}
             </div>
           ) : isLoggedIn ? (
-            <span className={`text-[10px] font-black tracking-tighter ${isMenuOpen || pathname === "/minha-conta" ? "text-blue-600" : "text-gray-400"}`}>
+            <span className={`text-[10px] font-black tracking-tighter ${isProfileActive ? "text-blue-600" : "text-gray-400"}`}>
               {isMenuOpen ? <X size={16} /> : getInitials(userProfile.nome)}
             </span>
           ) : (
-            <User size={20} className={isMenuOpen ? "text-blue-600" : "text-gray-400"} />
+            <>
+              {pathname === "/demonstracao" ? (
+                <PlayCircle size={20} className="text-blue-600" />
+              ) : (
+                <User size={20} className={isProfileActive ? "text-blue-600" : "text-gray-400"} />
+              )}
+            </>
           )}
         </button>
       </div>
