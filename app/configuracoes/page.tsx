@@ -39,7 +39,7 @@ export default function ConfiguracoesPage() {
         const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
         
         const { data: factors } = await supabase.auth.mfa.listFactors();
-        if (factors?.all?.length > 0) setMfaEnabled(true);
+        if ((factors?.all?.length || 0) > 0) setMfaEnabled(true);
 
         if (profile) {
           const dados = {
