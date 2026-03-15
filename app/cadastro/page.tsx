@@ -13,7 +13,8 @@ import {
   UserCircle, 
   AlertTriangle, 
   Gift,
-  Instagram 
+  Instagram,
+  Clock
 } from "lucide-react";
 
 const supabase = createClient(
@@ -142,9 +143,9 @@ export default function CadastroPage() {
                 <Gift size={20} />
               </div>
               <div>
-                <p className="text-[12px] font-black text-blue-400 uppercase tracking-widest mb-1">Oferta Exclusiva</p>
+                <p className="text-[12px] font-black text-blue-400 uppercase tracking-widest mb-1">Oferta de Boas-vindas</p>
                 <p className="text-xs text-white/90 font-semibold leading-relaxed">
-                  Você acaba de ganhar <strong>90 dias de acesso total</strong> para experimentar cada detalhe da nossa inteligência financeira. Aproveite!
+                  Ganhe <strong>90 dias de acesso total + Suporte</strong>. Após este período, você mantém sua conta para lançamentos limitados, mas ainda com acesso vitalício à todas as visualizações, insights e segurança da Nucleo.
                 </p>
               </div>
             </div>
@@ -157,17 +158,20 @@ export default function CadastroPage() {
               <h1 className="text-3xl font-bold text-white leading-tight tracking-tighter mb-8">
                 Sua jornada para a <span className="text-blue-500">clareza financeira</span> começa aqui.
               </h1>
-              <div className="space-y-4">
-                {[
-                    { icon: <ShieldCheck size={20} className="text-emerald-500" />, text: "Segurança de dados nível bancário" },
-                    { icon: <Zap size={20} className="text-blue-500" />, text: "Interface ultra-rápida e intuitiva" },
-                    { icon: <CheckCircle2 size={20} className="text-blue-500" />, text: "Degustação total por 90 dias" }
-                ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-4 text-white/80 font-medium text-sm">
-                        <div className="p-2 bg-white/5 rounded-xl">{item.icon}</div>
-                        {item.text}
-                    </div>
-                ))}
+              
+              <div className="space-y-6">
+                <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4">
+                  {[
+                      { icon: <Clock size={20} className="text-blue-400" />, text: "90 dias: Acesso irrestrito a todas as funções e suporte humanizado." },
+                      { icon: <CheckCircle2 size={20} className="text-emerald-500" />, text: "Pós-90 dias: Sua conta continua ativa. Consulta, blog e métricas seguem livres." },
+                      { icon: <ShieldCheck size={20} className="text-blue-500" />, text: "Segurança de dados e privacidade nível bancário em qualquer momento." }
+                  ].map((item, i) => (
+                      <div key={i} className="flex items-start gap-4 text-white/80 font-medium text-sm">
+                          <div className="p-2 bg-white/5 rounded-xl shrink-0">{item.icon}</div>
+                          <span className="leading-snug">{item.text}</span>
+                      </div>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -204,12 +208,12 @@ export default function CadastroPage() {
               <div className="bg-blue-600 rounded-2xl p-4 flex items-center gap-4 text-white shadow-lg shadow-blue-100">
                 <Gift size={20} className="shrink-0" />
                 <p className="text-[11px] font-bold leading-tight">
-                  Acesso liberado: <span className="opacity-80">90 dias para degustação com 100% dos benefícios da Plataforma. São 3 meses para monitoramento do seu orçamento, sem custos.</span>
+                  Degustação VIP: <span className="opacity-80">90 dias com acesso total e suporte. Após o prazo, sua conta permanece ativa para acompanhamento de resultados, limitando apenas multi lançamentos.</span>
                 </p>
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 leading-tight">
-                  Crie sua conta para realização do seu <span className="text-blue-600">controle financeiro.</span>
+                  Crie sua conta para realizar seu <span className="text-blue-600">controle financeiro.</span>
                 </h2>
               </div>
             </div>
@@ -217,10 +221,10 @@ export default function CadastroPage() {
             {/* TÍTULO DESKTOP */}
             <div className="hidden lg:block mb-8 text-left">
               <h2 className="text-3xl font-bold text-gray-900 mb-1 tracking-tight">
-                Crie sua conta para iniciar o seu <span className="text-blue-600 font-black">controle financeiro pessoal ou profissional.</span>
+                Crie sua conta e inicie seu <span className="text-blue-600 font-black">controle financeiro pessoal ou profissional.</span>
               </h2>
               <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em]">
-                Explore o poder da digitalização financeira hoje.
+                Explore o poder da inteligência financeira.
               </p>
             </div>
 
@@ -242,7 +246,7 @@ export default function CadastroPage() {
               </div>
 
               <div className="group">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block group-focus-within:text-blue-600 transition-colors">Nome Completo (Opcional)</label>
+                <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-2 block">Nome Completo (Recomendado)</label>
                 <input 
                   type="text" 
                   placeholder="Exemplo: João Andrade Silva" 
@@ -252,7 +256,7 @@ export default function CadastroPage() {
               </div>
               
               <div className="group">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block group-focus-within:text-blue-600 transition-colors">E-mail (Recomendado)</label>
+                <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-2 block">E-mail (Recomendado)</label>
                 <input 
                   type="email" 
                   placeholder="Exemplo: joao@seudominio.com" 
@@ -287,7 +291,7 @@ export default function CadastroPage() {
               )}
               
               <div className="group">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block group-focus-within:text-blue-600 transition-colors">Senha (Obrigatório)</label>
+                <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-2 block">Senha (Obrigatório)</label>
                 <div className="relative">
                   <input 
                     type={showPassword ? "text" : "password"} 
@@ -315,7 +319,7 @@ export default function CadastroPage() {
                   <span className="animate-pulse">Sincronizando sua conta...</span>
                 ) : (
                   <>
-                    Começar meu teste de 90 dias 
+                    Finalizar cadastro gratuitamente 
                     <CheckCircle2 size={18} className="text-blue-500 group-hover:scale-110 transition-transform" />
                   </>
                 )}

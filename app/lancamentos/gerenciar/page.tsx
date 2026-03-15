@@ -5,7 +5,8 @@ import {
   Search, Filter, Edit3, Trash2, ArrowLeft, 
   Calendar, Tag, DollarSign, X, Save, 
   ChevronLeft, ChevronRight, AlertCircle, CheckCircle2,
-  Database, BarChart3, ArrowUpRight, RotateCcw
+  Database, BarChart3, ArrowUpRight, RotateCcw,
+  Lock, Eye, EyeOff, UserPlus
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
@@ -19,7 +20,14 @@ export default function GerenciarLancamentosPage() {
   const [loading, setLoading] = useState(true);
   const [lancamentos, setLancamentos] = useState<any[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   
+  // Estados para Login
+  const [slug, setSlug] = useState(""); 
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+
   // Filtros
   const [searchTerm, setSearchTerm] = useState("");
   const [filterNatureza, setFilterNatureza] = useState("TODOS");
@@ -32,8 +40,11 @@ export default function GerenciarLancamentosPage() {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
+      
       if (session?.user) {
+        setIsLoggedIn(true);
         setUserId(session.user.id);
         const { data } = await supabase
           .from("lancamentos_financeiros")
@@ -47,6 +58,27 @@ export default function GerenciarLancamentosPage() {
     };
     fetchData();
   }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault(); 
+    setAuthLoading(true);
+    const inputAcesso = slug.trim().toLowerCase();
+    try {
+      let emailParaLogin = inputAcesso.includes("@") ? inputAcesso : "";
+      if (!emailParaLogin) {
+        const { data: profile } = await supabase.from('profiles').select('email').eq('slug', inputAcesso).maybeSingle();
+        if (!profile?.email) throw new Error("ID não encontrado.");
+        emailParaLogin = profile.email;
+      }
+      const { error } = await supabase.auth.signInWithPassword({ email: emailParaLogin, password });
+      if (error) throw new Error("Senha incorreta.");
+      window.location.reload();
+    } catch (err: any) { 
+      alert(err.message); 
+    } finally { 
+      setAuthLoading(false); 
+    }
+  };
 
   const lancamentosFiltrados = useMemo(() => {
     return lancamentos.filter(l => {
@@ -96,8 +128,39 @@ export default function GerenciarLancamentosPage() {
     setSaveLoading(false);
   };
 
+  if (loading) return <div className="w-full h-screen flex items-center justify-center bg-white"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>;
+
+  if (!isLoggedIn) {
+    return (
+      <div className="w-full min-h-screen flex flex-col items-center bg-white px-4 pt-6 md:pt-10">
+        <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl max-w-md w-full text-center">
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <div className="bg-blue-50 w-12 h-12 rounded-2xl flex items-center justify-center text-blue-600"><Lock size={24} /></div>
+            <h1 className="text-2xl font-bold text-gray-900">Área Restrita</h1>
+          </div>
+          <p className="text-gray-500 text-sm mb-8">Esta é uma área segura para gestão de dados. Por favor, valide sua identidade para gerenciar a base.</p>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <input type="text" placeholder="ID ou E-mail" required className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-100" onChange={(e) => setSlug(e.target.value)} />
+            <div className="relative">
+              <input type={showPassword ? "text" : "password"} placeholder="Senha" required className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-100" onChange={(e) => setPassword(e.target.value)} />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+            </div>
+            <button disabled={authLoading} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-100 transition-transform active:scale-95 disabled:opacity-50">{authLoading ? "Verificando..." : "Entrar na Plataforma"}</button>
+          </form>
+          
+          <div className="mt-8 pt-8 border-t border-gray-100">
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Ainda não se cadastrou?</p>
+            <a href="/cadastro" className="flex items-center justify-center gap-2 bg-emerald-50 text-emerald-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest border border-emerald-100 hover:bg-emerald-100 transition-all">
+              <UserPlus size={18} /> Criar conta gratuita agora
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
+    <div className="w-full animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-8">
       
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
@@ -274,12 +337,11 @@ export default function GerenciarLancamentosPage() {
         </div>
       </div>
 
-      {/* MODAL DE EDIÇÃO - AJUSTADO PARA NÃO EXTRAPOLAR A TELA */}
+      {/* MODAL DE EDIÇÃO */}
       {editingItem && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-xl max-h-[90vh] rounded-[2.5rem] md:rounded-[3rem] shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col">
             
-            {/* Header Fixo */}
             <div className={`p-6 md:p-8 flex items-center justify-between text-white flex-shrink-0 ${editingItem.natureza === 'Receita' ? 'bg-emerald-600' : 'bg-orange-500'}`}>
               <div>
                 <h3 className="text-lg md:text-xl font-black uppercase tracking-tight">Editar Registro</h3>
@@ -290,7 +352,6 @@ export default function GerenciarLancamentosPage() {
               </button>
             </div>
 
-            {/* Formulário com Scroll Interno */}
             <form onSubmit={handleUpdate} className="p-6 md:p-8 space-y-4 md:space-y-6 overflow-y-auto flex-1 custom-scrollbar">
               {msgFeedback && (
                 <div className={`p-4 rounded-2xl flex items-center gap-3 text-xs font-bold uppercase tracking-tight animate-in fade-in ${msgFeedback.tipo === 'sucesso' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>

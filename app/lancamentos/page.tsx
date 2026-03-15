@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import { 
   Save, CreditCard, Wallet, Calendar, 
   Tag, DollarSign, CheckCircle2, Layers, Repeat, 
-  Rocket, Activity, Clock, AlertCircle, BarChart3, ArrowRight, LineChart, Zap, X, Instagram, Edit3
+  Rocket, Activity, Clock, AlertCircle, BarChart3, ArrowRight, LineChart, Zap, X, Instagram, Edit3,
+  Lock, Eye, EyeOff, UserPlus
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
@@ -16,10 +17,17 @@ const supabase = createClient(
 
 export default function LancamentosPage() {
   const [userId, setUserId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [sucesso, setSucesso] = useState(false);
   const [showAviso, setShowAviso] = useState(false);
   const [ultimosLancamentos, setUltimosLancamentos] = useState<any[]>([]);
+  
+  // Estados para Login
+  const [slug, setSlug] = useState(""); 
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
 
   const getLocalDate = () => {
     const now = new Date();
@@ -94,17 +102,19 @@ export default function LancamentosPage() {
   };
 
   useEffect(() => {
-    const getUser = async () => {
+    const checkUser = async () => {
+      setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
+        setIsLoggedIn(true);
         setUserId(session.user.id);
         fetchUltimos(session.user.id);
       }
+      setLoading(false);
     };
-    getUser();
+    checkUser();
 
     const avisoVisto = localStorage.getItem("aviso-eficiencia-visto");
-    
     if (!avisoVisto) {
       const timer = setTimeout(() => {
         setShowAviso(true);
@@ -113,6 +123,27 @@ export default function LancamentosPage() {
       return () => clearTimeout(timer);
     }
   }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault(); 
+    setAuthLoading(true);
+    const inputAcesso = slug.trim().toLowerCase();
+    try {
+      let emailParaLogin = inputAcesso.includes("@") ? inputAcesso : "";
+      if (!emailParaLogin) {
+        const { data: profile } = await supabase.from('profiles').select('email').eq('slug', inputAcesso).maybeSingle();
+        if (!profile?.email) throw new Error("ID não encontrado.");
+        emailParaLogin = profile.email;
+      }
+      const { error } = await supabase.auth.signInWithPassword({ email: emailParaLogin, password });
+      if (error) throw new Error("Senha incorreta.");
+      window.location.reload();
+    } catch (err: any) { 
+      alert(err.message); 
+    } finally { 
+      setAuthLoading(false); 
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,10 +190,41 @@ export default function LancamentosPage() {
     }
   };
 
+  if (loading) return <div className="w-full h-screen flex items-center justify-center bg-white"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div></div>;
+
+  if (!isLoggedIn) {
+    return (
+      <div className="w-full min-h-screen flex flex-col items-center bg-white px-4 pt-6 md:pt-10">
+        <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl max-w-md w-full text-center">
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <div className="bg-orange-50 w-12 h-12 rounded-2xl flex items-center justify-center text-orange-600"><Lock size={24} /></div>
+            <h1 className="text-2xl font-bold text-gray-900">Área Restrita</h1>
+          </div>
+          <p className="text-gray-500 text-sm mb-8">Esta é uma área segura para gestão de dados. Por favor, valide sua identidade para realizar lançamentos.</p>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <input type="text" placeholder="ID ou E-mail" required className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100" onChange={(e) => setSlug(e.target.value)} />
+            <div className="relative">
+              <input type={showPassword ? "text" : "password"} placeholder="Senha" required className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100" onChange={(e) => setPassword(e.target.value)} />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+            </div>
+            <button disabled={authLoading} className="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold shadow-lg shadow-orange-100 transition-transform active:scale-95 disabled:opacity-50">{authLoading ? "Verificando..." : "Entrar na Plataforma"}</button>
+          </form>
+          
+          <div className="mt-8 pt-8 border-t border-gray-100">
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Ainda não se cadastrou?</p>
+            <a href="/cadastro" className="flex items-center justify-center gap-2 bg-emerald-50 text-emerald-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest border border-emerald-100 hover:bg-emerald-100 transition-all">
+              <UserPlus size={18} /> Criar conta gratuita agora
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const isReceita = formData.natureza === "Receita";
 
   return (
-    <div className="w-full min-h-screen animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative bg-white">
+    <div className="w-full min-h-screen animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative bg-white px-4 md:px-8">
       
       {showAviso && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
@@ -184,7 +246,7 @@ export default function LancamentosPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12 items-end px-4 md:px-0">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12 items-end">
         <div className="lg:col-span-7">
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-4 tracking-tight flex items-center flex-wrap">
             <span>Gestão de Lançamentos<span className="text-orange-500">.</span></span>
@@ -217,7 +279,7 @@ export default function LancamentosPage() {
         </div>
       </div>
 
-      <div className="px-4 md:px-0">
+      <div>
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-4 flex items-center gap-4">
           Formulário em 3 etapas <div className="h-px bg-gray-200 flex-1"></div>
         </h3>

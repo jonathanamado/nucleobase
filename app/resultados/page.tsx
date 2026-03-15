@@ -208,22 +208,26 @@ export default function DashboardResultados() {
 
   if (!isLoggedIn) {
     return (
-      <div className="w-full min-h-screen flex flex-col items-center bg-[#FAFAFA] px-4 pt-8 md:pt-24">
+      <div className="w-full min-h-screen flex flex-col items-center bg-[#FAFAFA] px-4 pt-6 md:pt-10">
         <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl max-w-md w-full text-center">
-          <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center text-blue-600 mx-auto mb-6"><Lock size={32} /></div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Área Restrita</h1>
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <div className="bg-blue-50 w-12 h-12 rounded-2xl flex items-center justify-center text-blue-600"><Lock size={24} /></div>
+            <h1 className="text-2xl font-bold text-gray-900">Área Restrita</h1>
+          </div>
+          <p className="text-gray-500 text-sm mb-8">Esta é uma área segura. Por favor, valide sua identidade para visualizar os resultados.</p>
           <form onSubmit={handleLogin} className="space-y-4">
-            <input type="text" placeholder="ID ou E-mail" required className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold" onChange={(e) => setSlug(e.target.value)} />
+            <input type="text" placeholder="ID ou E-mail" required className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-100" onChange={(e) => setSlug(e.target.value)} />
             <div className="relative">
-              <input type={showPassword ? "text" : "password"} placeholder="Senha" required className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold" onChange={(e) => setPassword(e.target.value)} />
+              <input type={showPassword ? "text" : "password"} placeholder="Senha" required className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-100" onChange={(e) => setPassword(e.target.value)} />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
             </div>
-            <button disabled={authLoading} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-100 transition-transform active:scale-95">{authLoading ? "Verificando..." : "Entrar na Plataforma"}</button>
+            <button disabled={authLoading} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-100 transition-transform active:scale-95 disabled:opacity-50">{authLoading ? "Verificando..." : "Entrar na Plataforma"}</button>
           </form>
           
-          <div className="mt-8 pt-6 border-t border-gray-100">
-            <a href="/cadastro" className="flex items-center justify-center gap-2 text-blue-600 font-bold text-sm hover:underline transition-all">
-              <UserPlus size={18} /> Criar conta agora
+          <div className="mt-8 pt-8 border-t border-gray-100">
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Ainda não se cadastrou?</p>
+            <a href="/cadastro" className="flex items-center justify-center gap-2 bg-emerald-50 text-emerald-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest border border-emerald-100 hover:bg-emerald-100 transition-all">
+              <UserPlus size={18} /> Criar conta gratuita agora
             </a>
           </div>
         </div>
