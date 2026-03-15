@@ -30,7 +30,7 @@ export default function PrivacidadeSeguranca() {
 
         <div className="flex flex-wrap gap-3">
           <a href="/faq" className="inline-flex items-center gap-2 px-6 py-2.5 bg-white border border-gray-200 text-gray-500 rounded-full hover:border-blue-600 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest shadow-sm">
-            <ShieldAlert size={14} /> Centro de Ajuda
+            <ShieldAlert size={14} /> Central de Ajuda
           </a>
         </div>
       </div>
