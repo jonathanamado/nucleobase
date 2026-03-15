@@ -5,7 +5,7 @@ import {
   Zap, ArrowRight, Mail, Newspaper, ShieldCheck, 
   BarChart3, MessageSquare, Lock, 
   Users, Gift, X, Loader2, CheckCircle2, FileWarning,
-  LayoutDashboard, Instagram
+  LayoutDashboard, Instagram, Dna
 } from "lucide-react"; 
 import { supabase } from "@/lib/supabase"; 
 
@@ -84,17 +84,18 @@ export function MainContent() {
       )}
 
       {/* ============================================================
-          LAYOUT MOBILE MODERNIZADO
+          LAYOUT MOBILE MODERNIZADO (Ajustado conforme demanda)
           ============================================================ */}
       <div className="block lg:hidden px-4 pb-20 space-y-10 animate-in fade-in duration-700">
         
-        {/* HERO SECTION MOBILE */}
-        <div className="mt-8 space-y-6">
+        {/* HERO SECTION MOBILE - ALINHADO À ESQUERDA/TOPO */}
+        <div className="mt-0 pt-0 space-y-6 text-left">
           <div className="relative">
-             <h1 className="text-xl font-bold text-gray-900 tracking-tight flex items-center gap-2 whitespace-nowrap">
-               Nucleobase<span className="text-blue-600">.APP</span> <Zap size={20} className="text-blue-600 opacity-40" />
+             <h1 className="text-xl md:text-3xl font-bold text-gray-900 tracking-tight flex items-center gap-0 whitespace-nowrap">
+               <span>Nucleobase<span className="text-blue-600">.APP</span></span>
+               <Zap size={20} className="text-blue-600 opacity-40 ml-2" />
              </h1>
-             <p className="text-gray-500 text-lg font-medium mt-1 leading-tight">
+             <p className="text-gray-500 text-base md:text-lg font-medium mt-0 leading-relaxed">
                Organização financeira inteligente.
              </p>
           </div>
@@ -117,18 +118,23 @@ export function MainContent() {
             </div>
           </div>
 
-          <div className="flex flex-col items-center gap-3">
-            <p className="text-gray-600 text-[14px] font-medium italic text-center opacity-80 px-4">
+          <div className="flex flex-col items-start gap-3">
+            <p className="text-gray-600 text-[14px] font-medium italic text-left opacity-80 px-0">
               Acreditamos que a verdadeira inteligência financeira nasce da clareza de dados.
             </p>
             <Link href="/sobre" className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full font-bold text-[10px] uppercase tracking-widest border border-blue-100 shadow-sm animate-pulse">
-               Clique aqui e conheça nossa história <ArrowRight size={14} />
+                Clique aqui e conheça nossa história <ArrowRight size={14} />
             </Link>
           </div>
         </div>
 
+        {/* NOVA DIVISÓRIA: INFORMATIVOS E ACESSOS */}
+        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-0 flex items-center gap-4">
+          Informativos e acessos <div className="h-px bg-gray-300 flex-1"></div>
+        </h3>
+
         {/* BENTO GRID - FUNCIONALIDADES RAPIDAS */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 mt-4">
             <button onClick={() => setIsModalOpen(true)} className="col-span-1 bg-blue-50 p-6 rounded-3xl flex flex-col gap-4 border border-blue-100 text-left relative overflow-hidden active:scale-95 transition-transform">
                 <Mail className="text-blue-600" size={24} />
                 <span className="font-bold text-[10px] uppercase tracking-widest text-gray-800">Assinar Newsletter</span>
@@ -204,7 +210,7 @@ export function MainContent() {
           </div>
         </section>
 
-        {/* REDES SOCIAIS MOBILE - RESTAURADO AO ORIGINAL */}
+        {/* CONECTE-SE */}
         <section className="pb-10 pt-4">
           <div className="flex items-center gap-4 mb-12">
             <div className="h-px bg-gray-200 flex-1"></div>
@@ -255,7 +261,7 @@ export function MainContent() {
             <Zap size={32} className="text-blue-600 skew-x-[-15deg] opacity-30 ml-4" strokeWidth={2} />
           </h1>
           <h2 className="text-gray-500 text-lg font-medium leading-relaxed mt-0">
-            Organização financeira com clareza e inteligência.
+            Organização financeira inteligente.
           </h2>
         </div>
 
@@ -316,8 +322,8 @@ export function MainContent() {
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex-1">
               <p className="text-blue-400 text-xs uppercase tracking-[0.3em] font-black mb-4">A ferramenta certa</p>
-              <h4 className="text-2xl md:text-3xl font-bold leading-tight">
-                Você já sabe o que fazer, só precisa do controle em mãos. Saiba mais sobre o APP da Nucleobase criando sua conta e aproveitando o período de degustação estendido (90 dias gratuitos para teste).
+              <h4 className="text-2xl md:text-2xl font-bold leading-tight">
+                A Nucleobase é o seu centro de comando. Diferente de planilhas complexas, traduzimos seu controle financeiro em inteligência estratégica para que você reduza custos.
               </h4>
             </div>
             <a href="/cadastro" className="shrink-0 inline-flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-full transition-all font-bold text-sm uppercase tracking-widest shadow-lg shadow-blue-900/20 group-hover:scale-105">

@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { Microscope, AlertTriangle, ArrowRight } from "lucide-react";
+import React, { useMemo } from "react";
+import { Microscope, AlertTriangle, ArrowRight, Target } from "lucide-react";
 
 interface Props {
   data: any[];
@@ -9,85 +9,101 @@ interface Props {
 }
 
 export default function VisionOfensora({ data, onViewHistory }: Props) {
-  // 1. Filtrar apenas despesas
-  const despesas = data.filter((item) => Number(item.valor) < 0);
+  // 1. Cálculos memorizados para performance
+  const { nomeOfensora, valorTotalOfensora, subcategoriasOrdenadas } = useMemo(() => {
+    const despesas = data.filter((item) => Number(item.valor) < 0);
 
-  // 2. Agrupar por Categoria
-  const categoriasMap: { [key: string]: number } = {};
-  despesas.forEach((item) => {
-    const cat = item.categoria || "Outros";
-    categoriasMap[cat] = (categoriasMap[cat] || 0) + Math.abs(Number(item.valor));
-  });
+    if (despesas.length === 0) {
+      return { nomeOfensora: null, valorTotalOfensora: 0, subcategoriasOrdenadas: [] };
+    }
 
-  const categoriaOfensora = Object.entries(categoriasMap).sort((a, b) => b[1] - a[1])[0];
-
-  if (!categoriaOfensora) return null;
-
-  const [nomeOfensora, valorTotalOfensora] = categoriaOfensora;
-
-  // 3. Drill-down de Subcategorias
-  const subcategoriasMap: { [key: string]: number } = {};
-  despesas
-    .filter((item) => (item.categoria || "Outros") === nomeOfensora)
-    .forEach((item) => {
-      const sub = item.subcategoria || item.descricao || "Não identificado";
-      subcategoriasMap[sub] = (subcategoriasMap[sub] || 0) + Math.abs(Number(item.valor));
+    const categoriasMap: Record<string, number> = {};
+    despesas.forEach((item) => {
+      const cat = item.categoria || "Outros";
+      categoriasMap[cat] = (categoriasMap[cat] || 0) + Math.abs(Number(item.valor));
     });
 
-  const subcategoriasOrdenadas = Object.entries(subcategoriasMap)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
+    const [nome, valor] = Object.entries(categoriasMap).sort((a, b) => b[1] - a[1])[0];
+
+    const subMap: Record<string, number> = {};
+    despesas
+      .filter((item) => (item.categoria || "Outros") === nome)
+      .forEach((item) => {
+        const sub = item.subcategoria || item.descricao || "Não identificado";
+        subMap[sub] = (subMap[sub] || 0) + Math.abs(Number(item.valor));
+      });
+
+    const subOrdenadas = Object.entries(subMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    return {
+      nomeOfensora: nome,
+      valorTotalOfensora: valor,
+      subcategoriasOrdenadas: subOrdenadas,
+    };
+  }, [data]);
+
+  if (!nomeOfensora) return null;
 
   return (
-    <section className="w-full bg-white border border-gray-100 rounded-[2.5rem] p-6 md:p-10 shadow-sm mt-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
-        <div className="max-w-xl">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="p-2 bg-red-50 text-red-600 rounded-xl">
-              <Microscope size={20} />
+    <section className="w-full bg-white border border-gray-100 rounded-[3rem] p-6 md:p-12 shadow-sm mt-8 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+      
+      {/* HEADER: GRID 65/35 */}
+      <div className="flex flex-col lg:flex-row justify-between items-start gap-8 mb-14">
+        <div className="w-full lg:w-[65%] text-left">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2.5 bg-red-50 text-red-600 rounded-2xl">
+              <Microscope size={22} />
             </div>
-            <h3 className="font-bold text-gray-800 uppercase text-[10px] tracking-[0.2em]">
-              Análise de Detalhe (Drill-down)
+            <h3 className="font-black text-gray-400 uppercase text-[10px] tracking-[0.3em]">
+              Diagnóstico de Escoamento
             </h3>
           </div>
-          <p className="text-gray-500 text-sm font-medium text-left leading-relaxed">
-            Identificamos que <span className="text-red-600 font-bold underline decoration-red-100 underline-offset-4">{nomeOfensora}</span> é o seu maior gargalo atual.
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight">
+            Análise crítica de <span className="text-red-600">{nomeOfensora}</span>.
+          </h2>
+          <p className="text-gray-500 text-sm md:text-base mt-2 font-medium">
+            Sua maior saída financeira concentra-se aqui. Veja o detalhamento abaixo:
           </p>
         </div>
 
-        <div className="bg-gray-50/50 px-8 py-5 rounded-[2rem] border border-gray-100/50 backdrop-blur-sm">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 text-left">Total da Categoria</p>
-          <p className="text-2xl font-black text-gray-900 tracking-tight">
+        <div className="w-full lg:w-[35%] bg-gray-50 px-8 py-6 rounded-[2.5rem] border border-gray-100 flex flex-col items-center justify-center text-center">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 whitespace-nowrap">Impacto na Categoria</p>
+          <p className="text-2xl font-black text-gray-900 tracking-tighter whitespace-nowrap">
             R$ {valorTotalOfensora.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
-        {/* Lado Esquerdo: Lista de Sub-itens */}
-        <div className="space-y-7">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-            <AlertTriangle size={14} className="text-orange-500" /> Principais vilões em {nomeOfensora}
+      {/* CONTEÚDO: GRID 65/35 */}
+      <div className="flex flex-col lg:flex-row gap-12 items-stretch">
+        
+        {/* LADO ESQUERDO: DETALHAMENTO (65%) */}
+        <div className="w-full lg:w-[65%] space-y-8">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-8 flex items-center gap-2">
+            <AlertTriangle size={14} className="text-orange-500" /> Detalhamento de incidência
           </p>
-          <div className="space-y-6">
+          
+          <div className="space-y-7">
             {subcategoriasOrdenadas.map(([nome, valor], idx) => {
               const percentual = (valor / valorTotalOfensora) * 100;
               return (
                 <div key={idx} className="group cursor-default">
-                  <div className="flex justify-between items-end mb-2.5">
+                  <div className="flex justify-between items-end mb-3">
                     <span className="text-sm font-bold text-gray-700 group-hover:text-blue-600 transition-colors duration-300">
                       {nome}
                     </span>
                     <div className="text-right">
-                      <span className="text-xs font-black text-gray-900 block tracking-tight">
+                      <span className="text-sm font-black text-gray-900 block tracking-tight whitespace-nowrap">
                         R$ {valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                       </span>
                       <span className="text-[10px] text-gray-400 font-bold">{percentual.toFixed(1)}%</span>
                     </div>
                   </div>
-                  <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                  <div className="w-full bg-gray-50 h-3 rounded-full overflow-hidden">
                     <div
-                      className="bg-gray-900 h-full rounded-full transition-all duration-[1.5s] ease-out group-hover:bg-blue-600 group-hover:shadow-[0_0_12px_rgba(37,99,235,0.3)]"
+                      className="bg-gray-900 h-full rounded-full transition-all duration-[1.5s] ease-out group-hover:bg-blue-600"
                       style={{ width: `${percentual}%` }}
                     ></div>
                   </div>
@@ -97,34 +113,38 @@ export default function VisionOfensora({ data, onViewHistory }: Props) {
           </div>
         </div>
 
-        {/* Lado Direito: Insight Visual */}
-        <div className="bg-[#111827] rounded-[2.5rem] p-8 md:p-10 text-white relative overflow-hidden shadow-2xl shadow-gray-200">
-          <div className="relative z-10 text-left">
-            <div className="mb-6 inline-block px-3 py-1 bg-blue-500/20 border border-blue-500/30 rounded-full">
-               <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">Sugestão Nucleobase</span>
+        {/* LADO DIREITO: PLANO DE AÇÃO (35%) */}
+        <div className="w-full lg:w-[35%] flex">
+          <div className="bg-[#111827] rounded-[3rem] p-8 text-white w-full relative overflow-hidden shadow-2xl flex flex-col items-center text-center justify-between">
+            <div className="relative z-10 w-full flex flex-col items-center">
+              <div className="mb-6 inline-flex items-center gap-2 px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full">
+                <Target size={14} className="text-blue-400" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">Plano de Ação</span>
+              </div>
+              
+              <h4 className="text-xl font-bold mb-6 leading-tight tracking-tight">
+                Potencial de <br/> <span className="text-blue-400">Economia Real</span>
+              </h4>
+              
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-8 w-full">
+                <p className="text-gray-300 text-[11px] leading-relaxed">
+                  Reduzir <span className="text-white font-bold">"{subcategoriasOrdenadas[0]?.[0]}"</span> em 10% traria economia de:
+                </p>
+                <p className="text-xl font-black text-blue-400 mt-3 tracking-tighter whitespace-nowrap">
+                  R$ {(subcategoriasOrdenadas[0]?.[1] * 0.1).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                </p>
+              </div>
             </div>
-            
-            <h4 className="text-2xl font-bold mb-5 leading-tight tracking-tight">
-              Oportunidade de <br/> <span className="text-blue-400">Otimização</span>
-            </h4>
-            
-            <p className="text-gray-400 text-sm leading-relaxed mb-8">
-                O item <span className="font-bold text-white italic">"{subcategoriasOrdenadas[0]?.[0]}"</span> representa a maior fatia desta categoria. 
-                Reduzir apenas este ponto em 10% traria uma economia mensal de 
-                <span className="font-black text-blue-400"> R$ {(subcategoriasOrdenadas[0]?.[1] * 0.1).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>.
-            </p>
 
-            <button 
-              onClick={() => onViewHistory && onViewHistory(nomeOfensora)}
-              className="group flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.15em] bg-white text-gray-900 hover:bg-blue-500 hover:text-white py-4 px-8 rounded-2xl transition-all duration-300 w-full md:w-auto justify-center active:scale-95"
+            <a 
+              href="/lancamentos/gerenciar"
+              className="relative z-10 group flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.15em] bg-blue-600 text-white hover:bg-white hover:text-gray-900 py-4 px-6 rounded-2xl transition-all duration-500 w-full justify-center active:scale-95 shadow-lg shadow-blue-600/20"
             >
-                Ver histórico <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-            </button>
+              Ver Histórico <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+            </a>
+            
+            <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-blue-600/20 rounded-full blur-[40px]"></div>
           </div>
-          
-          {/* Elementos Decorativos de Background */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-[80px] -mr-32 -mt-32"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-400/5 rounded-full blur-[50px] -ml-16 -mb-16"></div>
         </div>
       </div>
     </section>

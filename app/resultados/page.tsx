@@ -7,7 +7,7 @@ import {
   Sparkles, Layers, Target, Microscope, 
   Wallet, CreditCard, Calendar, Mail, Send,
   LineChart, Users, Zap, Instagram,
-  ChevronLeft, ChevronRight, Edit3
+  ChevronLeft, ChevronRight, Edit3, UserPlus
 } from "lucide-react";
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, 
@@ -208,7 +208,7 @@ export default function DashboardResultados() {
 
   if (!isLoggedIn) {
     return (
-      <div className="w-full min-h-screen flex flex-col items-center justify-center bg-[#FAFAFA] px-4">
+      <div className="w-full min-h-screen flex flex-col items-center bg-[#FAFAFA] px-4 pt-16 md:pt-24">
         <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl max-w-md w-full text-center">
           <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center text-blue-600 mx-auto mb-6"><Lock size={32} /></div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Área Restrita</h1>
@@ -220,6 +220,13 @@ export default function DashboardResultados() {
             </div>
             <button disabled={authLoading} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-100 transition-transform active:scale-95">{authLoading ? "Verificando..." : "Entrar na Plataforma"}</button>
           </form>
+          
+          <div className="mt-8 pt-6 border-t border-gray-100">
+            <p className="text-gray-400 text-sm mb-4 font-medium">Ainda não tem uma conta?</p>
+            <a href="/cadastro" className="flex items-center justify-center gap-2 text-blue-600 font-bold text-sm hover:underline transition-all">
+              <UserPlus size={18} /> Criar conta agora
+            </a>
+          </div>
         </div>
       </div>
     );
@@ -286,7 +293,7 @@ export default function DashboardResultados() {
   return (
     <div className="w-full animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-8">
       
-      <header className="flex flex-col mb-4 pt-8">
+      <header className="flex flex-col mb-4 pt-0">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
               <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
@@ -568,9 +575,9 @@ function KPICard({ title, value, icon, color }: any) {
             <div className={`absolute top-4 right-4 p-2 rounded-lg ${colorStyles[color]}`}>
                 {icon}
             </div>
-            <div className="flex flex-col items-start">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{title}</p>
-                <h3 className="text-lg font-bold text-gray-900 tracking-tight whitespace-nowrap">
+            <div className="flex flex-col items-start w-full">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 w-full text-center">Variação no Período</p>
+                <h3 className="text-lg font-bold text-gray-900 tracking-tight whitespace-nowrap w-full text-center">
                     R$ {value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </h3>
             </div>
