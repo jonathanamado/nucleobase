@@ -208,7 +208,7 @@ export default function DashboardResultados() {
 
   if (!isLoggedIn) {
     return (
-      <div className="w-full min-h-screen flex flex-col items-center bg-[#FAFAFA] px-4 pt-16 md:pt-24">
+      <div className="w-full min-h-screen flex flex-col items-center bg-[#FAFAFA] px-4 pt-8 md:pt-24">
         <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl max-w-md w-full text-center">
           <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center text-blue-600 mx-auto mb-6"><Lock size={32} /></div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Área Restrita</h1>
@@ -222,7 +222,6 @@ export default function DashboardResultados() {
           </form>
           
           <div className="mt-8 pt-6 border-t border-gray-100">
-            <p className="text-gray-400 text-sm mb-4 font-medium">Ainda não tem uma conta?</p>
             <a href="/cadastro" className="flex items-center justify-center gap-2 text-blue-600 font-bold text-sm hover:underline transition-all">
               <UserPlus size={18} /> Criar conta agora
             </a>

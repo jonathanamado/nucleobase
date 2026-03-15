@@ -119,7 +119,7 @@ export function MainContent() {
           </div>
 
           <div className="flex flex-col items-start gap-3">
-            <p className="text-gray-600 text-[14px] font-medium italic text-left opacity-80 px-0">
+            <p className="text-gray-600 text-[14px] font-medium italic text-center opacity-80 px-0">
               Acreditamos que a verdadeira inteligência financeira nasce da clareza de dados.
             </p>
             <Link href="/sobre" className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full font-bold text-[10px] uppercase tracking-widest border border-blue-100 shadow-sm animate-pulse">
