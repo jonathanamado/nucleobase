@@ -216,7 +216,7 @@ export default function MinhaContaPage() {
           </h1>
           <div className="flex flex-wrap items-center gap-x-1.5">
              <p className="text-gray-500 text-xs md:text-sm font-medium">
-                <span className="whitespace-nowrap font-bold text-gray-900">Olá {getPrimeiroNome()},</span> gerencie seus dados e acompanhe seu comportamento.
+                Olá<span className="whitespace-nowrap font-bold text-gray-900"> {getPrimeiroNome()},</span> gerencie seus dados e acompanhe seu comportamento.
              </p>
           </div>
         </div>

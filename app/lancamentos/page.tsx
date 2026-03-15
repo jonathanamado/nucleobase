@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { 
   Save, CreditCard, Wallet, Calendar, 
   Tag, DollarSign, CheckCircle2, Layers, Repeat, 
-  Rocket, Activity, Clock, AlertCircle, BarChart3, ArrowRight, LineChart, Zap, X, Instagram
+  Rocket, Activity, Clock, AlertCircle, BarChart3, ArrowRight, LineChart, Zap, X, Instagram, Edit3
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
@@ -70,7 +70,7 @@ export default function LancamentosPage() {
     descricao: "",
     valorTotal: 0,
     dataCompetencia: getLocalDate(),
-    natureza: "Despesa",
+    natureza: "Natureza",
     categoria: "",
     sub_categoria: "",
     projeto: "Pessoal",
@@ -103,13 +103,11 @@ export default function LancamentosPage() {
     };
     getUser();
 
-    // Ajuste: Verifica o localStorage uma única vez na montagem
     const avisoVisto = localStorage.getItem("aviso-eficiencia-visto");
     
     if (!avisoVisto) {
       const timer = setTimeout(() => {
         setShowAviso(true);
-        // Marca como visto imediatamente ao abrir para evitar triggers em re-renders ou navegação rápida
         localStorage.setItem("aviso-eficiencia-visto", "true");
       }, 5000);
       return () => clearTimeout(timer);
@@ -352,7 +350,7 @@ export default function LancamentosPage() {
                         {Object.keys(isReceita ? categoriasReceita : categoriasDespesa).map((c, i) => <option key={i} value={c} />)}
                       </datalist>
                     </div>
-
+                    
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 ml-2">Sub-categoria</label>
                       <input list="sub-list" placeholder="Escolha..."
@@ -397,10 +395,20 @@ export default function LancamentosPage() {
                 </div>
               </div>
 
-              <button type="submit" disabled={loading}
-                className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-xl flex items-center justify-center gap-3 text-white mt-8 ${isReceita ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-900/20' : 'bg-orange-500 hover:bg-orange-600 shadow-orange-900/20'}`}>
-                {loading ? "Processando..." : <><Save size={18} /> {isReceita ? 'Confirmar Receita' : 'Salvar Despesa'}</>}
-              </button>
+              <div className="flex flex-col gap-3 mt-8">
+                <button type="submit" disabled={loading}
+                  className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-xl flex items-center justify-center gap-3 text-white ${isReceita ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-900/20' : 'bg-orange-500 hover:bg-orange-600 shadow-orange-900/20'}`}>
+                  {loading ? "Processando..." : <><Save size={18} /> {isReceita ? 'Confirmar Receita' : 'Salvar Despesa'}</>}
+                </button>
+
+                <Link 
+                  href="/lancamentos/gerenciar"
+                  className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-3 text-amber-400 bg-amber-400/5 border border-amber-400/20 hover:bg-amber-400/10 hover:border-amber-400/40 hover:text-amber-300 shadow-lg shadow-black/20"
+                >
+                  <Edit3 size={16} className="animate-pulse" /> 
+                  Editar lançamentos
+                </Link>
+              </div>
             </div>
           </div>
         </form>

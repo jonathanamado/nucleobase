@@ -4,15 +4,14 @@ import {
   Play, 
   MonitorPlay, 
   Dna, 
-  LayoutDashboard, 
   ArrowRight,
   MousePointerClick,
-  FileSpreadsheet,
   LineChart,
   Clock,
   Settings2,
   LockKeyhole,
-  CheckCircle2
+  CheckCircle2,
+  Instagram
 } from "lucide-react";
 
 export default function DemonstracaoPlataforma() {
@@ -77,11 +76,10 @@ export default function DemonstracaoPlataforma() {
         Tour pela Interface <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
         {/* ÁREA DO VÍDEO / PLACEHOLDER */}
-        <div className="lg:col-span-8">
+        <div className="lg:col-span-8 flex flex-col justify-between">
           <div className="relative aspect-video bg-gray-900 rounded-[2.5rem] overflow-hidden shadow-2xl group border-4 border-white">
-            {/* Overlay de "Em desenvolvimento" */}
             <div className="absolute inset-0 bg-black/40 z-10 flex flex-col items-center justify-center text-center p-6 backdrop-blur-[2px]">
               <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mb-6 shadow-2xl shadow-blue-600/40 group-hover:scale-110 transition-transform duration-500">
                 <Play size={32} fill="white" className="text-white ml-1" />
@@ -97,7 +95,6 @@ export default function DemonstracaoPlataforma() {
               </div>
             </div>
 
-            {/* Simulação de Interface ao Fundo */}
             <div className="absolute inset-0 opacity-30 grayscale pointer-events-none">
                 <div className="p-8 space-y-4">
                     <div className="h-8 w-48 bg-gray-700 rounded-lg" />
@@ -112,7 +109,7 @@ export default function DemonstracaoPlataforma() {
           </div>
           
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-blue-50/50 p-6 rounded-3xl border border-blue-100/50">
+            <div className="bg-blue-50/50 p-6 rounded-3xl border border-blue-100/50 flex-1">
               <h5 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
                 <CheckCircle2 size={18} className="text-blue-600" />
                 O que você vai aprender
@@ -123,21 +120,23 @@ export default function DemonstracaoPlataforma() {
                 <li>• Analisar o gráfico de "Poder de Compra".</li>
               </ul>
             </div>
-            <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100">
+            <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100 flex-1">
               <h5 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
                 <Clock size={18} className="text-blue-600" />
                 Tempo de tour
               </h5>
               <p className="text-sm text-gray-500 font-medium">
                 O vídeo terá aproximadamente 4 minutos, cobrindo desde o primeiro acesso até o fechamento mensal.
+                <br /><br />
+                Este tour foi desenhado para ser objetivo e eficiente, respeitando seu tempo e foco na evolução financeira.
               </p>
             </div>
           </div>
         </div>
 
-        {/* SIDEBAR - PASSO A PASSO */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="bg-white border border-gray-100 p-8 rounded-[2.5rem] shadow-sm relative overflow-hidden">
+        {/* SIDEBAR - PASSO A PASSO (METODOLOGIA) */}
+        <div className="lg:col-span-4 h-full">
+          <div className="bg-white border border-gray-100 p-8 rounded-[2.5rem] shadow-sm relative overflow-hidden h-full flex flex-col justify-center">
             <div className="relative z-10">
                 <p className="text-blue-600 text-[10px] font-black uppercase tracking-[0.2em] mb-6">Metodologia</p>
                 <div className="space-y-8">
@@ -157,17 +156,6 @@ export default function DemonstracaoPlataforma() {
                 ))}
                 </div>
             </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-8 rounded-[2.5rem] text-white shadow-xl shadow-blue-600/20">
-            <Dna size={40} className="mb-4 opacity-50" />
-            <h4 className="text-xl font-bold mb-2 leading-tight">Pronto para testar na prática?</h4>
-            <p className="text-blue-100 text-xs leading-relaxed mb-6 font-medium">
-              A melhor forma de entender é lançando seu primeiro movimento.
-            </p>
-            <a href="/cadastro" className="w-full bg-white text-blue-600 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-gray-50 transition-all">
-              Criar minha conta <ArrowRight size={16} />
-            </a>
           </div>
         </div>
       </div>
@@ -209,6 +197,46 @@ export default function DemonstracaoPlataforma() {
             </a>
           </div>
         </div>
+      </div>
+
+      {/* BLOCO INSTAGRAM CENTRALIZADO (Inserido ao final) */}
+      <div className="mt-24 flex items-center gap-4 mb-12">
+        <div className="h-px bg-gray-200 flex-1"></div>
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
+          Conecte-se
+        </h3>
+        <div className="h-px bg-gray-200 flex-1"></div>
+      </div>
+
+      <div className="flex flex-col items-center text-center">
+        <div className="max-w-3xl mb-12">
+          <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
+            Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+          </h4>
+          <p className="text-gray-500 font-medium text-sm md:text-base">
+            Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
+          </p>
+        </div>
+        
+        <a 
+          href="https://www.instagram.com/nucleobase.app/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="group relative flex flex-col items-center gap-6"
+        >
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+            
+            <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+              <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+            </div>
+          </div>
+          
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+            <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
+          </div>
+        </a>
       </div>
 
     </div>

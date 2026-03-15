@@ -1,14 +1,14 @@
 "use client";
 
 import { supabase } from "@/lib/supabase";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation"; 
 import { 
   UserCircle, LayoutDashboard, X, Menu, 
   Info, Newspaper, CreditCard, BarChart3, Star, HelpCircle, 
   Shield, ChevronRight, AppWindow, LogOut,
   Search, Gift, Settings, Key, UserPlus, LogIn, PlayCircle,
-  KeyRound, Eye, EyeOff
+  KeyRound, Eye, EyeOff, Play
 } from "lucide-react";
 
 export function Header() {
@@ -20,6 +20,11 @@ export function Header() {
     avatar: null,
   });
   
+  // Refs para detectar cliques fora
+  const userDropdownRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const mobileButtonRef = useRef<HTMLButtonElement>(null);
+
   // Estados para o Modal de Senha (Padrão Mobile)
   const [showPassModal, setShowPassModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
@@ -29,6 +34,34 @@ export function Header() {
 
   const pathname = usePathname();
   const router = useRouter();
+
+  // Fecha menus ao mudar de rota
+  useEffect(() => {
+    setIsMenuOpen(false);
+    setIsUserDropdownOpen(false);
+  }, [pathname]);
+
+  // Lógica para fechar ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
+        setIsUserDropdownOpen(false);
+      }
+      
+      if (
+        isMenuOpen && 
+        mobileMenuRef.current && 
+        !mobileMenuRef.current.contains(event.target as Node) &&
+        mobileButtonRef.current && 
+        !mobileButtonRef.current.contains(event.target as Node)
+      ) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isMenuOpen]);
 
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
@@ -127,7 +160,17 @@ export function Header() {
 
   return (
     <header className="w-full border-b border-gray-200 bg-white sticky top-0 z-50">
-      {/* Modal de Alteração de Senha */}
+      {/* Estilo Injetado para a Animação de 6 segundos (3s preenchido / 3s transparente) */}
+      <style jsx global>{`
+        @keyframes blink-play {
+          0%, 50% { fill: currentColor; }
+          50.1%, 100% { fill: transparent; }
+        }
+        .animate-blink-play {
+          animation: blink-play 3s infinite;
+        }
+      `}</style>
+
       {showPassModal && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-xl z-[150] flex items-center justify-center p-6">
           <div className="bg-white w-full max-w-md rounded-[3.5rem] p-12 shadow-2xl relative border border-gray-100 animate-in zoom-in-95 duration-300">
@@ -158,8 +201,6 @@ export function Header() {
       )}
 
       <div className="w-full px-4 md:px-8 lg:px-10 h-20 flex items-center justify-between relative">
-        
-        {/* BLOCO DA LOGO */}
         <div className="flex items-center flex-shrink-0 min-w-fit"> 
           <div className="flex-shrink-0">
               <a href="/" rel="external" className="block hover:opacity-90 transition">
@@ -186,9 +227,7 @@ export function Header() {
           </div>
         </div>
 
-        {/* NAVEGAÇÃO DESKTOP */}
         <nav className="hidden md:flex items-center gap-3 text-[13px] text-gray-600">
-          
           {pathname === "/" && (
             <form onSubmit={handleSearch} className="flex items-center bg-gray-50 border border-gray-100 rounded-full px-3 py-1.5 focus-within:border-blue-300 transition-all mr-2 group">
               <input 
@@ -229,9 +268,8 @@ export function Header() {
               </a>
             )}
             
-            {/* Avatar/Iniciais Desktop (Logado ou Deslogado) */}
             {pathname !== "/minha-conta" && (
-              <div className="relative">
+              <div className="relative" ref={userDropdownRef}>
                 <button 
                   onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
                   className={`ml-1 flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all overflow-hidden bg-gray-50 ${isUserDropdownOpen ? 'border-blue-500 shadow-md' : 'border-gray-100 hover:border-blue-400'}`}
@@ -243,37 +281,38 @@ export function Header() {
                       <span className="text-xs font-black text-blue-600 tracking-tighter">{getInitials(userProfile.nome)}</span>
                     )
                   ) : (
-                    <UserCircle size={24} className="text-gray-300" />
+                    /* Lógica Desktop Deslogado: Se estiver na página de demonstração, mostra o play piscando */
+                    pathname === "/demonstracao" ? (
+                      <Play size={20} className="text-blue-600 animate-blink-play" />
+                    ) : (
+                      <UserCircle size={24} className="text-gray-300" />
+                    )
                   )}
                 </button>
 
                 {isUserDropdownOpen && (
-                  <>
-                    <div className="fixed inset-0 z-[-1]" onClick={() => setIsUserDropdownOpen(false)}></div>
-                    <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                      {isLoggedIn ? (
-                        <div className="flex flex-col">
-                          <DropdownItem icon={UserCircle} label="Minha Conta" onClick={() => { router.push("/minha-conta"); setIsUserDropdownOpen(false); }} />
-                          <DropdownItem icon={Settings} label="Configurações" onClick={() => { router.push("/configuracoes"); setIsUserDropdownOpen(false); }} />
-                          <DropdownItem icon={Key} label="Alterar senha" onClick={() => { setIsUserDropdownOpen(false); setShowPassModal(true); }} />
-                          <DropdownItem icon={LogOut} label="Sair da conta" color="text-red-500" onClick={handleLogout} />
-                        </div>
-                      ) : (
-                        <div className="flex flex-col">
-                          <DropdownItem icon={UserPlus} label="Criar conta" onClick={() => { router.push("/cadastro"); setIsUserDropdownOpen(false); }} />
-                          <DropdownItem icon={LogIn} label="Realizar login" onClick={() => { router.push("/acesso-usuario"); setIsUserDropdownOpen(false); }} />
-                          <DropdownItem icon={PlayCircle} label="Demonstração APP" onClick={() => { router.push("/demonstracao"); setIsUserDropdownOpen(false); }} />
-                        </div>
-                      )}
-                    </div>
-                  </>
+                  <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                    {isLoggedIn ? (
+                      <div className="flex flex-col">
+                        <DropdownItem icon={UserCircle} label="Minha Conta" onClick={() => { router.push("/minha-conta"); setIsUserDropdownOpen(false); }} />
+                        <DropdownItem icon={Settings} label="Configurações" onClick={() => { router.push("/configuracoes"); setIsUserDropdownOpen(false); }} />
+                        <DropdownItem icon={Key} label="Alterar senha" onClick={() => { setIsUserDropdownOpen(false); setShowPassModal(true); }} />
+                        <DropdownItem icon={LogOut} label="Sair da conta" color="text-red-500" onClick={handleLogout} />
+                      </div>
+                    ) : (
+                      <div className="flex flex-col">
+                        <DropdownItem icon={UserPlus} label="Criar conta" onClick={() => { router.push("/cadastro"); setIsUserDropdownOpen(false); }} />
+                        <DropdownItem icon={LogIn} label="Realizar login" onClick={() => { router.push("/acesso-usuario"); setIsUserDropdownOpen(false); }} />
+                        <DropdownItem icon={PlayCircle} label="Demonstração APP" onClick={() => { router.push("/demonstracao"); setIsUserDropdownOpen(false); }} />
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             )}
           </div>
         </nav>
 
-        {/* BOTÃO MOBILE */}
         <div className="md:hidden flex items-center gap-2">
           {pathname !== "/" && (
               <a href="/" className="p-2.5 text-gray-400 active:text-blue-600 transition-colors bg-gray-50 rounded-2xl border border-gray-100">
@@ -282,6 +321,7 @@ export function Header() {
           )}
 
           <button 
+            ref={mobileButtonRef}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-2xl border border-gray-100 text-gray-600 active:scale-95 transition-all z-[110]"
           >
@@ -290,7 +330,6 @@ export function Header() {
           </button>
         </div>
 
-        {/* OVERLAY E DROPDOWN MOBILE */}
         {isMenuOpen && (
           <>
             <div 
@@ -298,9 +337,11 @@ export function Header() {
               onClick={() => setIsMenuOpen(false)}
             />
 
-            <div className="absolute top-[80px] right-0 left-0 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.15)] border-t border-b border-gray-100 z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 md:hidden">
+            <div 
+              ref={mobileMenuRef}
+              className="absolute top-[80px] right-0 left-0 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.15)] border-t border-b border-gray-100 z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 md:hidden"
+            >
               <div className="max-h-[70vh] overflow-y-auto p-6 custom-scrollbar">
-                
                 <nav className="space-y-1">
                   {menuLinks.map((link) => (
                     <a
@@ -335,7 +376,6 @@ export function Header() {
                       <a href="/acesso-usuario" className="flex items-center justify-center gap-2 w-full py-4 bg-orange-500 text-white rounded-2xl font-bold text-sm shadow-lg">
                         <LayoutDashboard size={18} /> Painel Acesso APP
                       </a>
-                      
                       <a href="/resultados" className="flex items-center justify-center gap-2 w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-sm shadow-lg">
                         <BarChart3 size={18} /> Visão de Resultados
                       </a>

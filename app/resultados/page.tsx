@@ -7,7 +7,7 @@ import {
   Sparkles, Layers, Target, Microscope, 
   Wallet, CreditCard, Calendar, Mail, Send,
   LineChart, Users, Zap, Instagram,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, Edit3
 } from "lucide-react";
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, 
@@ -249,7 +249,6 @@ export default function DashboardResultados() {
         </h3>
         <p className="text-[9px] uppercase font-bold opacity-40 mt-1 mb-3">Saldo líquido mensal</p>
         
-        {/* Informações Enriquecidas */}
         <div className="w-full pt-3 mt-1 border-t border-white/10 grid grid-cols-2 gap-4">
             <div className="text-center">
                 <p className="text-[8px] uppercase opacity-40 font-black mb-0.5">Receitas</p>
@@ -285,9 +284,9 @@ export default function DashboardResultados() {
   ];
 
   return (
-    <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
+    <div className="w-full animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-8">
       
-      <header className="flex flex-col mb-4">
+      <header className="flex flex-col mb-4 pt-8">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
               <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
@@ -337,7 +336,7 @@ export default function DashboardResultados() {
         </div>
       </header>
 
-      {/* KPIs com espaçamento reduzido (mb-4) */}
+      {/* KPIs */}
       <div className="mb-4 relative group">
         <div className="hidden md:grid grid-cols-12 gap-8 items-stretch">
             <div className="col-span-8 grid grid-cols-3 gap-8">
@@ -351,7 +350,7 @@ export default function DashboardResultados() {
             </div>
         </div>
 
-        {/* NAVEGAÇÃO MOBILE COM SETAS LATERAIS CONDICIONAIS */}
+        {/* NAVEGAÇÃO MOBILE */}
         <div className="md:hidden flex items-center justify-center relative px-2">
             {kpiIndex > 0 && (
                 <button 
@@ -378,7 +377,6 @@ export default function DashboardResultados() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8 items-stretch">
-        {/* AJUSTE FLUXO DE CAIXA COMPARATIVO */}
         <section className="lg:col-span-8 bg-white border border-gray-100 rounded-[3rem] p-6 md:p-10 shadow-sm relative overflow-hidden flex flex-col min-h-[400px] md:min-h-0">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 relative z-10">
             <h3 className="font-bold text-gray-800 flex items-center gap-2 uppercase text-xs tracking-widest">
@@ -429,9 +427,22 @@ export default function DashboardResultados() {
                 ))}
             </div>
           </div>
-          <a href="/lancamentos" className="mt-8 w-full py-5 bg-blue-50 text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all text-center">
-            Gerenciar Lançamentos
-          </a>
+
+          <div className="flex flex-col gap-3 mt-8">
+            <a 
+              href="/lancamentos" 
+              className="w-full py-5 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-100 transition-all text-center flex items-center justify-center gap-2"
+            >
+              <PlusCircle size={14} /> Lançar despesas
+            </a>
+            
+            <a 
+              href="/lancamentos/gerenciar" 
+              className="w-full py-5 bg-transparent border-2 border-blue-50 text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-50 transition-all text-center flex items-center justify-center gap-2"
+            >
+              <Edit3 size={14} /> Editar Registros
+            </a>
+          </div>
         </section>
       </div>
 
@@ -439,7 +450,6 @@ export default function DashboardResultados() {
       <VisionYoY data={rawLancamentos} />
 
       <div className="mt-16 pt-10">
-        {/* LINHA DIVISÓRIA AJUSTADA COM NOVO TEXTO */}
         <div className="flex items-center gap-4 mb-10">
             <div className="h-px bg-gray-200 flex-1"></div>
             <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
@@ -450,7 +460,6 @@ export default function DashboardResultados() {
 
         <p className="text-gray-400 text-sm mb-8 text-center px-4">Acompanhe a evolução do seu ecossistema de dados e ferramentas de suporte.</p>
 
-        {/* AJUSTE CONJUNTO DE CARDS */}
         <div className="mb-12 relative group">
           <footer className="hidden md:grid grid-cols-4 gap-8">
               {footerItems}
@@ -481,7 +490,6 @@ export default function DashboardResultados() {
           </div>
         </div>
 
-        {/* AJUSTE SUA VISÃO PERSONALIZADA */}
         <div className="relative overflow-hidden bg-white border border-gray-100 rounded-[3rem] p-6 md:p-10 shadow-sm flex flex-col md:flex-row justify-between items-center gap-10 mb-20">
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50/50 rounded-full blur-3xl -mr-32 -mt-32 z-0"></div>
             <div className="relative z-10 max-w-xl text-center md:text-left">
@@ -490,7 +498,7 @@ export default function DashboardResultados() {
                 </div>
                 <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 tracking-tight">Sua visão personalizada<span className="text-blue-600">.</span></h3>
                 <p className="text-gray-500 leading-relaxed text-base md:text-lg font-medium opacity-80">
-                    Transformamos seus padrões de uso em clareza estratégica para suas decisões financeiras diárias.
+                  Transformamos seus padrões de uso em clareza estratégica para suas decisões financeiras diárias.
                 </p>
             </div>
             <div className="relative z-10 flex flex-col gap-4 md:gap-6 w-full md:w-96 p-6 md:p-8 bg-gray-50/50 backdrop-blur-sm rounded-[2rem] border border-white">
@@ -504,7 +512,6 @@ export default function DashboardResultados() {
             </div>
         </div>
 
-        {/* NOVA LINHA DIVISÓRIA "CONECTE-SE" CENTRALIZADA (PADRÃO SOBRE) */}
         <div className="mt-24 flex items-center gap-4 mb-12">
           <div className="h-px bg-gray-200 flex-1"></div>
           <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
@@ -513,7 +520,6 @@ export default function DashboardResultados() {
           <div className="h-px bg-gray-200 flex-1"></div>
         </div>
 
-        {/* BLOCO INSTAGRAM CENTRALIZADO COM GRADIENTE E BRILHO (PADRÃO SOBRE) */}
         <div className="flex flex-col items-center text-center">
           <div className="max-w-3xl mb-12">
             <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
