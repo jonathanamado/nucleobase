@@ -438,31 +438,35 @@ export default function MinhaContaPage() {
                 )}
               </div>
 
-              <div className="flex flex-col gap-3 mt-4">
-                {stats.mesesPendentes > 0 && (
-                  <Link href="/lancamentos" className="block p-4 bg-orange-500 rounded-xl group hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/10">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-[10px] font-black text-white/70 uppercase text-center tracking-widest mb-1">Novos Lançamentos</p>
-                        <p className="text-white text-xs font-bold text-center leading-tight">Atualize seus registros.<br/>Clique aqui.</p>
-                      </div>
-                      <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform">
-                        <Rocket size={20} fill="currentColor" className="text-orange-100" />
-                      </div>
+              {/* ÁREA DE BOTÕES DE AÇÃO - PADRONIZADOS */}
+              <div className="flex flex-col gap-3 mt-8">
+                {/* BOTÃO NOVOS LANÇAMENTOS - LARANJADO */}
+                <Link href="/lancamentos" className="block w-full p-4 bg-orange-500 rounded-xl group hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/10">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1 text-center">Novos Lançamentos</p>
+                      <p className="text-white text-xs font-bold text-center leading-tight">Atualize seus registros.<br/>Clique aqui.</p>
                     </div>
-                  </Link>
-                )}
+                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                      <Rocket size={20} fill="currentColor" className="text-orange-100" />
+                    </div>
+                  </div>
+                </Link>
 
-                <Link href="/resultados" className="block p-4 bg-blue-600 rounded-xl group hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1 text-center">Performance</p>
-                            <p className="text-white text-xs font-bold text-center leading-tight">Painel de Resultados.<br/>Acesse agora.</p>
-                        </div>
-                        <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform">
-                            <LayoutDashboard size={20} fill="currentColor" className="text-blue-100" />
-                        </div>
+                {/* LINHA DIVISÓRIA SUTIL */}
+                <div className="h-px bg-gray-50 w-full my-1"></div>
+
+                {/* BOTÃO PERFORMANCE - AZUL */}
+                <Link href="/resultados" className="block w-full p-4 bg-blue-600 rounded-xl group hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1 text-center">Performance</p>
+                      <p className="text-white text-xs font-bold text-center leading-tight">Painel de Resultados.<br/>Acesse agora.</p>
                     </div>
+                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                      <LayoutDashboard size={20} fill="currentColor" className="text-blue-100" />
+                    </div>
+                  </div>
                 </Link>
               </div>
             </div>
@@ -498,7 +502,6 @@ export default function MinhaContaPage() {
                     : "Perfil completo! Agora seus relatórios e benchmarking possuem precisão máxima baseada em seu contexto real."}
                 </p>
                 
-                {/* BOTÃO ADICIONADO PARA DESKTOP */}
                 <button 
                   onClick={() => {
                     const element = document.getElementById('dados-cadastrais');

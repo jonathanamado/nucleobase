@@ -56,7 +56,7 @@ export default function LancamentosPage() {
     "Educação": ["Curso/Treinamento", "Faculdade", "Livros"],
     "Investimentos": ["Ações/FIIs", "Cripto", "Renda Fixa"],
     "Lazer": ["Viagem", "Hospedagem", "Cinema", "Bares/Festas"],
-    "Moradia": ["Aluguel/Condomínio", "Energia", "Água", "Gás"],
+    "Moradia": ["Prestação", "Aluguel", "Condomínio", "Reforma", "Energia", "Água", "Gás"],
     "Saúde": ["Farmácia", "Consulta", "Plano de Saúde"],
     "Transporte": ["Combustível", "Uber/99", "Manutenção"],
     "Outros": ["Imprevistos", "Taxas Bancárias"]
@@ -78,7 +78,7 @@ export default function LancamentosPage() {
     descricao: "",
     valorTotal: 0,
     dataCompetencia: getLocalDate(),
-    natureza: "Natureza",
+    natureza: "Despesa", // AJUSTE: Corrigido de "Natureza" para "Despesa" para evitar erro no banco
     categoria: "",
     sub_categoria: "",
     projeto: "Pessoal",
@@ -280,8 +280,9 @@ export default function LancamentosPage() {
       </div>
 
       <div>
-        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-4 flex items-center gap-4">
-          Formulário em 3 etapas <div className="h-px bg-gray-200 flex-1"></div>
+        <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-gray-400 mb-8 flex items-center gap-4">
+          <span className="whitespace-nowrap">Formulário em 3 etapas</span>
+          <div className="h-px bg-gray-100 flex-1"></div>
         </h3>
 
         {sucesso && (
@@ -477,7 +478,8 @@ export default function LancamentosPage() {
 
         <div className="mt-20">
           <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-4 flex items-center gap-4">
-            Histórico Recente <div className="h-px bg-gray-100 flex-1"></div>
+            <span className="whitespace-nowrap">Histórico Recente</span>
+            <div className="h-px bg-gray-100 flex-1"></div>
           </h3>
 
           <p className="text-sm text-gray-500 font-medium mb-8">
@@ -566,7 +568,7 @@ export default function LancamentosPage() {
               
               <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
                 <span className="flex items-center justify-center">
-                   <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+                    <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
                 </span>
               </div>
             </div>
