@@ -7,7 +7,8 @@ import {
   Sparkles, Layers, Target, Microscope, 
   Wallet, CreditCard, Calendar, Mail, Send,
   LineChart, Instagram,
-  ChevronLeft, ChevronRight, Edit3, UserPlus
+  ChevronLeft, ChevronRight, Edit3, UserPlus,
+  Clock, Receipt
 } from "lucide-react";
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, 
@@ -24,6 +25,7 @@ const supabase = createClient(
 
 export default function DashboardResultados() {
   const [activeTab, setActiveTab] = useState("TODOS");
+  const [viewMode, setViewMode] = useState<'COMPETENCIA' | 'CAIXA'>('CAIXA'); 
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasData, setHasData] = useState(false);
@@ -75,6 +77,7 @@ export default function DashboardResultados() {
     const localAnoCategoriasMap: { [key: string]: { [key: string]: number } } = {};
     const localGeralCategorias: { [key: string]: number } = {};
     const nomesMeses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+    const mesesFullMap: any = { "Janeiro": "Jan", "Fevereiro": "Fev", "Março": "Mar", "Abril": "Abr", "Maio": "Mai", "Junho": "Jun", "Julho": "Jul", "Agosto": "Ago", "Setembro": "Set", "Outubro": "Out", "Novembro": "Nov", "Dezembro": "Dez" };
     
     const hoje = new Date();
     const mesAtualNome = nomesMeses[hoje.getUTCMonth()];
@@ -98,11 +101,11 @@ export default function DashboardResultados() {
       let itemAno = "";
       let mesNome = "";
 
-      if (item.fatura_mes && item.fatura_mes !== "") {
+      if (viewMode === 'CAIXA' && item.fatura_mes && item.fatura_mes !== "") {
         if (item.fatura_mes.includes("/")) {
-          const [mNome, ano] = item.fatura_mes.split("/");
-          itemAno = ano;
-          mesNome = mNome.substring(0, 3);
+          const [mParte, anoParte] = item.fatura_mes.split("/");
+          itemAno = anoParte;
+          mesNome = mesesFullMap[mParte] || mParte.substring(0, 3);
         } else if (item.fatura_mes.includes("-")) {
           const [anoF, mesF] = item.fatura_mes.split("-");
           itemAno = anoF;
@@ -162,7 +165,6 @@ export default function DashboardResultados() {
       gastos: mesesMap[chave].gastos 
     })));
     
-    // AJUSTE REALIZADO AQUI: Correção dos parênteses e variável rA/dA
     let rA = 0;
     let dA = 0;
     const dadosAcumulados = chavesOrdenadas.map(chave => { 
@@ -193,7 +195,7 @@ export default function DashboardResultados() {
     });
   };
 
-  useEffect(() => { if (rawLancamentos.length > 0) processarDadosFinanceiros(rawLancamentos, activeTab); }, [activeTab, rawLancamentos]);
+  useEffect(() => { if (rawLancamentos.length > 0) processarDadosFinanceiros(rawLancamentos, activeTab); }, [activeTab, rawLancamentos, viewMode]);
   
   useEffect(() => { 
     const nomesMeses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
@@ -226,6 +228,9 @@ export default function DashboardResultados() {
       window.location.reload();
     } catch (err: any) { alert(err.message); } finally { setAuthLoading(false); }
   };
+
+  const nextKpi = () => setKpiIndex((prev) => (prev + 1) % 4);
+  const prevKpi = () => setKpiIndex((prev) => (prev - 1 + 4) % 4);
 
   if (loading) return <div className="w-full h-screen flex items-center justify-center bg-[#FAFAFA]"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>;
 
@@ -269,6 +274,18 @@ export default function DashboardResultados() {
   const CurrentMonthCard = () => (
     <div className="bg-gray-900 rounded-[2rem] p-5 text-white flex flex-col justify-center items-center relative overflow-hidden shadow-xl min-h-[140px] w-full text-center">
       <div className="absolute top-4 right-4 text-white opacity-40"><Calendar size={18} /></div>
+      
+      <div className="md:hidden">
+        {kpiIndex > 0 && (
+          <button onClick={prevKpi} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors">
+            <ChevronLeft size={24} />
+          </button>
+        )}
+        <button onClick={nextKpi} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors">
+          <ChevronRight size={24} />
+        </button>
+      </div>
+
       <div className="flex flex-col items-center w-full">
         <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2">Mês Atual ({currentMonthData.nome})</p>
         <h3 className="text-xl font-bold tracking-tight whitespace-nowrap">R$ {currentMonthData.saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
@@ -289,9 +306,9 @@ export default function DashboardResultados() {
 
   const kpiCards = [
     <CurrentMonthCard key="mes-atual" />,
-    <KPICard key="saldo" title="Saldo Líquido" value={stats.totalGeral} icon={<TrendingUp size={14}/>} color="blue" />,
-    <KPICard key="receitas" title="Receitas" value={stats.totalReceita} icon={<ArrowUpRight size={14}/>} color="emerald" />,
-    <KPICard key="despesas" title="Despesas" value={stats.totalDespesa} icon={<ArrowDownRight size={14}/>} color="red" />,
+    <KPICard key="despesas" title="Despesas" value={stats.totalDespesa} icon={<ArrowDownRight size={14}/>} color="red" onNext={nextKpi} onPrev={prevKpi} showArrows index={2} />,
+    <KPICard key="receitas" title="Receitas" value={stats.totalReceita} icon={<ArrowUpRight size={14}/>} color="emerald" onNext={nextKpi} onPrev={prevKpi} showArrows index={1} />,
+    <KPICard key="saldo" title="Saldo Líquido" value={stats.totalGeral} icon={<TrendingUp size={14}/>} color="blue" onNext={nextKpi} onPrev={prevKpi} showArrows index={3} />,
   ];
 
   const footerItems = [
@@ -351,9 +368,9 @@ export default function DashboardResultados() {
       <div className="mb-8 relative">
         <div className="hidden md:grid grid-cols-12 gap-8 items-stretch">
             <div className="col-span-8 grid grid-cols-3 gap-8">
-                <KPICard title="Saldo Líquido" value={stats.totalGeral} icon={<TrendingUp size={14}/>} color="blue" />
-                <KPICard title="Receitas" value={stats.totalReceita} icon={<ArrowUpRight size={14}/>} color="emerald" />
                 <KPICard title="Despesas" value={stats.totalDespesa} icon={<ArrowDownRight size={14}/>} color="red" />
+                <KPICard title="Receitas" value={stats.totalReceita} icon={<ArrowUpRight size={14}/>} color="emerald" />
+                <KPICard title="Saldo Líquido" value={stats.totalGeral} icon={<TrendingUp size={14}/>} color="blue" />
             </div>
             <div className="col-span-4"><CurrentMonthCard /></div>
         </div>
@@ -363,9 +380,27 @@ export default function DashboardResultados() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8 items-stretch">
         <section className="lg:col-span-8 bg-white border border-gray-100 rounded-[3rem] p-6 md:p-10 shadow-sm relative overflow-hidden flex flex-col min-h-[400px]">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 relative z-10">
-            <h3 className="font-bold text-gray-800 flex items-center gap-2 uppercase text-xs tracking-widest">
-                <BarChart3 size={18} className="text-blue-600" /> Fluxo de Caixa Comparativo
-            </h3>
+            <div className="flex flex-col gap-3 w-full sm:w-auto items-center sm:items-start">
+              <h3 className="font-bold text-gray-800 flex items-center gap-2 uppercase text-xs tracking-widest">
+                  <BarChart3 size={18} className="text-blue-600" /> Fluxo de Caixa Comparativo
+              </h3>
+              
+              <div className="flex bg-gray-50 p-1.5 rounded-2xl w-full sm:w-auto">
+                <button 
+                  onClick={() => setViewMode('CAIXA')} 
+                  className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewMode === 'CAIXA' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}
+                >
+                  <Receipt size={12} /> Mês Fatura
+                </button>
+                <button 
+                  onClick={() => setViewMode('COMPETENCIA')} 
+                  className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewMode === 'COMPETENCIA' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}
+                >
+                  <Clock size={12} /> Data Compra
+                </button>
+              </div>
+            </div>
+
             <div className="flex bg-gray-50 p-1.5 rounded-2xl w-full sm:w-auto">
               <button onClick={() => setChartType('MENSAL')} className={`flex-1 sm:flex-none px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${chartType === 'MENSAL' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}>Mensal</button>
               <button onClick={() => setChartType('ACUMULADO')} className={`flex-1 sm:flex-none px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${chartType === 'ACUMULADO' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}>Acumulado</button>
@@ -436,9 +471,9 @@ export default function DashboardResultados() {
         </section>
       </div>
 
-      <VisionOfensora data={rawLancamentos} />
       <VisionYoY data={rawLancamentos} />
-
+      <VisionOfensora data={rawLancamentos} />
+      
       <div className="mt-16">
         <div className="flex items-center gap-6 mb-12">
             <div className="h-px bg-gray-100 flex-1"></div>
@@ -453,23 +488,77 @@ export default function DashboardResultados() {
                 <h3 className="text-2xl font-bold text-gray-900 mb-4 tracking-tight">Sua visão personalizada<span className="text-blue-600">.</span></h3>
                 <p className="text-gray-500 leading-relaxed text-lg font-medium opacity-80">Transformamos seus padrões de uso em clareza estratégica.</p>
             </div>
-            <div className="w-full md:w-96 flex flex-col gap-4">
-                <button className="w-full flex items-center justify-center gap-3 py-4 bg-gray-900 text-white rounded-2xl text-xs font-bold hover:bg-blue-600 transition-all shadow-lg"><Send size={16} /> Solicitar Melhoria</button>
-                <a href="https://www.instagram.com/nucleobase.app/" target="_blank" rel="noopener noreferrer" className="w-full flex items-center justify-center gap-3 py-4 bg-white border-2 border-gray-100 text-gray-900 rounded-2xl text-xs font-bold hover:bg-gray-50 transition-all">
-                  <Instagram size={16} className="text-pink-600" /> Siga no Instagram
-                </a>
+            <div className="w-full md:w-96 flex flex-col gap-1 items-center md:items-start">
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Canais Oficiais</p>
+                <p className="text-sm font-bold text-gray-900 mb-4 tracking-tight">contato@nucleobase.app</p>
+                <button className="w-full flex items-center justify-center gap-3 py-4 bg-gray-900 text-white rounded-2xl text-xs font-bold hover:bg-blue-600 transition-all shadow-lg">
+                  <Send size={16} /> Solicitar Melhoria
+                </button>
             </div>
+        </div>
+
+        <div className="flex items-center gap-6 mb-12">
+            <div className="h-px bg-gray-100 flex-1"></div>
+            <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
+            <div className="h-px bg-gray-100 flex-1"></div>
+        </div>
+
+        <div className="flex flex-col items-center text-center pb-20">
+          <div className="max-w-3xl mb-12">
+            <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
+              Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+            </h4>
+            <p className="text-gray-500 font-medium text-sm md:text-base">
+              Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
+            </p>
+          </div>
+          
+          <a 
+            href="https://www.instagram.com/nucleobase.app/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="group relative flex flex-col items-center gap-6"
+          >
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+              
+              <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+                <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+              </div>
+            </div>
+            
+            <div className="flex flex-col items-center">
+              <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+              <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
+            </div>
+          </a>
         </div>
       </div>
     </div>
   );
 }
 
-function KPICard({ title, value, icon, color }: any) {
-    const colorStyles: any = { blue: "text-blue-600 bg-blue-50", emerald: "text-emerald-600 bg-emerald-50", red: "text-red-600 bg-red-50" };
+function KPICard({ title, value, icon, color, onNext, onPrev, showArrows, index }: any) {
+    const colorStyles: any = { 
+      blue: "text-blue-600 bg-blue-50", 
+      emerald: "text-emerald-600 bg-emerald-50", 
+      red: "text-red-600 bg-red-50" 
+    };
     return (
         <div className="bg-white border border-gray-100 p-5 rounded-[2rem] shadow-sm flex flex-col justify-center relative min-h-[140px] w-full items-center text-center">
             <div className={`absolute top-4 right-4 p-2 rounded-lg ${colorStyles[color]}`}>{icon}</div>
+            
+            {showArrows && (
+              <div className="md:hidden">
+                <button onClick={onPrev} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-900 transition-colors">
+                  <ChevronLeft size={24} />
+                </button>
+                <button onClick={onNext} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-900 transition-colors">
+                  <ChevronRight size={24} />
+                </button>
+              </div>
+            )}
+
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{title}</p>
             <h3 className="text-lg font-bold text-gray-900">R$ {value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
         </div>

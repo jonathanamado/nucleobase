@@ -11,25 +11,58 @@ interface Props {
 export default function VisionOfensora({ data, onViewHistory }: Props) {
   // 1. Cálculos memorizados para performance
   const { nomeOfensora, valorTotalOfensora, subcategoriasOrdenadas } = useMemo(() => {
-    const despesas = data.filter((item) => Number(item.valor) < 0);
+    const hoje = new Date();
+    const mesAtual = hoje.getUTCMonth();
+    const anoAtual = hoje.getUTCFullYear();
 
-    if (despesas.length === 0) {
+    // Mapeamento de meses para casos onde o texto vem em Português
+    const mesesMapPT: Record<string, number> = {
+      "janeiro": 0, "fevereiro": 1, "março": 2, "abril": 3, "maio": 4, "junho": 5,
+      "julho": 6, "agosto": 7, "setembro": 8, "outubro": 9, "novembro": 10, "dezembro": 11
+    };
+
+    // Função para validar se o item pertence ao mês atual (Fatura para Despesa / Competência para Receita)
+    const isMesaAtual = (item: any) => {
+      if (item.natureza === "Despesa" && item.fatura_mes) {
+        // Trata formatos: "2026-04" ou "Abril/2026"
+        if (item.fatura_mes.includes('-')) {
+          const [ano, mes] = item.fatura_mes.split('-');
+          return parseInt(ano) === anoAtual && (parseInt(mes) - 1) === mesAtual;
+        } else if (item.fatura_mes.includes('/')) {
+          const [mesNome, ano] = item.fatura_mes.split('/');
+          const mesIndex = mesesMapPT[mesNome.toLowerCase().trim()];
+          return parseInt(ano) === anoAtual && mesIndex === mesAtual;
+        }
+      }
+      
+      // Fallback para data_competencia
+      const dataComp = new Date(item.data_competencia);
+      return dataComp.getUTCFullYear() === anoAtual && dataComp.getUTCMonth() === mesAtual;
+    };
+
+    // Filtragem: Apenas despesas do mês de referência (Caixa)
+    const despesasMes = data.filter((item) => Number(item.valor) < 0 && isMesaAtual(item));
+
+    if (despesasMes.length === 0) {
       return { nomeOfensora: null, valorTotalOfensora: 0, subcategoriasOrdenadas: [] };
     }
 
     const categoriasMap: Record<string, number> = {};
-    despesas.forEach((item) => {
+    despesasMes.forEach((item) => {
       const cat = item.categoria || "Outros";
       categoriasMap[cat] = (categoriasMap[cat] || 0) + Math.abs(Number(item.valor));
     });
 
+    // Encontra a maior categoria ofensora
     const [nome, valor] = Object.entries(categoriasMap).sort((a, b) => b[1] - a[1])[0];
 
+    // Detalhamento por Subcategoria ou Descrição
     const subMap: Record<string, number> = {};
-    despesas
+    despesasMes
       .filter((item) => (item.categoria || "Outros") === nome)
       .forEach((item) => {
-        const sub = item.subcategoria || item.descricao || "Não identificado";
+        // Prioriza sub_categoria do JSON, fallback para descrição
+        const sub = item.sub_categoria || item.descricao || "Geral";
         subMap[sub] = (subMap[sub] || 0) + Math.abs(Number(item.valor));
       });
 
@@ -57,19 +90,19 @@ export default function VisionOfensora({ data, onViewHistory }: Props) {
               <Microscope size={22} />
             </div>
             <h3 className="font-black text-gray-400 uppercase text-[10px] tracking-[0.3em]">
-              Diagnóstico de Escoamento
+              Diagnóstico de Escoamento • Mês Atual
             </h3>
           </div>
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight">
             Análise crítica de <span className="text-red-600">{nomeOfensora}</span>.
           </h2>
           <p className="text-gray-500 text-sm md:text-base mt-2 font-medium">
-            Sua maior saída financeira concentra-se aqui. Veja o detalhamento abaixo:
+            Sua maior saída financeira projetada para este mês concentra-se aqui.
           </p>
         </div>
 
         <div className="w-full lg:w-[35%] bg-gray-50 px-8 py-6 rounded-[2.5rem] border border-gray-100 flex flex-col items-center justify-center text-center">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 whitespace-nowrap">Impacto na Categoria</p>
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 whitespace-nowrap">Total nesta categoria</p>
           <p className="text-2xl font-black text-gray-900 tracking-tighter whitespace-nowrap">
             R$ {valorTotalOfensora.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
           </p>
@@ -82,7 +115,7 @@ export default function VisionOfensora({ data, onViewHistory }: Props) {
         {/* LADO ESQUERDO: DETALHAMENTO (65%) */}
         <div className="w-full lg:w-[65%] space-y-8">
           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-8 flex items-center gap-2">
-            <AlertTriangle size={14} className="text-orange-500" /> Detalhamento de incidência
+            <AlertTriangle size={14} className="text-orange-500" /> Detalhamento de incidência por fatura
           </p>
           
           <div className="space-y-7">
