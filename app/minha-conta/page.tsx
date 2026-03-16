@@ -7,7 +7,7 @@ import {
   Save, MapPin, UserCircle, Camera, GraduationCap, Briefcase, 
   Baby, CalendarDays, Activity, MousePointerClick, 
   KeyRound, Instagram, X, Eye, EyeOff,
-  Target, Share2, Wallet, Zap, Rocket, LayoutDashboard
+  Target, Share2, Wallet, Zap, Rocket, LayoutDashboard, Info
 } from "lucide-react";
 
 const supabase = createClient(
@@ -53,6 +53,7 @@ export default function MinhaContaPage() {
     mesesPendentes: 0,
     ultimoLancamento: "---",
     patrimonioConectado: 0,
+    detalheConexoes: "",
     mediaGastosDiarios: "R$ 0,00"
   });
 
@@ -89,7 +90,7 @@ export default function MinhaContaPage() {
 
     const { count, data: allRecords } = await supabase
       .from("lancamentos_financeiros")
-      .select("created_at, origem, cartao_nome, data_competencia, natureza, valor", { count: "exact" })
+      .select("created_at, origem, tipo_origem, cartao_nome, data_competencia, natureza, valor", { count: "exact" })
       .eq("user_id", userId);
 
     if (allRecords && allRecords.length > 0) {
@@ -121,8 +122,17 @@ export default function MinhaContaPage() {
         }
       }
 
-      const bancosUnicos = new Set(allRecords.map(l => l.origem?.trim()).filter(Boolean)).size;
-      const cartoesUnicos = new Set(allRecords.map(l => l.cartao_nome?.trim()).filter(Boolean)).size;
+      // Lógica aprimorada para clareza das origens
+      const conexoesUnicas = allRecords.reduce((acc: string[], curr) => {
+        const identificador = `${curr.origem} (${curr.tipo_origem})`.trim();
+        if (curr.origem && !acc.includes(identificador)) {
+          acc.push(identificador);
+        }
+        return acc;
+      }, []);
+
+      const instituicoesSet = new Set(allRecords.map(l => l.origem).filter(Boolean));
+      const instituicoesTexto = Array.from(instituicoesSet).join(", ");
 
       const despesasMes = allRecords.filter(l => {
         const [ano, mes] = l.data_competencia.split('-');
@@ -137,7 +147,8 @@ export default function MinhaContaPage() {
         totalLancamentos: count || 0,
         mesesAtivos: mesesFormatados,
         mesesPendentes: pendentes,
-        patrimonioConectado: bancosUnicos + cartoesUnicos,
+        patrimonioConectado: conexoesUnicas.length,
+        detalheConexoes: instituicoesTexto,
         mediaGastosDiarios: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(mediaDiaria)
       });
     }
@@ -387,7 +398,15 @@ export default function MinhaContaPage() {
                   <Wallet className="w-4 h-4 md:w-[18px] md:h-[18px]" />
                 </div>
                 <div>
-                  <p className="text-[7px] md:text-[9px] font-black text-gray-400 uppercase tracking-tighter leading-none mb-1">Cartões</p>
+                  <div className="flex items-center justify-center md:justify-start gap-1">
+                    <p className="text-[7px] md:text-[9px] font-black text-gray-400 uppercase tracking-tighter leading-none mb-1">Conexões</p>
+                    <div className="group relative">
+                        <Info size={10} className="text-gray-300 mb-1 cursor-help" />
+                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-32 p-2 bg-gray-900 text-[8px] text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 text-center leading-tight">
+                            Total de origens (Cartão e Conta) detectadas: <span className="text-emerald-400">{stats.detalheConexoes}</span>
+                        </div>
+                    </div>
+                  </div>
                   <p className="text-xs md:text-lg font-black text-gray-900">{stats.patrimonioConectado}</p>
                 </div>
               </div>
@@ -417,7 +436,6 @@ export default function MinhaContaPage() {
                         <p className="text-[10px] font-black text-gray-900">{stats.mesesAtivos[0]}</p>
                       </div>
                       
-                      {/* AJUSTE: LINHA RETA QUE OCUPA TODA A LARGURA ENTRE OS BLOCOS */}
                       <div className="absolute left-[45px] right-[45px] top-1/2 -translate-y-1/2 flex items-center h-px">
                         <div className="w-full border-b border-gray-300"></div>
                       </div>
@@ -445,8 +463,8 @@ export default function MinhaContaPage() {
                 <Link href="/lancamentos" className="block w-full p-4 bg-orange-500 rounded-xl group hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/10">
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex-1 text-center">
-                      <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">+ Lançamentos</p>
-                      <p className="text-white text-xs font-bold leading-tight">Atualize seus registros. Clique aqui.</p>
+                      <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Novos Lançamentos</p>
+                      <p className="text-white text-xs font-bold leading-tight">Atualize seus registros.<br/>Clique aqui.</p>
                     </div>
                     <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform shrink-0">
                       <Rocket size={20} fill="currentColor" className="text-orange-100" />
@@ -462,7 +480,7 @@ export default function MinhaContaPage() {
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex-1 text-center">
                       <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Performance</p>
-                      <p className="text-white text-xs font-bold leading-tight">Painel de Resultados. Acesse agora.</p>
+                      <p className="text-white text-xs font-bold leading-tight">Painel de Resultados.<br/>Acesse agora.</p>
                     </div>
                     <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform shrink-0">
                       <LayoutDashboard size={20} fill="currentColor" className="text-blue-100" />
