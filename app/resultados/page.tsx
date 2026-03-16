@@ -84,7 +84,6 @@ export default function DashboardResultados() {
     let recMes = 0, desMes = 0;
 
     const dadosFiltrados = filtro === "TODOS" ? dados : dados.filter(item => {
-        // Normalização de filtro para aceitar variações de escrita da importação
         const itemOrigem = item.tipo_origem?.toUpperCase();
         if (filtro === "CARTAO") return itemOrigem === "CARTAO" || itemOrigem === "CARTÃO DE CRÉDITO";
         if (filtro === "CONTA_CORRENTE") return itemOrigem === "CONTA_CORRENTE" || itemOrigem === "CONTA CORRENTE";
@@ -92,20 +91,26 @@ export default function DashboardResultados() {
     });
 
     dadosFiltrados.forEach(item => {
-      // AJUSTE DE NORMALIZAÇÃO: O Dashboard agora confia na coluna 'natureza'
       const valorAbsoluto = Math.abs(Number(item.valor));
       const isReceita = item.natureza === "Receita"; 
-      
       const cat = (item.categoria || "Outros").toString().trim() || "Outros";
       
       let itemAno = "";
       let mesNome = "";
 
-      if ((item.tipo_origem === "CARTAO" || item.tipo_origem === "Cartão de Crédito") && item.fatura_mes) {
-        const [anoF, mesF] = item.fatura_mes.split("-");
-        itemAno = anoF;
-        mesNome = nomesMeses[parseInt(mesF) - 1];
-      } else {
+      if (item.fatura_mes && item.fatura_mes !== "") {
+        if (item.fatura_mes.includes("/")) {
+          const [mNome, ano] = item.fatura_mes.split("/");
+          itemAno = ano;
+          mesNome = mNome.substring(0, 3);
+        } else if (item.fatura_mes.includes("-")) {
+          const [anoF, mesF] = item.fatura_mes.split("-");
+          itemAno = anoF;
+          mesNome = nomesMeses[parseInt(mesF) - 1];
+        }
+      } 
+      
+      if (!mesNome || !itemAno) {
         const dataStr = item.data_competencia.includes('T') ? item.data_competencia : `${item.data_competencia}T00:00:00`;
         const data = new Date(dataStr);
         itemAno = data.getUTCFullYear().toString();
@@ -123,7 +128,6 @@ export default function DashboardResultados() {
         receitaTotal += valorAbsoluto; 
       } else {
         despesaTotal += valorAbsoluto;
-        
         if (!localAnoCategoriasMap[itemAno]) localAnoCategoriasMap[itemAno] = {};
         if (!localAnoCategoriasMap[itemAno][cat]) localAnoCategoriasMap[itemAno][cat] = 0;
         localAnoCategoriasMap[itemAno][cat] += valorAbsoluto;
@@ -158,12 +162,15 @@ export default function DashboardResultados() {
       gastos: mesesMap[chave].gastos 
     })));
     
-    let rA = 0, dA = 0;
-    setChartDataAcumulado(chavesOrdenadas.map(chave => { 
+    // AJUSTE REALIZADO AQUI: Correção dos parênteses e variável rA/dA
+    let rA = 0;
+    let dA = 0;
+    const dadosAcumulados = chavesOrdenadas.map(chave => { 
       rA += mesesMap[chave].receita; 
       dA += mesesMap[chave].gastos; 
       return { name: chave, receita: rA, gastos: dA }; 
-    }));
+    });
+    setChartDataAcumulado(dadosAcumulados);
 
     const formatarBarras = (map: any) => Object.keys(map).map(cat => ({ category: cat, gastos: map[cat] })).sort((a, b) => b.gastos - a.gastos).slice(0, 10);
     
