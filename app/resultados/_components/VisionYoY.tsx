@@ -37,8 +37,6 @@ export default function VisionYoY({ data, filterCategory, onClearFilter }: Props
     }));
 
     data.forEach(item => {
-      // Se filtro for Receita ou Despesa, ignora o que não for compatível. 
-      // Se for Saldo, processa ambos para calcular a diferença.
       if (naturezaFiltro !== 'Saldo' && item.natureza !== naturezaFiltro) return;
       
       const valorOriginal = Number(item.valor);
@@ -67,8 +65,6 @@ export default function VisionYoY({ data, filterCategory, onClearFilter }: Props
       }
 
       if (mesIndex >= 0 && mesIndex <= 11) {
-        // Lógica de Acúmulo: Se for Saldo, Receita soma e Despesa subtrai. 
-        // Se for filtro específico, usamos o valor absoluto (Math.abs).
         const valorParaSomar = naturezaFiltro === 'Saldo' ? valorOriginal : valorAbsoluto;
 
         if (anoItem === anoAtual) {
@@ -111,24 +107,30 @@ export default function VisionYoY({ data, filterCategory, onClearFilter }: Props
               Performance <span className="text-blue-600">YoY.</span>
             </h2>
 
-            <div className="flex bg-gray-50 p-1.5 rounded-2xl w-full sm:w-fit mx-auto sm:mx-0 overflow-x-auto no-scrollbar">
+            {/* Container de Botões Ajustado para Mobile */}
+            <div className="flex bg-gray-50 p-1.5 rounded-2xl w-full sm:w-fit mx-auto sm:mx-0">
               <button 
                 onClick={() => setNaturezaFiltro('Despesa')}
-                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${naturezaFiltro === 'Despesa' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}
+                className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 py-2 sm:px-5 sm:py-2 rounded-xl text-[8px] sm:text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${naturezaFiltro === 'Despesa' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}
               >
-                <ArrowDownRight size={12} /> Despesas
+                <ArrowDownRight size={12} /> 
+                <span>Despesas</span>
               </button>
+              
               <button 
                 onClick={() => setNaturezaFiltro('Receita')}
-                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${naturezaFiltro === 'Receita' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}
+                className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 py-2 sm:px-5 sm:py-2 rounded-xl text-[8px] sm:text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${naturezaFiltro === 'Receita' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}
               >
-                <ArrowUpRight size={12} /> Receitas
+                <ArrowUpRight size={12} /> 
+                <span>Receitas</span>
               </button>
+              
               <button 
                 onClick={() => setNaturezaFiltro('Saldo')}
-                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${naturezaFiltro === 'Saldo' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}
+                className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 py-2 sm:px-5 sm:py-2 rounded-xl text-[8px] sm:text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${naturezaFiltro === 'Saldo' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}
               >
-                <Scale size={12} /> Saldo
+                <Scale size={12} /> 
+                <span>Saldo</span>
               </button>
             </div>
 

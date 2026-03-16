@@ -8,7 +8,7 @@ import {
   Wallet, CreditCard, Calendar, Mail, Send,
   LineChart, Instagram,
   ChevronLeft, ChevronRight, Edit3, UserPlus,
-  Clock, Receipt
+  Clock, Receipt, BarChart, Activity
 } from "lucide-react";
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, 
@@ -379,41 +379,65 @@ export default function DashboardResultados() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8 items-stretch">
         <section className="lg:col-span-8 bg-white border border-gray-100 rounded-[3rem] p-6 md:p-10 shadow-sm relative overflow-hidden flex flex-col min-h-[400px]">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 relative z-10">
-            <div className="flex flex-col gap-3 w-full sm:w-auto items-center sm:items-start">
-              <h3 className="font-bold text-gray-800 flex items-center gap-2 uppercase text-xs tracking-widest">
-                  <BarChart3 size={18} className="text-blue-600" /> Fluxo de Caixa Comparativo
-              </h3>
-              
-              <div className="flex bg-gray-50 p-1.5 rounded-2xl w-full sm:w-auto">
+          
+          {/* Cabeçalho Reestruturado: Título sempre na primeira linha */}
+          <div className="w-full flex flex-col gap-6 mb-8 relative z-10">
+            <h3 className="font-bold text-gray-800 flex items-center gap-2 uppercase text-xs tracking-widest w-full">
+              <BarChart3 size={18} className="text-blue-600" /> Fluxo de Caixa Comparativo
+            </h3>
+            
+            <div className="flex flex-wrap items-center gap-3 w-full justify-start md:justify-end">
+              {/* Grupo 1: Visão (Caixa vs Competência) */}
+              <div className="flex bg-gray-50 p-1.5 rounded-2xl flex-1 md:flex-none">
                 <button 
                   onClick={() => setViewMode('CAIXA')} 
-                  className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewMode === 'CAIXA' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}
+                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewMode === 'CAIXA' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}
                 >
-                  <Receipt size={12} /> Mês Fatura
+                  <Receipt size={12} /> <span className="whitespace-nowrap">Mês Fatura</span>
                 </button>
                 <button 
                   onClick={() => setViewMode('COMPETENCIA')} 
-                  className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewMode === 'COMPETENCIA' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}
+                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${viewMode === 'COMPETENCIA' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}
                 >
-                  <Clock size={12} /> Data Compra
+                  <Clock size={12} /> <span className="whitespace-nowrap">Data Compra</span>
+                </button>
+              </div>
+
+              {/* Grupo 2: Período (Mensal vs Acumulado) */}
+              <div className="flex bg-gray-50 p-1.5 rounded-2xl flex-1 md:flex-none">
+                <button 
+                  onClick={() => setChartType('MENSAL')} 
+                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${chartType === 'MENSAL' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}
+                >
+                  <BarChart size={12} /> <span className="whitespace-nowrap">Mensal</span>
+                </button>
+                <button 
+                  onClick={() => setChartType('ACUMULADO')} 
+                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${chartType === 'ACUMULADO' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}
+                >
+                  <Activity size={12} /> <span className="whitespace-nowrap">Acumulado</span>
                 </button>
               </div>
             </div>
-
-            <div className="flex bg-gray-50 p-1.5 rounded-2xl w-full sm:w-auto">
-              <button onClick={() => setChartType('MENSAL')} className={`flex-1 sm:flex-none px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${chartType === 'MENSAL' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}>Mensal</button>
-              <button onClick={() => setChartType('ACUMULADO')} className={`flex-1 sm:flex-none px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${chartType === 'ACUMULADO' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}>Acumulado</button>
-            </div>
           </div>
+
           <div className="flex-1 h-[300px] md:h-[400px] w-full relative z-10">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartType === 'MENSAL' ? chartData : chartDataAcumulado}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#94A3B8'}} />
                 <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94A3B8'}} />
-                <Tooltip contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 50px rgba(0,0,0,0.1)', padding: '20px' }} />
-                <Legend iconType="circle" verticalAlign="top" height={36} wrapperStyle={{fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px'}} />
+                <Tooltip 
+                  formatter={(value: any) => [`R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`]}
+                  contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 50px rgba(0,0,0,0.1)', padding: '20px' }} 
+                />
+                <Legend 
+                  iconType="circle" 
+                  verticalAlign="bottom"
+                  align="center"
+                  height={36} 
+                  wrapperStyle={{fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', paddingTop: '20px'}} 
+                />
                 <Area name="Receita" type="monotone" dataKey="receita" stroke="#2563eb" strokeWidth={3} fillOpacity={0.1} fill="#2563eb" />
                 <Area name="Despesa" type="monotone" dataKey="gastos" stroke="#F87171" strokeWidth={3} fillOpacity={0.05} fill="#F87171" />
               </AreaChart>

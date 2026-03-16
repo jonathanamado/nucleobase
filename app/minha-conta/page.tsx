@@ -412,16 +412,17 @@ export default function MinhaContaPage() {
                 {stats.mesesAtivos.length > 0 ? (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between relative px-1 mb-2">
-                      <div className="text-center z-10 bg-gray-50 px-1">
+                      <div className="text-center z-10 bg-gray-50 px-1 min-w-[40px]">
                         <p className="text-[7px] font-bold text-gray-400 uppercase">Início</p>
                         <p className="text-[10px] font-black text-gray-900">{stats.mesesAtivos[0]}</p>
                       </div>
-                      <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center px-10">
-                        <svg className="w-full h-2 text-gray-400 overflow-visible" preserveAspectRatio="none">
-                          <path d="M 0 4 Q 25 0, 50 4 T 100 4" fill="transparent" stroke="currentColor" strokeWidth="1.5" />
-                        </svg>
+                      
+                      {/* AJUSTE: LINHA RETA QUE OCUPA TODA A LARGURA ENTRE OS BLOCOS */}
+                      <div className="absolute left-[45px] right-[45px] top-1/2 -translate-y-1/2 flex items-center h-px">
+                        <div className="w-full border-b border-gray-300"></div>
                       </div>
-                      <div className="text-center z-10 bg-gray-50 px-1">
+
+                      <div className="text-center z-10 bg-gray-50 px-1 min-w-[40px]">
                         <p className="text-[7px] font-bold text-gray-400 uppercase">Fim</p>
                         <p className="text-[10px] font-black text-gray-900">{stats.mesesAtivos[stats.mesesAtivos.length - 1]}</p>
                       </div>
@@ -442,12 +443,12 @@ export default function MinhaContaPage() {
               <div className="flex flex-col gap-3 mt-8">
                 {/* BOTÃO NOVOS LANÇAMENTOS - LARANJADO */}
                 <Link href="/lancamentos" className="block w-full p-4 bg-orange-500 rounded-xl group hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/10">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1 text-center">Novos Lançamentos</p>
-                      <p className="text-white text-xs font-bold text-center leading-tight">Atualize seus registros.<br/>Clique aqui.</p>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex-1 text-center">
+                      <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">+ Lançamentos</p>
+                      <p className="text-white text-xs font-bold leading-tight">Atualize seus registros. Clique aqui.</p>
                     </div>
-                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform shrink-0">
                       <Rocket size={20} fill="currentColor" className="text-orange-100" />
                     </div>
                   </div>
@@ -458,12 +459,12 @@ export default function MinhaContaPage() {
 
                 {/* BOTÃO PERFORMANCE - AZUL */}
                 <Link href="/resultados" className="block w-full p-4 bg-blue-600 rounded-xl group hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1 text-center">Performance</p>
-                      <p className="text-white text-xs font-bold text-center leading-tight">Painel de Resultados.<br/>Acesse agora.</p>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex-1 text-center">
+                      <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Performance</p>
+                      <p className="text-white text-xs font-bold leading-tight">Painel de Resultados. Acesse agora.</p>
                     </div>
-                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform shrink-0">
                       <LayoutDashboard size={20} fill="currentColor" className="text-blue-100" />
                     </div>
                   </div>
