@@ -119,7 +119,7 @@ export function MainContent() {
                 {/* Espaçador invisível à esquerda para forçar a centralização do texto */}
                 <div className="w-[36px]" aria-hidden="true" />
 
-                <span className="text-center">Acessar Dashboard</span>
+                <span className="text-center">Acessar<br />Dashboard</span>
 
                 <div className="flex justify-end">
                   <div className="bg-blue-600 p-2 rounded-xl shadow-inner flex items-center justify-center">

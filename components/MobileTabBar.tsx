@@ -181,7 +181,7 @@ export function MobileTabBar() {
           <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setIsMenuOpen(false)} />
           <div className="absolute bottom-24 right-6 left-6 bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
             <div className="p-6 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
-              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Opções</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Menu Inicial</span>
               <button onClick={() => setIsMenuOpen(false)} className="text-gray-400"><X size={20}/></button>
             </div>
             
