@@ -5,7 +5,8 @@ import {
   Send, CheckCircle2, Loader2, Sparkles, 
   Unlock, Briefcase, Lock, Mail, Clock, FileText, 
   ChevronRight, Eye, EyeOff, AtSign, Dna, PenTool,
-  LogOut, X, LifeBuoy, ArrowRight
+  LogOut, X, LifeBuoy, ArrowRight, Instagram,
+  ShieldCheck, Zap, Globe
 } from "lucide-react";
 
 const supabase = createClient(
@@ -20,10 +21,10 @@ export default function ContribuirBlog() {
   const [user, setUser] = useState<any>(null);
   const [isMontado, setIsMontado] = useState(false);
   
-  // Estados de Autenticação (Baseado no padrão AcessoUsuarioPage)
+  // Estados de Autenticação
   const [slug, setSlug] = useState(""); 
   const [senha, setSenha] = useState("");
-  const [nome, setNome] = useState(""); // Para novos perfis
+  const [nome, setNome] = useState(""); 
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
@@ -103,13 +104,11 @@ export default function ContribuirBlog() {
         emailParaAuth = profile.email;
       }
 
-      // Tenta Login
       const { error: loginError } = await supabase.auth.signInWithPassword({
         email: emailParaAuth,
         password: senha,
       });
 
-      // Se login falhar e tiver nome, tenta cadastro
       if (loginError) {
         if (nome) {
           const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -161,7 +160,8 @@ export default function ContribuirBlog() {
     if (!user) return;
     setLoading(true);
 
-    const formData = new FormData(e.currentTarget);
+    const formElement = e.currentTarget;
+    const formData = new FormData(formElement);
     formData.append("access_key", "9ef5a274-150a-4664-a885-0b052efd06f7");
     formData.append("email_do_autor", user.email); 
     formData.append("nome_do_autor", user.nome);
@@ -182,12 +182,19 @@ export default function ContribuirBlog() {
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify(Object.fromEntries(formData))
       });
-      if (response.ok) setEnviado(true);
+      if (response.ok) {
+        formElement.reset(); // Limpa o formulário após sucesso
+        setEnviado(true);
+      }
     } catch (error) {
       alert("Erro ao processar envio.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoBack = () => {
+    setEnviado(false);
   };
 
   if (!isMontado) return null;
@@ -200,7 +207,10 @@ export default function ContribuirBlog() {
         </div>
         <h1 className="text-4xl font-bold text-gray-900 mb-2 tracking-tight">Artigo enviado!</h1>
         <p className="text-gray-500 text-lg mb-10 font-medium italic">Sua contribuição foi recebida e está em análise.</p>
-        <a href="/blog" className="px-10 py-4 bg-gray-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-black transition-all">Voltar ao Blog</a>
+        <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+          <button onClick={handleGoBack} className="px-10 py-4 bg-gray-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-black transition-all">Go Back</button>
+          <a href="/blog" className="px-10 py-4 border border-gray-200 text-gray-500 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-gray-50 transition-all">Ir para o Blog</a>
+        </div>
       </div>
     );
   }
@@ -208,18 +218,17 @@ export default function ContribuirBlog() {
   return (
     <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
       
-      {/* HEADER */}
+      {/* HEADER PADRONIZADO */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
-          <h1 className="text-5xl font-bold text-gray-900 mb-0 tracking-tight flex items-center">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
             <span>Escreva para a gente<span className="text-blue-600">.</span></span>
-            <PenTool size={60} className="text-blue-600 skew-x-12 opacity-35 ml-4" strokeWidth={1.2} />
+            <PenTool size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
           </h1>
-          <h2 className="text-gray-500 text-xl font-medium max-w-2xl leading-relaxed mt-0">
+          <h2 className="text-gray-500 text-base md:text-lg font-medium w-full leading-relaxed mt-0">
             Simplicidade em compartilhar o seu conhecimento.
           </h2>
         </div>
-
         {user && (
           <button onClick={handleLogout} className="flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-red-500 transition-colors bg-gray-50 px-3 py-2 rounded-xl">
             <LogOut size={16} /> Logoff
@@ -231,12 +240,12 @@ export default function ContribuirBlog() {
         Conteúdo e Identidade <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
         
-        {/* FORMULÁRIO */}
-        <div className="lg:col-span-7 space-y-8">
+        {/* FORMULÁRIO (ESQUERDA) */}
+        <div className="lg:col-span-7 space-y-8 h-full">
           {!user ? (
-            <div className="bg-white rounded-[3rem] border border-gray-100 p-8 md:p-12 shadow-2xl shadow-blue-900/5">
+            <div className="bg-white rounded-[3rem] border border-gray-100 p-8 md:p-12 shadow-2xl shadow-blue-900/5 h-full">
               <div className="flex items-center gap-4 mb-8">
                 <div className="bg-orange-50 p-3 rounded-2xl text-orange-500"><AtSign size={28} /></div>
                 <div>
@@ -266,7 +275,7 @@ export default function ContribuirBlog() {
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="bg-white rounded-[3rem] border border-gray-100 p-8 md:p-12 shadow-2xl shadow-blue-900/5 space-y-8">
+            <form id="artigo-form" onSubmit={handleSubmit} className="bg-white rounded-[3rem] border border-gray-100 p-8 md:p-12 shadow-2xl shadow-blue-900/5 space-y-8 flex flex-col h-full">
                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-gray-50">
                 <div className="flex items-center gap-2 text-gray-400"><Mail size={18} /><h3 className="text-[11px] font-black uppercase tracking-widest">Editor de Conteúdo</h3></div>
                 <label className="flex items-center gap-3 cursor-pointer group bg-gray-50 px-4 py-2 rounded-full text-[9px] font-black text-gray-400 uppercase">
@@ -276,12 +285,12 @@ export default function ContribuirBlog() {
                 </label>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-6 flex-grow flex flex-col">
                 <input name="Titulo_do_Artigo" required placeholder="Título do seu artigo..." className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-gray-900 font-bold focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none text-2xl" />
                 <select name="Categoria" className="w-full bg-gray-50 border-none rounded-2xl py-4 px-8 text-sm font-bold text-gray-500 outline-none cursor-pointer">
                     <option>Gestão</option><option>Estratégia</option><option>Tributário</option><option>Mentalidade</option><option>Tecnologia</option>
                 </select>
-                <textarea name="Conteudo_Completo" required placeholder="Desenvolva seu conhecimento aqui..." className="w-full h-96 bg-gray-50 border-none rounded-[2rem] p-8 text-lg focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none resize-none font-medium text-gray-700 shadow-inner"></textarea>
+                <textarea name="Conteudo_Completo" required placeholder="Desenvolva seu conhecimento aqui..." className="w-full flex-grow bg-gray-50 border-none rounded-[2rem] p-8 text-lg focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none resize-none font-medium text-gray-700 shadow-inner min-h-[400px]"></textarea>
               </div>
 
               <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-6 rounded-2xl font-black text-[12px] uppercase tracking-[0.3em] hover:bg-blue-700 flex items-center justify-center gap-3 shadow-xl">
@@ -292,9 +301,10 @@ export default function ContribuirBlog() {
           )}
         </div>
 
-        {/* SIDEBAR */}
-        <div className="lg:col-span-5 flex flex-col gap-6">
-          <div className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl group relative overflow-hidden transition-all flex flex-col justify-center min-h-[300px]">
+        {/* SIDEBAR (DIREITA) */}
+        <div className="lg:col-span-5 flex flex-col gap-6 h-full">
+          {/* CARD CREDIBILIDADE */}
+          <div className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center min-h-[300px]">
             <div className="absolute -top-10 -right-10 opacity-10 pointer-events-none group-hover:rotate-12 transition-transform duration-700">
               <Dna size={180} strokeWidth={1} className="text-blue-500" />
             </div>
@@ -311,12 +321,82 @@ export default function ContribuirBlog() {
             </div>
           </div>
           
-          <div className="bg-blue-50/40 border-l-4 border-blue-600 p-8 rounded-r-[2.5rem]">
-            <p className="text-blue-900 font-bold text-sm leading-relaxed italic">
-              "Sua experiência transforma números em decisões inteligentes para toda a comunidade."
-            </p>
+          {/* CARD DIRETRIZES E IMPACTO */}
+          <div className="bg-white border border-gray-100 p-8 rounded-[2.5rem] shadow-sm flex-grow flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-3 mb-8">
+                <ShieldCheck className="text-emerald-500" size={24} />
+                <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-900">Diretrizes de Publicação</h4>
+              </div>
+              <ul className="space-y-6">
+                {[
+                  { title: "Conteúdo Autoral", desc: "Artigos devem ser originais e inéditos." },
+                  { title: "Tom Técnico-Executivo", desc: "Foco em clareza, dados e aplicabilidade." },
+                  { title: "Revisão Nucleo", desc: "O texto passará por curadoria antes de ir ao ar." }
+                ].map((item, i) => (
+                  <li key={i} className="flex gap-4">
+                    <div className="mt-1.5 w-1.5 h-1.5 bg-blue-600 rounded-full shrink-0"></div>
+                    <div>
+                      <p className="text-sm font-bold text-gray-800">{item.title}</p>
+                      <p className="text-xs text-gray-400 font-medium leading-relaxed">{item.desc}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mt-10 pt-8 border-t border-gray-50">
+              <div className="flex items-center gap-3 mb-4">
+                <Sparkles className="text-blue-500" size={20} />
+                <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-900">Impacto na Rede</h4>
+              </div>
+              <div className="bg-blue-50/40 border-l-4 border-blue-600 p-6 rounded-r-3xl transition-all hover:bg-blue-50/60">
+                <p className="text-blue-900 font-bold text-xs md:text-sm text-center leading-relaxed italic">
+                  "Sua trajetória inspira pessoas, transformando conhecimento humano em um legado poderoso que conecta, guia e fortalece toda a nossa comunidade."
+                </p>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
+
+      {/* LINHA DIVISÓRIA "CONECTE-SE" */}
+      <div className="mt-24 flex items-center gap-4 mb-12">
+        <div className="h-px bg-gray-200 flex-1"></div>
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
+          Conecte-se
+        </h3>
+        <div className="h-px bg-gray-200 flex-1"></div>
+      </div>
+
+      {/* BLOCO INSTAGRAM */}
+      <div className="flex flex-col items-center text-center">
+        <div className="max-w-3xl mb-12">
+          <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
+            Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+          </h4>
+          <p className="text-gray-500 font-medium text-sm md:text-base">
+            Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
+          </p>
+        </div>
+        
+        <a 
+          href="https://www.instagram.com/nucleobase.app/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="group relative flex flex-col items-center gap-6"
+        >
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+            <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+              <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+            </div>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+            <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
+          </div>
+        </a>
       </div>
 
       {/* MODAL DE RECUPERAÇÃO */}

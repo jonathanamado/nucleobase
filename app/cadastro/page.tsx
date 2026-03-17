@@ -313,7 +313,7 @@ export default function CadastroPage() {
               <button 
                 disabled={loading} 
                 type="submit" 
-                className="w-full bg-gray-900 text-white py-5 rounded-2xl hover:bg-black transition-all font-bold text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-gray-200 disabled:bg-gray-400 mt-2 flex items-center justify-center gap-3 group"
+                className="w-full bg-gray-900 text-white py-5 rounded-2xl hover:bg-black transition-all font-bold text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-gray-200 disabled:bg-gray-400 mt-12 flex items-center justify-center gap-3 group"
               >
                 {loading ? (
                   <span className="animate-pulse">Sincronizando sua conta...</span>

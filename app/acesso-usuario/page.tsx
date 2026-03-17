@@ -176,9 +176,11 @@ export default function AcessoUsuarioPage() {
               </>
             ) : (
               <span>
-                Para prosseguir em sua conta, realize o login. Caso não possua uma conta,{" "}
-                <Link href="/cadastro" className="text-blue-600 hover:underline">
-                  cadastre-se gratuitamente
+                Para prosseguir em sua conta, realize o login. Caso não possua uma conta ainda,{" "}
+                <Link href="/cadastro" className="text-blue-600 hover:underline inline-flex items-center gap-1">
+                  <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md shadow-sm inline-block leading-none ml-1 font-bold tracking-tight">
+                    cadastre-se gratuitamente
+                  </span>
                 </Link>
                 .
               </span>

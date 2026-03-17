@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import { 
   Save, MapPin, UserCircle, Camera, GraduationCap, Briefcase, 
   Baby, CalendarDays, Activity, MousePointerClick, 
   KeyRound, Instagram, X, Eye, EyeOff,
-  Target, Share2, Wallet, Zap, Rocket, LayoutDashboard, Info
+  Target, Share2, Wallet, Zap, Rocket, LayoutDashboard, Info,
+  ShieldCheck, PieChart, Award
 } from "lucide-react";
 
 const supabase = createClient(
@@ -45,37 +46,60 @@ export default function MinhaContaPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [passLoading, setPassLoading] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
 
-  // --- ESTATÍSTICAS REAIS ---
-  const [stats, setStats] = useState({
-    totalLancamentos: 0,
-    mesesAtivos: [] as string[],
-    mesesPendentes: 0,
-    ultimoLancamento: "---",
-    patrimonioConectado: 0,
-    detalheConexoes: "",
-    mediaGastosDiarios: "R$ 0,00"
-  });
+  // Estados para os Popovers de Insight
+  const [activeInsight, setActiveInsight] = useState<string | null>(null);
+  const insightRef = useRef<HTMLDivElement>(null);
+  const saveButtonRef = useRef<HTMLButtonElement>(null);
 
-  const percentualPerfil = useMemo(() => {
-    const camposObrigatorios = [
-      nome, emailContato, slug, telefone, profissao, formacao, 
-      dataNascimento, genero, estadoCivil, cidade, estado, 
-      usoApp, objetivoFinanceiro, origem, possuiFilhos, 
-      objetivoPlataforma, avatarUrl
-    ];
-    
-    const preenchidos = camposObrigatorios.filter(valor => {
-      if (typeof valor === 'string') return valor.trim().length > 0;
-      return valor !== null && valor !== undefined;
-    }).length;
+  // --- LÓGICA DE AVISO DE SAÍDA ---
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "Você tem alterações não salvas. Deseja realmente sair?";
+        return e.returnValue;
+      }
+    };
 
-    return Math.round((preenchidos / 17) * 100);
-  }, [nome, emailContato, slug, telefone, profissao, formacao, dataNascimento, genero, estadoCivil, cidade, estado, usoApp, objetivoFinanceiro, origem, possuiFilhos, objetivoPlataforma, avatarUrl]);
+    const handleInternalNavigation = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const link = target.closest("a");
+      
+      if (isDirty && link && link.href && !link.href.includes("#") && !link.target) {
+        const confirmExit = window.confirm("Você possui alterações não salvas. Deseja sair sem salvar?");
+        if (!confirmExit) {
+          e.preventDefault();
+          e.stopPropagation();
+          saveButtonRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
+    };
 
-  const aplicarMascaraTelefone = (value: string) => {
-    return value.replace(/\D/g, "").replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2").replace(/(-\d{4})\d+?$/, "$1");
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("click", handleInternalNavigation, true);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("click", handleInternalNavigation, true);
+    };
+  }, [isDirty]);
+
+  const handleChange = (setter: Function, value: any) => {
+    setter(value);
+    setIsDirty(true);
   };
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (insightRef.current && !insightRef.current.contains(event.target as Node)) {
+        setActiveInsight(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const getPrimeiroNome = () => {
     if (!nome) return slug || "user";
@@ -83,14 +107,33 @@ export default function MinhaContaPage() {
     return primeiro.charAt(0).toUpperCase() + primeiro.slice(1).toLowerCase();
   };
 
+  // --- ESTATÍSTICAS REAIS (ESTADO) ---
+  const [stats, setStats] = useState({
+    totalLancamentos: 0,
+    mesesAtivos: [] as string[],
+    mesesPendentes: 0,
+    patrimonioConectado: 0,
+    detalheConexoes: "",
+    detalheLancamentos: "",
+    mediaGastosDiarios: "R$ 0,00",
+    percCustosFixos: 0,
+    margemManobra: "R$ 0,00",
+    dataLimiteFixos: "",
+    percGastosVariaveis: 0,
+    numCracha: "---",
+    tempoCasa: ""
+  });
+
   async function carregarEstatisticas(userId: string) {
     const agora = new Date();
     const mesAtualNum = agora.getMonth() + 1;
     const anoAtualNum = agora.getFullYear();
 
+    const { data: userData } = await supabase.from("usuarios").select("num_cracha, criado_em").eq("id", userId).single();
+
     const { count, data: allRecords } = await supabase
       .from("lancamentos_financeiros")
-      .select("created_at, origem, tipo_origem, cartao_nome, data_competencia, natureza, valor", { count: "exact" })
+      .select("*", { count: "exact" })
       .eq("user_id", userId);
 
     if (allRecords && allRecords.length > 0) {
@@ -122,34 +165,48 @@ export default function MinhaContaPage() {
         }
       }
 
-      // Lógica aprimorada para clareza das origens
-      const conexoesUnicas = allRecords.reduce((acc: string[], curr) => {
-        const identificador = `${curr.origem} (${curr.tipo_origem})`.trim();
-        if (curr.origem && !acc.includes(identificador)) {
-          acc.push(identificador);
-        }
-        return acc;
-      }, []);
+      // Cálculos Financeiros (Desconsiderando Receita conforme solicitado)
+      const despesas = allRecords.filter(l => l.natureza === 'Despesa');
+      const custosFixos = despesas.filter(l => l.tipo_de_custo === 'Fixo').reduce((acc, curr) => acc + Math.abs(Number(curr.valor)), 0);
+      const custosVariaveis = despesas.filter(l => l.tipo_de_custo === 'Variável').reduce((acc, curr) => acc + Math.abs(Number(curr.valor)), 0);
+      const despesasTotais = custosFixos + custosVariaveis;
 
-      const instituicoesSet = new Set(allRecords.map(l => l.origem).filter(Boolean));
-      const instituicoesTexto = Array.from(instituicoesSet).join(", ");
+      const percFixos = despesasTotais > 0 ? Math.round((custosFixos / despesasTotais) * 100) : 0;
+      const percVariaveis = despesasTotais > 0 ? Math.round((custosVariaveis / despesasTotais) * 100) : 0;
+      
+      const datasFixos = allRecords.filter(l => l.fixo_ate).map(l => l.fixo_ate).sort();
+      const limiteFixos = datasFixos.length > 0 ? datasFixos[datasFixos.length - 1].split('-').reverse().slice(0, 2).join('/') : "---";
 
-      const despesasMes = allRecords.filter(l => {
+      // Mensagens
+      const txtLacuna = pendentes > 0 ? ` Atualmente, identificamos ${pendentes} ${pendentes === 1 ? 'mês de lacuna' : 'meses de lacuna'} sem registros.` : " Não identificamos lacunas em seu histórico.";
+      const textoLancamentos = `Seu histórico acumula ${count} registros, abrangendo o período de ${mesesFormatados[0]} a ${mesesFormatados[mesesFormatados.length - 1]}.${txtLacuna} É fundamental manter seus lançamentos sempre atualizados para garantir a precisão das análises e do seu planejamento.`;
+
+      const despesasMes = despesas.filter(l => {
         const [ano, mes] = l.data_competencia.split('-');
-        return l.natureza === 'Despesa' && Number(mes) === mesAtualNum && Number(ano) === anoAtualNum;
+        return Number(mes) === mesAtualNum && Number(ano) === anoAtualNum;
       });
+      const totalDespesasMes = despesasMes.reduce((acc, curr) => acc + Math.abs(Number(curr.valor)), 0);
+      const mediaDiaria = totalDespesasMes / agora.getDate();
 
-      const totalDespesas = despesasMes.reduce((acc, curr) => acc + Math.abs(Number(curr.valor)), 0);
-      const mediaDiaria = totalDespesas / agora.getDate();
+      // Formatação Crachá: NUC -> Nuc
+      let crachaFormatado = userData?.num_cracha || "---";
+      if (crachaFormatado.startsWith("NUC")) {
+        crachaFormatado = "Nuc" + crachaFormatado.substring(3);
+      }
 
       setStats({
         ...stats,
         totalLancamentos: count || 0,
         mesesAtivos: mesesFormatados,
         mesesPendentes: pendentes,
-        patrimonioConectado: conexoesUnicas.length,
-        detalheConexoes: instituicoesTexto,
-        mediaGastosDiarios: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(mediaDiaria)
+        patrimonioConectado: new Set(allRecords.map(l => `${l.origem}-${l.tipo_origem}`)).size,
+        detalheLancamentos: textoLancamentos,
+        mediaGastosDiarios: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(mediaDiaria),
+        percCustosFixos: percFixos,
+        dataLimiteFixos: limiteFixos,
+        percGastosVariaveis: percVariaveis,
+        numCracha: crachaFormatado,
+        tempoCasa: userData?.criado_em ? new Date(userData.criado_em).toLocaleDateString('pt-BR') : ""
       });
     }
   }
@@ -198,7 +255,10 @@ export default function MinhaContaPage() {
         possui_filhos: possuiFilhos, objetivo_plataforma: objetivoPlataforma, updated_at: new Date()
       });
       if (error) alert("Erro: " + error.message);
-      else alert("Dados salvos!");
+      else {
+        alert("Dados salvos!");
+        setIsDirty(false);
+      }
     }
     setUpdating(false);
   };
@@ -213,6 +273,21 @@ export default function MinhaContaPage() {
     setPassLoading(false);
   };
 
+  const InsightPopover = ({ id, title, content, colorClass, position = "top" }: { id: string, title: string, content: string, colorClass: string, position?: "side" | "top" }) => {
+    if (activeInsight !== id) return null;
+    const positionClasses = position === "top" ? "bottom-[calc(100%+15px)] left-0" : "left-[calc(100%+20px)] top-0";
+    const arrowClasses = position === "top" ? "-bottom-2 left-6 border-l border-b" : "-left-2 top-6 rotate-45";
+    return (
+      <div className={`absolute ${positionClasses} w-72 md:w-80 p-5 bg-gray-900 text-white rounded-[2rem] shadow-2xl z-[100] animate-in fade-in slide-in-from-${position === 'top' ? 'bottom' : 'left'}-4 duration-300`}>
+        <div className={`absolute w-4 h-4 bg-gray-900 ${arrowClasses} ${position === 'top' ? 'rotate-[-45deg]' : ''}`}></div>
+        <h4 className={`text-[10px] font-black uppercase tracking-widest ${colorClass} mb-2 flex items-center gap-2`}>
+           <Zap size={12} fill="currentColor"/> Insight de {title}
+        </h4>
+        <p className="text-[11px] leading-relaxed text-gray-200 font-medium">{content}</p>
+      </div>
+    );
+  };
+
   if (loading) return <div className="flex h-screen items-center justify-center text-gray-400 animate-pulse font-medium">Sincronizando...</div>;
 
   return (
@@ -225,58 +300,16 @@ export default function MinhaContaPage() {
             <span>Minha conta<span className="text-blue-600">.</span></span>
             <UserCircle size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
           </h1>
-          <div className="flex flex-wrap items-center gap-x-1.5">
-             <p className="text-gray-500 text-xs md:text-sm font-medium">
-                Olá<span className="whitespace-nowrap font-bold text-gray-900"> {getPrimeiroNome()},</span> gerencie seus dados e acompanhe seu comportamento.
-             </p>
-          </div>
-        </div>
-      </div>
-
-      {/* MOBILE ONLY: STATUS E ANÁLISE */}
-      <div className="md:hidden flex flex-col gap-4 mb-10">
-        <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 flex items-center gap-4 w-full">
-          Análise <div className="h-px bg-gray-200 flex-1"></div>
-        </h3>
-        
-        <div className="bg-gray-900 rounded-[2rem] p-6 text-white shadow-xl shadow-blue-900/10">
-            <div className="flex justify-between items-center mb-4">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-blue-400">Status da Experiência</h3>
-                <div className="flex items-center gap-1.5 bg-blue-500/20 px-2 py-1 rounded-full">
-                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
-                    <span className="text-[10px] font-bold">Ativo</span>
-                </div>
-            </div>
-            <div className="flex items-end justify-between gap-4">
-                <div>
-                    <p className="text-2xl font-black mb-1">{stats.totalLancamentos}</p>
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter leading-none">Lançamentos Acumulados</p>
-                </div>
-                <div className="text-right">
-                    <p className="text-lg font-black text-blue-400 mb-1">{percentualPerfil}%</p>
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter leading-none">Perfil Completo</p>
-                </div>
-            </div>
-            <div className="h-1.5 bg-white/10 rounded-full mt-4 overflow-hidden mb-4">
-              <div className="h-full bg-blue-50 rounded-full transition-all duration-1000" style={{ width: `${percentualPerfil}%` }}></div>
-            </div>
-            
-            <button 
-              onClick={() => {
-                const element = document.getElementById('dados-cadastrais');
-                element?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-            >
-              Atualizar Perfil
-            </button>
+          <p className="text-gray-500 text-xs md:text-sm font-medium">
+             Olá<span className="whitespace-nowrap font-bold text-gray-900"> {getPrimeiroNome()},</span> gerencie seus dados e acompanhe seu comportamento.
+          </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         
         {/* COLUNA ESQUERDA: DADOS PESSOAIS */}
-        <div className="lg:col-span-8 h-full order-3 md:order-1" id="dados-cadastrais">
+        <div className="lg:col-span-7 h-full order-2 md:order-1">
           <section className="bg-white rounded-[2.5rem] p-8 md:p-10 border border-gray-100 shadow-sm h-full flex flex-col">
             <div className="flex items-center gap-6 mb-12">
               <div className="relative group shrink-0">
@@ -297,23 +330,23 @@ export default function MinhaContaPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 flex-1">
               <div className="md:col-span-2 space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest">Nome Completo</label>
-                <input type="text" value={nome} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none transition-all focus:border-blue-200" onChange={(e) => setNome(e.target.value)} />
+                <input type="text" value={nome} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none transition-all focus:border-blue-200" onChange={(e) => handleChange(setNome, e.target.value)} />
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-blue-600 uppercase ml-1 tracking-widest">E-mail de Notificações</label>
-                <input type="email" value={emailContato} className="w-full h-12 px-5 bg-blue-50/30 border border-blue-100 rounded-2xl text-sm text-blue-900 outline-none" onChange={(e) => setEmailContato(e.target.value)} />
+                <input type="email" value={emailContato} className="w-full h-12 px-5 bg-blue-50/30 border border-blue-100 rounded-2xl text-sm text-blue-900 outline-none" onChange={(e) => handleChange(setEmailContato, e.target.value)} />
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest">Telefone</label>
-                <input type="text" value={telefone} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => setTelefone(aplicarMascaraTelefone(e.target.value))} />
+                <input type="text" value={telefone} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setTelefone, aplicarMascaraTelefone(e.target.value))} />
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest">Data de Nascimento</label>
-                <input type="date" value={dataNascimento} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => setDataNascimento(e.target.value)} />
+                <input type="date" value={dataNascimento} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setDataNascimento, e.target.value)} />
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest">Gênero</label>
-                <select value={genero} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => setGenero(e.target.value)}>
+                <select value={genero} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setGenero, e.target.value)}>
                   <option value=""></option>
                   <option value="masculino">Masculino</option>
                   <option value="feminino">Feminino</option>
@@ -322,7 +355,7 @@ export default function MinhaContaPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest">Estado Civil</label>
-                <select value={estadoCivil} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => setEstadoCivil(e.target.value)}>
+                <select value={estadoCivil} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setEstadoCivil, e.target.value)}>
                   <option value=""></option>
                   <option value="solteiro">Solteiro(a)</option>
                   <option value="casado">Casado(a)</option>
@@ -332,7 +365,7 @@ export default function MinhaContaPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><Baby size={14}/> Possui filhos?</label>
-                <select value={possuiFilhos} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => setPossuiFilhos(e.target.value)}>
+                <select value={possuiFilhos} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setPossuiFilhos, e.target.value)}>
                   <option value=""></option>
                   <option value="sim">Sim</option>
                   <option value="nao">Não</option>
@@ -341,8 +374,8 @@ export default function MinhaContaPage() {
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><MapPin size={14}/> Cidade / UF</label>
                 <div className="flex gap-2 flex-nowrap">
-                    <input type="text" value={cidade} placeholder="Cidade" className="flex-1 min-w-0 h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => setCidade(e.target.value)} />
-                    <select value={estado} className="w-20 shrink-0 h-12 px-2 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => setEstado(e.target.value)}>
+                    <input type="text" value={cidade} placeholder="Cidade" className="flex-1 min-w-0 h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setCidade, e.target.value)} />
+                    <select value={estado} className="w-20 shrink-0 h-12 px-2 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setEstado, e.target.value)}>
                         <option value=""></option>
                         {["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"].map(uf => <option key={uf} value={uf}>{uf}</option>)}
                     </select>
@@ -350,11 +383,11 @@ export default function MinhaContaPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><Briefcase size={14}/> Profissão Atual</label>
-                <input type="text" value={profissao} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => setProfissao(e.target.value)} />
+                <input type="text" value={profissao} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setProfissao, e.target.value)} />
               </div>
               <div className="md:col-span-2 space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><GraduationCap size={14}/> Formação Acadêmica</label>
-                <select value={formacao} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => setFormacao(e.target.value)}>
+                <select value={formacao} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setFormacao, e.target.value)}>
                   <option value="">Selecione...</option>
                   <option value="medio">Ensino Médio</option>
                   <option value="superior">Ensino Superior</option>
@@ -364,64 +397,106 @@ export default function MinhaContaPage() {
                 </select>
               </div>
             </div>
-
-            <div className="mt-12 flex flex-col md:flex-row gap-4 justify-end border-t border-gray-50 pt-8">
-              <button onClick={() => setShowPassModal(true)} className="flex items-center justify-center gap-2 px-8 py-4 bg-gray-100 text-gray-500 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-200 transition-all">
-                <KeyRound size={16} /> Alterar Senha
-              </button>
-              <button onClick={handleUpdate} disabled={updating} className="flex items-center justify-center gap-3 px-10 py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all">
-                <Save size={16} /> {updating ? "Sincronizando..." : "Salvar Alterações"}
-              </button>
-            </div>
           </section>
         </div>
 
-        {/* COLUNA DIREITA: COMPORTAMENTO (ATIVIDADE RECENTE) */}
-        <div className="lg:col-span-4 flex flex-col gap-6 order-1 md:order-2">
+        {/* COLUNA DIREITA: COMPORTAMENTO (6 CARDS REORDENADOS) */}
+        <div className="lg:col-span-5 flex flex-col gap-6 order-1 md:order-2" ref={insightRef}>
           <section className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm flex-1 flex flex-col">
-            <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2 mb-8">
+            <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2 mb-10">
               <Activity size={16} className="text-blue-600"/> Atividades Recentes
             </h3>
-
-            <div className="grid grid-cols-3 md:grid-cols-1 gap-4 md:gap-6">
-              <div className="flex flex-col md:flex-row items-center md:items-center gap-2 md:gap-4 text-center md:text-left">
-                <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-50 rounded-lg md:rounded-xl flex items-center justify-center text-blue-600 shrink-0">
-                  <MousePointerClick className="w-4 h-4 md:w-[18px] md:h-[18px]" />
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-10">
+              {/* PAR 1: Registros | Conexões */}
+              <div className="flex items-center gap-4 relative group" onMouseEnter={() => setActiveInsight('lancamentos')} onMouseLeave={() => setActiveInsight(null)}>
+                <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shrink-0 shadow-sm">
+                  <MousePointerClick size={22} />
                 </div>
-                <div>
-                  <p className="text-[7px] md:text-[9px] font-black text-gray-400 uppercase tracking-tighter leading-none mb-1">Lançamentos</p>
-                  <p className="text-xs md:text-lg font-black text-gray-900">{stats.totalLancamentos}</p>
-                </div>
-              </div>
-              <div className="flex flex-col md:flex-row items-center md:items-center gap-2 md:gap-4 text-center md:text-left border-x md:border-x-0 border-gray-50">
-                <div className="w-8 h-8 md:w-10 md:h-10 bg-emerald-50 rounded-lg md:rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
-                  <Wallet className="w-4 h-4 md:w-[18px] md:h-[18px]" />
-                </div>
-                <div>
-                  <div className="flex items-center justify-center md:justify-start gap-1">
-                    <p className="text-[7px] md:text-[9px] font-black text-gray-400 uppercase tracking-tighter leading-none mb-1">Conexões</p>
-                    <div className="group relative">
-                        <Info size={10} className="text-gray-300 mb-1 cursor-help" />
-                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-32 p-2 bg-gray-900 text-[8px] text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 text-center leading-tight">
-                            Total de origens (Cartão e Conta) detectadas: <span className="text-emerald-400">{stats.detalheConexoes}</span>
-                        </div>
-                    </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Registros</p>
+                    <Info size={10} className="text-gray-300" />
                   </div>
-                  <p className="text-xs md:text-lg font-black text-gray-900">{stats.patrimonioConectado}</p>
+                  <p className="text-lg font-black text-gray-900">{stats.totalLancamentos}</p>
                 </div>
+                <InsightPopover id="lancamentos" title="Lançamentos" colorClass="text-blue-400" content={stats.detalheLancamentos} />
               </div>
-              <div className="flex flex-col md:flex-row items-center md:items-center gap-2 md:gap-4 text-center md:text-left">
-                <div className="w-8 h-8 md:w-10 md:h-10 bg-orange-50 rounded-lg md:rounded-xl flex items-center justify-center text-orange-600 shrink-0">
-                  <Zap className="w-4 h-4 md:w-[18px] md:h-[18px]" />
+
+              <div className="flex items-center gap-4 relative group" onMouseEnter={() => setActiveInsight('conexoes')} onMouseLeave={() => setActiveInsight(null)}>
+                <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 shrink-0 shadow-sm">
+                  <Wallet size={22} />
                 </div>
-                <div>
-                  <p className="text-[7px] md:text-[9px] font-black text-gray-400 uppercase tracking-tighter leading-none mb-1">Média/Dia</p>
-                  <p className="text-xs md:text-lg font-black text-gray-900">{stats.mediaGastosDiarios.split(',')[0]}</p>
+                <div className="flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Conexões</p>
+                    <Info size={10} className="text-gray-300" />
+                  </div>
+                  <p className="text-lg font-black text-gray-900">{stats.patrimonioConectado}</p>
                 </div>
+                <InsightPopover id="conexoes" title="Conexões" colorClass="text-emerald-400" content={`Você possui ${stats.patrimonioConectado} fontes de dados conectadas à plataforma, permitindo uma visão consolidada do seu patrimônio.`} />
+              </div>
+
+              {/* PAR 2: Custo Fixo | Variáveis */}
+              <div className="flex items-center gap-4 relative group" onMouseEnter={() => setActiveInsight('previsibilidade')} onMouseLeave={() => setActiveInsight(null)}>
+                <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shrink-0 shadow-sm">
+                  <ShieldCheck size={22} />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Custo Fixo</p>
+                    <Info size={10} className="text-gray-300" />
+                  </div>
+                  <p className="text-lg font-black text-gray-900">{stats.percCustosFixos}%</p>
+                </div>
+                <InsightPopover id="previsibilidade" title="Custo Fixo" colorClass="text-indigo-400" content={`Analisamos que ${stats.percCustosFixos}% das suas despesas estão atreladas a custos fixos até ${stats.dataLimiteFixos}. Manter custos fixos sob controle é o primeiro passo para a liberdade financeira e aumento do seu fluxo de caixa mensal.`} />
+              </div>
+
+              <div className="flex items-center gap-4 relative group" onMouseEnter={() => setActiveInsight('eficiencia')} onMouseLeave={() => setActiveInsight(null)}>
+                <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-600 shrink-0 shadow-sm">
+                  <PieChart size={22} />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Variáveis</p>
+                    <Info size={10} className="text-gray-300" />
+                  </div>
+                  <p className="text-lg font-black text-gray-900">{stats.percGastosVariaveis}%</p>
+                </div>
+                <InsightPopover id="eficiencia" title="Variáveis" colorClass="text-rose-400" content={`Atualmente, seus Gastos Variáveis representam ${stats.percGastosVariaveis}% das suas despesas totais. Este é o grupo onde você tem maior poder de decisão imediata. Pequenos ajustes aqui são o caminho mais rápido para aumentar sua capacidade de investimento.`} />
+              </div>
+
+              {/* PAR 3: Média/Dia | ID Crachá */}
+              <div className="flex items-center gap-4 relative group" onMouseEnter={() => setActiveInsight('media')} onMouseLeave={() => setActiveInsight(null)}>
+                <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600 shrink-0 shadow-sm">
+                  <Zap size={22} />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Média/Dia</p>
+                    <Info size={10} className="text-gray-300" />
+                  </div>
+                  <p className="text-lg font-black text-gray-900">{stats.mediaGastosDiarios.split(',')[0]}</p>
+                </div>
+                <InsightPopover id="media" title="Média/Dia" colorClass="text-orange-400" content={`Sua média diária atual de despesas é de ${stats.mediaGastosDiarios}. Este indicador é vital para o seu controle comportamental. Ao monitorar este valor, a Nucleo consegue propor formas eficazes de otimização financeira. Sua memória de cálculo é 'Total de Despesas do mês atual' \ 'Soma de dias do mês atual até o dia atual'`} />
+              </div>
+
+              <div className="flex items-center gap-4 relative group" onMouseEnter={() => setActiveInsight('membro')} onMouseLeave={() => setActiveInsight(null)}>
+                <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 shrink-0 shadow-sm">
+                  <Award size={22} />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">ID Crachá</p>
+                    <Info size={10} className="text-gray-300" />
+                  </div>
+                  <p className="text-lg font-black text-gray-900">{stats.numCracha}</p>
+                </div>
+                <InsightPopover id="membro" title="ID Crachá" colorClass="text-amber-500" content={`Você é o membro ${stats.numCracha} da Nucleo! Sua jornada conosco começou em ${stats.tempoCasa}. Quanto mais tempo você utiliza a plataforma, mais precisos se tornam nossos algoritmos de sugestão. Obrigado por contar conosco para sua governança.`} />
               </div>
             </div>
 
-            <div className="mt-8 pt-8 border-t border-gray-50">
+            <div className="mt-10 pt-10 border-t border-gray-50">
               <div className="flex items-center gap-3 mb-4">
                 <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2">
                    <CalendarDays size={16} className="text-purple-600" /> Intervalo de uso
@@ -435,20 +510,17 @@ export default function MinhaContaPage() {
                         <p className="text-[7px] font-bold text-gray-400 uppercase">Início</p>
                         <p className="text-[10px] font-black text-gray-900">{stats.mesesAtivos[0]}</p>
                       </div>
-                      
                       <div className="absolute left-[45px] right-[45px] top-1/2 -translate-y-1/2 flex items-center h-px">
                         <div className="w-full border-b border-gray-300"></div>
                       </div>
-
                       <div className="text-center z-10 bg-gray-50 px-1 min-w-[40px]">
                         <p className="text-[7px] font-bold text-gray-400 uppercase">Fim</p>
                         <p className="text-[10px] font-black text-gray-900">{stats.mesesAtivos[stats.mesesAtivos.length - 1]}</p>
                       </div>
                     </div>
-
                     {stats.mesesPendentes > 0 && (
                       <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tight text-center pt-2 border-t border-gray-200/50">
-                        Você possui <span className="text-orange-600">{stats.mesesPendentes} {stats.mesesPendentes === 1 ? 'mês pendente' : 'meses pendentes'}</span> em seu intervalo de lançamentos .
+                        Você possui <span className="text-orange-600">{stats.mesesPendentes} {stats.mesesPendentes === 1 ? 'mês pendente' : 'meses pendentes'}</span> em seu intervalo.
                       </p>
                     )}
                   </div>
@@ -457,30 +529,23 @@ export default function MinhaContaPage() {
                 )}
               </div>
 
-              {/* ÁREA DE BOTÕES DE AÇÃO - PADRONIZADOS */}
               <div className="flex flex-col gap-3 mt-8">
-                {/* BOTÃO NOVOS LANÇAMENTOS - LARANJADO */}
                 <Link href="/lancamentos" className="block w-full p-4 bg-orange-500 rounded-xl group hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/10">
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex-1 text-center">
                       <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Novos Lançamentos</p>
-                      <p className="text-white text-xs font-bold leading-tight">Atualize seus registros.<br/>Clique aqui.</p>
+                      <p className="text-white text-xs font-bold leading-tight">Atualize seus registros. Clique aqui.</p>
                     </div>
                     <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform shrink-0">
                       <Rocket size={20} fill="currentColor" className="text-orange-100" />
                     </div>
                   </div>
                 </Link>
-
-                {/* LINHA DIVISÓRIA SUTIL */}
-                <div className="h-px bg-gray-50 w-full my-1"></div>
-
-                {/* BOTÃO PERFORMANCE - AZUL */}
                 <Link href="/resultados" className="block w-full p-4 bg-blue-600 rounded-xl group hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex-1 text-center">
                       <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Performance</p>
-                      <p className="text-white text-xs font-bold leading-tight">Painel de Resultados.<br/>Acesse agora.</p>
+                      <p className="text-white text-xs font-bold leading-tight">Painel de Resultados. Acesse agora.</p>
                     </div>
                     <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform shrink-0">
                       <LayoutDashboard size={20} fill="currentColor" className="text-blue-100" />
@@ -490,54 +555,10 @@ export default function MinhaContaPage() {
               </div>
             </div>
           </section>
-
-          {/* Oculto no Desktop */}
-          <div className="md:hidden">
-            <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 flex items-center gap-4 w-full mb-4">
-              Identidade <div className="h-px bg-gray-200 flex-1"></div>
-            </h3>
-            <p className="text-[11px] text-gray-500 leading-relaxed font-medium text-center bg-gray-50 p-5 rounded-2xl border border-gray-100">
-              Abaixo você encontra as seções para preenchimento de seus dados cadastrais e preferências na Nucleo. Mantenha-os atualizados para uma experiência personalizada.
-            </p>
-          </div>
-
-          {/* BLOCO DE ANÁLISE - Desktop */}
-          <div className="hidden md:flex flex-col gap-4">
-            <h3 className="md:hidden text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 flex items-center gap-4 w-full">
-              Análise <div className="h-px bg-gray-200 flex-1"></div>
-            </h3>
-            <div className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl shadow-blue-900/10">
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-blue-400">Força dos Dados</h3>
-                  <span className="text-xs font-bold text-white">{percentualPerfil}%</span>
-                </div>
-                <div className="h-2 bg-white/10 rounded-full mb-6 overflow-hidden">
-                  <div className="h-full bg-blue-500 rounded-full transition-all duration-1000" style={{ width: `${percentualPerfil}%` }}></div>
-                </div>
-                <p className="text-[11px] text-gray-400 leading-relaxed italic mb-8">
-                  {percentualPerfil < 100 
-                    ? "O preenchimento do perfil permite que nossa IA compare seu comportamento com perfis semelhantes, entregando insights mais precisos."
-                    : "Perfil completo! Agora seus relatórios e benchmarking possuem precisão máxima baseada em seu contexto real."}
-                </p>
-                
-                <button 
-                  onClick={() => {
-                    const element = document.getElementById('dados-cadastrais');
-                    element?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-                >
-                  Atualizar Perfil
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* SEÇÃO DE PREFERÊNCIAS COM BOTÃO DE SALVAR */}
-      <div className="mt-12 order-4">
+      <div className="mt-12">
           <section className="bg-gray-50/50 rounded-[2.5rem] p-6 md:p-10 border border-gray-100">
              <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
                Preferências <div className="h-px bg-gray-200 flex-1"></div>
@@ -545,7 +566,7 @@ export default function MinhaContaPage() {
              <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
                 <div className="space-y-3">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><Share2 size={12}/> Canal Origem</label>
-                    <select value={origem} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none" onChange={(e) => setOrigem(e.target.value)}>
+                    <select value={origem} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none" onChange={(e) => handleChange(setOrigem, e.target.value)}>
                         <option value="">Selecione...</option>
                         <option value="instagram">Instagram</option>
                         <option value="google">Google</option>
@@ -555,7 +576,7 @@ export default function MinhaContaPage() {
                 </div>
                 <div className="space-y-3">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><Target size={12}/> Objetivo</label>
-                    <select value={objetivoPlataforma} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none" onChange={(e) => setObjetivoPlataforma(e.target.value)}>
+                    <select value={objetivoPlataforma} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none" onChange={(e) => handleChange(setObjetivoPlataforma, e.target.value)}>
                         <option value="">Selecione...</option>
                         <option value="liberdade">Liberdade Financeira</option>
                         <option value="sair_dividas">Sair de Dívidas</option>
@@ -564,7 +585,7 @@ export default function MinhaContaPage() {
                 </div>
                 <div className="space-y-3">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Frequência</label>
-                    <select value={usoApp} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none" onChange={(e) => setUsoApp(e.target.value)}>
+                    <select value={usoApp} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none" onChange={(e) => handleChange(setUsoApp, e.target.value)}>
                         <option value="">Selecione...</option>
                         <option value="diario">Diário</option>
                         <option value="semanal">Semanal</option>
@@ -573,7 +594,7 @@ export default function MinhaContaPage() {
                 </div>
                 <div className="space-y-3">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Foco Atual</label>
-                    <select value={objetivoFinanceiro} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none" onChange={(e) => setObjetivoFinanceiro(e.target.value)}>
+                    <select value={objetivoFinanceiro} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none" onChange={(e) => handleChange(setObjetivoFinanceiro, e.target.value)}>
                         <option value="">Selecione...</option>
                         <option value="pessoal">Pessoal</option>
                         <option value="familiar">Familiar</option>
@@ -581,42 +602,61 @@ export default function MinhaContaPage() {
                     </select>
                 </div>
              </div>
-             <div className="flex justify-end">
-                <button onClick={handleUpdate} disabled={updating} className="flex items-center justify-center gap-3 px-10 py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-black transition-all">
-                  <Save size={16} /> {updating ? "Sincronizando..." : "Salvar alterações"}
-                </button>
-             </div>
           </section>
       </div>
 
-      {/* FOOTER INSTAGRAM */}
+      <div className="mt-4 flex flex-col md:flex-row gap-4 justify-end border-gray-50 pt-8">
+        <button 
+          ref={saveButtonRef}
+          onClick={handleUpdate} 
+          disabled={updating} 
+          className="flex items-center justify-center gap-3 px-10 py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all"
+        >
+          <Save size={16} /> {updating ? "Sincronizando..." : "Salvar Alterações"}
+        </button>
+      </div>
+
       <div className="mt-24 flex items-center gap-4 mb-12">
         <div className="h-px bg-gray-200 flex-1"></div>
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
         <div className="h-px bg-gray-200 flex-1"></div>
       </div>
 
+      {/* BLOCO INSTAGRAM CENTRALIZADO COM GRADIENTE E BRILHO */}
       <div className="flex flex-col items-center text-center">
         <div className="max-w-3xl mb-12">
-          <h4 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tighter mb-2">
+          <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
             Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
           </h4>
+          <p className="text-gray-500 font-medium text-sm md:text-base">
+            Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
+          </p>
         </div>
         
-        <a href="https://www.instagram.com/nucleobase.app/" target="_blank" rel="noopener noreferrer" className="group relative flex flex-col items-center gap-6 transition-all">
+        <a 
+          href="https://www.instagram.com/nucleobase.app/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="group relative flex flex-col items-center gap-6"
+        >
           <div className="relative">
+            {/* Efeito de brilho/glow ao fundo do ícone */}
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
-            <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
-              <Instagram strokeWidth={1.5} className="w-10 h-10 md:w-12 md:h-12" />
+            
+            <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+              <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
             </div>
           </div>
-          <span className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-600 transition-colors">@nucleobase.app</span>
+          
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+            <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
+          </div>
         </a>
       </div>
 
-      {/* MODAL SENHA */}
       {showPassModal && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-xl z-[100] flex items-center justify-center p-6">
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-xl z-[150] flex items-center justify-center p-6">
           <div className="bg-white w-full max-w-md rounded-[3rem] p-10 shadow-2xl relative animate-in zoom-in-95 duration-300">
             <button onClick={() => setShowPassModal(false)} className="absolute right-8 top-8 text-gray-300 hover:text-gray-900 transition-colors">
               <X size={24} />
@@ -628,14 +668,9 @@ export default function MinhaContaPage() {
               <h2 className="text-2xl font-bold text-gray-900">Nova Senha</h2>
             </div>
             <form onSubmit={handlePasswordReset} className="space-y-4">
-              <div className="relative">
-                <input type={showPass ? "text" : "password"} placeholder="Nova senha" required onChange={(e) => setNewPassword(e.target.value)} className="w-full h-14 px-6 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:border-blue-200 transition-all" />
-                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400">
-                  {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-              <input type={showPass ? "text" : "password"} placeholder="Confirmar senha" required onChange={(e) => setConfirmPassword(e.target.value)} className="w-full h-14 px-6 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:border-blue-200 transition-all" />
-              <button disabled={passLoading} className="w-full bg-gray-900 text-white h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] mt-2 active:scale-95 transition-all shadow-lg">
+              <input type={showPass ? "text" : "password"} placeholder="Nova senha" required onChange={(e) => setNewPassword(e.target.value)} className="w-full h-14 px-6 bg-gray-50 border border-gray-100 rounded-2xl outline-none" />
+              <input type={showPass ? "text" : "password"} placeholder="Confirmar senha" required onChange={(e) => setConfirmPassword(e.target.value)} className="w-full h-14 px-6 bg-gray-50 border border-gray-100 rounded-2xl outline-none" />
+              <button disabled={passLoading} className="w-full bg-gray-900 text-white h-14 rounded-2xl font-black uppercase tracking-widest text-[10px]">
                 {passLoading ? "Processando..." : "Atualizar Senha"}
               </button>
             </form>
@@ -645,3 +680,7 @@ export default function MinhaContaPage() {
     </div>
   );
 }
+
+const aplicarMascaraTelefone = (value: string) => {
+  return value.replace(/\D/g, "").replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2").replace(/(-\d{4})\d+?$/, "$1");
+};
