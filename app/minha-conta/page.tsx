@@ -400,14 +400,51 @@ export default function MinhaContaPage() {
           </section>
         </div>
 
-        {/* COLUNA DIREITA: COMPORTAMENTO (6 CARDS REORDENADOS) */}
+        {/* COLUNA DIREITA: COMPORTAMENTO */}
         <div className="lg:col-span-5 flex flex-col gap-6 order-1 md:order-2" ref={insightRef}>
           <section className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm flex-1 flex flex-col">
+            
+            {/* 1. INTERVALO DE USO (AGORA COMO PRIMEIRO NO MOBILE E DESKTOP) */}
+            <div className="mb-10">
+              <div className="flex items-center gap-3 mb-4">
+                <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2">
+                   <CalendarDays size={16} className="text-purple-600" /> Intervalo de uso
+                </h3>
+              </div>
+              <div className="bg-gray-50 rounded-2xl p-4">
+                {stats.mesesAtivos.length > 0 ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between relative px-1 mb-2">
+                      <div className="text-center z-10 bg-gray-50 px-1 min-w-[40px]">
+                        <p className="text-[7px] font-bold text-gray-400 uppercase">Início</p>
+                        <p className="text-[10px] font-black text-gray-900">{stats.mesesAtivos[0]}</p>
+                      </div>
+                      <div className="absolute left-[45px] right-[45px] top-1/2 -translate-y-1/2 flex items-center h-px">
+                        <div className="w-full border-b border-gray-300"></div>
+                      </div>
+                      <div className="text-center z-10 bg-gray-50 px-1 min-w-[40px]">
+                        <p className="text-[7px] font-bold text-gray-400 uppercase">Fim</p>
+                        <p className="text-[10px] font-black text-gray-900">{stats.mesesAtivos[stats.mesesAtivos.length - 1]}</p>
+                      </div>
+                    </div>
+                    {stats.mesesPendentes > 0 && (
+                      <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tight text-center pt-2 border-t border-gray-200/50">
+                        Você possui <span className="text-orange-600">{stats.mesesPendentes} {stats.mesesPendentes === 1 ? 'mês pendente' : 'meses pendentes'}</span> em seu intervalo de lançamentos.
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-gray-400 font-bold uppercase text-center italic">Sem registros</p>
+                )}
+              </div>
+            </div>
+
+            {/* 2. ATIVIDADES RECENTES (CARDS 2x2 NO MOBILE E DESKTOP) */}
             <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2 mb-10">
               <Activity size={16} className="text-blue-600"/> Atividades Recentes
             </h3>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-10">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-10">
               {/* PAR 1: Registros | Conexões */}
               <div className="flex items-center gap-4 relative group" onMouseEnter={() => setActiveInsight('lancamentos')} onMouseLeave={() => setActiveInsight(null)}>
                 <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shrink-0 shadow-sm">
@@ -444,7 +481,7 @@ export default function MinhaContaPage() {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-1.5">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Custo Fixo</p>
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Fixos</p>
                     <Info size={10} className="text-gray-300" />
                   </div>
                   <p className="text-lg font-black text-gray-900">{stats.percCustosFixos}%</p>
@@ -487,72 +524,39 @@ export default function MinhaContaPage() {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-1.5">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">ID Crachá</p>
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">ID Nuc</p>
                     <Info size={10} className="text-gray-300" />
                   </div>
-                  <p className="text-lg font-black text-gray-900">{stats.numCracha}</p>
+                  <p className="text-sm font-black text-gray-900">{stats.numCracha}</p>
                 </div>
                 <InsightPopover id="membro" title="ID Crachá" colorClass="text-amber-500" content={`Você é o membro ${stats.numCracha} da Nucleo! Sua jornada conosco começou em ${stats.tempoCasa}. Quanto mais tempo você utiliza a plataforma, mais precisos se tornam nossos algoritmos de sugestão. Obrigado por contar conosco para sua governança.`} />
               </div>
             </div>
 
-            <div className="mt-10 pt-10 border-t border-gray-50">
-              <div className="flex items-center gap-3 mb-4">
-                <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2">
-                   <CalendarDays size={16} className="text-purple-600" /> Intervalo de uso
-                </h3>
-              </div>
-              <div className="bg-gray-50 rounded-2xl p-4">
-                {stats.mesesAtivos.length > 0 ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between relative px-1 mb-2">
-                      <div className="text-center z-10 bg-gray-50 px-1 min-w-[40px]">
-                        <p className="text-[7px] font-bold text-gray-400 uppercase">Início</p>
-                        <p className="text-[10px] font-black text-gray-900">{stats.mesesAtivos[0]}</p>
-                      </div>
-                      <div className="absolute left-[45px] right-[45px] top-1/2 -translate-y-1/2 flex items-center h-px">
-                        <div className="w-full border-b border-gray-300"></div>
-                      </div>
-                      <div className="text-center z-10 bg-gray-50 px-1 min-w-[40px]">
-                        <p className="text-[7px] font-bold text-gray-400 uppercase">Fim</p>
-                        <p className="text-[10px] font-black text-gray-900">{stats.mesesAtivos[stats.mesesAtivos.length - 1]}</p>
-                      </div>
-                    </div>
-                    {stats.mesesPendentes > 0 && (
-                      <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tight text-center pt-2 border-t border-gray-200/50">
-                        Você possui <span className="text-orange-600">{stats.mesesPendentes} {stats.mesesPendentes === 1 ? 'mês pendente' : 'meses pendentes'}</span> em seu intervalo.
-                      </p>
-                    )}
+            {/* 3. BOTÕES DE AÇÃO */}
+            <div className="flex flex-col gap-3 mt-10">
+              <Link href="/lancamentos" className="block w-full p-4 bg-orange-500 rounded-xl group hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/10">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex-1 text-center">
+                    <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Novos Lançamentos</p>
+                    <p className="text-white text-xs font-bold leading-tight">Atualize seus registros. Clique aqui.</p>
                   </div>
-                ) : (
-                  <p className="text-[10px] text-gray-400 font-bold uppercase text-center italic">Sem registros</p>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-3 mt-8">
-                <Link href="/lancamentos" className="block w-full p-4 bg-orange-500 rounded-xl group hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/10">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex-1 text-center">
-                      <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Novos Lançamentos</p>
-                      <p className="text-white text-xs font-bold leading-tight">Atualize seus registros. Clique aqui.</p>
-                    </div>
-                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform shrink-0">
-                      <Rocket size={20} fill="currentColor" className="text-orange-100" />
-                    </div>
+                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform shrink-0">
+                    <Rocket size={20} fill="currentColor" className="text-orange-100" />
                   </div>
-                </Link>
-                <Link href="/resultados" className="block w-full p-4 bg-blue-600 rounded-xl group hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex-1 text-center">
-                      <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Performance</p>
-                      <p className="text-white text-xs font-bold leading-tight">Painel de Resultados. Acesse agora.</p>
-                    </div>
-                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform shrink-0">
-                      <LayoutDashboard size={20} fill="currentColor" className="text-blue-100" />
-                    </div>
+                </div>
+              </Link>
+              <Link href="/resultados" className="block w-full p-4 bg-blue-600 rounded-xl group hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex-1 text-center">
+                    <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Performance</p>
+                    <p className="text-white text-xs font-bold leading-tight">Painel de Resultados. Acesse agora.</p>
                   </div>
-                </Link>
-              </div>
+                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform shrink-0">
+                    <LayoutDashboard size={20} fill="currentColor" className="text-blue-100" />
+                  </div>
+                </div>
+              </Link>
             </div>
           </section>
         </div>

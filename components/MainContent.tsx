@@ -125,25 +125,25 @@ export function MainContent() {
           </div>
 
           <div className="flex flex-col items-start gap-5 pt-2">
-            <div className="flex items-center gap-3">
-              <div className="flex -space-x-2">
-                {[1,2,3].map(i => (
-                  <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center overflow-hidden">
-                    <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="User" />
+            <div className="flex flex-col gap-4 w-full">
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-2 shrink-0">
+                  {[1,2,3].map(i => (
+                    <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center overflow-hidden">
+                      <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="User" />
+                    </div>
+                  ))}
+                </div>
+                <Link href="/cadastro" className="group flex items-center gap-2">
+                  <p className="text-gray-500 text-[12px] font-bold leading-tight group-hover:text-gray-900 transition-colors">
+                    Junte-se ao time da Nucleo
+                  </p>
+                  <div className="w-6 h-6 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
+                    <ArrowRight size={12} />
                   </div>
-                ))}
+                </Link>
               </div>
-              <p className="text-gray-500 text-[12px] font-bold leading-tight">
-                Junte-se ao time da Nucleo.
-              </p>
             </div>
-
-            <Link href="/sobre" className="group flex items-center gap-3 text-blue-600 font-black text-[10px] uppercase tracking-widest">
-              <span>Conheça nossa História</span>
-              <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
-                <ArrowRight size={14} />
-              </div>
-            </Link>
           </div>
         </div>
 
@@ -152,11 +152,11 @@ export function MainContent() {
             Informativos e acessos <div className="h-px bg-gray-300 flex-1"></div>
           </h3>
           <p className="text-gray-600 text-[15px] leading-relaxed font-medium py-1">
-            A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos seu controle financeiro em inteligência estratégica para que você reduza custos.
+            A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos seu controle financeiro em inteligência estratégica para que você reduza custos. <Link href="/sobre" className="underline hover:text-blue-600 transition-colors">Clique aqui</Link> e conheça a nossa história e os nossos objetivos.
           </p>
         </div>
 
-        {/* BENTO GRID - AJUSTADO COM O NOVO PAINEL DE RESULTADOS */}
+        {/* BENTO GRID */}
         <div className="grid grid-cols-2 gap-3 mt-4">
             <button onClick={() => setIsModalOpen(true)} className="col-span-1 bg-blue-50 p-6 rounded-3xl flex flex-col gap-4 border border-blue-100 text-left relative overflow-hidden active:scale-95 transition-transform">
                 <Mail className="text-blue-600" size={24} />
@@ -280,7 +280,7 @@ export function MainContent() {
       </div>
 
       {/* ============================================================
-          LAYOUT DESKTOP (Sem alterações solicitadas)
+          LAYOUT DESKTOP
           ============================================================ */}
       <div className="hidden lg:block w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
         <div className="mb-6 mt-0">
@@ -426,7 +426,6 @@ export function MainContent() {
             </div>
           </section>
 
-          {/* FINAL DA PÁGINA (Redes Sociais e Canais) */}
           <section className="pb-20">
             <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
               Canais e Oportunidades <div className="h-px bg-gray-300 flex-1"></div>
