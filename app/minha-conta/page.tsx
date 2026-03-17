@@ -91,15 +91,16 @@ export default function MinhaContaPage() {
     setIsDirty(true);
   };
 
+  // CORREÇÃO DO ERRO: useEffect sempre deve ter o mesmo número de dependências em cada render
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (insightRef.current && !insightRef.current.contains(event.target as Node)) {
+      if (activeInsight && insightRef.current && !insightRef.current.contains(event.target as Node)) {
         setActiveInsight(null);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [activeInsight]);
 
   const getPrimeiroNome = () => {
     if (!nome) return slug || "user";
@@ -165,7 +166,6 @@ export default function MinhaContaPage() {
         }
       }
 
-      // Cálculos Financeiros (Desconsiderando Receita conforme solicitado)
       const despesas = allRecords.filter(l => l.natureza === 'Despesa');
       const custosFixos = despesas.filter(l => l.tipo_de_custo === 'Fixo').reduce((acc, curr) => acc + Math.abs(Number(curr.valor)), 0);
       const custosVariaveis = despesas.filter(l => l.tipo_de_custo === 'Variável').reduce((acc, curr) => acc + Math.abs(Number(curr.valor)), 0);
@@ -177,7 +177,6 @@ export default function MinhaContaPage() {
       const datasFixos = allRecords.filter(l => l.fixo_ate).map(l => l.fixo_ate).sort();
       const limiteFixos = datasFixos.length > 0 ? datasFixos[datasFixos.length - 1].split('-').reverse().slice(0, 2).join('/') : "---";
 
-      // Mensagens
       const txtLacuna = pendentes > 0 ? ` Atualmente, identificamos ${pendentes} ${pendentes === 1 ? 'mês de lacuna' : 'meses de lacuna'} sem registros.` : " Não identificamos lacunas em seu histórico.";
       const textoLancamentos = `Seu histórico acumula ${count} registros, abrangendo o período de ${mesesFormatados[0]} a ${mesesFormatados[mesesFormatados.length - 1]}.${txtLacuna} É fundamental manter seus lançamentos sempre atualizados para garantir a precisão das análises e do seu planejamento.`;
 
@@ -188,7 +187,6 @@ export default function MinhaContaPage() {
       const totalDespesasMes = despesasMes.reduce((acc, curr) => acc + Math.abs(Number(curr.valor)), 0);
       const mediaDiaria = totalDespesasMes / agora.getDate();
 
-      // Formatação Crachá: NUC -> Nuc
       let crachaFormatado = userData?.num_cracha || "---";
       if (crachaFormatado.startsWith("NUC")) {
         crachaFormatado = "Nuc" + crachaFormatado.substring(3);
@@ -273,13 +271,18 @@ export default function MinhaContaPage() {
     setPassLoading(false);
   };
 
-  const InsightPopover = ({ id, title, content, colorClass, position = "top" }: { id: string, title: string, content: string, colorClass: string, position?: "side" | "top" }) => {
+  const InsightPopover = ({ id, title, content, colorClass, align = "left" }: { id: string, title: string, content: string, colorClass: string, align?: "left" | "right" }) => {
     if (activeInsight !== id) return null;
-    const positionClasses = position === "top" ? "bottom-[calc(100%+15px)] left-0" : "left-[calc(100%+20px)] top-0";
-    const arrowClasses = position === "top" ? "-bottom-2 left-6 border-l border-b" : "-left-2 top-6 rotate-45";
+    
+    const positionClasses = align === "left" ? "bottom-[calc(100%+15px)] left-0" : "bottom-[calc(100%+15px)] right-0";
+    const arrowClasses = align === "left" ? "left-6" : "right-6";
+
     return (
-      <div className={`absolute ${positionClasses} w-72 md:w-80 p-5 bg-gray-900 text-white rounded-[2rem] shadow-2xl z-[100] animate-in fade-in slide-in-from-${position === 'top' ? 'bottom' : 'left'}-4 duration-300`}>
-        <div className={`absolute w-4 h-4 bg-gray-900 ${arrowClasses} ${position === 'top' ? 'rotate-[-45deg]' : ''}`}></div>
+      <div 
+        ref={insightRef}
+        className={`absolute ${positionClasses} w-[280px] md:w-80 p-5 bg-gray-900 text-white rounded-[2rem] shadow-2xl z-[100] animate-in fade-in slide-in-from-bottom-4 duration-300`}
+      >
+        <div className={`absolute w-4 h-4 bg-gray-900 -bottom-2 ${arrowClasses} border-l border-b rotate-[-45deg]`}></div>
         <h4 className={`text-[10px] font-black uppercase tracking-widest ${colorClass} mb-2 flex items-center gap-2`}>
            <Zap size={12} fill="currentColor"/> Insight de {title}
         </h4>
@@ -308,7 +311,7 @@ export default function MinhaContaPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         
-        {/* COLUNA ESQUERDA: DADOS PESSOAIS */}
+        {/* COLUNA ESQUERDA */}
         <div className="lg:col-span-7 h-full order-2 md:order-1">
           <section className="bg-white rounded-[2.5rem] p-8 md:p-10 border border-gray-100 shadow-sm h-full flex flex-col">
             <div className="flex items-center gap-6 mb-12">
@@ -400,11 +403,10 @@ export default function MinhaContaPage() {
           </section>
         </div>
 
-        {/* COLUNA DIREITA: COMPORTAMENTO */}
-        <div className="lg:col-span-5 flex flex-col gap-6 order-1 md:order-2" ref={insightRef}>
+        {/* COLUNA DIREITA */}
+        <div className="lg:col-span-5 flex flex-col gap-6 order-1 md:order-2">
           <section className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm flex-1 flex flex-col">
             
-            {/* 1. INTERVALO DE USO (AGORA COMO PRIMEIRO NO MOBILE E DESKTOP) */}
             <div className="mb-10">
               <div className="flex items-center gap-3 mb-4">
                 <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2">
@@ -439,15 +441,17 @@ export default function MinhaContaPage() {
               </div>
             </div>
 
-            {/* 2. ATIVIDADES RECENTES (CARDS 2x2 NO MOBILE E DESKTOP) */}
             <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2 mb-10">
               <Activity size={16} className="text-blue-600"/> Atividades Recentes
             </h3>
             
             <div className="grid grid-cols-2 gap-x-6 gap-y-10">
-              {/* PAR 1: Registros | Conexões */}
-              <div className="flex items-center gap-4 relative group" onMouseEnter={() => setActiveInsight('lancamentos')} onMouseLeave={() => setActiveInsight(null)}>
-                <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shrink-0 shadow-sm">
+              <div className="flex items-center gap-4 relative" 
+                onMouseEnter={() => setActiveInsight('lancamentos')} 
+                onMouseLeave={() => setActiveInsight(null)}
+                onClick={() => setActiveInsight(activeInsight === 'lancamentos' ? null : 'lancamentos')}
+              >
+                <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shrink-0 shadow-sm cursor-pointer">
                   <MousePointerClick size={22} />
                 </div>
                 <div className="flex-1">
@@ -457,11 +461,15 @@ export default function MinhaContaPage() {
                   </div>
                   <p className="text-lg font-black text-gray-900">{stats.totalLancamentos}</p>
                 </div>
-                <InsightPopover id="lancamentos" title="Lançamentos" colorClass="text-blue-400" content={stats.detalheLancamentos} />
+                <InsightPopover id="lancamentos" title="Lançamentos" colorClass="text-blue-400" content={stats.detalheLancamentos} align="left" />
               </div>
 
-              <div className="flex items-center gap-4 relative group" onMouseEnter={() => setActiveInsight('conexoes')} onMouseLeave={() => setActiveInsight(null)}>
-                <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 shrink-0 shadow-sm">
+              <div className="flex items-center gap-4 relative" 
+                onMouseEnter={() => setActiveInsight('conexoes')} 
+                onMouseLeave={() => setActiveInsight(null)}
+                onClick={() => setActiveInsight(activeInsight === 'conexoes' ? null : 'conexoes')}
+              >
+                <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 shrink-0 shadow-sm cursor-pointer">
                   <Wallet size={22} />
                 </div>
                 <div className="flex-1">
@@ -471,12 +479,15 @@ export default function MinhaContaPage() {
                   </div>
                   <p className="text-lg font-black text-gray-900">{stats.patrimonioConectado}</p>
                 </div>
-                <InsightPopover id="conexoes" title="Conexões" colorClass="text-emerald-400" content={`Você possui ${stats.patrimonioConectado} fontes de dados conectadas à plataforma, permitindo uma visão consolidada do seu patrimônio.`} />
+                <InsightPopover id="conexoes" title="Conexões" colorClass="text-emerald-400" content={`Você possui ${stats.patrimonioConectado} fontes de dados conectadas à plataforma, permitindo uma visão consolidada do seu patrimônio.`} align="right" />
               </div>
 
-              {/* PAR 2: Custo Fixo | Variáveis */}
-              <div className="flex items-center gap-4 relative group" onMouseEnter={() => setActiveInsight('previsibilidade')} onMouseLeave={() => setActiveInsight(null)}>
-                <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shrink-0 shadow-sm">
+              <div className="flex items-center gap-4 relative" 
+                onMouseEnter={() => setActiveInsight('previsibilidade')} 
+                onMouseLeave={() => setActiveInsight(null)}
+                onClick={() => setActiveInsight(activeInsight === 'previsibilidade' ? null : 'previsibilidade')}
+              >
+                <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shrink-0 shadow-sm cursor-pointer">
                   <ShieldCheck size={22} />
                 </div>
                 <div className="flex-1">
@@ -486,11 +497,15 @@ export default function MinhaContaPage() {
                   </div>
                   <p className="text-lg font-black text-gray-900">{stats.percCustosFixos}%</p>
                 </div>
-                <InsightPopover id="previsibilidade" title="Custo Fixo" colorClass="text-indigo-400" content={`Analisamos que ${stats.percCustosFixos}% das suas despesas estão atreladas a custos fixos até ${stats.dataLimiteFixos}. Manter custos fixos sob controle é o primeiro passo para a liberdade financeira e aumento do seu fluxo de caixa mensal.`} />
+                <InsightPopover id="previsibilidade" title="Custo Fixo" colorClass="text-indigo-400" content={`Analisamos que ${stats.percCustosFixos}% das suas despesas estão atreladas a custos fixos até ${stats.dataLimiteFixos}. Manter custos fixos sob controle é o primeiro passo para a liberdade financeira e aumento do seu fluxo de caixa mensal.`} align="left" />
               </div>
 
-              <div className="flex items-center gap-4 relative group" onMouseEnter={() => setActiveInsight('eficiencia')} onMouseLeave={() => setActiveInsight(null)}>
-                <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-600 shrink-0 shadow-sm">
+              <div className="flex items-center gap-4 relative" 
+                onMouseEnter={() => setActiveInsight('eficiencia')} 
+                onMouseLeave={() => setActiveInsight(null)}
+                onClick={() => setActiveInsight(activeInsight === 'eficiencia' ? null : 'eficiencia')}
+              >
+                <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-600 shrink-0 shadow-sm cursor-pointer">
                   <PieChart size={22} />
                 </div>
                 <div className="flex-1">
@@ -500,12 +515,15 @@ export default function MinhaContaPage() {
                   </div>
                   <p className="text-lg font-black text-gray-900">{stats.percGastosVariaveis}%</p>
                 </div>
-                <InsightPopover id="eficiencia" title="Variáveis" colorClass="text-rose-400" content={`Atualmente, seus Gastos Variáveis representam ${stats.percGastosVariaveis}% das suas despesas totais. Este é o grupo onde você tem maior poder de decisão imediata. Pequenos ajustes aqui são o caminho mais rápido para aumentar sua capacidade de investimento.`} />
+                <InsightPopover id="eficiencia" title="Variáveis" colorClass="text-rose-400" content={`Atualmente, seus Gastos Variáveis representam ${stats.percGastosVariaveis}% das suas despesas totais. Este é o grupo onde você tem maior poder de decisão imediata. Pequenos ajustes aqui são o caminho mais rápido para aumentar sua capacidade de investimento.`} align="right" />
               </div>
 
-              {/* PAR 3: Média/Dia | ID Crachá */}
-              <div className="flex items-center gap-4 relative group" onMouseEnter={() => setActiveInsight('media')} onMouseLeave={() => setActiveInsight(null)}>
-                <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600 shrink-0 shadow-sm">
+              <div className="flex items-center gap-4 relative" 
+                onMouseEnter={() => setActiveInsight('media')} 
+                onMouseLeave={() => setActiveInsight(null)}
+                onClick={() => setActiveInsight(activeInsight === 'media' ? null : 'media')}
+              >
+                <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600 shrink-0 shadow-sm cursor-pointer">
                   <Zap size={22} />
                 </div>
                 <div className="flex-1">
@@ -515,11 +533,15 @@ export default function MinhaContaPage() {
                   </div>
                   <p className="text-lg font-black text-gray-900">{stats.mediaGastosDiarios.split(',')[0]}</p>
                 </div>
-                <InsightPopover id="media" title="Média/Dia" colorClass="text-orange-400" content={`Sua média diária atual de despesas é de ${stats.mediaGastosDiarios}. Este indicador é vital para o seu controle comportamental. Ao monitorar este valor, a Nucleo consegue propor formas eficazes de otimização financeira. Sua memória de cálculo é 'Total de Despesas do mês atual' \ 'Soma de dias do mês atual até o dia atual'`} />
+                <InsightPopover id="media" title="Média/Dia" colorClass="text-orange-400" content={`Sua média diária atual de despesas é de ${stats.mediaGastosDiarios}. Este indicador é vital para o seu controle comportamental. Ao monitorar este valor, a Nucleo consegue propor formas eficazes de otimização financeira. Sua memória de cálculo é 'Total de Despesas do mês atual' \ 'Soma de dias do mês atual até o dia atual'`} align="left" />
               </div>
 
-              <div className="flex items-center gap-4 relative group" onMouseEnter={() => setActiveInsight('membro')} onMouseLeave={() => setActiveInsight(null)}>
-                <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 shrink-0 shadow-sm">
+              <div className="flex items-center gap-4 relative" 
+                onMouseEnter={() => setActiveInsight('membro')} 
+                onMouseLeave={() => setActiveInsight(null)}
+                onClick={() => setActiveInsight(activeInsight === 'membro' ? null : 'membro')}
+              >
+                <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 shrink-0 shadow-sm cursor-pointer">
                   <Award size={22} />
                 </div>
                 <div className="flex-1">
@@ -529,11 +551,10 @@ export default function MinhaContaPage() {
                   </div>
                   <p className="text-sm font-black text-gray-900">{stats.numCracha}</p>
                 </div>
-                <InsightPopover id="membro" title="ID Crachá" colorClass="text-amber-500" content={`Você é o membro ${stats.numCracha} da Nucleo! Sua jornada conosco começou em ${stats.tempoCasa}. Quanto mais tempo você utiliza a plataforma, mais precisos se tornam nossos algoritmos de sugestão. Obrigado por contar conosco para sua governança.`} />
+                <InsightPopover id="membro" title="ID Crachá" colorClass="text-amber-500" content={`Você é o membro ${stats.numCracha} da Nucleo! Sua jornada conosco começou em ${stats.tempoCasa}. Quanto mais tempo você utiliza a plataforma, mais precisos se tornam nossos algoritmos de sugestão. Obrigado por contar conosco para sua governança.`} align="right" />
               </div>
             </div>
 
-            {/* 3. BOTÕES DE AÇÃO */}
             <div className="flex flex-col gap-3 mt-10">
               <Link href="/lancamentos" className="block w-full p-4 bg-orange-500 rounded-xl group hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/10">
                 <div className="flex items-center justify-between gap-4">
@@ -565,7 +586,7 @@ export default function MinhaContaPage() {
       <div className="mt-12">
           <section className="bg-gray-50/50 rounded-[2.5rem] p-6 md:p-10 border border-gray-100">
              <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
-               Preferências <div className="h-px bg-gray-200 flex-1"></div>
+                Preferências <div className="h-px bg-gray-200 flex-1"></div>
              </h3>
              <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
                 <div className="space-y-3">
@@ -626,7 +647,6 @@ export default function MinhaContaPage() {
         <div className="h-px bg-gray-200 flex-1"></div>
       </div>
 
-      {/* BLOCO INSTAGRAM CENTRALIZADO COM GRADIENTE E BRILHO */}
       <div className="flex flex-col items-center text-center">
         <div className="max-w-3xl mb-12">
           <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
@@ -644,7 +664,6 @@ export default function MinhaContaPage() {
           className="group relative flex flex-col items-center gap-6"
         >
           <div className="relative">
-            {/* Efeito de brilho/glow ao fundo do ícone */}
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
             
             <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
