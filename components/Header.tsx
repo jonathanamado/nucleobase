@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { 
   UserCircle, LayoutDashboard, X, Menu, 
   Info, Newspaper, CreditCard, BarChart3, Star, HelpCircle, 
-  Shield, ChevronRight, AppWindow, LogOut,
+  Shield, ChevronRight, LogOut,
   Search, Gift, Settings, Key, UserPlus, LogIn, PlayCircle,
   KeyRound, Eye, EyeOff, Play
 } from "lucide-react";
@@ -243,15 +243,6 @@ export function Header() {
           )}
 
           <div className="flex items-center gap-3 relative">
-            {pathname !== "/" && (
-              <a href="/" className="flex items-center gap-2.5 text-gray-400 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest mr-2 group">
-                <div className="bg-gray-50 p-2 rounded-full group-hover:bg-blue-50 transition-colors border border-gray-100 group-hover:border-blue-100">
-                  <AppWindow size={16} strokeWidth={2} />
-                </div>
-                <span className="hidden lg:inline">Início</span>
-              </a>
-            )}
-
             {!isLoggedIn ? (
               <div className="flex items-center gap-3">
                 <a href="/cadastro" className="min-w-[120px] inline-block text-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition font-bold shadow-sm">
@@ -314,12 +305,6 @@ export function Header() {
         </nav>
 
         <div className="md:hidden flex items-center gap-2">
-          {pathname !== "/" && (
-              <a href="/" className="p-2.5 text-gray-400 active:text-blue-600 transition-colors bg-gray-50 rounded-2xl border border-gray-100">
-                <AppWindow size={20} strokeWidth={2} />
-              </a>
-          )}
-
           <button 
             ref={mobileButtonRef}
             onClick={() => setIsMenuOpen(!isMenuOpen)}

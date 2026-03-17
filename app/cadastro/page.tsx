@@ -122,7 +122,7 @@ export default function CadastroPage() {
           localStorage.removeItem("nucleobase_referral_id");
         }
       }
-      window.location.href = "/acesso-usuario";
+      window.location.href = "/minha-conta";
     }
     setLoading(false);
   };
@@ -137,19 +137,6 @@ export default function CadastroPage() {
           </div>
 
           <div className="relative z-10 w-full max-w-md mx-auto space-y-10 pt-4 lg:pt-0 pb-8">
-            {/* BANNER DE OFERTA EXCLUSIVA (Desktop) */}
-            <div className="hidden lg:flex bg-blue-500/10 border border-blue-500/20 rounded-[2rem] p-6 items-start gap-4 backdrop-blur-sm">
-              <div className="bg-blue-600 p-2.5 rounded-xl text-white shadow-md shrink-0">
-                <Gift size={20} />
-              </div>
-              <div>
-                <p className="text-[12px] font-black text-blue-400 uppercase tracking-widest mb-1">Oferta de Boas-vindas</p>
-                <p className="text-xs text-white/90 font-semibold leading-relaxed">
-                  Ganhe <strong>90 dias de acesso total + Suporte</strong>. Após este período, você mantém sua conta para lançamentos limitados, mas ainda com acesso vitalício à todas as visualizações, insights e segurança da Nucleo.
-                </p>
-              </div>
-            </div>
-
             <div>
               <div className="flex items-center gap-2 text-blue-500 mb-6">
                 <Zap fill="currentColor" size={24} />
@@ -205,12 +192,6 @@ export default function CadastroPage() {
             
             {/* DIVISÃO INTELIGENTE MOBILE */}
             <div className="lg:hidden flex flex-col gap-4 mb-8 pt-4">
-              <div className="bg-blue-600 rounded-2xl p-4 flex items-center gap-4 text-white shadow-lg shadow-blue-100">
-                <Gift size={20} className="shrink-0" />
-                <p className="text-[11px] font-bold leading-tight">
-                  Degustação VIP: <span className="opacity-80">90 dias com acesso total e suporte. Após o prazo, sua conta permanece ativa para acompanhamento de resultados, limitando apenas multi lançamentos.</span>
-                </p>
-              </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 leading-tight">
                   Crie sua conta para realizar seu <span className="text-blue-600">controle financeiro.</span>
@@ -327,7 +308,7 @@ export default function CadastroPage() {
             </form>
 
             <p className="mt-8 text-center text-[10px] text-gray-400 font-medium uppercase tracking-widest">
-              Já possui uma conta? <a href="/acesso-usuario" className="text-blue-600 font-bold hover:underline italic">Fazer login</a>
+              Já possui uma conta? <a href="/acesso-usuario" className="text-blue-600 font-bold hover:underline">Fazer login</a>
             </p>
 
             <div className="mt-6 pt-6 flex items-center justify-center gap-4 opacity-40 grayscale border-t border-gray-50">

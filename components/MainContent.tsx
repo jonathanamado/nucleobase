@@ -108,17 +108,23 @@ export function MainContent() {
             <div className="relative bg-white border border-gray-100 p-7 rounded-[2.5rem] shadow-xl shadow-blue-900/5">
               <div className="mb-6">
                 <p className="text-gray-700 text-[17px] leading-snug font-medium text-center">
-                  Você acaba de chegar ao APP em que números brutos se tornam <span className="text-gray-900 font-bold not-italic">decisões inteligentes</span> para quem domina o próprio destino. Clique na logo e acesse o seu <span className="text-gray-900 font-bold not-italic">'Painel de Controle'</span>.
+                  Você acaba de chegar ao APP em que números brutos tornam-se <span className="text-gray-900 font-bold not-italic">decisões inteligentes</span> para quem domina o próprio destino. Clique na logo e acesse o seu <span className="text-gray-900 font-bold not-italic">'Painel de Controle'</span>.
                 </p>
               </div>
               
               <Link 
                 href="/acesso-usuario" 
-                className="flex items-center justify-between w-full p-2 bg-gray-900 text-white rounded-2xl font-black text-[11px] text-center uppercase tracking-[0.2em] shadow-2xl active:scale-[0.96] transition-all hover:bg-black"
+                className="grid grid-cols-[1fr_auto_1fr] items-center w-full p-2 bg-gray-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl active:scale-[0.96] transition-all hover:bg-black"
               >
-                <span>Acessar Dashboard</span>
-                <div className="bg-blue-600 p-2 rounded-xl shadow-inner">
-                  <LayoutDashboard size={20} />
+                {/* Espaçador invisível à esquerda para forçar a centralização do texto */}
+                <div className="w-[36px]" aria-hidden="true" />
+
+                <span className="text-center">Acessar Dashboard</span>
+
+                <div className="flex justify-end">
+                  <div className="bg-blue-600 p-2 rounded-xl shadow-inner flex items-center justify-center">
+                    <LayoutDashboard size={20} />
+                  </div>
                 </div>
               </Link>
             </div>
@@ -138,7 +144,7 @@ export function MainContent() {
                   <p className="text-gray-500 text-[12px] font-bold leading-tight group-hover:text-gray-900 transition-colors">
                     Junte-se ao time da Nucleo
                   </p>
-                  <div className="w-6 h-6 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
+                  <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-white group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
                     <ArrowRight size={12} />
                   </div>
                 </Link>
@@ -152,7 +158,7 @@ export function MainContent() {
             Informativos e acessos <div className="h-px bg-gray-300 flex-1"></div>
           </h3>
           <p className="text-gray-600 text-[15px] leading-relaxed font-medium py-1">
-            A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos seu controle financeiro em inteligência estratégica para que você reduza custos. <Link href="/sobre" className="underline hover:text-blue-600 transition-colors">Clique aqui</Link> e conheça a nossa história e os nossos objetivos.
+            A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos seu controle financeiro em inteligência estratégica para que você reduza custos. Conheça a nossa história e os nossos objetivos <Link href="/sobre" className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
           </p>
         </div>
 
