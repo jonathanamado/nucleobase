@@ -108,7 +108,7 @@ export function MainContent() {
             <div className="relative bg-white border border-gray-100 p-7 rounded-[2.5rem] shadow-xl shadow-blue-900/5">
               <div className="mb-6">
                 <p className="text-gray-700 text-[17px] leading-snug font-medium text-center">
-                  Você acaba de chegar no APP em que números brutos se tornam <span className="text-gray-900 font-bold not-italic">decisões inteligentes</span> para quem domina o próprio destino. Clique na logo e acesse o seu <span className="text-gray-900 font-bold not-italic">Painel de Controle</span>.
+                  Você acaba de chegar ao APP em que números brutos se tornam <span className="text-gray-900 font-bold not-italic">decisões inteligentes</span> para quem domina o próprio destino. Clique na logo e acesse o seu <span className="text-gray-900 font-bold not-italic">'Painel de Controle'</span>.
                 </p>
               </div>
               
