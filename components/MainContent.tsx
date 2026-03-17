@@ -114,7 +114,7 @@ export function MainContent() {
               
               <Link 
                 href="/acesso-usuario" 
-                className="flex items-center justify-between w-full p-5 bg-gray-900 text-white rounded-2xl font-black text-[11px] text-center uppercase tracking-[0.2em] shadow-2xl active:scale-[0.96] transition-all hover:bg-black"
+                className="flex items-center justify-between w-full p-2 bg-gray-900 text-white rounded-2xl font-black text-[11px] text-center uppercase tracking-[0.2em] shadow-2xl active:scale-[0.96] transition-all hover:bg-black"
               >
                 <span>Acessar Dashboard</span>
                 <div className="bg-blue-600 p-2 rounded-xl shadow-inner">
@@ -134,7 +134,7 @@ export function MainContent() {
                 ))}
               </div>
               <p className="text-gray-500 text-[12px] font-bold leading-tight">
-                Junte-se a centenas de <br/> mentes estratégicas.
+                Junte-se ao time da Nucleo.
               </p>
             </div>
 
