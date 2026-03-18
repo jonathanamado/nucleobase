@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { 
   UserCircle, LayoutDashboard, X, Menu, 
   Info, Newspaper, CreditCard, BarChart3, Star, HelpCircle, 
-  Shield, ChevronRight, LogOut,
+  Shield, ChevronRight, Power,
   Search, Gift, Settings, Key, UserPlus, LogIn, PlayCircle,
   KeyRound, Eye, EyeOff, Play
 } from "lucide-react";
@@ -253,10 +253,22 @@ export function Header() {
                 </a>
               </div>
             ) : (
-              <a href="/acesso-usuario" className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition font-bold shadow-sm">
-                <LayoutDashboard size={18} />
-                Acessar Plataforma
-              </a>
+              <div className="flex items-center gap-2">
+                <a href="/acesso-usuario" className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition font-bold shadow-sm">
+                  <LayoutDashboard size={18} />
+                  Acessar Plataforma
+                </a>
+                
+                {pathname === "/minha-conta" && (
+                  <button 
+                    onClick={handleLogout}
+                    className="flex items-center justify-center w-10 h-10 rounded-md bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 border border-gray-100 transition-all shadow-sm active:scale-95"
+                    title="Sair da conta"
+                  >
+                    <Power size={18} strokeWidth={2.5} />
+                  </button>
+                )}
+              </div>
             )}
             
             {pathname !== "/minha-conta" && (
@@ -288,7 +300,7 @@ export function Header() {
                         <DropdownItem icon={UserCircle} label="Minha Conta" onClick={() => { router.push("/minha-conta"); setIsUserDropdownOpen(false); }} />
                         <DropdownItem icon={Settings} label="Configurações" onClick={() => { router.push("/configuracoes"); setIsUserDropdownOpen(false); }} />
                         <DropdownItem icon={Key} label="Alterar senha" onClick={() => { setIsUserDropdownOpen(false); setShowPassModal(true); }} />
-                        <DropdownItem icon={LogOut} label="Sair da conta" color="text-red-500" onClick={handleLogout} />
+                        <DropdownItem icon={Power} label="Sair da conta" color="text-red-500" onClick={handleLogout} />
                       </div>
                     ) : (
                       <div className="flex flex-col">
@@ -364,6 +376,9 @@ export function Header() {
                       <a href="/resultados" className="flex items-center justify-center gap-2 w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-sm shadow-lg">
                         <BarChart3 size={18} /> Visão de Resultados
                       </a>
+                      <button onClick={handleLogout} className="flex items-center justify-center gap-2 w-full py-4 bg-red-50 text-red-600 rounded-2xl font-bold text-sm border border-red-100 active:scale-95 transition-all">
+                        <Power size={18} /> Sair da conta
+                      </button>
                     </div>
                   )}
                 </div>

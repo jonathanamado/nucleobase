@@ -420,7 +420,7 @@ export default function MinhaContaPage() {
             <div className="mb-10">
               <div className="flex items-center gap-3 mb-4">
                 <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2">
-                   <CalendarDays size={16} className="text-purple-600" /> Intervalo de uso
+                   <CalendarDays size={16} className="text-purple-600" /> Controle lançamentos
                 </h3>
               </div>
               <div className="bg-gray-50 rounded-2xl p-4">
@@ -446,9 +446,14 @@ export default function MinhaContaPage() {
                     )}
                   </div>
                 ) : (
-                  <p className="text-[10px] text-gray-400 font-bold uppercase text-center leading-relaxed">
-                    Sem registros. Realize seus primeiros lançamentos <Link href="/lancamentos" className="text-blue-600 underline hover:text-blue-800 transition-colors">clicando aqui</Link>.
-                  </p>
+                  <Link href="/lancamentos" className="block w-full p-6 bg-orange-500 rounded-[2rem] group hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/10 text-center">
+                    <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">
+                      Você ainda não possui lançamentos.
+                    </p>
+                    <p className="text-white text-xs font-bold leading-tight">
+                      Clique aqui e importe seus primeiros registros, iniciando sua gestão digital.
+                    </p>
+                  </Link>
                 )}
               </div>
             </div>
@@ -486,12 +491,12 @@ export default function MinhaContaPage() {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-1.5">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Conexões</p>
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Cartões</p>
                     <Info size={10} className="text-gray-300" />
                   </div>
                   <p className="text-lg font-black text-gray-900">{stats.patrimonioConectado}</p>
                 </div>
-                <InsightPopover id="conexoes" title="Conexões" colorClass="text-emerald-400" content={`Você possui ${stats.patrimonioConectado} fontes de dados conectadas à plataforma, permitindo uma visão consolidada do seu patrimônio.`} align="right" />
+                <InsightPopover id="conexoes" title="Cartões" colorClass="text-emerald-400" content={`Você possui ${stats.patrimonioConectado} fontes de dados conectadas à plataforma, permitindo uma visão consolidada do seu patrimônio.`} align="right" />
               </div>
 
               <div className="flex items-center gap-4 relative" 
@@ -545,7 +550,7 @@ export default function MinhaContaPage() {
                   </div>
                   <p className="text-lg font-black text-gray-900">{stats.mediaGastosDiarios.split(',')[0]}</p>
                 </div>
-                <InsightPopover id="media" title="Média/Dia" colorClass="text-orange-400" content={`Sua média diária atual de despesas é de ${stats.mediaGastosDiarios}. Este indicador é vital para o seu controle comportamental. Ao monitorar este valor, a Nucleo consegue propor formas eficazes de otimização financeira. Sua memória de cálculo é 'Total de Despesas do mês atual' \ 'Soma de dias do mês atual até o dia atual'`} align="left" />
+                <InsightPopover id="media" title="Média/Dia" colorClass="text-orange-400" content={`Sua média diária atual de despesas é de ${stats.mediaGastosDiarios}. Este indicador é vital para o seu controle comportamental. Ao monitorar este valor, a Nucleo consegue propor formas eficazes de otimização financeira. Sua memória de cálculo é o 'Total de Despesas do mês atual' dividido pela 'Soma de dias do mês atual até o dia atual'`} align="left" />
               </div>
 
               <div className="flex items-center gap-4 relative" 
@@ -561,7 +566,7 @@ export default function MinhaContaPage() {
                     <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Tempo</p>
                     <Info size={10} className="text-gray-300" />
                   </div>
-                  <p className="text-sm font-black text-gray-900">{stats.diasCadastro}</p>
+                  <p className="text-lg font-black text-gray-900">{stats.diasCadastro}</p>
                 </div>
                 <InsightPopover id="membro" title="Tempo de Uso" colorClass="text-amber-500" content={`Você está conosco há ${stats.diasCadastro}! Quanto maior o seu tempo de uso na plataforma, mais refinados se tornam nossos algoritmos de inteligência de dados, proporcionando insights cada vez mais precisos para sua governança financeira pessoal.`} align="right" />
               </div>
@@ -583,7 +588,7 @@ export default function MinhaContaPage() {
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1 text-center">
                     <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Performance</p>
-                    <p className="text-white text-xs font-bold leading-tight">Painel de Resultados. Acesse agora.</p>
+                    <p className="text-white text-xs font-bold leading-tight">Painel de Resultados. Acesse.</p>
                   </div>
                   <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform shrink-0">
                     <LayoutDashboard size={20} fill="currentColor" className="text-blue-100" />

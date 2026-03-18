@@ -91,7 +91,6 @@ export function MainContent() {
         {/* HERO SECTION MOBILE */}
         <div className="mt-0 pt-2 space-y-8 text-left">
           <div className="relative space-y-2">
-             
              <h1 className="text-3xl font-bold text-gray-900 tracking-tighter flex items-center gap-1">
                <span>Nucleobase<span className="text-blue-600">.</span></span>
                <span className="text-gray-400 font-light">app</span>
@@ -107,7 +106,7 @@ export function MainContent() {
             <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[2.6rem] blur opacity-10"></div>
             <div className="relative bg-white border border-gray-100 p-7 rounded-[2.5rem] shadow-xl shadow-blue-900/5">
               <div className="mb-6">
-                <p className="text-gray-700 text-[17px] leading-snug font-medium text-center">
+                <p className="text-gray-700 text-base leading-snug font-medium text-center">
                   Você acaba de chegar ao APP em que números brutos tornam-se <span className="text-gray-900 font-bold not-italic">decisões inteligentes</span> para quem domina o próprio destino. Clique na logo e acesse o seu <span className="text-gray-900 font-bold not-italic">'Painel de Controle'</span>.
                 </p>
               </div>
@@ -116,11 +115,8 @@ export function MainContent() {
                 href="/acesso-usuario" 
                 className="grid grid-cols-[1fr_auto_1fr] items-center w-full p-2 bg-gray-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl active:scale-[0.96] transition-all hover:bg-black"
               >
-                {/* Espaçador invisível à esquerda para forçar a centralização do texto */}
                 <div className="w-[36px]" aria-hidden="true" />
-
                 <span className="text-center">Acessar<br />Dashboard</span>
-
                 <div className="flex justify-end">
                   <div className="bg-blue-600 p-2 rounded-xl shadow-inner flex items-center justify-center">
                     <LayoutDashboard size={20} />
@@ -157,12 +153,11 @@ export function MainContent() {
           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-0 flex items-center gap-4">
             Informativos e acessos <div className="h-px bg-gray-300 flex-1"></div>
           </h3>
-          <p className="text-gray-600 text-[15px] leading-relaxed font-medium py-1">
+          <p className="text-gray-600 text-base leading-relaxed font-medium py-1">
             A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos seu controle financeiro em inteligência estratégica para que você reduza custos. Conheça a nossa história e os nossos objetivos <Link href="/sobre" className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
           </p>
         </div>
 
-        {/* BENTO GRID */}
         <div className="grid grid-cols-2 gap-3 mt-4">
             <button onClick={() => setIsModalOpen(true)} className="col-span-1 bg-blue-50 p-6 rounded-3xl flex flex-col gap-4 border border-blue-100 text-left relative overflow-hidden active:scale-95 transition-transform">
                 <Mail className="text-blue-600" size={24} />
@@ -173,7 +168,6 @@ export function MainContent() {
                 <span className="font-bold text-[10px] uppercase tracking-widest text-gray-800">Blog da Nucleo</span>
             </Link>
 
-            {/* CARD ESTILIZADO: PAINEL DE RESULTADOS */}
             <Link href="/resultados" className="col-span-2 bg-white p-5 rounded-[2rem] border border-gray-100 flex items-center justify-between shadow-lg shadow-gray-200/50 active:scale-[0.98] transition-all">
                 <div className="flex items-center gap-4">
                     <div className="relative">
@@ -289,7 +283,7 @@ export function MainContent() {
           LAYOUT DESKTOP
           ============================================================ */}
       <div className="hidden lg:block w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
-        <div className="mb-6 mt-0">
+        <div className="mb-12 mt-0">
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
             <span>Nucleobase<span className="text-blue-600">.APP</span></span>
             <Zap size={32} className="text-blue-600 skew-x-[-15deg] opacity-30 ml-4" strokeWidth={2} />
@@ -300,50 +294,80 @@ export function MainContent() {
         </div>
 
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
-          Controle de Fluxo <div className="h-px bg-gray-300 flex-1"></div>
+          Quem somos <div className="h-px bg-gray-300 flex-1"></div>
         </h3>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch mb-12">
           <div className="lg:col-span-6 flex flex-col justify-center">
-            <p className="text-gray-700 text-lg leading-[1.8] mb-0 pr-4">
-              A nucleobase.app é uma plataforma digital, totalmente online, criada para ajudar pessoas na organização
-              de orçamentos de forma <span className="text-gray-900 font-semibold">simples, clara e consciente.</span> Nosso objetivo é oferecer total autonomia ao usuário, de forma que as decisões financeiras deixem de ser um fardo e se tornem o alicerce para a realização de projetos baseados em informações consistentes.
-            </p>
-          </div>
-
-          <div className="lg:col-span-3 flex">
-            <div className="flex-1 bg-white border border-gray-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
-              <div className="bg-blue-50 p-3 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 mb-4">
-                <Newspaper size={24} />
+            <div className="mb-0">
+              <p className="text-base text-gray-600 leading-relaxed pr-6">
+                A <strong>nucleobase.app</strong> é uma plataforma digital, totalmente online, focada em organização financeira simples e consciente. Através do seu{" "}
+                <span className="inline-flex items-center justify-center bg-orange-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
+                  Acesso ao APP
+                </span>{" "}
+                , você centraliza gastos diários ou parcelados com autonomia, reduzindo dependência em planilhas manuais. Na consulta de{" "}
+                <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
+                  Resultados
+                </span>{" "}
+                transformamos dados em informações,{" "}
+                <span className="text-gray-900 underline decoration-2 decoration-orange-500/30 underline-offset-4 font-medium">
+                  oferecendo clareza para que você possa economizar e acelerar seus projetos pessoais e profissionais.
+                </span>
+              </p>
+              
+              <div className="flex items-center gap-3 mt-5 animate-in fade-in duration-1000">
+                <div className="flex -space-x-2 shrink-0">
+                  {[1,2,3].map(i => (
+                    <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center overflow-hidden">
+                      <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="User" />
+                    </div>
+                  ))}
+                </div>
+                <Link href="/cadastro" className="group flex items-center gap-2">
+                  <p className="text-gray-500 text-[12px] font-bold leading-tight group-hover:text-gray-900 transition-colors">
+                    Junte-se ao time da Nucleo e cresça com a gente
+                  </p>
+                  <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-white group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
+                    <ArrowRight size={12} />
+                  </div>
+                </Link>
               </div>
-              <h4 className="font-bold text-gray-900 text-base mb-1">Blog da Nucleo</h4>
-              <p className="text-[11px] text-gray-500 leading-tight mb-4">Conteúdos profundos sobre gestão e mercado.</p>
-              <a href="/blog" className="w-full mt-auto py-2.5 bg-blue-50/50 border border-blue-100 text-blue-600 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center gap-2">
-                Visitar <ArrowRight size={12} />
-              </a>
             </div>
           </div>
 
           <div className="lg:col-span-3 flex">
-            <div className="flex-1 bg-blue-50/50 border border-blue-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
+            <Link href="/acesso-usuario" className="flex-1 bg-white border border-gray-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
+              <div className="bg-orange-50 p-3 rounded-2xl text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all duration-300 mb-4">
+                <LayoutDashboard size={24} />
+              </div>
+              <h4 className="font-bold text-gray-900 text-base mb-1">Acessar APP</h4>
+              <p className="text-[11px] text-gray-500 leading-tight mb-4">Gerencie seus lançamentos e controle seu fluxo.</p>
+              <div className="w-full mt-auto py-2.5 bg-orange-50/50 border border-orange-100 text-orange-600 rounded-xl font-bold text-[10px] uppercase tracking-widest group-hover:bg-orange-600 group-hover:text-white transition-all flex items-center justify-center gap-2">
+                Entrar agora <ArrowRight size={12} />
+              </div>
+            </Link>
+          </div>
+
+          <div className="lg:col-span-3 flex">
+            <Link href="/resultados" className="flex-1 bg-blue-50/50 border border-blue-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
               <div className="bg-white p-3 rounded-2xl text-blue-600 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 mb-4">
-                <Mail size={24} />
+                <BarChart3 size={24} />
               </div>
-              <h4 className="font-bold text-gray-900 text-base mb-1">Newsletter</h4>
-              <p className="text-[11px] text-gray-600 leading-tight mb-4">Insights direto no seu e-mail, toda semana.</p>
-              <button onClick={() => setIsModalOpen(true)} className="w-full mt-auto py-2.5 bg-white border border-blue-200 text-blue-600 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center">
-                Assinar News
-              </button>
-            </div>
+              <h4 className="font-bold text-gray-900 text-base mb-1">Visão Resultados</h4>
+              <p className="text-[11px] text-gray-600 leading-tight mb-4">Analise sua performance financeira estratégica.</p>
+              <div className="w-full mt-auto py-2.5 bg-white border border-blue-200 text-blue-600 rounded-xl font-bold text-[10px] uppercase tracking-widest group-hover:bg-blue-600 group-hover:text-white transition-all flex items-center justify-center gap-2">
+                Ver Painel <ArrowRight size={12} />
+              </div>
+            </Link>
           </div>
         </div>
 
         <div className="w-full mb-12">
-          <p className="text-gray-700 text-lg leading-[1.8]">
-            <span className="text-gray-900 font-semibold">Acreditamos que</span> a verdadeira inteligência financeira nasce da união entre clareza de dados e disciplina, transformando números isolados em um roteiro seguro. <span className="text-gray-900 font-semibold">Desenvolvemos uma tecnologia</span> que não apenas organiza números, mas traduz comportamentos. <span className="text-gray-900 font-semibold">Ao eliminar a complexidade técnica,</span> permitimos que você foque no que importa: a construção de um patrimônio sólido. 
+          <p className="text-gray-600 text-base leading-[1.8]">
+            <span className="text-gray-900 font-semibold">Acreditamos que</span> a verdadeira inteligência financeira nasce da união entre clareza de dados e disciplina, transformando números isolados em um roteiro seguro. <span className="text-gray-900 font-semibold">Desenvolvemos uma tecnologia</span> que não apenas organiza estes números, mas traduz comportamentos. <span className="text-gray-900 font-semibold">Ao eliminar a complexidade de planilhas,</span> permitimos que você foque no que importa: entender e agir. Saiba mais sobre a Nucleo 
             <Link href="/sobre" className="inline-flex items-center ml-2 group">
               <span className="bg-blue-600 text-white px-2 pt-1 pb-0.5 rounded-md text-[10px] font-bold shadow-sm hover:bg-blue-700 transition-colors uppercase tracking-wider">
-                Saiba mais aqui.
+                clicando aqui.
               </span>
             </Link>
           </p>
@@ -364,7 +388,6 @@ export function MainContent() {
           <ShieldCheck size={240} className="absolute -right-10 -bottom-20 text-white opacity-5 rotate-12 group-hover:rotate-0 transition-transform duration-700" />
         </div>
 
-        {/* SEÇÕES ADICIONAIS DESKTOP */}
         <div className="space-y-12">
           <section>
             <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4">
@@ -377,7 +400,7 @@ export function MainContent() {
                 </div>
                 <div className="flex-1">
                   <h4 className="text-2xl font-bold text-gray-900 mb-1 tracking-tight">Segurança e Privacidade</h4>
-                  <p className="text-gray-600 text-[16px] font-medium leading-relaxed mb-4">Custódia integral sob o princípio do Zero-Knowledge.</p>
+                  <p className="text-gray-600 text-base font-medium leading-relaxed mb-4">Custódia integral sob o princípio do Zero-Knowledge.</p>
                   <div className="flex gap-2">
                     <Link href="/seguranca_privacidade" className="group flex-1">
                         <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest flex items-center justify-center text-center gap-2 w-full h-full">
@@ -395,7 +418,7 @@ export function MainContent() {
               <div className="md:col-span-5 flex flex-col justify-center text-right pr-6">
                  <h4 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight leading-tight">Soberania digital reconhecida</h4>
                  <p className="text-gray-500 text-sm font-medium leading-relaxed mb-6">
-                    Sua soberania digital é nossa prioridade. Implementamos padrões de criptografia de ponta para garantir que apenas você acesse seus dados.
+                   Sua soberania digital é nossa prioridade. Implementamos padrões de criptografia de ponta para garantir que apenas você acesse seus dados.
                  </p>
                  <Link href="/depoimentos" className="group w-fit ml-auto">
                     <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest inline-flex items-center gap-2">
@@ -413,7 +436,7 @@ export function MainContent() {
             <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-stretch">
               <div className="md:col-span-7 text-left flex flex-col justify-center">
                 <h4 className="text-3xl font-bold text-gray-900 mb-6 tracking-tight leading-[1.1]">Sua visão 360º diretamente no seu Painel</h4>
-                <p className="text-gray-600 text-[16px] leading-relaxed mb-8">
+                <p className="text-gray-600 text-base leading-relaxed mb-8">
                   Mais do que números, entregamos inteligência financeira. O Dashboard da Nucleobase processa seus dados para oferecer diagnósticos precisos.
                 </p>
                 <Link href="/resultados" className="group w-fit">

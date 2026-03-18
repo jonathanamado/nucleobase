@@ -213,7 +213,7 @@ export default function PaginaDePlanos() {
             <div className="relative z-10 flex-grow">
               <div className="flex flex-col items-center mb-6 md:mb-10 relative">
                 <div className="relative flex w-full items-center justify-center bg-white/10 border border-white/20 text-white text-[10px] font-black px-5 py-2.5 rounded-full uppercase tracking-widest text-center">
-                  <Star className="text-white fill-white absolute left-5 group-hover:scale-110 transition-transform hidden md:block" size={20} />
+                  <Star className="text-white fill-white mr-3 group-hover:scale-110 transition-transform hidden md:block" size={20} />
                   Conheça e valide. Sem restrições.
                 </div>
               </div>
@@ -260,7 +260,7 @@ export default function PaginaDePlanos() {
             <div className="mb-6 md:mb-10">
               <div className="relative flex w-full items-center justify-center bg-blue-50 border border-blue-100 text-blue-600 text-[10px] font-black px-5 py-2.5 rounded-full uppercase tracking-widest mb-6">
                 Econômico. Funcional.
-                <ShieldCheck className="text-blue-600 absolute right-5 hidden md:block" size={20} />
+                <ShieldCheck className="text-blue-600 ml-3 hidden md:block" size={20} />
               </div>
               <h3 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">Essencial</h3>
               <div className="mt-4 flex flex-col">

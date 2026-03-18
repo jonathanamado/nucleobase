@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Share2, User, Home, X, Rocket, LogOut, Dna, Settings, Key, UserPlus, PlayCircle, LogIn, KeyRound, Eye, EyeOff } from "lucide-react";
+import { Search, Share2, User, Home, X, Rocket, Power, Dna, Settings, Key, UserPlus, PlayCircle, LogIn, KeyRound, Eye, EyeOff } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -128,7 +128,7 @@ export function MobileTabBar() {
       onClick={onClick}
       className="w-full flex items-center gap-4 px-6 py-4 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-50 last:border-0"
     >
-      <Icon size={20} className={color} />
+      <Icon size={20} className={color} strokeWidth={2.5} />
       <span className={`text-sm font-bold ${color}`}>{label}</span>
     </button>
   );
@@ -190,7 +190,7 @@ export function MobileTabBar() {
                 <MenuItem icon={User} label="Minha conta" onClick={() => { router.push("/minha-conta"); setIsMenuOpen(false); }} />
                 <MenuItem icon={Settings} label="Configurações" onClick={() => { router.push("/configuracoes"); setIsMenuOpen(false); }} />
                 <MenuItem icon={Key} label="Alterar senha" onClick={() => { setIsMenuOpen(false); setShowPassModal(true); }} />
-                <MenuItem icon={LogOut} label="Sair da conta" color="text-red-500" onClick={handleLogout} />
+                <MenuItem icon={Power} label="Sair da conta" color="text-red-500" onClick={handleLogout} />
               </div>
             ) : (
               <div className="flex flex-col">

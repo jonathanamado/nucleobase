@@ -442,18 +442,34 @@ export default function LancamentosPage() {
                     )}
                     
                     {!isReceita && formData.tipo_origem === "CARTAO" && (
-                     <div className="p-4 bg-orange-500/10 rounded-xl border border-orange-500/20">
-                       <div className="flex justify-between items-center mb-3">
-                         <span className="text-[10px] text-orange-400 font-bold uppercase">Parcelamento ativo</span>
-                         <input type="checkbox" checked={formData.parcelado} onChange={(e) => setFormData({...formData, parcelado: e.target.checked})} />
-                       </div>
-                       {formData.parcelado && (
-                         <div className="flex gap-2">
-                           <input type="number" placeholder="Qtd" className="w-1/2 bg-white/5 text-white p-2 rounded text-xs" onChange={(e) => setFormData({...formData, parcelasTotais: parseInt(e.target.value)})} />
-                           <input type="month" value={formData.fatura_mes} className="w-1/2 bg-white/5 text-white p-2 rounded text-xs" onChange={(e) => setFormData({...formData, fatura_mes: e.target.value})} />
-                         </div>
-                       )}
-                     </div>
+                      <div className="p-4 bg-orange-500/10 rounded-xl border border-orange-500/20">
+                        <div className="flex justify-between items-center mb-3">
+                          <span className="text-[10px] text-orange-400 font-bold uppercase">Pagamento parcelado?</span>
+                          <input type="checkbox" checked={formData.parcelado} onChange={(e) => setFormData({...formData, parcelado: e.target.checked})} />
+                        </div>
+                        {formData.parcelado && (
+                          <div className="flex gap-2">
+                            <div className="w-1/2 space-y-1">
+                              <label className="text-[9px] text-orange-400/70 uppercase font-bold ml-1">Qtd Parcelas</label>
+                              <input 
+                                type="number" 
+                                placeholder="Ex: 12" 
+                                className="w-full bg-white/5 text-white p-2 rounded text-xs outline-none focus:bg-white/10 transition-colors" 
+                                onChange={(e) => setFormData({...formData, parcelasTotais: parseInt(e.target.value)})} 
+                              />
+                            </div>
+                            <div className="w-1/2 space-y-1">
+                              <label className="text-[9px] text-orange-400/70 uppercase font-bold ml-1">Início da Fatura</label>
+                              <input 
+                                type="month" 
+                                value={formData.fatura_mes} 
+                                className="w-full bg-white/5 text-white p-2 rounded text-xs outline-none focus:bg-white/10 transition-colors" 
+                                onChange={(e) => setFormData({...formData, fatura_mes: e.target.value})} 
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     )}
                 </div>
               </div>
