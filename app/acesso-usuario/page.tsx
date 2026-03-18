@@ -107,7 +107,12 @@ export default function AcessoUsuarioPage() {
         password 
       });
 
-      if (authError) alert("Erro ao acessar: Senha incorreta ou problema na conta.");
+      if (authError) {
+        alert("Erro ao acessar: Senha incorreta ou problema na conta.");
+      } else {
+        // Ajuste solicitado: Redirecionamento após login
+        window.location.href = "/minha-conta";
+      }
     } catch (err) {
       alert("Ocorreu um erro inesperado.");
     } finally {
