@@ -8,7 +8,7 @@ import {
   Baby, CalendarDays, Activity, MousePointerClick, 
   KeyRound, Instagram, X, Eye, EyeOff,
   Target, Share2, Wallet, Zap, Rocket, LayoutDashboard, Info,
-  ShieldCheck, PieChart, Award
+  ShieldCheck, PieChart, Award, ChartPie
 } from "lucide-react";
 
 const supabase = createClient(
@@ -91,7 +91,6 @@ export default function MinhaContaPage() {
     setIsDirty(true);
   };
 
-  // CORREÇÃO DO ERRO: useEffect sempre deve ter o mesmo número de dependências em cada render
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (activeInsight && insightRef.current && !insightRef.current.contains(event.target as Node)) {
@@ -122,8 +121,18 @@ export default function MinhaContaPage() {
     dataLimiteFixos: "",
     percGastosVariaveis: 0,
     numCracha: "---",
-    tempoCasa: ""
+    tempoCasa: "",
+    diasCadastro: ""
   });
+
+  // Função para calcular dias de cadastro
+  const calcularDiasCadastro = (dataCriacao: string) => {
+    const inicio = new Date(dataCriacao);
+    const hoje = new Date();
+    const diferencaTempo = Math.abs(hoje.getTime() - inicio.getTime());
+    const diferencaDias = Math.ceil(diferencaTempo / (1000 * 60 * 60 * 24));
+    return `${diferencaDias} ${diferencaDias === 1 ? '(d)' : '(d)'}`;
+  };
 
   async function carregarEstatisticas(userId: string) {
     const agora = new Date();
@@ -136,6 +145,8 @@ export default function MinhaContaPage() {
       .from("lancamentos_financeiros")
       .select("*", { count: "exact" })
       .eq("user_id", userId);
+
+    const diasDeUso = userData?.criado_em ? calcularDiasCadastro(userData.criado_em) : "---";
 
     if (allRecords && allRecords.length > 0) {
       const mesesMap: Record<string, string> = {
@@ -187,11 +198,6 @@ export default function MinhaContaPage() {
       const totalDespesasMes = despesasMes.reduce((acc, curr) => acc + Math.abs(Number(curr.valor)), 0);
       const mediaDiaria = totalDespesasMes / agora.getDate();
 
-      let crachaFormatado = userData?.num_cracha || "---";
-      if (crachaFormatado.startsWith("NUC")) {
-        crachaFormatado = "Nuc" + crachaFormatado.substring(3);
-      }
-
       setStats({
         ...stats,
         totalLancamentos: count || 0,
@@ -203,9 +209,13 @@ export default function MinhaContaPage() {
         percCustosFixos: percFixos,
         dataLimiteFixos: limiteFixos,
         percGastosVariaveis: percVariaveis,
-        numCracha: crachaFormatado,
-        tempoCasa: userData?.criado_em ? new Date(userData.criado_em).toLocaleDateString('pt-BR') : ""
+        numCracha: userData?.num_cracha || "---",
+        tempoCasa: userData?.criado_em ? new Date(userData.criado_em).toLocaleDateString('pt-BR') : "",
+        diasCadastro: diasDeUso
       });
+    } else {
+        // Caso não haja registros ainda carregar o tempo de casa
+        setStats(prev => ({ ...prev, diasCadastro: diasDeUso, tempoCasa: userData?.criado_em ? new Date(userData.criado_em).toLocaleDateString('pt-BR') : "" }));
     }
   }
 
@@ -304,7 +314,7 @@ export default function MinhaContaPage() {
             <UserCircle size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
           </h1>
           <p className="text-gray-500 text-xs md:text-sm font-medium">
-             Olá<span className="whitespace-nowrap font-bold text-gray-900"> {getPrimeiroNome()},</span> gerencie seus dados e acompanhe seu comportamento.
+              Olá<span className="whitespace-nowrap font-bold text-gray-900"> {getPrimeiroNome()},</span> gerencie seus dados e acompanhe seu comportamento.
           </p>
         </div>
       </div>
@@ -436,7 +446,9 @@ export default function MinhaContaPage() {
                     )}
                   </div>
                 ) : (
-                  <p className="text-[10px] text-gray-400 font-bold uppercase text-center italic">Sem registros</p>
+                  <p className="text-[10px] text-gray-400 font-bold uppercase text-center leading-relaxed">
+                    Sem registros. Realize seus primeiros lançamentos <Link href="/lancamentos" className="text-blue-600 underline hover:text-blue-800 transition-colors">clicando aqui</Link>.
+                  </p>
                 )}
               </div>
             </div>
@@ -488,7 +500,7 @@ export default function MinhaContaPage() {
                 onClick={() => setActiveInsight(activeInsight === 'previsibilidade' ? null : 'previsibilidade')}
               >
                 <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shrink-0 shadow-sm cursor-pointer">
-                  <ShieldCheck size={22} />
+                  <ChartPie size={22} />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-1.5">
@@ -515,7 +527,7 @@ export default function MinhaContaPage() {
                   </div>
                   <p className="text-lg font-black text-gray-900">{stats.percGastosVariaveis}%</p>
                 </div>
-                <InsightPopover id="eficiencia" title="Variáveis" colorClass="text-rose-400" content={`Atualmente, seus Gastos Variáveis representam ${stats.percGastosVariaveis}% das suas despesas totais. Este é o grupo onde você tem maior poder de decisão imediata. Pequenos ajustes aqui são o caminho mais rápido para aumentar sua capacidade de investimento.`} align="right" />
+                <InsightPopover id="eficiencia" title="Variáveis" colorClass="text-rose-400" content={`Atualmente, seus Gastos Variáveis representam ${stats.percGastosVariaveis}% das suas despesas totais. Este é o grupo onde você tem maior poder de decision imediata. Pequenos ajustes aqui são o caminho mais rápido para aumentar sua capacidade de investimento.`} align="right" />
               </div>
 
               <div className="flex items-center gap-4 relative" 
@@ -546,12 +558,12 @@ export default function MinhaContaPage() {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-1.5">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">ID Nuc</p>
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Tempo</p>
                     <Info size={10} className="text-gray-300" />
                   </div>
-                  <p className="text-sm font-black text-gray-900">{stats.numCracha}</p>
+                  <p className="text-sm font-black text-gray-900">{stats.diasCadastro}</p>
                 </div>
-                <InsightPopover id="membro" title="ID Crachá" colorClass="text-amber-500" content={`Você é o membro ${stats.numCracha} da Nucleo! Sua jornada conosco começou em ${stats.tempoCasa}. Quanto mais tempo você utiliza a plataforma, mais precisos se tornam nossos algoritmos de sugestão. Obrigado por contar conosco para sua governança.`} align="right" />
+                <InsightPopover id="membro" title="Tempo de Uso" colorClass="text-amber-500" content={`Você está conosco há ${stats.diasCadastro}! Quanto maior o seu tempo de uso na plataforma, mais refinados se tornam nossos algoritmos de inteligência de dados, proporcionando insights cada vez mais precisos para sua governança financeira pessoal.`} align="right" />
               </div>
             </div>
 
