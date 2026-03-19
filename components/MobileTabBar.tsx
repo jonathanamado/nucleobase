@@ -17,7 +17,6 @@ export function MobileTabBar() {
     avatar: null,
   });
   
-  // Estados para o Modal de Senha
   const [showPassModal, setShowPassModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -27,7 +26,6 @@ export function MobileTabBar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Lógica para fechar o menu ao clicar fora
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -105,12 +103,17 @@ export function MobileTabBar() {
     setPassLoading(false);
   };
 
+  // Garante que ao abrir o perfil, outros estados de "ação" sejam limpos
   const handleProfileClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    setIsSearchOpen(false);
+    setIsSharing(false);
     setIsMenuOpen(!isMenuOpen);
   };
 
   const handleShare = async () => {
+    setIsMenuOpen(false);
+    setIsSearchOpen(false);
     setIsSharing(true);
     if (navigator.share) {
       try {
@@ -121,6 +124,7 @@ export function MobileTabBar() {
         });
       } catch (err) {
         console.log("Erro ao compartilhar", err);
+        setIsSharing(false); // Reseta se cancelar
       }
     } else {
       navigator.clipboard.writeText(window.location.href);
@@ -128,7 +132,13 @@ export function MobileTabBar() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearchClick = () => {
+    setIsMenuOpen(false);
+    setIsSharing(false);
+    setIsSearchOpen(true);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       setIsSearchOpen(false);
@@ -147,7 +157,8 @@ export function MobileTabBar() {
     </button>
   );
 
-  const isProfileActive = isMenuOpen || showPassModal || pathname === "/minha-conta" || pathname === "/configuracoes" || pathname === "/cadastro" || pathname === "/acesso-usuario" || pathname === "/demonstracao" || pathname === "/sobre";
+  // Define se o perfil deve ser o único destaque
+  const isProfileActive = isMenuOpen || showPassModal || (!isSharing && !isSearchOpen && (pathname === "/minha-conta" || pathname === "/configuracoes" || pathname === "/cadastro" || pathname === "/acesso-usuario" || pathname === "/demonstracao" || pathname === "/sobre"));
 
   return (
     <div ref={menuRef}>
@@ -181,7 +192,7 @@ export function MobileTabBar() {
         </div>
       )}
 
-      {/* Menu Adicional (Extensão sem vãos) */}
+      {/* Menu Adicional */}
       {isMenuOpen && (
         <div className="md:hidden fixed bottom-[60px] left-0 right-0 z-[95] animate-in slide-in-from-bottom-2 fade-in duration-300">
           <div className="bg-white border-t border-gray-100 shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">
@@ -206,47 +217,23 @@ export function MobileTabBar() {
         </div>
       )}
 
-      {/* Overlay de Busca (Meia Tela) */}
+      {/* Overlay de Busca */}
       {isSearchOpen && (
         <div className="fixed inset-0 z-[110] animate-in fade-in duration-300">
-          {/* Fundo escurecido que fecha ao clicar */}
-          <div 
-            className="absolute inset-0 bg-black/20 backdrop-blur-sm" 
-            onClick={() => setIsSearchOpen(false)}
-          />
-          
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setIsSearchOpen(false)} />
           <div className="absolute bottom-0 left-0 right-0 bg-white h-[50vh] rounded-t-[3rem] shadow-2xl flex flex-col p-8 animate-in slide-in-from-bottom duration-500">
             <div className="flex justify-between items-center mb-6">
-              <div className="bg-blue-600 text-white px-3 py-1 rounded-md text-[10px] font-black tracking-widest uppercase shadow-sm">
-                Busca Rápida
-              </div>
-              <button onClick={() => setIsSearchOpen(false)} className="p-2 bg-gray-50 rounded-full">
-                <X size={20} className="text-gray-400" />
-              </button>
+              <div className="bg-blue-600 text-white px-3 py-1 rounded-md text-[10px] font-black tracking-widest uppercase shadow-sm">Busca Rápida</div>
+              <button onClick={() => setIsSearchOpen(false)} className="p-2 bg-gray-50 rounded-full"><X size={20} className="text-gray-400" /></button>
             </div>
-
             <div className="flex flex-col flex-1">
-              <h2 className="text-xl font-bold text-gray-900 mb-4 tracking-tight flex items-center gap-2">
-                O que você procura? <Dna size={18} className="text-blue-600 opacity-30" />
-              </h2>
-              <form onSubmit={handleSearch} className="relative">
-                <input 
-                  autoFocus 
-                  type="text" 
-                  placeholder="Ex: Cadastro, Lançamentos..." 
-                  value={searchQuery} 
-                  onChange={(e) => setSearchQuery(e.target.value)} 
-                  className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-gray-900 focus:ring-2 focus:ring-blue-600 outline-none transition-all shadow-inner" 
-                />
-                <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 bg-blue-600 text-white p-2 rounded-xl shadow-md">
-                  <Search size={18} />
-                </button>
+              <h2 className="text-xl font-bold text-gray-900 mb-4 tracking-tight flex items-center gap-2">O que você procura? <Dna size={18} className="text-blue-600 opacity-30" /></h2>
+              <form onSubmit={handleSearchSubmit} className="relative">
+                <input autoFocus type="text" placeholder="Ex: Cadastro, Lançamentos..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-gray-900 focus:ring-2 focus:ring-blue-600 outline-none transition-all shadow-inner" />
+                <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 bg-blue-600 text-white p-2 rounded-xl shadow-md"><Search size={18} /></button>
               </form>
             </div>
-            
-            <div className="mt-auto pb-4 flex flex-col items-center">
-                <span className="text-gray-300 font-bold tracking-tighter text-sm italic">nucleobase.app</span>
-            </div>
+            <div className="mt-auto pb-4 flex flex-col items-center"><span className="text-gray-300 font-bold tracking-tighter text-sm italic">nucleobase.app</span></div>
           </div>
         </div>
       )}
@@ -254,27 +241,32 @@ export function MobileTabBar() {
       {/* Tab Bar Principal */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 h-[60px] z-[100] flex items-center justify-between shadow-[0_-1px_10px_rgba(0,0,0,0.02)] pb-safe-bottom">
         
-        <button onClick={() => { router.push("/"); setIsMenuOpen(false); }} className={`p-2 transition-colors ${!isSharing && pathname === "/" ? "text-blue-600" : "text-gray-400"}`}>
-          <Home size={22} strokeWidth={!isSharing && pathname === "/" ? 2.5 : 2} />
+        {/* Home: Destaque apenas se NÃO houver Menu, Busca ou Share ativos e a rota for '/' */}
+        <button onClick={() => { router.push("/"); setIsMenuOpen(false); setIsSearchOpen(false); setIsSharing(false); }} className={`p-2 transition-colors ${!isSharing && !isSearchOpen && !isMenuOpen && pathname === "/" ? "text-blue-600" : "text-gray-400"}`}>
+          <Home size={22} strokeWidth={!isSharing && !isSearchOpen && !isMenuOpen && pathname === "/" ? 2.5 : 2} />
         </button>
 
-        <button onClick={() => { router.push("/lancamentos"); setIsMenuOpen(false); }} className={`p-2 transition-colors ${!isSharing && pathname === "/lancamentos" ? "text-orange-500" : "text-gray-400"}`}>
-          <Rocket size={22} strokeWidth={!isSharing && pathname === "/lancamentos" ? 2.5 : 2} />
+        {/* Lançamentos: Destaque apenas se NÃO houver Menu, Busca ou Share ativos e a rota for '/lancamentos' */}
+        <button onClick={() => { router.push("/lancamentos"); setIsMenuOpen(false); setIsSearchOpen(false); setIsSharing(false); }} className={`p-2 transition-colors ${!isSharing && !isSearchOpen && !isMenuOpen && pathname === "/lancamentos" ? "text-orange-500" : "text-gray-400"}`}>
+          <Rocket size={22} strokeWidth={!isSharing && !isSearchOpen && !isMenuOpen && pathname === "/lancamentos" ? 2.5 : 2} />
         </button>
 
-        <button onClick={() => { setIsSearchOpen(true); setIsMenuOpen(false); }} className={`p-2 transition-colors ${!isSharing && (isSearchOpen || pathname === "/busca") ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}>
-          <Search size={22} strokeWidth={!isSharing && (isSearchOpen || pathname === "/busca") ? 2.5 : 2} />
+        {/* Busca: Destaque apenas se isSearchOpen for TRUE e o Menu estiver FECHADO */}
+        <button onClick={handleSearchClick} className={`p-2 transition-colors ${isSearchOpen && !isMenuOpen ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}>
+          <Search size={22} strokeWidth={isSearchOpen && !isMenuOpen ? 2.5 : 2} />
         </button>
 
-        <button onClick={() => { handleShare(); setIsMenuOpen(false); }} className={`p-2 transition-colors ${isSharing ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}>
-          <Share2 size={22} strokeWidth={isSharing ? 2.5 : 2} />
+        {/* Share: Destaque apenas se isSharing for TRUE e o Menu estiver FECHADO */}
+        <button onClick={handleShare} className={`p-2 transition-colors ${isSharing && !isMenuOpen ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}>
+          <Share2 size={22} strokeWidth={isSharing && !isMenuOpen ? 2.5 : 2} />
         </button>
 
+        {/* Perfil: Sempre destacado se isProfileActive for TRUE (independente de outros estados, pois ele sobrepõe) */}
         <button onClick={handleProfileClick} className={`w-9 h-9 rounded-full border transition-all overflow-hidden flex items-center justify-center relative ${isProfileActive ? "border-blue-600 ring-2 ring-blue-600/20 shadow-[0_0_10px_rgba(37,99,235,0.1)]" : "border-gray-100 bg-gray-50"}`}>
           {isLoggedIn && userProfile.avatar ? (
             <div className="relative w-full h-full">
                 <img src={userProfile.avatar} alt="Perfil" className="w-full h-full object-cover" />
-                {(isMenuOpen || pathname === "/minha-conta") && (
+                {isProfileActive && (isMenuOpen || pathname === "/minha-conta") && (
                   <div className="absolute inset-0 bg-blue-600/10 flex items-center justify-center">
                      {isMenuOpen ? <X size={14} className="text-white drop-shadow-md" /> : null}
                   </div>
@@ -286,7 +278,7 @@ export function MobileTabBar() {
             </span>
           ) : (
             <>
-              {pathname === "/demonstracao" ? (
+              {pathname === "/demonstracao" && isProfileActive ? (
                 <PlayCircle size={20} className="text-blue-600" />
               ) : (
                 <User size={20} className={isProfileActive ? "text-blue-600" : "text-gray-400"} />
