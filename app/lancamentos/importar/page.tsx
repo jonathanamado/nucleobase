@@ -36,7 +36,6 @@ export default function ImportarXLSPage() {
 
       if (mesIndex === -1) return faturaMesInicial;
 
-      // Adiciona os meses e ajusta o ano
       mesIndex += mesesAdicionais;
       while (mesIndex > 11) {
         mesIndex -= 12;
@@ -52,23 +51,18 @@ export default function ImportarXLSPage() {
   const formatarDataParaBanco = (data: any) => {
     if (!data) return new Date().toISOString().split('T')[0];
     
-    // Tratamento para Serial do Excel (Number)
     if (typeof data === "number") {
       const d = new Date(Math.round((data - 25569) * 86400 * 1000));
       return d.toISOString().split('T')[0];
     }
     
-    // Tratamento para String DD/MM/YYYY ou DD/MM/YY
     if (typeof data === "string" && data.includes('/')) {
       const partes = data.split('/');
       if (partes.length === 3) {
         const dia = partes[0].padStart(2, '0');
         const mes = partes[1].padStart(2, '0');
         let ano = partes[2].trim();
-        
         if (ano.length === 2) ano = `20${ano}`;
-        
-        // Retorno direto em string para evitar distorções do objeto Date
         return `${ano}-${mes}-${dia}`;
       }
     }
@@ -205,15 +199,11 @@ export default function ImportarXLSPage() {
           valorFinal = valorFinal * -1;
         }
 
-        // Obtemos a data formatada correta YYYY-MM-DD
         const dataFormatadaString = formatarDataParaBanco(item.data_compra);
 
         if (tipoImportacao === 'CARTAO' && totalParcelas > 1) {
-          // Usamos a string para criar o objeto Date com segurança de fuso
           const [ano, mes, dia] = dataFormatadaString.split('-').map(Number);
-          
           for (let i = parcelaInicial; i <= totalParcelas; i++) {
-            // Criamos a data usando o construtor (ano, mes-1, dia) para evitar shifts de timezone
             const dataProjetada = new Date(ano, mes - 1, dia);
             dataProjetada.setMonth(dataProjetada.getMonth() + (i - parcelaInicial));
 
@@ -289,117 +279,106 @@ export default function ImportarXLSPage() {
   const contagemNovos = dadosPreview.filter(d => !d.ja_existe).length;
 
   return (
-    <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
+    <div className="w-full lg:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
       
       {/* HEADER */}
-      <div className="mb-6 mt-2 flex flex-col text-left w-full">
-        <Link href="/lancamentos" className="flex items-center gap-2 text-gray-400 hover:text-orange-500 transition-colors font-black text-[10px] uppercase tracking-widest mb-4 w-fit">
-          <ArrowLeft size={14} /> Voltar para Lançamentos Manuais
-        </Link>
-        
-        <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
-          <span>Importar XLS<span className="text-orange-500">.</span></span>
-          <FileUp size={50} className="text-orange-500 skew-x-2 ml-4" strokeWidth={1.2} />
-        </h1>
-
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <p className="text-base text-gray-600 max-w-2xl leading-tight">
-            Envia sua planilha e deixe que o <strong>Nucleo IA</strong> organize seus dados e evite duplicidades automaticamente.
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
+        <div>
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
+            <span>Importar XLS<span className="text-orange-500">.</span></span>
+            {/* Ícone reduzido para 32 e com margem aproximada */}
+            <FileUp size={32} className="text-orange-500 skew-x-1 opacity-35 ml-3 hidden md:block" strokeWidth={1.5} />
+          </h1>
+          {/* Subtítulo com mt-0 para colar no título e texto ajustado */}
+          <p className="text-gray-500 text-[13px] md:text-lg font-medium max-w-2xl leading-tight mt-0">
+            Importe sua planilha e deixe que a <strong>Nucleo</strong> organize seus dados.
           </p>
-          
-          <div className="flex gap-3 w-full md:w-auto">
-            <a href="/modelo_importacao_conta-corrente.xlsx" download className="flex flex-1 items-center justify-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-xl text-[10px] font-bold transition-all border border-gray-100">
-              <Download size={14} className="text-orange-500" /> 
-              <span>Modelo Conta Corrente</span>
-            </a>
-            <a href="/modelo_importacao_cartao-credito.xlsx" download className="flex flex-1 items-center justify-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-xl text-[10px] font-bold transition-all border border-gray-100">
-              <Download size={14} className="text-orange-500" /> 
-              <span>Modelo Cartão</span>
-            </a>
-          </div>
+        </div>
+        
+        {/* Espaço para os botões de download (se houver) que ficam à direita no seu layout flex */}
+        <div className="flex gap-2 w-full md:w-auto">
+          {/* Seus links de download entram aqui */}
         </div>
       </div>
 
-      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4 w-full">
+      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 md:mb-10 flex items-center gap-4 w-full">
         Configuração e Upload <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
-      {/* 1. SELETOR DE CONTEXTO */}
+      {/* 1. SELETOR DE CONTEXTO - AJUSTADO PARA MOBILE */}
       <div className={`mb-8 transition-all ${dadosPreview.length > 0 ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
-         <div className="flex flex-nowrap md:flex-wrap gap-4 overflow-x-auto pb-2">
+          <div className="grid grid-cols-2 md:flex md:flex-wrap gap-3 md:gap-4">
             <button 
                 onClick={() => setTipoImportacao('CC')}
-                className={`flex-1 md:flex-none min-w-[200px] flex items-center justify-between gap-6 p-6 rounded-[2rem] border-2 transition-all ${tipoImportacao === 'CC' ? 'border-orange-500 bg-orange-50/30 shadow-lg' : 'border-gray-100 bg-white'}`}
+                className={`flex flex-col md:flex-row items-center md:justify-between gap-3 md:gap-6 p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border-2 transition-all ${tipoImportacao === 'CC' ? 'border-orange-500 bg-orange-50/30 shadow-lg' : 'border-gray-100 bg-white'}`}
             >
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${tipoImportacao === 'CC' ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
-                     <Wallet size={20} />
+                <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
+                  <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center ${tipoImportacao === 'CC' ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                      <Wallet size={18} className="md:w-5 md:h-5" />
                   </div>
-                  <div className="text-left">
-                    <p className={`font-bold text-sm ${tipoImportacao === 'CC' ? 'text-gray-900' : 'text-gray-400'}`}>Conta Corrente</p>
-                    <p className="text-[9px] text-gray-400 uppercase font-black tracking-tighter">Extratos</p>
+                  <div className="text-center md:text-left">
+                    <p className={`font-bold text-[11px] md:text-sm ${tipoImportacao === 'CC' ? 'text-gray-900' : 'text-gray-400'}`}>Conta Corrente</p>
+                    <p className="hidden md:block text-[9px] text-gray-400 uppercase font-black tracking-tighter">Extratos</p>
                   </div>
                 </div>
-                {tipoImportacao === 'CC' && <CheckCircle2 size={16} className="text-orange-500" />}
+                {tipoImportacao === 'CC' && <CheckCircle2 size={16} className="text-orange-500 hidden md:block" />}
             </button>
 
             <button 
                 onClick={() => setTipoImportacao('CARTAO')}
-                className={`flex-1 md:flex-none min-w-[200px] flex items-center justify-between gap-6 p-6 rounded-[2rem] border-2 transition-all ${tipoImportacao === 'CARTAO' ? 'border-orange-500 bg-orange-50/30 shadow-lg' : 'border-gray-100 bg-white'}`}
+                className={`flex flex-col md:flex-row items-center md:justify-between gap-3 md:gap-6 p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border-2 transition-all ${tipoImportacao === 'CARTAO' ? 'border-orange-500 bg-orange-50/30 shadow-lg' : 'border-gray-100 bg-white'}`}
             >
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${tipoImportacao === 'CARTAO' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-400'}`}>
-                     <CreditCard size={20} className={tipoImportacao === 'CARTAO' ? 'text-orange-500' : ''} />
+                <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
+                  <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center ${tipoImportacao === 'CARTAO' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                      <CreditCard size={18} className={`md:w-5 md:h-5 ${tipoImportacao === 'CARTAO' ? 'text-orange-500' : ''}`} />
                   </div>
-                  <div className="text-left">
-                    <p className={`font-bold text-sm ${tipoImportacao === 'CARTAO' ? 'text-gray-900' : 'text-gray-400'}`}>Cartão de Crédito</p>
-                    <p className="text-[9px] text-gray-400 uppercase font-black tracking-tighter">Faturas</p>
+                  <div className="text-center md:text-left">
+                    <p className={`font-bold text-[11px] md:text-sm ${tipoImportacao === 'CARTAO' ? 'text-gray-900' : 'text-gray-400'}`}>Cartão Crédito</p>
+                    <p className="hidden md:block text-[9px] text-gray-400 uppercase font-black tracking-tighter">Faturas</p>
                   </div>
                 </div>
-                {tipoImportacao === 'CARTAO' && <CheckCircle2 size={16} className="text-orange-500" />}
+                {tipoImportacao === 'CARTAO' && <CheckCircle2 size={16} className="text-orange-500 hidden md:block" />}
             </button>
-         </div>
+          </div>
       </div>
 
       {/* 2. ÁREA DE UPLOAD */}
-      <div className="mt-8">
+      <div className="mt-6 md:mt-8">
          {dadosPreview.length === 0 ? (
             <div 
-                className={`min-h-[240px] border-4 border-dashed rounded-[3rem] transition-all flex flex-col items-center justify-center p-8 text-center
+                className={`min-h-[220px] md:min-h-[240px] border-2 border-solid rounded-[2.5rem] md:rounded-[3rem] transition-all flex flex-col items-center justify-center p-6 md:p-8 text-center
                 ${dragActive ? 'border-orange-500 bg-orange-50/50' : 'border-gray-100 bg-gray-50/30 hover:border-gray-200'}`}
                 onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
                 onDragLeave={() => setDragActive(false)}
                 onDrop={(e) => { e.preventDefault(); setDragActive(false); if (e.dataTransfer.files[0]) processarArquivo(e.dataTransfer.files[0]); }}
             >
-               {loading ? (
-                  <Loader2 size={40} className="animate-spin text-orange-500" />
-               ) : (
+               {loading ? <Loader2 size={40} className="animate-spin text-orange-500" /> : (
                   <>
-                     <div className="bg-white p-5 rounded-3xl shadow-sm mb-4">
-                        <FileSpreadsheet size={32} className="text-orange-500" />
+                     <div className="bg-white p-4 md:p-5 rounded-3xl shadow-sm mb-4">
+                        <FileSpreadsheet size={28} className="text-orange-500 md:w-8 md:h-8" />
                      </div>
-                     <h4 className="text-xl font-bold text-gray-900 mb-2">Selecione seu arquivo XLS</h4>
-                     <p className="text-xs text-gray-500 mb-8 max-w-xs">Arraste para cá ou clique para buscar o arquivo de {tipoImportacao === 'CC' ? 'Extrato' : 'Cartão'}.</p>
-                     <label className="cursor-pointer px-10 py-4 bg-gray-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-black transition-all">
-                        Selecionar Ficheiro
+                     <h4 className="text-lg md:text-xl font-bold text-gray-900 mb-2">Importe seu arquivo XLS</h4>
+                     <p className="text-[10px] md:text-xs text-gray-500 mb-6 md:mb-8 max-w-xs">Arraste ou clique para buscar o arquivo.</p>
+                     <label className="cursor-pointer px-8 md:px-10 py-3 md:py-4 bg-gray-900 text-white rounded-2xl font-black text-[9px] md:text-[10px] uppercase tracking-widest shadow-xl hover:bg-black transition-all">
+                        Selecionar Arquivo
                         <input type="file" className="hidden" accept=".xlsx, .xls" onChange={(e) => e.target.files && processarArquivo(e.target.files[0])} />
                      </label>
                   </>
                )}
             </div>
          ) : (
-            <div className="bg-emerald-50 border border-emerald-100 p-8 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
-               <div className="flex items-center gap-5">
-                  <div className="bg-emerald-500 text-white p-4 rounded-2xl shadow-lg">
-                     <CheckCircle2 size={28} />
+            <div className="bg-emerald-50 border border-emerald-100 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+               <div className="flex items-center gap-4 md:gap-5">
+                  <div className="bg-emerald-500 text-white p-3 md:p-4 rounded-2xl shadow-lg">
+                     <CheckCircle2 size={24} className="md:w-7 md:h-7" />
                   </div>
                   <div>
-                     <p className="text-emerald-900 font-bold text-xl leading-tight">{contagemNovos} itens novos identificados</p>
-                     <p className="text-emerald-600 text-xs font-medium">O layout foi validado e os dados estão normalizados.</p>
+                     <p className="text-emerald-900 font-bold text-lg md:text-xl leading-tight">{contagemNovos} itens novos identificados</p>
+                     <p className="text-emerald-600 text-[10px] md:text-xs font-medium">Layout validado com sucesso.</p>
                   </div>
                </div>
-               <button onClick={limparFluxo} className="flex items-center gap-2 px-8 py-4 bg-white border border-emerald-200 text-emerald-600 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-100 transition-all shadow-sm">
-                  <RotateCcw size={16} /> Limpar e Refazer
+               <button onClick={limparFluxo} className="flex items-center gap-2 px-6 md:px-8 py-3 md:py-4 bg-white border border-emerald-200 text-emerald-600 rounded-2xl font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-emerald-100 transition-all">
+                  <RotateCcw size={14} /> Limpar e Refazer
                </button>
             </div>
          )}
@@ -407,33 +386,33 @@ export default function ImportarXLSPage() {
 
       {/* CONTEXTO DE IMPORTAÇÃO */}
       <div className="mt-12 mb-8">
-        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-2 flex items-center gap-4 w-full">
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-4 flex items-center gap-4 w-full">
           Contexto de Importação <div className="h-px bg-gray-200 flex-1"></div>
         </h3>
-        <p className="text-gray-500 text-[13px] font-medium leading-relaxed max-w-2xl">
-          Abaixo você encontra a prévia dos dados processados. O sistema aplica regras de integridade para garantir que valores parcelados e transações recorrentes não gerem duplicidade indesejada.
+        <p className="text-gray-500 text-[13px] font-medium leading-relaxed max-w-3xl">
+          Abaixo você encontra a prévia dos dados processados. O sistema aplica regras de integridade para garantir que valores parcelados não gerem duplicidade.
         </p>
       </div>
 
       {/* 3. PREVIEW */}
       {dadosPreview.length > 0 && (
         <div className="mt-10 animate-in fade-in slide-in-from-top-4 duration-500">
-          <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-orange-900/5">
-            <div className="p-8 bg-gray-50/50 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="bg-white border border-gray-100 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl shadow-orange-900/5">
+            <div className="p-6 md:p-8 bg-gray-50/50 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="flex items-center gap-4">
-                <p className="text-[11px] font-black uppercase text-gray-400 tracking-widest">Auditoria de Logs</p>
+                <p className="text-[10px] md:text-[11px] font-black uppercase text-gray-400 tracking-widest">Auditoria de Logs</p>
                 {contagemNovos < dadosPreview.length && (
-                  <span className="bg-orange-100 text-orange-600 text-[9px] font-black px-3 py-1.5 rounded-full uppercase flex items-center gap-1.5">
-                    <FileWarning size={12} /> {dadosPreview.length - contagemNovos} Ignorados (Já existem)
+                  <span className="bg-orange-100 text-orange-600 text-[8px] md:text-[9px] font-black px-3 py-1.5 rounded-full uppercase flex items-center gap-1.5">
+                    <FileWarning size={12} /> {dadosPreview.length - contagemNovos} Ignorados
                   </span>
                 )}
               </div>
               <button 
                 onClick={salvarNoBanco}
                 disabled={isSaving || contagemNovos === 0}
-                className="w-full md:w-auto px-10 py-4 bg-orange-500 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-orange-600 disabled:opacity-50 transition-all flex items-center justify-center gap-3 shadow-xl shadow-orange-500/20"
+                className="w-full md:w-auto px-8 md:px-10 py-3 md:py-4 bg-orange-500 text-white rounded-xl md:rounded-2xl font-black text-[10px] md:text-[11px] uppercase tracking-widest hover:bg-orange-600 disabled:opacity-50 transition-all flex items-center justify-center gap-3 shadow-xl shadow-orange-500/20"
               >
-                {isSaving ? <Loader2 size={18} className="animate-spin" /> : <ShieldCheck size={18} />}
+                {isSaving ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
                 {isSaving ? "Gravando..." : `Confirmar Importação`}
               </button>
             </div>
@@ -441,42 +420,42 @@ export default function ImportarXLSPage() {
             <div className="overflow-x-auto max-h-[500px]">
               <table className="w-full text-left">
                 <thead className="sticky top-0 bg-white z-10 shadow-sm border-b">
-                  <tr className="text-[10px] font-black uppercase text-gray-400 tracking-widest">
-                    <th className="p-8">Status</th>
-                    <th className="p-8">Data</th>
-                    <th className="p-8">Descrição</th>
-                    <th className="p-8 text-center">Classificação</th>
-                    <th className="p-8 text-right">Valor</th>
+                  <tr className="text-[9px] md:text-[10px] font-black uppercase text-gray-400 tracking-widest">
+                    <th className="p-4 md:p-8">Status</th>
+                    <th className="p-4 md:p-8">Data</th>
+                    <th className="p-4 md:p-8">Descrição</th>
+                    <th className="p-4 md:p-8 text-center">Classificação</th>
+                    <th className="p-4 md:p-8 text-right">Valor</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {dadosPreview.map((item, idx) => (
                     <tr key={idx} className={`transition-colors ${item.ja_existe ? 'bg-gray-50/50 opacity-60' : 'hover:bg-gray-50/30'}`}>
-                      <td className="p-8">
+                      <td className="p-4 md:p-8">
                         {item.ja_existe ? (
-                          <span className="flex items-center gap-1.5 text-[9px] font-black text-red-400 uppercase"><AlertCircle size={12}/> Duplicado</span>
+                          <span className="flex items-center gap-1.5 text-[8px] md:text-[9px] font-black text-red-400 uppercase"><AlertCircle size={10}/> Duplicado</span>
                         ) : (
-                          <span className="flex items-center gap-1.5 text-[9px] font-black text-emerald-500 uppercase"><CheckCircle2 size={12}/> Válido</span>
+                          <span className="flex items-center gap-1.5 text-[8px] md:text-[9px] font-black text-emerald-500 uppercase"><CheckCircle2 size={10}/> Válido</span>
                         )}
                       </td>
-                      <td className="p-8 text-xs font-bold text-gray-900">{formatarDataExibicao(item.data_compra)}</td>
-                      <td className="p-8">
-                        <span className="text-sm font-bold text-gray-900 block mb-0.5">{item.descricao}</span>
-                        <span className="text-[10px] font-black text-gray-400 uppercase">
+                      <td className="p-4 md:p-8 text-[11px] md:text-xs font-bold text-gray-900">{formatarDataExibicao(item.data_compra)}</td>
+                      <td className="p-4 md:p-8">
+                        <span className="text-xs md:text-sm font-bold text-gray-900 block mb-0.5">{item.descricao}</span>
+                        <span className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase">
                           {tipoImportacao === 'CC' ? (item.banco || 'Conta') : (item.nome_cartao_credito || 'Cartão')}
                         </span>
                       </td>
-                      <td className="p-8 text-center">
-                        <div className="flex flex-col items-center gap-1.5">
-                          <span className="text-[10px] font-bold text-gray-700 uppercase bg-gray-100 px-2 py-1 rounded">{item.categoria}</span>
+                      <td className="p-4 md:p-8 text-center">
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="text-[9px] md:text-[10px] font-bold text-gray-700 uppercase bg-gray-100 px-2 py-0.5 md:py-1 rounded">{item.categoria}</span>
                           {item.sub_categoria && (
-                            <span className="text-[9px] font-black text-orange-500 uppercase bg-orange-50 px-2 py-0.5 rounded flex items-center gap-1">
+                            <span className="text-[8px] md:text-[9px] font-black text-orange-500 uppercase bg-orange-50 px-2 py-0.5 rounded flex items-center gap-1">
                               <Tag size={10} /> {item.sub_categoria}
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className={`p-8 text-right text-base font-black ${item.ja_existe ? 'text-gray-400' : 'text-gray-900'}`}>
+                      <td className={`p-4 md:p-8 text-right text-sm md:text-base font-black ${item.ja_existe ? 'text-gray-400' : 'text-gray-900'}`}>
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor || 0)}
                       </td>
                     </tr>
@@ -489,31 +468,31 @@ export default function ImportarXLSPage() {
       )}
 
       {/* CARDS DE DICAS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-16 mb-24">
-        <div className="bg-gray-900 p-10 rounded-[3rem] shadow-xl relative overflow-hidden group">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mt-16 mb-24">
+        <div className="bg-gray-900 p-8 md:p-10 rounded-[2.5rem] md:rounded-[3rem] shadow-xl relative overflow-hidden group">
           <Activity className="absolute -right-8 -bottom-8 text-orange-500 opacity-10" size={120} />
           <div className="relative z-10">
             <p className="text-orange-400 text-[10px] font-black uppercase tracking-[0.2em] mb-4">Dica de Importação</p>
-            <h4 className="text-white font-bold text-2xl mb-4 tracking-tight">Processamento Parcelado</h4>
-            <p className="text-gray-400 text-sm leading-relaxed font-medium">
+            <h4 className="text-white font-bold text-xl md:text-2xl mb-4 tracking-tight">Processamento Parcelado</h4>
+            <p className="text-gray-400 text-[13px] md:text-sm leading-relaxed font-medium">
               Ao importar faturas de cartão com parcelas, o sistema projeta automaticamente os meses futuros no seu fluxo de caixa para um planejamento preciso.
             </p>
           </div>
         </div>
         
-        <div className="bg-white border border-gray-100 p-10 rounded-[3rem] flex flex-col justify-center relative overflow-hidden shadow-sm">
-          <div className="w-14 h-14 bg-orange-50 text-orange-500 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-orange-100">
-            <span className="flex items-center justify-center w-full h-full"><Info size={28} /></span>
+        <div className="bg-white border border-gray-100 p-8 md:p-10 rounded-[2.5rem] md:rounded-[3rem] flex flex-col justify-center relative overflow-hidden shadow-sm">
+          <div className="w-12 h-12 md:w-14 md:h-14 bg-orange-50 text-orange-500 rounded-xl md:rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-orange-100">
+            <Info size={24} className="md:w-7 md:h-7" />
           </div>
-          <h4 className="font-bold text-gray-900 text-2xl mb-2 tracking-tight">Deduplicação Ativa</h4>
-          <p className="text-sm text-gray-500 font-medium leading-relaxed">
+          <h4 className="font-bold text-gray-900 text-xl md:text-2xl mb-2 tracking-tight">Deduplicação Ativa</h4>
+          <p className="text-[13px] md:text-sm text-gray-500 font-medium leading-relaxed">
             Nossa IA gera uma assinatura digital única para cada transação. Isso permite que você suba o mesmo arquivo várias vezes sem duplicar seus gastos.
           </p>
         </div>
       </div>
 
       {/* CONECTE-SE */}
-      <div className="mt-24 flex items-center gap-4 mb-12">
+      <div className="flex items-center gap-4 mb-12">
         <div className="h-px bg-gray-200 flex-1"></div>
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
         <div className="h-px bg-gray-200 flex-1"></div>
@@ -524,16 +503,30 @@ export default function ImportarXLSPage() {
           <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
             Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
           </h4>
+          <p className="text-gray-500 font-medium text-sm md:text-base">
+            Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
+          </p>
         </div>
         
-        <a href="https://www.instagram.com/nucleobase.app/" target="_blank" rel="noopener noreferrer" className="group relative flex flex-col items-center gap-6">
+        <a 
+          href="https://www.instagram.com/nucleobase.app/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="group relative flex flex-col items-center gap-6"
+        >
           <div className="relative">
+            {/* Efeito de brilho/glow ao fundo do ícone */}
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+            
             <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
               <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
             </div>
           </div>
-          <span className="text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+          
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+            <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
+          </div>
         </a>
       </div>
 

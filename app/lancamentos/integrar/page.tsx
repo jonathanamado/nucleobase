@@ -221,21 +221,23 @@ export default function IntegrarPage() {
     <div className="w-full lg:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
       
       {/* HEADER */}
-      <div className="mb-6 mt-2 flex flex-col text-left w-full">
-        <Link href="/lancamentos" className="flex items-center gap-2 text-gray-400 hover:text-orange-500 transition-colors font-black text-[10px] uppercase tracking-widest mb-4 w-fit">
-          <ArrowLeft size={14} /> Voltar para Lançamentos Manuais
-        </Link>
-        
-        <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
-          <span>Sincronização Remota<span className="text-orange-500">.</span></span>
-          <Cloud size={60} className="text-orange-500 skew-x-12 opacity-35 ml-4 hidden md:block" strokeWidth={1.2} />
-        </h1>
-
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <p className="text-[13px] md:text-base text-gray-600 max-w-2xl leading-tight">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
+        <div>
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
+            <span>Sincronização Remota<span className="text-orange-500">.</span></span>
+            {/* Ícone reduzido para 32, seguindo o novo padrão visual */}
+            <Cloud size={32} className="text-orange-500 skew-x-1 opacity-35 ml-3 hidden md:block" strokeWidth={1.5} />
+          </h1>
+          
+          {/* Subtítulo aproximado com mt-0 e cor text-gray-500 conforme o modelo */}
+          <p className="text-gray-500 text-[13px] md:text-lg font-medium max-w-2xl leading-tight mt-0">
             Configure o endpoint da <span className="font-bold text-gray-900 md:inline">Sincronização</span> e conecte o <span className="font-bold text-gray-900">Banco de Dados.</span>
           </p>
-          
+        </div>
+        
+        {/* Espaço para botões ou ações à direita, se houver */}
+        <div className="flex gap-2 w-full md:w-auto">
+          {/* Conteúdo adicional aqui */}
         </div>
       </div>
 

@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Search, Share2, User, Home, X, Rocket, Power, Dna, Settings, Key, UserPlus, PlayCircle, LogIn, KeyRound, Eye, EyeOff } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Search, Share2, User, Home, X, Rocket, Power, Dna, Settings, Key, UserPlus, PlayCircle, LogIn, KeyRound, Eye, EyeOff, Info, Fingerprint } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 export function MobileTabBar() {
   const router = useRouter();
   const pathname = usePathname();
+  const menuRef = useRef<HTMLDivElement>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
@@ -26,7 +27,19 @@ export function MobileTabBar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Lógica para resetar o destaque de compartilhar ao mudar de página
+  // Lógica para fechar o menu ao clicar fora
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    }
+    if (isMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isMenuOpen]);
+
   useEffect(() => {
     setIsSharing(false);
   }, [pathname]);
@@ -92,7 +105,8 @@ export function MobileTabBar() {
     setPassLoading(false);
   };
 
-  const handleProfileClick = () => {
+  const handleProfileClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setIsMenuOpen(!isMenuOpen);
   };
 
@@ -126,25 +140,17 @@ export function MobileTabBar() {
   const MenuItem = ({ icon: Icon, label, onClick, color = "text-gray-700" }: any) => (
     <button 
       onClick={onClick}
-      className="w-full flex items-center gap-4 px-6 py-4 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-50 last:border-0"
+      className="flex flex-col items-center justify-center gap-1.5 flex-1 h-full active:bg-gray-50 transition-colors"
     >
-      <Icon size={20} className={color} strokeWidth={2.5} />
-      <span className={`text-sm font-bold ${color}`}>{label}</span>
+      <Icon size={18} className={color} strokeWidth={2} />
+      <span className={`text-[8px] font-black uppercase tracking-widest text-center leading-none ${color}`}>{label}</span>
     </button>
   );
 
-  // Lógica de Destaque do Perfil
-  const isProfileActive = 
-    isMenuOpen || 
-    showPassModal ||
-    pathname === "/minha-conta" || 
-    pathname === "/configuracoes" || 
-    pathname === "/cadastro" || 
-    pathname === "/acesso-usuario" || 
-    pathname === "/demonstracao";
+  const isProfileActive = isMenuOpen || showPassModal || pathname === "/minha-conta" || pathname === "/configuracoes" || pathname === "/cadastro" || pathname === "/acesso-usuario" || pathname === "/demonstracao" || pathname === "/sobre";
 
   return (
-    <>
+    <div ref={menuRef}>
       {/* Modal de Alteração de Senha */}
       {showPassModal && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-xl z-[150] flex items-center justify-center p-6">
@@ -175,124 +181,104 @@ export function MobileTabBar() {
         </div>
       )}
 
-      {/* Overlay do Menu de Perfil */}
+      {/* Menu Adicional (Extensão sem vãos) */}
       {isMenuOpen && (
-        <div className="fixed inset-0 z-[120] animate-in fade-in duration-200">
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setIsMenuOpen(false)} />
-          <div className="absolute bottom-24 right-6 left-6 bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
-            <div className="p-6 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
-              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Menu Inicial</span>
-              <button onClick={() => setIsMenuOpen(false)} className="text-gray-400"><X size={20}/></button>
+        <div className="md:hidden fixed bottom-[60px] left-0 right-0 z-[95] animate-in slide-in-from-bottom-2 fade-in duration-300">
+          <div className="bg-white border-t border-gray-100 shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">
+            <div className="flex items-center justify-between h-20 px-2">
+              {isLoggedIn ? (
+                <div className="flex items-center w-full h-full">
+                  <MenuItem icon={User} label="Conta" onClick={() => { router.push("/minha-conta"); setIsMenuOpen(false); }} />
+                  <MenuItem icon={Settings} label="Ajustes" onClick={() => { router.push("/configuracoes"); setIsMenuOpen(false); }} />
+                  <MenuItem icon={Key} label="Senha" onClick={() => { setIsMenuOpen(false); setShowPassModal(true); }} />
+                  <MenuItem icon={Power} label="Sair" color="text-red-500" onClick={handleLogout} />
+                </div>
+              ) : (
+                <div className="flex items-center w-full h-full">
+                  <MenuItem icon={UserPlus} label="Criar" onClick={() => { router.push("/cadastro"); setIsMenuOpen(false); }} />
+                  <MenuItem icon={Fingerprint} label="Entrar" onClick={() => { router.push("/acesso-usuario"); setIsMenuOpen(false); }} />
+                  <MenuItem icon={Info} label="Sobre" onClick={() => { router.push("/sobre"); setIsMenuOpen(false); }} />
+                  <MenuItem icon={PlayCircle} label="Demo" onClick={() => { router.push("/demonstracao"); setIsMenuOpen(false); }} />
+                </div>
+              )}
             </div>
-            
-            {isLoggedIn ? (
-              <div className="flex flex-col">
-                <MenuItem icon={User} label="Minha conta" onClick={() => { router.push("/minha-conta"); setIsMenuOpen(false); }} />
-                <MenuItem icon={Settings} label="Configurações" onClick={() => { router.push("/configuracoes"); setIsMenuOpen(false); }} />
-                <MenuItem icon={Key} label="Alterar senha" onClick={() => { setIsMenuOpen(false); setShowPassModal(true); }} />
-                <MenuItem icon={Power} label="Sair da conta" color="text-red-500" onClick={handleLogout} />
-              </div>
-            ) : (
-              <div className="flex flex-col">
-                <MenuItem icon={UserPlus} label="Criar conta gratuita" onClick={() => { router.push("/cadastro"); setIsMenuOpen(false); }} />
-                <MenuItem icon={LogIn} label="Realizar login" onClick={() => { router.push("/acesso-usuario"); setIsMenuOpen(false); }} />
-                <MenuItem icon={PlayCircle} label="Demonstração APP" onClick={() => { router.push("/demonstracao"); setIsMenuOpen(false); }} />
-              </div>
-            )}
           </div>
         </div>
       )}
 
-      {/* Overlay de Busca */}
+      {/* Overlay de Busca (Meia Tela) */}
       {isSearchOpen && (
-        <div className="fixed inset-0 bg-white z-[110] flex flex-col p-6 animate-in slide-in-from-bottom duration-300">
-          <div className="flex justify-between items-center mb-8">
-            <div className="bg-blue-600 text-white px-3 py-1 rounded-md text-[10px] font-black tracking-widest uppercase shadow-sm">
-              Plataforma Digital
-            </div>
-            <button onClick={() => setIsSearchOpen(false)} className="p-2 bg-gray-50 rounded-full">
-              <X size={24} className="text-gray-400" />
-            </button>
-          </div>
-
-          <div className="flex flex-col flex-1">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 tracking-tight flex items-center gap-2">
-              O que você procura? <Dna size={20} className="text-blue-600 opacity-30" />
-            </h2>
-            <form onSubmit={handleSearch} className="relative mb-8">
-              <input 
-                autoFocus
-                type="text"
-                placeholder="Ex: Cadastro, Lançamentos..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-gray-900 focus:ring-2 focus:ring-blue-600 outline-none transition-all"
-              />
-              <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 bg-blue-600 text-white p-2 rounded-xl shadow-md">
-                <Search size={20} />
-              </button>
-            </form>
-
-            <div className="mt-auto py-8 flex flex-col items-center border-t border-gray-50">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-gray-900 font-bold tracking-tighter text-lg">nucleobase<span className="text-blue-600">.</span>app</span>
+        <div className="fixed inset-0 z-[110] animate-in fade-in duration-300">
+          {/* Fundo escurecido que fecha ao clicar */}
+          <div 
+            className="absolute inset-0 bg-black/20 backdrop-blur-sm" 
+            onClick={() => setIsSearchOpen(false)}
+          />
+          
+          <div className="absolute bottom-0 left-0 right-0 bg-white h-[50vh] rounded-t-[3rem] shadow-2xl flex flex-col p-8 animate-in slide-in-from-bottom duration-500">
+            <div className="flex justify-between items-center mb-6">
+              <div className="bg-blue-600 text-white px-3 py-1 rounded-md text-[10px] font-black tracking-widest uppercase shadow-sm">
+                Busca Rápida
               </div>
-              <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.4em]">Sua evolução financeira</p>
+              <button onClick={() => setIsSearchOpen(false)} className="p-2 bg-gray-50 rounded-full">
+                <X size={20} className="text-gray-400" />
+              </button>
+            </div>
+
+            <div className="flex flex-col flex-1">
+              <h2 className="text-xl font-bold text-gray-900 mb-4 tracking-tight flex items-center gap-2">
+                O que você procura? <Dna size={18} className="text-blue-600 opacity-30" />
+              </h2>
+              <form onSubmit={handleSearch} className="relative">
+                <input 
+                  autoFocus 
+                  type="text" 
+                  placeholder="Ex: Cadastro, Lançamentos..." 
+                  value={searchQuery} 
+                  onChange={(e) => setSearchQuery(e.target.value)} 
+                  className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-gray-900 focus:ring-2 focus:ring-blue-600 outline-none transition-all shadow-inner" 
+                />
+                <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 bg-blue-600 text-white p-2 rounded-xl shadow-md">
+                  <Search size={18} />
+                </button>
+              </form>
+            </div>
+            
+            <div className="mt-auto pb-4 flex flex-col items-center">
+                <span className="text-gray-300 font-bold tracking-tighter text-sm italic">nucleobase.app</span>
             </div>
           </div>
         </div>
       )}
 
       {/* Tab Bar Principal */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-3 z-[100] flex items-center justify-between shadow-[0_-4px_15px_rgba(0,0,0,0.06)] pb-safe-bottom">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 h-[60px] z-[100] flex items-center justify-between shadow-[0_-1px_10px_rgba(0,0,0,0.02)] pb-safe-bottom">
         
-        {/* Home */}
-        <button 
-          onClick={() => router.push("/")} 
-          className={`p-2 transition-colors ${!isSharing && pathname === "/" ? "text-blue-600" : "text-gray-400"}`}
-        >
+        <button onClick={() => { router.push("/"); setIsMenuOpen(false); }} className={`p-2 transition-colors ${!isSharing && pathname === "/" ? "text-blue-600" : "text-gray-400"}`}>
           <Home size={22} strokeWidth={!isSharing && pathname === "/" ? 2.5 : 2} />
         </button>
 
-        {/* Lançamentos (Foguete) */}
-        <button 
-          onClick={() => router.push("/lancamentos")} 
-          className={`p-2 transition-colors ${!isSharing && pathname === "/lancamentos" ? "text-orange-500" : "text-gray-400"}`}
-        >
+        <button onClick={() => { router.push("/lancamentos"); setIsMenuOpen(false); }} className={`p-2 transition-colors ${!isSharing && pathname === "/lancamentos" ? "text-orange-500" : "text-gray-400"}`}>
           <Rocket size={22} strokeWidth={!isSharing && pathname === "/lancamentos" ? 2.5 : 2} />
         </button>
 
-        {/* Lupa (Busca) */}
-        <button 
-          onClick={() => setIsSearchOpen(true)} 
-          className={`p-2 transition-colors ${!isSharing && pathname === "/busca" ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}
-        >
-          <Search size={22} strokeWidth={!isSharing && pathname === "/busca" ? 2.5 : 2} />
+        <button onClick={() => { setIsSearchOpen(true); setIsMenuOpen(false); }} className={`p-2 transition-colors ${!isSharing && (isSearchOpen || pathname === "/busca") ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}>
+          <Search size={22} strokeWidth={!isSharing && (isSearchOpen || pathname === "/busca") ? 2.5 : 2} />
         </button>
 
-        {/* Botão de Compartilhar */}
-        <button 
-          onClick={handleShare}
-          className={`p-2 transition-colors ${isSharing ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}
-        >
+        <button onClick={() => { handleShare(); setIsMenuOpen(false); }} className={`p-2 transition-colors ${isSharing ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}>
           <Share2 size={22} strokeWidth={isSharing ? 2.5 : 2} />
         </button>
 
-        {/* Perfil / Menu */}
-        <button 
-          onClick={handleProfileClick}
-          className={`w-9 h-9 rounded-full border transition-all overflow-hidden flex items-center justify-center relative ${
-            isProfileActive ? "border-blue-600 ring-2 ring-blue-600/20 shadow-[0_0_10px_rgba(37,99,235,0.1)]" : "border-gray-100 bg-gray-50"
-          }`}
-        >
+        <button onClick={handleProfileClick} className={`w-9 h-9 rounded-full border transition-all overflow-hidden flex items-center justify-center relative ${isProfileActive ? "border-blue-600 ring-2 ring-blue-600/20 shadow-[0_0_10px_rgba(37,99,235,0.1)]" : "border-gray-100 bg-gray-50"}`}>
           {isLoggedIn && userProfile.avatar ? (
             <div className="relative w-full h-full">
-               <img src={userProfile.avatar} alt="Perfil" className="w-full h-full object-cover" />
-               {(isMenuOpen || pathname === "/minha-conta") && (
-                 <div className="absolute inset-0 bg-blue-600/10 flex items-center justify-center">
-                    {isMenuOpen ? <X size={14} className="text-white drop-shadow-md" /> : null}
-                 </div>
-               )}
+                <img src={userProfile.avatar} alt="Perfil" className="w-full h-full object-cover" />
+                {(isMenuOpen || pathname === "/minha-conta") && (
+                  <div className="absolute inset-0 bg-blue-600/10 flex items-center justify-center">
+                     {isMenuOpen ? <X size={14} className="text-white drop-shadow-md" /> : null}
+                  </div>
+                )}
             </div>
           ) : isLoggedIn ? (
             <span className={`text-[10px] font-black tracking-tighter ${isProfileActive ? "text-blue-600" : "text-gray-400"}`}>
@@ -309,6 +295,6 @@ export function MobileTabBar() {
           )}
         </button>
       </div>
-    </>
+    </div>
   );
 }

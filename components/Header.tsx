@@ -20,12 +20,10 @@ export function Header() {
     avatar: null,
   });
   
-  // Refs para detectar cliques fora
   const userDropdownRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const mobileButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Estados para o Modal de Senha (Padrão Mobile)
   const [showPassModal, setShowPassModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -35,13 +33,11 @@ export function Header() {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Fecha menus ao mudar de rota
   useEffect(() => {
     setIsMenuOpen(false);
     setIsUserDropdownOpen(false);
   }, [pathname]);
 
-  // Lógica para fechar ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
@@ -160,7 +156,6 @@ export function Header() {
 
   return (
     <header className="w-full border-b border-gray-200 bg-white sticky top-0 z-50">
-      {/* Estilo Injetado para a Animação de 6 segundos (3s preenchido / 3s transparente) */}
       <style jsx global>{`
         @keyframes blink-play {
           0%, 50% { fill: currentColor; }
@@ -284,7 +279,6 @@ export function Header() {
                       <span className="text-xs font-black text-blue-600 tracking-tighter">{getInitials(userProfile.nome)}</span>
                     )
                   ) : (
-                    /* Lógica Desktop Deslogado: Se estiver na página de demonstração, mostra o play piscando */
                     pathname === "/demonstracao" ? (
                       <Play size={20} className="text-blue-600 animate-blink-play" />
                     ) : (
@@ -316,27 +310,42 @@ export function Header() {
           </div>
         </nav>
 
-        <div className="md:hidden flex items-center gap-2">
+        <div className="md:hidden flex items-center">
           <button 
             ref={mobileButtonRef}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-2xl border border-gray-100 text-gray-600 active:scale-95 transition-all z-[110]"
+            className={`
+              relative flex items-center justify-center gap-2 
+              h-9 px-4 rounded-xl transition-all duration-300 z-[110]
+              ${isMenuOpen 
+                ? "bg-gray-900 text-white shadow-lg ring-4 ring-gray-900/10" 
+                : "bg-white text-gray-600 border border-gray-200 shadow-sm active:scale-95"
+              }
+            `}
           >
-            <span className="text-[10px] font-black uppercase tracking-widest">Menu</span>
-            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            <span className={`text-[9px] font-black uppercase tracking-[0.2em] transition-all ${isMenuOpen ? "opacity-100" : "opacity-80"}`}>
+              {isMenuOpen ? "Fechar" : "Menu"}
+            </span>
+            <div className="relative w-4 h-4 flex items-center justify-center">
+              {isMenuOpen ? (
+                <X size={18} strokeWidth={2.5} className="animate-in spin-in-90 duration-300" />
+              ) : (
+                <Menu size={18} strokeWidth={2.5} className="animate-in fade-in zoom-in duration-300" />
+              )}
+            </div>
           </button>
         </div>
 
         {isMenuOpen && (
           <>
             <div 
-              className="fixed inset-0 bg-black/5 z-[90] md:hidden" 
+              className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-[90] md:hidden animate-in fade-in duration-300" 
               onClick={() => setIsMenuOpen(false)}
             />
 
             <div 
               ref={mobileMenuRef}
-              className="absolute top-[80px] right-0 left-0 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.15)] border-t border-b border-gray-100 z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 md:hidden"
+              className="absolute top-[85px] right-4 left-4 bg-white rounded-[2rem] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-gray-100 z-[100] overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300 md:hidden"
             >
               <div className="max-h-[70vh] overflow-y-auto p-6 custom-scrollbar">
                 <nav className="space-y-1">
@@ -345,15 +354,15 @@ export function Header() {
                       key={link.name}
                       href={link.href}
                       onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center justify-between p-2 rounded-2xl text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-all group"
+                      className="flex items-center justify-between p-3 rounded-2xl text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition-all group"
                     >
                       <div className="flex items-center gap-4">
                         <span className="text-gray-400 group-hover:text-blue-600 transition-colors">
                           {link.icon}
                         </span>
-                        <span className="text-sm font-semibold">{link.name}</span>
+                        <span className="text-sm font-bold tracking-tight">{link.name}</span>
                       </div>
-                      <ChevronRight size={14} className="text-gray-300 opacity-50" />
+                      <ChevronRight size={14} className="text-gray-300 opacity-50 group-hover:translate-x-1 transition-transform" />
                     </a>
                   ))}
                 </nav>
@@ -361,19 +370,19 @@ export function Header() {
                 <div className="mt-6 pt-6 border-t border-gray-100 space-y-3">
                   {!isLoggedIn ? (
                     <div className="grid grid-cols-2 gap-4">
-                      <a href="/acesso-usuario" className="py-4 bg-orange-500 text-white text-center rounded-2xl font-bold text-xs uppercase tracking-tighter shadow-md">
+                      <a href="/acesso-usuario" className="py-4 bg-orange-500 text-white text-center rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-lg shadow-orange-500/20 active:scale-95 transition-all">
                         Acessar
                       </a>
-                      <a href="/cadastro" className="py-4 bg-blue-600 text-white text-center rounded-2xl font-bold text-xs uppercase tracking-tighter shadow-md">
+                      <a href="/cadastro" className="py-4 bg-blue-600 text-white text-center rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition-all">
                         Criar Conta
                       </a>
                     </div>
                   ) : (
                     <div className="flex flex-col gap-3">
-                      <a href="/acesso-usuario" className="flex items-center justify-center gap-2 w-full py-4 bg-orange-500 text-white rounded-2xl font-bold text-sm shadow-lg">
+                      <a href="/acesso-usuario" className="flex items-center justify-center gap-2 w-full py-4 bg-orange-500 text-white rounded-2xl font-bold text-sm shadow-lg shadow-orange-500/20 active:scale-95 transition-all">
                         <LayoutDashboard size={18} /> Painel Acesso APP
                       </a>
-                      <a href="/resultados" className="flex items-center justify-center gap-2 w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-sm shadow-lg">
+                      <a href="/resultados" className="flex items-center justify-center gap-2 w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-sm shadow-lg shadow-gray-900/20 active:scale-95 transition-all">
                         <BarChart3 size={18} /> Visão de Resultados
                       </a>
                       <button onClick={handleLogout} className="flex items-center justify-center gap-2 w-full py-4 bg-red-50 text-red-600 rounded-2xl font-bold text-sm border border-red-100 active:scale-95 transition-all">
