@@ -305,11 +305,11 @@ export function MainContent() {
                 <span className="inline-flex items-center justify-center bg-orange-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                   Acesso ao APP
                 </span>{" "}
-                , você centraliza gastos diários ou parcelados com autonomia, reduzindo dependência em planilhas manuais. Na consulta de{" "}
+                , você centraliza seu controle de gastos diários ou parcelados, reduzindo dependência em planilhas manuais. Na consulta de{" "}
                 <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                   Resultados
                 </span>{" "}
-                transformamos dados em informações,{" "}
+                , transformamos dados em informações{" "}
                 <span className="text-gray-900 underline decoration-2 decoration-orange-500/30 underline-offset-4 font-medium">
                   oferecendo clareza para que você possa economizar e acelerar seus projetos pessoais e profissionais.
                 </span>

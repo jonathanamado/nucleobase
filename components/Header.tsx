@@ -214,9 +214,9 @@ export function Header() {
               <span className="pl-0">Sua plataforma</span>
               <span className="pl-7.5 mt-0 text-gray-500">financeira</span>
               <span className="pl-9.5 mt-0.5">
-                <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block">
-                  DIGITAL
-                </span>
+                  <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block">
+                    DIGITAL 
+                  </span>
               </span>
             </a>
           </div>

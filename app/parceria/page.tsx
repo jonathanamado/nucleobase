@@ -86,7 +86,7 @@ export default function ParceirosPage() {
             />
           </h1>
           <h2 className="text-gray-500 text-base md:text-lg font-medium leading-relaxed mt-0 w-full">
-            Inteligência financeira para ressignificar sua receita e agregar valor aos seus processos.
+            Inteligência em controle financeiro para agregar valor à sua rotina.
           </h2>
         </div>
 

@@ -5,7 +5,7 @@ import {
   Save, CreditCard, Wallet, Calendar, 
   Tag, DollarSign, CheckCircle2, Layers, Repeat, 
   Rocket, Activity, Clock, AlertCircle, BarChart3, ArrowRight, LineChart, Zap, X, Instagram, Edit3,
-  Lock, Eye, EyeOff, UserPlus
+  Lock, Eye, EyeOff, UserPlus, FileUp, Cpu, ChevronLeft, ChevronRight
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
@@ -22,6 +22,7 @@ export default function LancamentosPage() {
   const [sucesso, setSucesso] = useState(false);
   const [showAviso, setShowAviso] = useState(false);
   const [ultimosLancamentos, setUltimosLancamentos] = useState<any[]>([]);
+  const [activeCard, setActiveCard] = useState(0); // Estado para o carrossel mobile
   
   // Estados para Login
   const [slug, setSlug] = useState(""); 
@@ -78,7 +79,7 @@ export default function LancamentosPage() {
     descricao: "",
     valorTotal: 0,
     dataCompetencia: getLocalDate(),
-    natureza: "Despesa", // AJUSTE: Corrigido de "Natureza" para "Despesa" para evitar erro no banco
+    natureza: "Despesa",
     categoria: "",
     sub_categoria: "",
     projeto: "Pessoal",
@@ -223,6 +224,10 @@ export default function LancamentosPage() {
 
   const isReceita = formData.natureza === "Receita";
 
+  // Lógica do Carrossel Mobile
+  const nextCard = () => setActiveCard((prev) => (prev + 1) % 3);
+  const prevCard = () => setActiveCard((prev) => (prev - 1 + 3) % 3);
+
   return (
     <div className="w-full min-h-screen animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative bg-white px-4 md:px-8">
       
@@ -246,44 +251,66 @@ export default function LancamentosPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12 items-end">
-        <div className="lg:col-span-7">
-          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-4 tracking-tight flex items-center flex-wrap">
-            <span>Gestão de Lançamentos<span className="text-orange-500">.</span></span>
-            <Activity size={32} className="text-orange-500 skew-x-12 ml-4" strokeWidth={1.5} />
-          </h1>
-          <h2 className="text-base text-gray-600 w-full font-bold leading-tight mb-4 lg:mb-0">
-            Realize lançamentos via tela ou importação (múltiplos registros).
-          </h2>
-        </div>
-
-        <div className="lg:col-span-5">
-          <div className="grid grid-cols-2 gap-3">
-            <Link href="/lancamentos/integrar" className="relative flex flex-col items-center text-center bg-gray-50 border border-gray-200 rounded-2xl py-4 px-2 hover:bg-emerald-50 hover:border-emerald-200 transition-all group shadow-sm"> 
-              <div className="absolute -top-2 -right-1 bg-blue-600 text-white text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-sm">Em desenvolvimento</div>
-              <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-[0.1em] sm:tracking-[0.15em] text-gray-400 mb-2 group-hover:text-emerald-500 transition-colors">Automação Cloud</span>
-              <div className="flex items-center gap-1 sm:gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                  <span className="text-[8px] sm:text-[10px] font-bold text-gray-500">Integração em nuvem </span>
-              </div>
-            </Link>
-            <Link href="/lancamentos/importar" className="relative flex flex-col items-center text-center bg-orange-50/30 border-2 border-orange-200 rounded-2xl py-4 px-2 hover:bg-orange-50 hover:border-orange-300 transition-all group shadow-sm"> 
-              <div className="absolute -top-2 -right-1 bg-orange-500 text-white text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-sm animate-bounce">Recomendado</div>
-              <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-[0.1em] sm:tracking-[0.15em] text-orange-600 mb-2 transition-colors">Upload Arquivo</span>
-              <div className="flex items-center gap-1 sm:gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
-                  <span className="text-[8px] sm:text-[10px] font-bold text-gray-500">Importação dinâmica</span>
-              </div>
-            </Link>
-          </div>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2 tracking-tight flex items-center flex-wrap">
+          <span>Gestão de Lançamentos<span className="text-orange-500">.</span></span>
+          <Activity size={32} className="text-orange-500 skew-x-12 ml-4" strokeWidth={1.5} />
+        </h1>
+        <h2 className="text-base text-gray-600 w-full font-bold leading-tight">
+          <span className="hidden md:inline">Realize lançamentos via tela ou importação (múltiplos registros).</span>
+          <span className="inline md:hidden">Controles por tela ou via arquivos</span>
+        </h2>
       </div>
 
       <div>
-        <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-gray-400 mb-8 flex items-center gap-4">
+        <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-gray-400 mb-1 flex items-center gap-4">
           <span className="whitespace-nowrap">Formulário em 3 etapas</span>
           <div className="h-px bg-gray-100 flex-1"></div>
         </h3>
+
+        <div className="mb-7 space-y-4">
+          <p className="text-sm text-gray-500 font-medium leading-relaxed">
+            <span className="hidden md:inline">Utilize o formulário abaixo para registrar entradas e saídas de forma manual e detalhada.</span>
+            <span className="inline md:hidden">Registre entradas e saídas de forma manual.</span>
+          </p>
+          <div className="inline-flex items-center gap-3 p-4 bg-orange-50 rounded-2xl border border-orange-100 w-full md:w-auto">
+            <Zap size={16} className="text-orange-500 fill-orange-500" />
+            
+            {/* Ajuste Texto 2: Mobile vs Desktop */}
+            <div className="text-xs font-bold text-orange-700 flex items-center flex-wrap gap-2">
+              <div className="hidden md:flex items-center flex-wrap gap-2">
+                Precisa de agilidade? Utilize a 
+                <a href="/lancamentos/importar" className="hover:opacity-80 transition-opacity">
+                  <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
+                    Importação via arquivo
+                  </span>
+                </a> 
+                ou também a 
+                <a href="/lancamentos/integrar" className="hover:opacity-80 transition-opacity">
+                  <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
+                    Automação em cloud
+                  </span>
+                </a> 
+                para múltiplos registros.
+              </div>
+
+              <div className="md:hidden flex items-center flex-wrap gap-2">
+                Importe via 
+                <a href="#painel-controle">
+                  <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
+                    Arquivo
+                  </span>
+                </a> 
+                ou 
+                <a href="#painel-controle">
+                  <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
+                    Cloud
+                  </span>
+                </a>em caso de múltiplos registros.
+              </div>
+            </div>
+          </div>
+        </div>
 
         {sucesso && (
           <div className="mb-8 p-6 bg-emerald-500 text-white rounded-[2rem] flex items-center gap-4 animate-in fade-in slide-in-from-left-4 shadow-lg border-l-8 border-emerald-600">
@@ -295,7 +322,7 @@ export default function LancamentosPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-stretch">
           <div className="lg:col-span-7 flex flex-col h-full space-y-10">
             <section className="flex-1 flex flex-col bg-white rounded-[2.5rem] p-8 border border-gray-100 border-t-4 border-t-blue-600 shadow-sm transition-all">
               <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-3">
@@ -492,39 +519,121 @@ export default function LancamentosPage() {
           </div>
         </form>
 
-        <div className="mt-20">
-          <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-4 flex items-center gap-4">
-            <span className="whitespace-nowrap">Histórico Recente</span>
+        <div id="painel-controle" className="mt-20">
+          <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
+            <span className="whitespace-nowrap">Painel de Controle</span>
             <div className="h-px bg-gray-100 flex-1"></div>
           </h3>
 
-          <p className="text-sm text-gray-500 font-medium mb-8">
-            Confira abaixo o link rápido para seu Painel de BI e a listagem dos seus últimos registros processados.
-          </p>
-
-          <div className="mb-10 p-8 bg-blue-600 rounded-[2.5rem] text-white relative overflow-hidden shadow-xl shadow-blue-900/10 group">
-            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-6">
-                <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
-                  <BarChart3 className="text-white" size={28} />
+          {/* Versão Desktop: Grid Normal */}
+          <div className="hidden lg:grid grid-cols-12 gap-6 mb-10">
+            <div className="lg:col-span-12 p-8 bg-blue-600 rounded-[2.5rem] text-white relative overflow-hidden shadow-xl shadow-blue-900/10 group">
+              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-6">
+                  <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
+                    <BarChart3 className="text-white" size={28} />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-bold tracking-tight mb-1">Painel de Resultados</h4>
+                    <p className="text-blue-100 text-sm font-medium opacity-90">
+                      Lançamentos processados em tempo real. Navegue e acompanhe online.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-lg font-bold tracking-tight mb-1">Painel de Resultados</h4>
-                  <p className="text-blue-100 text-sm font-medium opacity-90">
-                    Seus lançamentos são processados em tempo real. Navegue e faça sua gestão online.
-                  </p>
-                </div>
+                <Link href="/resultados" className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-50 transition-all flex items-center gap-3 shadow-lg active:scale-95 whitespace-nowrap">
+                  Acessar Painel <ArrowRight size={16} />
+                </Link>
               </div>
-              
-              <Link 
-                href="/resultados" 
-                className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-50 transition-all flex items-center gap-3 shadow-lg active:scale-95 whitespace-nowrap"
-              >
-                Acessar Painel <ArrowRight size={16} />
+              <Zap size={200} className="absolute -right-16 -bottom-16 text-white opacity-10 -rotate-12 pointer-events-none group-hover:rotate-0 transition-transform duration-700" />
+            </div>
+
+            <div className="lg:col-span-6">
+              <Link href="/lancamentos/integrar" className="flex flex-col h-full bg-gray-50 border border-gray-200 rounded-[2rem] p-8 hover:bg-emerald-50 hover:border-emerald-200 transition-all group relative overflow-hidden"> 
+                <div className="absolute top-6 right-6 bg-blue-600 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase">Em desenvolvimento</div>
+                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-gray-400 group-hover:text-emerald-500 mb-6 shadow-sm">
+                  <Cpu size={24} />
+                </div>
+                <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 group-hover:text-emerald-500 mb-2">Automação Cloud</span>
+                <p className="text-xs font-bold text-gray-500">Integração direta em nuvem para seus registros financeiros.</p>
               </Link>
             </div>
-            <Zap size={200} className="absolute -right-16 -bottom-16 text-white opacity-10 -rotate-12 pointer-events-none group-hover:rotate-0 transition-transform duration-700" />
+
+            <div className="lg:col-span-6">
+              <Link href="/lancamentos/importar" className="flex flex-col h-full bg-orange-50/30 border-2 border-orange-200 rounded-[2rem] p-8 hover:bg-orange-50 hover:border-orange-300 transition-all group relative overflow-hidden"> 
+                <div className="absolute top-6 right-6 bg-orange-500 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase animate-bounce">Recomendado</div>
+                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-orange-500 mb-6 shadow-sm">
+                  <FileUp size={24} />
+                </div>
+                <span className="text-[11px] font-black uppercase tracking-widest text-orange-600 mb-2">Upload via Arquivo</span>
+                <p className="text-xs font-bold text-gray-500">A forma mais rápida de processar múltiplos lançamentos de uma vez.</p>
+              </Link>
+            </div>
           </div>
+
+          {/* Versão Mobile: Carrossel Agrupado (Primeiro item: Upload Arquivo) */}
+          <div className="lg:hidden relative mb-10 overflow-hidden px-2">
+            <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${activeCard * 100}%)` }}>
+              
+              {/* Card 1: Upload Arquivo (Início Mobile) */}
+              <div className="w-full flex-shrink-0 px-2">
+                <Link href="/lancamentos/importar" className="flex flex-col bg-orange-50/30 border-2 border-orange-200 rounded-[2rem] p-8 h-[250px] relative overflow-hidden"> 
+                  <div className="absolute top-6 right-6 bg-orange-500 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase">Recomendado</div>
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-orange-500 mb-6 shadow-sm">
+                    <FileUp size={24} />
+                  </div>
+                  <span className="text-[11px] font-black uppercase tracking-widest text-orange-600 mb-2">Upload via Arquivo</span>
+                  <p className="text-xs font-bold text-gray-500">A forma mais rápida de processar múltiplos lançamentos.</p>
+                </Link>
+              </div>
+
+              {/* Card 3: Automação Cloud */}
+              <div className="w-full flex-shrink-0 px-2">
+                <Link href="/lancamentos/integrar" className="flex flex-col bg-gray-50 border border-gray-200 rounded-[2rem] p-8 h-[250px] relative overflow-hidden"> 
+                  <div className="absolute top-6 right-6 bg-blue-600 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase">Desenvolvimento</div>
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-gray-400 mb-6 shadow-sm">
+                    <Cpu size={24} />
+                  </div>
+                  <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 mb-2">Automação Cloud</span>
+                  <p className="text-xs font-bold text-gray-500">Integração direta em nuvem para seus registros.</p>
+                </Link>
+              </div>
+
+              {/* Card 2: Painel de Resultados */}
+              <div className="w-full flex-shrink-0 px-2">
+                <div className="bg-blue-600 rounded-[2rem] p-8 text-white h-[250px] relative overflow-hidden flex flex-col justify-between">
+                  <div>
+                    <BarChart3 className="mb-4 text-white/80" size={32} />
+                    <h4 className="text-lg font-bold mb-1">Painel de Resultados</h4>
+                    <p className="text-blue-100 text-xs font-medium opacity-90 leading-relaxed">Acompanhe seus lançamentos em tempo real.</p>
+                  </div>
+                  <Link href="/resultados" className="bg-white text-blue-600 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest text-center shadow-lg">
+                    Acessar agora
+                  </Link>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Setas de Navegação Mobile */}
+            <div className="flex justify-center items-center gap-6 mt-6">
+              <button onClick={prevCard} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 active:bg-gray-100">
+                <ChevronLeft size={20} />
+              </button>
+              <div className="flex gap-2">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className={`h-1.5 rounded-full transition-all ${activeCard === i ? 'w-6 bg-orange-500' : 'w-1.5 bg-gray-200'}`} />
+                ))}
+              </div>
+              <button onClick={nextCard} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 active:bg-gray-100">
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          </div>
+
+          <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-4 flex items-center gap-4">
+            <span className="whitespace-nowrap">Registros Recentes</span>
+            <div className="h-px bg-gray-100 flex-1"></div>
+          </h3>
 
           <div className="overflow-x-auto bg-white border border-gray-100 rounded-[2.5rem] shadow-sm mb-20">
             <table className="w-full text-left border-collapse min-w-[800px]">
