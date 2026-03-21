@@ -357,7 +357,7 @@ export default function LancamentosPage() {
                   onClick={() => setFormData({...formData, tipo_origem: "CARTAO"})}
                   className={`p-4 sm:p-6 rounded-[2rem] border-2 transition-all text-left flex flex-col items-start ${formData.tipo_origem === "CARTAO" ? 'border-blue-600 bg-blue-50/30 shadow-md' : 'border-gray-100 bg-white'} disabled:opacity-40 disabled:grayscale`}
                 >
-                  <div className={`p-3 rounded-xl w-fit mb-4 ${formData.tipo_origem === "CARTAO" ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-400'}`}>
+                  <div className={`p-3 rounded-xl w-fit mb-4 ${formData.tipo_origem === "CARTAO" ? 'border-blue-600 bg-blue-50/30 shadow-md' : 'border-gray-100 bg-white'}`}>
                     <CreditCard size={20} />
                   </div>
                   <span className="block font-bold text-[10px] sm:text-sm text-gray-900 uppercase leading-tight">Cartão de Crédito</span>
