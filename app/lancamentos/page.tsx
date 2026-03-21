@@ -203,10 +203,22 @@ export default function LancamentosPage() {
           </div>
           <p className="text-gray-500 text-sm mb-8">Esta é uma área segura para gestão de dados. Por favor, valide sua identidade para realizar lançamentos.</p>
           <form onSubmit={handleLogin} className="space-y-4">
-            <input type="text" placeholder="ID ou E-mail" required className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100" onChange={(e) => setSlug(e.target.value)} />
+            <input 
+              type="text" 
+              placeholder="ID ou E-mail" 
+              required 
+              className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100 text-gray-900 placeholder:text-gray-600" 
+              onChange={(e) => setSlug(e.target.value)} 
+            />
             <div className="relative">
-              <input type={showPassword ? "text" : "password"} placeholder="Senha" required className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100" onChange={(e) => setPassword(e.target.value)} />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+              <input 
+                type={showPassword ? "text" : "password"} 
+                placeholder="Senha" 
+                required 
+                className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100 text-gray-900 placeholder:text-gray-600" 
+                onChange={(e) => setPassword(e.target.value)} 
+              />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
             </div>
             <button disabled={authLoading} className="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold shadow-lg shadow-orange-100 transition-transform active:scale-95 disabled:opacity-50">{authLoading ? "Verificando..." : "Entrar na Plataforma"}</button>
           </form>
@@ -276,7 +288,6 @@ export default function LancamentosPage() {
           <div className="inline-flex items-center gap-3 p-4 bg-orange-50 rounded-2xl border border-orange-100 w-full md:w-auto">
             <Zap size={16} className="text-orange-500 fill-orange-500" />
             
-            {/* Ajuste Texto 2: Mobile vs Desktop */}
             <div className="text-xs font-bold text-orange-700 flex items-center flex-wrap gap-2">
               <div className="hidden md:flex items-center flex-wrap gap-2">
                 Precisa de agilidade? Utilize a 
@@ -353,7 +364,7 @@ export default function LancamentosPage() {
                 </button>
               </div>
               <input required type="text" placeholder="Instituição (Ex: Nubank)" value={formData.origem}
-                  className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm mt-auto"
+                  className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm mt-auto text-gray-900 placeholder:text-gray-600"
                   onChange={(e) => setFormData({...formData, origem: e.target.value})} />
             </section>
 
@@ -363,20 +374,20 @@ export default function LancamentosPage() {
               </h3>
               <div className="space-y-4">
                 <input required type="text" placeholder="Descrição do Lançamento" value={formData.descricao}
-                  className="w-full px-6 py-5 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm"
+                  className="w-full px-6 py-5 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm text-gray-900 placeholder:text-gray-600"
                   onChange={(e) => setFormData({...formData, descricao: e.target.value})} />
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="relative">
                     <DollarSign className={`absolute left-5 top-1/2 -translate-y-1/2 ${isReceita ? 'text-emerald-500' : 'text-red-500'}`} size={18} />
                     <input required type="number" step="0.01" placeholder="Valor Total (R$)" value={formData.valorTotal || ""}
-                      className="w-full pl-14 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm"
+                      className="w-full pl-14 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm text-gray-900 placeholder:text-gray-600"
                       onChange={(e) => setFormData({...formData, valorTotal: parseFloat(e.target.value) || 0})} />
                   </div>
                   <div className="relative">
-                    <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
                     <input required type="date" value={formData.dataCompetencia}
-                      className="w-full pl-14 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm text-gray-600"
+                      className="w-full pl-14 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm text-gray-800"
                       onChange={(e) => setFormData({...formData, dataCompetencia: e.target.value})} />
                   </div>
                 </div>
@@ -394,8 +405,8 @@ export default function LancamentosPage() {
 
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     <div className="space-y-2">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 ml-2">Natureza</label>
-                      <select required className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none focus:ring-2 focus:ring-emerald-500"
+                      <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-2">Natureza</label>
+                      <select required className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
                         value={formData.natureza} 
                         onChange={(e) => {
                           const val = e.target.value;
@@ -414,8 +425,8 @@ export default function LancamentosPage() {
                       </select>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 ml-2">Tipo de Custo</label>
-                      <select required className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none disabled:opacity-50"
+                      <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-2">Tipo de Custo</label>
+                      <select required className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none disabled:opacity-50 cursor-pointer"
                         value={isReceita ? "Fixo" : formData.tipo_de_custo} 
                         disabled={isReceita}
                         onChange={(e) => setFormData({...formData, tipo_de_custo: e.target.value})}>
@@ -431,9 +442,9 @@ export default function LancamentosPage() {
 
                   <div className="space-y-6">
                     <div className="space-y-2">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 ml-2">Categoria</label>
+                      <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-2">Categoria</label>
                       <input list="cat-list" required placeholder="Escolha..."
-                        className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none"
+                        className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none placeholder:text-gray-400"
                         value={formData.categoria} 
                         onChange={(e) => setFormData({...formData, categoria: e.target.value, sub_categoria: ""})} />
                       <datalist id="cat-list">
@@ -442,9 +453,9 @@ export default function LancamentosPage() {
                     </div>
                     
                     <div className="space-y-2">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 ml-2">Sub-categoria</label>
+                      <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-2">Sub-categoria</label>
                       <input list="sub-list" placeholder="Escolha..."
-                        className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none"
+                        className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none placeholder:text-gray-400"
                         value={formData.sub_categoria} 
                         onChange={(e) => setFormData({...formData, sub_categoria: e.target.value})} />
                       <datalist id="sub-list">
@@ -461,7 +472,7 @@ export default function LancamentosPage() {
                        <input 
                           type="date" 
                           max={maxDate}
-                          className="w-full bg-white/5 text-white text-xs p-2 rounded" 
+                          className="w-full bg-white/5 text-white text-xs p-2 rounded cursor-pointer" 
                           value={formData.fixo_ate}
                           onChange={(e) => setFormData({...formData, fixo_ate: e.target.value})} 
                         />
@@ -472,7 +483,7 @@ export default function LancamentosPage() {
                       <div className="p-4 bg-orange-500/10 rounded-xl border border-orange-500/20">
                         <div className="flex justify-between items-center mb-3">
                           <span className="text-[10px] text-orange-400 font-bold uppercase">Pagamento parcelado?</span>
-                          <input type="checkbox" checked={formData.parcelado} onChange={(e) => setFormData({...formData, parcelado: e.target.checked})} />
+                          <input type="checkbox" checked={formData.parcelado} onChange={(e) => setFormData({...formData, parcelado: e.target.checked})} className="accent-orange-500" />
                         </div>
                         {formData.parcelado && (
                           <div className="flex gap-2">
@@ -481,7 +492,7 @@ export default function LancamentosPage() {
                               <input 
                                 type="number" 
                                 placeholder="Ex: 12" 
-                                className="w-full bg-white/5 text-white p-2 rounded text-xs outline-none focus:bg-white/10 transition-colors" 
+                                className="w-full bg-white/5 text-white p-2 rounded text-xs outline-none focus:bg-white/10 transition-colors placeholder:text-gray-400" 
                                 onChange={(e) => setFormData({...formData, parcelasTotais: parseInt(e.target.value)})} 
                               />
                             </div>
@@ -490,7 +501,7 @@ export default function LancamentosPage() {
                               <input 
                                 type="month" 
                                 value={formData.fatura_mes} 
-                                className="w-full bg-white/5 text-white p-2 rounded text-xs outline-none focus:bg-white/10 transition-colors" 
+                                className="w-full bg-white/5 text-white p-2 rounded text-xs outline-none focus:bg-white/10 transition-colors cursor-pointer" 
                                 onChange={(e) => setFormData({...formData, fatura_mes: e.target.value})} 
                               />
                             </div>
@@ -525,7 +536,6 @@ export default function LancamentosPage() {
             <div className="h-px bg-gray-100 flex-1"></div>
           </h3>
 
-          {/* Versão Desktop: Grid Normal */}
           <div className="hidden lg:grid grid-cols-12 gap-6 mb-10">
             <div className="lg:col-span-12 p-8 bg-blue-600 rounded-[2.5rem] text-white relative overflow-hidden shadow-xl shadow-blue-900/10 group">
               <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
@@ -570,11 +580,9 @@ export default function LancamentosPage() {
             </div>
           </div>
 
-          {/* Versão Mobile: Carrossel Agrupado (Primeiro item: Upload Arquivo) */}
           <div className="lg:hidden relative mb-10 overflow-hidden px-2">
             <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${activeCard * 100}%)` }}>
               
-              {/* Card 1: Upload Arquivo (Início Mobile) */}
               <div className="w-full flex-shrink-0 px-2">
                 <Link href="/lancamentos/importar" className="flex flex-col bg-orange-50/30 border-2 border-orange-200 rounded-[2rem] p-8 h-[250px] relative overflow-hidden"> 
                   <div className="absolute top-6 right-6 bg-orange-500 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase">Recomendado</div>
@@ -586,7 +594,6 @@ export default function LancamentosPage() {
                 </Link>
               </div>
 
-              {/* Card 3: Automação Cloud */}
               <div className="w-full flex-shrink-0 px-2">
                 <Link href="/lancamentos/integrar" className="flex flex-col bg-gray-50 border border-gray-200 rounded-[2rem] p-8 h-[250px] relative overflow-hidden"> 
                   <div className="absolute top-6 right-6 bg-blue-600 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase">Desenvolvimento</div>
@@ -598,7 +605,6 @@ export default function LancamentosPage() {
                 </Link>
               </div>
 
-              {/* Card 2: Painel de Resultados */}
               <div className="w-full flex-shrink-0 px-2">
                 <div className="bg-blue-600 rounded-[2rem] p-8 text-white h-[250px] relative overflow-hidden flex flex-col justify-between">
                   <div>
@@ -614,7 +620,6 @@ export default function LancamentosPage() {
 
             </div>
 
-            {/* Setas de Navegação Mobile */}
             <div className="flex justify-center items-center gap-6 mt-6">
               <button onClick={prevCard} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 active:bg-gray-100">
                 <ChevronLeft size={20} />
