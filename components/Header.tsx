@@ -217,7 +217,7 @@ export function Header() {
                   src="/logo-oficial.png?v=3" 
                   alt="Logo Nucleo Base"
                   width={120} 
-                  height={62} 
+                  height={60} 
                   className="w-[125px] h-auto lg:w-[155px] lg:h-auto object-contain" 
                 />
               </a>
