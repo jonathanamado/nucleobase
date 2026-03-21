@@ -53,8 +53,11 @@ export default function RootLayout({
   const pathname = usePathname();
 
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className="light" style={{ colorScheme: 'light' }}>
       <head>
+        {/* Bloqueia a inversão de cores automática de navegadores mobile */}
+        <meta name="color-scheme" content="only light" />
+        
         <Script id="gtm-init" strategy="beforeInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
@@ -75,7 +78,8 @@ export default function RootLayout({
           src="/metrics/gtm.js?id=GTM-NS5KWXFL"
         />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen flex flex-col overflow-x-hidden max-w-full`}>
+      {/* Alterado de bg-gray-50 para bg-white e forçado text-gray-900 */}
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-gray-900 min-h-screen flex flex-col overflow-x-hidden max-w-full`}>
         
         <noscript>
           <iframe 
@@ -88,17 +92,18 @@ export default function RootLayout({
 
         <Header />
 
-        <main className="flex-1 flex w-full max-w-full overflow-x-hidden">
+        <main className="flex-1 flex w-full max-w-full overflow-x-hidden bg-white">
           <Sidebar />
           
-          <section className="flex-1 w-full max-w-full px-4 md:px-10 py-6 pb-20 md:pb-6 scroll-smooth md:ml-80 overflow-x-hidden flex flex-col">
-            <div className="min-h-[calc(100vh-200px)] w-full">
+          {/* Adicionado bg-white explicitamente na section para cobrir as laterais */}
+          <section className="flex-1 w-full max-w-full px-4 md:px-10 py-6 pb-20 md:pb-6 scroll-smooth md:ml-80 overflow-x-hidden flex flex-col bg-white">
+            <div className="min-h-[calc(100vh-200px)] w-full bg-white">
               {children}
             </div>
             
             {/* Rodapé Unificado e Minimalista */}
             <footer className="mt-16 mb-10 w-full flex flex-col items-center">
-              <div className="w-full max-w-2xl bg-white/40 border border-gray-100 rounded-3xl md:rounded-full p-5 flex flex-col md:flex-row items-center justify-center gap-4 backdrop-blur-sm">
+              <div className="w-full max-w-2xl bg-gray-50 border border-gray-100 rounded-3xl md:rounded-full p-5 flex flex-col md:flex-row items-center justify-center gap-4 backdrop-blur-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-blue-600/5 rounded-lg flex items-center justify-center shrink-0">
                     <span className="text-blue-600 font-black text-[10px]">N</span>
