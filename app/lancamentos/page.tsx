@@ -203,9 +203,9 @@ export default function LancamentosPage() {
           </div>
           <p className="text-gray-500 text-sm mb-8">Esta é uma área segura para gestão de dados. Por favor, valide sua identidade para realizar lançamentos.</p>
           <form onSubmit={handleLogin} className="space-y-4">
-            <input type="text" placeholder="ID ou E-mail" required className="w-full px-5 py-4 bg-gray-400 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100" onChange={(e) => setSlug(e.target.value)} />
+            <input type="text" placeholder="ID ou E-mail" required className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100" onChange={(e) => setSlug(e.target.value)} />
             <div className="relative">
-              <input type={showPassword ? "text" : "password"} placeholder="Senha" required className="w-full px-5 py-4 bg-gray-400 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100" onChange={(e) => setPassword(e.target.value)} />
+              <input type={showPassword ? "text" : "password"} placeholder="Senha" required className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100" onChange={(e) => setPassword(e.target.value)} />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
             </div>
             <button disabled={authLoading} className="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold shadow-lg shadow-orange-100 transition-transform active:scale-95 disabled:opacity-50">{authLoading ? "Verificando..." : "Entrar na Plataforma"}</button>
