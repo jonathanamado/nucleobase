@@ -276,7 +276,7 @@ export default function LancamentosPage() {
 
       <div>
         <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-gray-400 mb-1 flex items-center gap-4">
-          <span className="whitespace-nowrap">Formulário em 3 etapas</span>
+          <span className="whitespace-nowrap">Registros em 3 etapas</span>
           <div className="h-px bg-gray-100 flex-1"></div>
         </h3>
 
@@ -290,7 +290,7 @@ export default function LancamentosPage() {
             
             <div className="text-xs font-bold text-orange-700 flex items-center flex-wrap gap-2">
               <div className="hidden md:flex items-center flex-wrap gap-2">
-                Precisa de agilidade? Utilize a 
+                Precisa de mais agilidade? Utilize a 
                 <a href="/lancamentos/importar" className="hover:opacity-80 transition-opacity">
                   <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
                     Importação via arquivo
@@ -305,7 +305,7 @@ export default function LancamentosPage() {
                 para múltiplos registros.
               </div>
 
-              <div className="md:hidden flex items-center flex-wrap gap-2">
+              <div className="md:hidden flex items-center flex-wrap gap-1">
                 Importe via 
                 <a href="/lancamentos/importar">
                   <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">

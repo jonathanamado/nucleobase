@@ -32,10 +32,17 @@ export default function AcessoUsuarioPage() {
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        fetchProfileData(session.user);
-      } else {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error || !session) {
+          // Se houver erro de token inválido ou não houver sessão, limpa estados
+          setIsLoggedIn(false);
+          if (error) await supabase.auth.signOut(); 
+        } else {
+          fetchProfileData(session.user);
+        }
+      } catch (err) {
         setIsLoggedIn(false);
       }
     };
@@ -110,7 +117,6 @@ export default function AcessoUsuarioPage() {
       if (authError) {
         alert("Erro ao acessar: Senha incorreta ou problema na conta.");
       } else {
-        // Ajuste solicitado: Redirecionamento após login
         window.location.href = "/minha-conta";
       }
     } catch (err) {
@@ -323,7 +329,7 @@ export default function AcessoUsuarioPage() {
                   <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 tracking-tight">
                     <span className="md:hidden">Painel de Resultados</span>
                     <span className="hidden md:block">Painel de <br /> Resultados</span>
-                  </h3>                  
+                  </h3>                   
                   <p className="text-gray-500 text-[14px] md:text-[16px] leading-relaxed font-medium mb-6 md:block hidden">
                     Acompanhe a evolução da sua saúde financeira com relatórios e insights poderosos:
                   </p>
