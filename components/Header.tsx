@@ -218,7 +218,7 @@ export function Header() {
                   alt="Logo Nucleo Base"
                   width={120} 
                   height={65} 
-                  className="w-[115px] h-auto lg:w-[140px] lg:h-auto object-contain" 
+                  className="w-[125px] h-auto lg:w-[155px] lg:h-auto object-contain" 
                 />
               </a>
           </div>
