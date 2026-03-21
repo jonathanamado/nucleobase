@@ -44,7 +44,7 @@ export function MainContent() {
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full bg-white text-gray-900 min-h-screen">
       
       {/* --- MODAL DE NEWSLETTER --- */}
       {isModalOpen && (
