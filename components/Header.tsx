@@ -212,13 +212,13 @@ export function Header() {
       <div className="w-full px-4 md:px-8 lg:px-10 h-20 flex items-center justify-between relative bg-white">
         <div className="flex items-center flex-shrink-0 min-w-fit bg-white"> 
           <div className="flex-shrink-0">
-              <a href="/" rel="external" className="block hover:opacity-90 transition">
+              <a href="/" rel="external" className="flex items-center hover:opacity-90 transition h-full">
                 <img 
                   src="/logo-oficial.png?v=3" 
                   alt="Logo Nucleo Base"
                   width={120} 
                   height={65} 
-                  className="w-[125px] h-auto lg:w-[155px] lg:h-auto object-contain" 
+                  className="w-auto h-[45px] lg:h-[50px] object-contain block" 
                 />
               </a>
           </div>
