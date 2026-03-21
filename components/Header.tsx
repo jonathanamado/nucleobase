@@ -155,6 +155,7 @@ export function Header() {
   );
 
   return (
+    // Adicionado text-gray-900 e forçado bg-white
     <header className="w-full border-b border-gray-200 bg-white text-gray-900 sticky top-0 z-50">
       <style jsx global>{`
         @keyframes blink-play {
@@ -166,6 +167,7 @@ export function Header() {
         }
       `}</style>
 
+      {/* MODAL DE SENHA - Blindado com bg-white e texto escuro */}
       {showPassModal && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md z-[150] flex items-center justify-center p-6">
           <div className="bg-white w-full max-w-md rounded-[3.5rem] p-12 shadow-2xl relative border border-gray-100 animate-in zoom-in-95 duration-300">
@@ -209,14 +211,14 @@ export function Header() {
 
       <div className="w-full px-4 md:px-8 lg:px-10 h-20 flex items-center justify-between relative bg-white">
         <div className="flex items-center flex-shrink-0 min-w-fit bg-white"> 
-          <div className="flex-shrink-0 flex items-center py-2">
+          <div className="flex-shrink-0">
               <a href="/" rel="external" className="block hover:opacity-90 transition">
                 <img 
                   src="/logo-oficial.png?v=3" 
                   alt="Logo Nucleo Base"
                   width={120} 
                   height={65} 
-                  className="w-auto h-auto max-h-[50px] lg:max-h-[58px] object-contain" 
+                  className="w-[125px] h-auto lg:w-[155px] lg:h-auto object-contain" 
                 />
               </a>
           </div>
@@ -322,6 +324,7 @@ export function Header() {
           </div>
         </nav>
 
+        {/* MENU MOBILE */}
         <div className="md:hidden flex items-center bg-white">
           <button 
             ref={mobileButtonRef}
