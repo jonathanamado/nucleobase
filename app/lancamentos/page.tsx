@@ -307,13 +307,13 @@ export default function LancamentosPage() {
 
               <div className="md:hidden flex items-center flex-wrap gap-2">
                 Importe via 
-                <a href="#painel-controle">
+                <a href="/lancamentos/importar">
                   <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
                     Arquivo
                   </span>
                 </a> 
                 ou 
-                <a href="#painel-controle">
+                <a href="/lancamentos/integrar">
                   <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
                     Cloud
                   </span>
