@@ -269,8 +269,8 @@ export default function LancamentosPage() {
           <Activity size={32} className="text-orange-500 skew-x-12 ml-4" strokeWidth={1.5} />
         </h1>
         <h2 className="text-base text-gray-600 w-full font-bold leading-tight">
-          <span className="hidden md:inline">Realize lançamentos via tela ou importação (múltiplos registros).</span>
-          <span className="inline md:hidden">Controles por tela ou via arquivos</span>
+          <span className="hidden md:inline">Realize seus registros via tela ou importação (múltiplos registros).</span>
+          <span className="inline md:hidden">Registros por tela ou via arquivos</span>
         </h2>
       </div>
 
@@ -282,7 +282,7 @@ export default function LancamentosPage() {
 
         <div className="mb-7 space-y-4">
           <p className="text-sm text-gray-500 font-medium leading-relaxed">
-            <span className="hidden md:inline">Utilize o formulário abaixo para registrar entradas e saídas de forma manual e detalhada.</span>
+            <span className="hidden md:inline">Utilize a aplicação abaixo para registrar entradas e saídas de forma manual e detalhada.</span>
             <span className="inline md:hidden">Registre entradas e saídas de forma manual.</span>
           </p>
           <div className="inline-flex items-center gap-3 p-4 bg-orange-50 rounded-2xl border border-orange-100 w-full md:w-auto">
@@ -306,7 +306,7 @@ export default function LancamentosPage() {
               </div>
 
               <div className="md:hidden flex items-center flex-wrap gap-1">
-                Importe via 
+                Importe seus dados via 
                 <a href="/lancamentos/importar">
                   <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
                     Arquivo

@@ -16,6 +16,7 @@ import {
 
 export default function SobreNucleobase() {
   const [progresso, setProgresso] = useState("0%");
+  const [dnaStatus, setDnaStatus] = useState("DNA Iniciante");
   const [pilarAtivo, setPilarAtivo] = useState(0);
 
   const pilares = [
@@ -46,9 +47,28 @@ export default function SobreNucleobase() {
       content_name: "sobre_nucleobase"
     });
 
+    // Memória de Cálculo para Jornada e DNA
+    // Regra: Perfil preenchido (50%) + Presença de Lançamentos (50%)
+    const temPerfil = true; // Simulação de verificação
+    const temLancamentos = true; // Simulação de verificação
+    
+    let valorProgresso = 0;
+    if (temPerfil) valorProgresso += 50;
+    if (temLancamentos) valorProgresso += 50;
+
     const timer = setTimeout(() => {
-      setProgresso("33%"); 
+      setProgresso(`${valorProgresso}%`);
+      
+      // Contextualização da Barra de DNA conforme o cálculo
+      if (valorProgresso === 100) {
+        setDnaStatus("DNA Consistente");
+      } else if (valorProgresso >= 50) {
+        setDnaStatus("DNA em Evolução");
+      } else {
+        setDnaStatus("DNA Iniciante");
+      }
     }, 500);
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -88,7 +108,7 @@ export default function SobreNucleobase() {
           </div>
           <div className="space-y-3 mb-6">
             <div className="flex justify-between text-[10px] font-black text-gray-400 uppercase tracking-widest">
-              <span>DNA Iniciante</span>
+              <span>{dnaStatus}</span>
               <span className="text-blue-400">Progresso Atual</span>
             </div>
             <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden p-1">
@@ -130,7 +150,7 @@ export default function SobreNucleobase() {
           <div className="flex items-center gap-4 relative z-10">
             <Star size={20} className="text-blue-500" fill="currentColor" />
             <div>
-              <p className="text-blue-400 text-[8px] font-black uppercase tracking-widest">Sua Jornada</p>
+              <p className="text-blue-400 text-[8px] font-black uppercase tracking-widest">Sua Jornada ({dnaStatus})</p>
               <h4 className="font-bold text-white text-sm">Progresso padrão Nucleo</h4>
             </div>
           </div>
