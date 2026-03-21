@@ -155,7 +155,8 @@ export function Header() {
   );
 
   return (
-    <header className="w-full border-b border-gray-200 bg-white sticky top-0 z-50">
+    // Adicionado text-gray-900 e forçado bg-white
+    <header className="w-full border-b border-gray-200 bg-white text-gray-900 sticky top-0 z-50">
       <style jsx global>{`
         @keyframes blink-play {
           0%, 50% { fill: currentColor; }
@@ -166,10 +167,11 @@ export function Header() {
         }
       `}</style>
 
+      {/* MODAL DE SENHA - Blindado com bg-white e texto escuro */}
       {showPassModal && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-xl z-[150] flex items-center justify-center p-6">
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md z-[150] flex items-center justify-center p-6">
           <div className="bg-white w-full max-w-md rounded-[3.5rem] p-12 shadow-2xl relative border border-gray-100 animate-in zoom-in-95 duration-300">
-            <button onClick={() => setShowPassModal(false)} className="absolute right-10 top-10 text-gray-300 hover:text-gray-900 transition-colors">
+            <button onClick={() => setShowPassModal(false)} className="absolute right-10 top-10 text-gray-400 hover:text-gray-900 transition-colors">
               <X size={28} strokeWidth={1.5} />
             </button>
             <div className="text-center mb-10">
@@ -177,16 +179,28 @@ export function Header() {
                 <KeyRound size={36} strokeWidth={1.5} />
               </div>
               <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Nova Senha</h2>
-              <p className="text-gray-400 text-sm mt-2 font-medium">Redefina seu acesso com segurança.</p>
+              <p className="text-gray-500 text-sm mt-2 font-medium">Redefina seu acesso com segurança.</p>
             </div>
             <form onSubmit={handlePasswordReset} className="space-y-5">
               <div className="relative">
-                <input type={showPass ? "text" : "password"} placeholder="Nova senha" required onChange={(e) => setNewPassword(e.target.value)} className="w-full h-14 px-6 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-gray-900" />
+                <input 
+                  type={showPass ? "text" : "password"} 
+                  placeholder="Nova senha" 
+                  required 
+                  onChange={(e) => setNewPassword(e.target.value)} 
+                  className="w-full h-14 px-6 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-gray-900 placeholder:text-gray-400" 
+                />
                 <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400">
                   {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              <input type={showPass ? "text" : "password"} placeholder="Confirmar nova senha" required onChange={(e) => setConfirmPassword(e.target.value)} className="w-full h-14 px-6 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-gray-900" />
+              <input 
+                type={showPass ? "text" : "password"} 
+                placeholder="Confirmar nova senha" 
+                required 
+                onChange={(e) => setConfirmPassword(e.target.value)} 
+                className="w-full h-14 px-6 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-gray-900 placeholder:text-gray-400" 
+              />
               <button disabled={passLoading} className="w-full bg-gray-900 text-white h-16 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-lg mt-4 active:scale-95 transition-all disabled:opacity-50">
                 {passLoading ? "Atualizando..." : "Confirmar Alteração"}
               </button>
@@ -195,8 +209,8 @@ export function Header() {
         </div>
       )}
 
-      <div className="w-full px-4 md:px-8 lg:px-10 h-20 flex items-center justify-between relative">
-        <div className="flex items-center flex-shrink-0 min-w-fit"> 
+      <div className="w-full px-4 md:px-8 lg:px-10 h-20 flex items-center justify-between relative bg-white">
+        <div className="flex items-center flex-shrink-0 min-w-fit bg-white"> 
           <div className="flex-shrink-0">
               <a href="/" rel="external" className="block hover:opacity-90 transition">
                 <img 
@@ -222,14 +236,14 @@ export function Header() {
           </div>
         </div>
 
-        <nav className="hidden md:flex items-center gap-3 text-[13px] text-gray-600">
+        <nav className="hidden md:flex items-center gap-3 text-[13px] text-gray-600 bg-white">
           {pathname === "/" && (
             <form onSubmit={handleSearch} className="flex items-center bg-gray-50 border border-gray-100 rounded-full px-3 py-1.5 focus-within:border-blue-300 transition-all mr-2 group">
               <input 
                 name="q"
                 type="text" 
                 placeholder="Pesquisar..." 
-                className="bg-transparent outline-none text-[12px] w-24 lg:w-40 transition-all focus:w-32 lg:focus:w-56"
+                className="bg-transparent outline-none text-[12px] w-24 lg:w-40 transition-all focus:w-32 lg:focus:w-56 text-gray-900"
               />
               <button type="submit" className="text-gray-400 group-hover:text-blue-600 transition-colors ml-1">
                 <Search size={18} strokeWidth={2.5} />
@@ -237,9 +251,9 @@ export function Header() {
             </form>
           )}
 
-          <div className="flex items-center gap-3 relative">
+          <div className="flex items-center gap-3 relative bg-white">
             {!isLoggedIn ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 bg-white">
                 <a href="/cadastro" className="min-w-[120px] inline-block text-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition font-bold shadow-sm">
                   Criar Conta
                 </a>
@@ -248,7 +262,7 @@ export function Header() {
                 </a>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 bg-white">
                 <a href="/acesso-usuario" className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition font-bold shadow-sm">
                   <LayoutDashboard size={18} />
                   Acessar Plataforma
@@ -288,16 +302,16 @@ export function Header() {
                 </button>
 
                 {isUserDropdownOpen && (
-                  <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
                     {isLoggedIn ? (
-                      <div className="flex flex-col">
+                      <div className="flex flex-col bg-white">
                         <DropdownItem icon={UserCircle} label="Minha Conta" onClick={() => { router.push("/minha-conta"); setIsUserDropdownOpen(false); }} />
                         <DropdownItem icon={Settings} label="Configurações" onClick={() => { router.push("/configuracoes"); setIsUserDropdownOpen(false); }} />
                         <DropdownItem icon={Key} label="Alterar senha" onClick={() => { setIsUserDropdownOpen(false); setShowPassModal(true); }} />
                         <DropdownItem icon={Power} label="Sair da conta" color="text-red-500" onClick={handleLogout} />
                       </div>
                     ) : (
-                      <div className="flex flex-col">
+                      <div className="flex flex-col bg-white">
                         <DropdownItem icon={UserPlus} label="Criar conta" onClick={() => { router.push("/cadastro"); setIsUserDropdownOpen(false); }} />
                         <DropdownItem icon={LogIn} label="Realizar login" onClick={() => { router.push("/acesso-usuario"); setIsUserDropdownOpen(false); }} />
                         <DropdownItem icon={PlayCircle} label="Demonstração APP" onClick={() => { router.push("/demonstracao"); setIsUserDropdownOpen(false); }} />
@@ -310,7 +324,8 @@ export function Header() {
           </div>
         </nav>
 
-        <div className="md:hidden flex items-center">
+        {/* MENU MOBILE */}
+        <div className="md:hidden flex items-center bg-white">
           <button 
             ref={mobileButtonRef}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -339,22 +354,22 @@ export function Header() {
         {isMenuOpen && (
           <>
             <div 
-              className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-[90] md:hidden animate-in fade-in duration-300" 
+              className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-[90] md:hidden animate-in fade-in duration-300" 
               onClick={() => setIsMenuOpen(false)}
             />
 
             <div 
               ref={mobileMenuRef}
-              className="absolute top-[85px] right-4 left-4 bg-white rounded-[2rem] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-gray-100 z-[100] overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300 md:hidden"
+              className="absolute top-[85px] right-4 left-4 bg-white rounded-[2rem] shadow-2xl border border-gray-100 z-[100] overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300 md:hidden"
             >
-              <div className="max-h-[70vh] overflow-y-auto p-6 custom-scrollbar">
-                <nav className="space-y-1">
+              <div className="max-h-[70vh] overflow-y-auto p-6 bg-white">
+                <nav className="space-y-1 bg-white">
                   {menuLinks.map((link) => (
                     <a
                       key={link.name}
                       href={link.href}
                       onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center justify-between p-3 rounded-2xl text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition-all group"
+                      className="flex items-center justify-between p-3 rounded-2xl text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition-all group bg-white"
                     >
                       <div className="flex items-center gap-4">
                         <span className="text-gray-400 group-hover:text-blue-600 transition-colors">
@@ -367,22 +382,22 @@ export function Header() {
                   ))}
                 </nav>
 
-                <div className="mt-6 pt-6 border-t border-gray-100 space-y-3">
+                <div className="mt-6 pt-6 border-t border-gray-100 space-y-3 bg-white">
                   {!isLoggedIn ? (
-                    <div className="grid grid-cols-2 gap-4">
-                      <a href="/acesso-usuario" className="py-4 bg-orange-500 text-white text-center rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-lg shadow-orange-500/20 active:scale-95 transition-all">
+                    <div className="grid grid-cols-2 gap-4 bg-white">
+                      <a href="/acesso-usuario" className="py-4 bg-orange-500 text-white text-center rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all">
                         Acessar
                       </a>
-                      <a href="/cadastro" className="py-4 bg-blue-600 text-white text-center rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition-all">
+                      <a href="/cadastro" className="py-4 bg-blue-600 text-white text-center rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all">
                         Criar Conta
                       </a>
                     </div>
                   ) : (
-                    <div className="flex flex-col gap-3">
-                      <a href="/acesso-usuario" className="flex items-center justify-center gap-2 w-full py-4 bg-orange-500 text-white rounded-2xl font-bold text-sm shadow-lg shadow-orange-500/20 active:scale-95 transition-all">
+                    <div className="flex flex-col gap-3 bg-white">
+                      <a href="/acesso-usuario" className="flex items-center justify-center gap-2 w-full py-4 bg-orange-500 text-white rounded-2xl font-bold text-sm shadow-lg active:scale-95 transition-all">
                         <LayoutDashboard size={18} /> Painel Acesso APP
                       </a>
-                      <a href="/resultados" className="flex items-center justify-center gap-2 w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-sm shadow-lg shadow-gray-900/20 active:scale-95 transition-all">
+                      <a href="/resultados" className="flex items-center justify-center gap-2 w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-sm shadow-lg active:scale-95 transition-all">
                         <BarChart3 size={18} /> Visão de Resultados
                       </a>
                       <button onClick={handleLogout} className="flex items-center justify-center gap-2 w-full py-4 bg-red-50 text-red-600 rounded-2xl font-bold text-sm border border-red-100 active:scale-95 transition-all">
