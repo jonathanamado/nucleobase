@@ -468,7 +468,7 @@ export default function LancamentosPage() {
                 <div className="animate-in fade-in slide-in-from-top-2">
                     {(formData.tipo_de_custo === "Fixo" || isReceita) && (
                      <div className="p-4 bg-blue-500/10 rounded-xl border border-blue-500/20 mb-4">
-                       <p className="text-[10px] text-blue-400 font-bold uppercase mb-2">Recorrência até:</p>
+                       <p className="text-[10px] text-blue-400 font-bold uppercase mb-2">Recorrência mensal até:</p>
                        <input 
                           type="date" 
                           max={maxDate}
@@ -488,7 +488,7 @@ export default function LancamentosPage() {
                         {formData.parcelado && (
                           <div className="flex gap-2">
                             <div className="w-1/2 space-y-1">
-                              <label className="text-[9px] text-orange-400/70 uppercase font-bold ml-1">Qtd Parcelas</label>
+                              <label className="text-[9px] text-orange-400/70 uppercase font-bold ml-1">Quantidade Parcelas</label>
                               <input 
                                 type="number" 
                                 placeholder="Ex: 12" 
@@ -497,7 +497,7 @@ export default function LancamentosPage() {
                               />
                             </div>
                             <div className="w-1/2 space-y-1">
-                              <label className="text-[9px] text-orange-400/70 uppercase font-bold ml-1">Início da Fatura</label>
+                              <label className="text-[9px] text-orange-400/70 uppercase font-bold ml-1">Fatura 1º pagamento</label>
                               <input 
                                 type="month" 
                                 value={formData.fatura_mes} 

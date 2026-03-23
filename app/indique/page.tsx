@@ -185,16 +185,16 @@ export default function IndiquePage() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
                 
                 {/* CARD WHATSAPP */}
-                <div className={`bg-white border border-gray-100 rounded-[2.5rem] p-8 md:p-10 shadow-sm flex flex-col justify-between transition-all duration-300 min-h-[340px] ${cardAtivo === 0 ? "flex" : "hidden lg:flex"}`}>
+                <div className={`bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm flex flex-col justify-between transition-all duration-300 min-h-[260px] ${cardAtivo === 0 ? "flex" : "hidden lg:flex"}`}>
                   <div>
-                    <div className="flex items-center gap-3 mb-6">
+                    <div className="flex items-center gap-3 mb-4">
                       <div className="bg-emerald-50 p-2 rounded-lg text-emerald-600"><MessageCircle size={16} /></div>
                       <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Compartilhar WhatsApp</span>
                     </div>
-                    <p className="text-xs text-gray-400 font-medium mb-6 leading-relaxed">Envie uma mensagem direta com seu link de indicação para seus contatos.</p>
+                    <p className="text-xs text-gray-400 font-medium mb-4 leading-relaxed">Envie uma mensagem direta com seu link de indicação para seus contatos.</p>
                   </div>
                   
-                  <div className="flex flex-col gap-6">
+                  <div className="flex flex-col gap-4">
                     <button onClick={handleWhatsAppInvite} className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all shadow-lg">
                       Enviar Agora <ArrowUpRight size={14} />
                     </button>
@@ -209,18 +209,18 @@ export default function IndiquePage() {
                 </div>
 
                 {/* CARD LINK */}
-                <div className={`bg-white border border-gray-100 rounded-[2.5rem] p-8 md:p-10 shadow-sm flex flex-col justify-between transition-all duration-300 min-h-[340px] ${cardAtivo === 1 ? "flex" : "hidden lg:flex"}`}>
+                <div className={`bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm flex flex-col justify-between transition-all duration-300 min-h-[260px] ${cardAtivo === 1 ? "flex" : "hidden lg:flex"}`}>
                   <div>
-                    <div className="flex items-center gap-3 mb-6">
+                    <div className="flex items-center gap-3 mb-4">
                       <div className="bg-blue-50 p-2 rounded-lg text-blue-600"><Share2 size={16} /></div>
                       <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Código de indicação</span>
                     </div>
-                    <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 mb-4 overflow-hidden">
+                    <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 mb-2 overflow-hidden">
                       <code className="text-xs font-mono text-blue-600 block truncate">{linkIndicacao}</code>
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-6">
+                  <div className="flex flex-col gap-4">
                     <button onClick={handleCopy} className={`w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 shadow-lg ${copiado ? "bg-emerald-500 text-white" : "bg-gray-900 text-white"}`}>
                       {copiado ? "Copiado" : "Copiar Link"}
                     </button>
@@ -237,9 +237,9 @@ export default function IndiquePage() {
                 </div>
 
                 {/* CARD EMAIL */}
-                <div className={`bg-white border border-gray-100 rounded-[2.5rem] p-8 md:p-10 shadow-sm flex flex-col justify-between transition-all duration-300 min-h-[340px] ${cardAtivo === 2 ? "flex" : "hidden lg:flex"}`}>
+                <div className={`bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm flex flex-col justify-between transition-all duration-300 min-h-[260px] ${cardAtivo === 2 ? "flex" : "hidden lg:flex"}`}>
                   <div>
-                    <div className="flex items-center gap-3 mb-6">
+                    <div className="flex items-center gap-3 mb-4">
                       <div className="bg-blue-50 p-2 rounded-lg text-blue-600"><Mail size={16} /></div>
                       <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Enviar por E-mail</span>
                     </div>
@@ -248,11 +248,11 @@ export default function IndiquePage() {
                       value={emailInvite} 
                       onChange={(e) => setEmailInvite(e.target.value)} 
                       placeholder="E-mail do convidado..." 
-                      className="w-full bg-gray-50 border-none rounded-2xl px-4 py-4 text-sm outline-none focus:ring-1 focus:ring-blue-600 mb-4" 
+                      className="w-full bg-gray-50 border-none rounded-2xl px-4 py-4 text-sm outline-none focus:ring-1 focus:ring-blue-600 mb-2" 
                     />
                   </div>
                   
-                  <div className="flex flex-col gap-6">
+                  <div className="flex flex-col gap-4">
                     <button onClick={handleSendInvite} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-lg">
                       {inviteEnviado ? "Enviado" : "Convidar"} <Send size={14} />
                     </button>

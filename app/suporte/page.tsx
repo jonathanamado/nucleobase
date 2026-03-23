@@ -39,7 +39,7 @@ export default function SuportePage() {
       title: "Configurações da Conta",
       desc: "Dúvidas sobre acessos, senhas ou integração de equipe.",
       icon: <Settings />,
-      link: "/acesso-usuario",
+      link: "/configuracoes",
       color: "text-amber-600",
       bg: "bg-amber-50"
     },

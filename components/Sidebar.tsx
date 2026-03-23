@@ -10,7 +10,7 @@ export function Sidebar() {
       `}} />
 
       <aside 
-        className="w-80 hidden md:flex flex-col fixed left-0 top-20 flex-shrink-0 pl-10 pr-6 bg-white text-gray-900 border-r border-gray-50"
+        className="w-80 hidden md:flex flex-col fixed left-0 top-20 flex-shrink-0 pl-10 pr-6 bg-white text-gray-900"
         style={{
           height: 'calc(100vh - 5rem)', // 5rem (80px) é a altura do header
           paddingTop: '2rem',
