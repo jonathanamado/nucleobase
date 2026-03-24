@@ -399,28 +399,28 @@ export default function LancamentosPage() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
                 <button
                   type="button"
                   onClick={() => setFormData({...formData, tipo_origem: "CONTA_CORRENTE", parcelado: false})}
-                  className={`p-4 rounded-2xl border-2 transition-all flex items-center gap-4 ${formData.tipo_origem === "CONTA_CORRENTE" ? 'border-blue-600 bg-blue-50/30 shadow-md' : 'border-gray-100 bg-white'}`}
+                  className={`p-3 sm:p-4 rounded-2xl border-2 transition-all flex items-center gap-2 sm:gap-4 ${formData.tipo_origem === "CONTA_CORRENTE" ? 'border-blue-600 bg-blue-50/30 shadow-md' : 'border-gray-100 bg-white'}`}
                 >
-                  <div className={`p-3 rounded-xl ${formData.tipo_origem === "CONTA_CORRENTE" ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-400'}`}>
-                    <Wallet size={20} />
+                  <div className={`p-2 sm:p-3 rounded-xl flex-shrink-0 ${formData.tipo_origem === "CONTA_CORRENTE" ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-400'}`}>
+                    <Wallet className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <span className="font-bold text-[10px] sm:text-xs text-gray-900 uppercase leading-tight text-left">Conta Corrente</span>
+                  <span className="font-bold text-[9px] sm:text-xs text-gray-900 uppercase leading-tight text-left">Conta Corrente</span>
                 </button>
 
                 <button
                   type="button"
                   disabled={isReceita}
                   onClick={() => setFormData({...formData, tipo_origem: "CARTAO"})}
-                  className={`p-4 rounded-2xl border-2 transition-all flex items-center gap-4 ${formData.tipo_origem === "CARTAO" ? 'border-blue-600 bg-blue-50/30 shadow-md' : 'border-gray-100 bg-white'} disabled:opacity-40 disabled:grayscale`}
+                  className={`p-3 sm:p-4 rounded-2xl border-2 transition-all flex items-center gap-2 sm:gap-4 ${formData.tipo_origem === "CARTAO" ? 'border-blue-600 bg-blue-50/30 shadow-md' : 'border-gray-100 bg-white'} disabled:opacity-40 disabled:grayscale`}
                 >
-                  <div className={`p-3 rounded-xl ${formData.tipo_origem === "CARTAO" ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-400'}`}>
-                    <CreditCard size={20} />
+                  <div className={`p-2 sm:p-3 rounded-xl flex-shrink-0 ${formData.tipo_origem === "CARTAO" ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-400'}`}>
+                    <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <span className="font-bold text-[10px] sm:text-xs text-gray-900 uppercase leading-tight text-left">Cartão de Crédito</span>
+                  <span className="font-bold text-[9px] sm:text-xs text-gray-900 uppercase leading-tight text-left">Cartão de Crédito</span>
                 </button>
               </div>
               <input required type="text" placeholder="Instituição (Ex: Nubank)" value={formData.origem}
