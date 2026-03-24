@@ -8,7 +8,7 @@ import {
   Info, Newspaper, CreditCard, BarChart3, Star, HelpCircle, 
   Shield, ChevronRight, Power,
   Search, Gift, Settings, Key, UserPlus, LogIn, PlayCircle,
-  KeyRound, Eye, EyeOff, Play
+  KeyRound, Eye, EyeOff, Play, Rocket, Pencil
 } from "lucide-react";
 
 export function Header() {
@@ -154,6 +154,45 @@ export function Header() {
     </button>
   );
 
+  // Lógica de Renderização Condicional dos Botões de Navegação Financeira
+  const renderFinanceButtons = () => {
+    if (!isLoggedIn) return null;
+
+    const btnBase = "flex items-center gap-2 px-5 py-2 rounded-md transition font-bold shadow-sm text-white";
+    
+    // Configurações dos botões solicitados
+    const btnResultados = (
+      <a key="res" href="/resultados" className={`${btnBase} bg-blue-600 hover:bg-blue-700`}>
+        <BarChart3 size={18} /> Painel de Resultados
+      </a>
+    );
+    const btnEdicao = (
+      <a key="edit" href="/lancamentos/gerenciar" className={`${btnBase} bg-orange-500 hover:bg-orange-600`}>
+        <Pencil size={18} /> Edição de lançamentos
+      </a>
+    );
+    const btnNovos = (
+      <a key="new" href="/lancamentos" className={`${btnBase} bg-orange-500 hover:bg-orange-600`}>
+        <Rocket size={18} /> Novos lançamentos
+      </a>
+    );
+    const btnPadrao = (
+      <a key="def" href="/acesso-usuario" className={`${btnBase} bg-blue-600 hover:bg-blue-700`}>
+        <LayoutDashboard size={18} /> Acessar Plataforma
+      </a>
+    );
+
+    if (pathname === "/lancamentos") {
+      return [btnResultados, btnEdicao];
+    } else if (pathname === "/lancamentos/gerenciar") {
+      return [btnResultados, btnNovos];
+    } else if (pathname === "/resultados") {
+      return [btnNovos, btnEdicao];
+    }
+
+    return [btnPadrao];
+  };
+
   return (
     <header className="w-full border-b border-gray-200 bg-white text-gray-900 sticky top-0 z-50">
       <style jsx global>{`
@@ -262,10 +301,7 @@ export function Header() {
               </div>
             ) : (
               <div className="flex items-center gap-2 bg-white">
-                <a href="/acesso-usuario" className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition font-bold shadow-sm">
-                  <LayoutDashboard size={18} />
-                  Acessar Plataforma
-                </a>
+                {renderFinanceButtons()}
                 
                 {pathname === "/minha-conta" && (
                   <button 

@@ -5,7 +5,7 @@ import {
   Save, CreditCard, Wallet, Calendar, 
   Tag, DollarSign, CheckCircle2, Layers, Repeat, 
   Rocket, Activity, Clock, AlertCircle, BarChart3, ArrowRight, LineChart, Zap, X, Instagram, Edit3,
-  Lock, Eye, EyeOff, UserPlus, FileUp, Cpu, ChevronLeft, ChevronRight
+  Lock, Eye, EyeOff, UserPlus, FileUp, Cpu, ChevronLeft, ChevronRight, Briefcase, Building2, User
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
@@ -22,9 +22,8 @@ export default function LancamentosPage() {
   const [sucesso, setSucesso] = useState(false);
   const [showAviso, setShowAviso] = useState(false);
   const [ultimosLancamentos, setUltimosLancamentos] = useState<any[]>([]);
-  const [activeCard, setActiveCard] = useState(0); // Estado para o carrossel mobile
+  const [activeCard, setActiveCard] = useState(0); 
   
-  // Estados para Login
   const [slug, setSlug] = useState(""); 
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -50,26 +49,59 @@ export default function LancamentosPage() {
 
   const maxDate = getMaxRecurrenceDate();
 
-  const categoriasDespesa: { [key: string]: string[] } = {
-    "Alimentação": ["Mercado", "Feira", "Padaria", "Suplementos", "Outros"],
-    "Assinaturas & Serviços": ["Streaming", "Software/SaaS", "Internet", "Telefone"],
-    "Compras": ["Roupas", "Eletrônicos", "Casa", "Beleza", "Pet Shop"],
-    "Educação": ["Curso/Treinamento", "Faculdade", "Livros"],
-    "Investimentos": ["Ações/FIIs", "Cripto", "Renda Fixa"],
-    "Lazer": ["Viagem", "Hospedagem", "Cinema", "Bares/Festas"],
-    "Moradia": ["Prestação", "Aluguel", "Condomínio", "Reforma", "Energia", "Água", "Gás"],
-    "Saúde": ["Farmácia", "Consulta", "Plano de Saúde"],
-    "Transporte": ["Combustível", "Uber/99", "Manutenção"],
-    "Outros": ["Imprevistos", "Taxas Bancárias"]
-  };
-
-  const categoriasReceita: { [key: string]: string[] } = {
-    "Salário": ["Salário Base", "13º Salário", "Férias", "Bônus/PLR"],
-    "Proventos": ["Dividendos", "Juros S/ Capital", "Rendimentos FII"],
-    "Freelance": ["Projetos", "Consultoria"],
-    "Vendas": ["Comissões", "Venda de Ativos"],
-    "Reembolso": ["Empresa", "Saúde"],
-    "Outros": ["Presentes", "Restituição IR", "Prêmios"]
+  const baseCategorias: any = {
+    "Pessoal": {
+      "Despesa": {
+        "Alimentação": ["Mercado", "Feira", "Padaria", "Suplementos", "Outros"],
+        "Assinaturas & Serviços": ["Streaming", "Software/SaaS", "Internet", "Telefone", "Outros"],
+        "Compras": ["Roupas", "Eletrônicos", "Casa", "Beleza", "Pet Shop", "Outros"],
+        "Educação": ["Curso/Treinamento", "Faculdade", "Livros", "Outros"],
+        "Investimentos": ["Ações/FIIs", "Cripto", "Renda Fixa", "Outros"],
+        "Lazer": ["Viagem", "Hospedagem", "Cinema", "Bares/Festas", "Outros"],
+        "Moradia": ["Prestação", "Aluguel", "Condomínio", "Reforma", "Energia", "Água", "Gás", "Outros"],
+        "Saúde": ["Farmácia", "Consulta", "Plano de Saúde", "Outros"],
+        "Transporte": ["Combustível", "Uber/99", "Manutenção", "Outros"],
+        "Outros": ["Imprevistos", "Taxas Bancárias", "Outros"]
+      },
+      "Receita": {
+        "Salário": ["Salário Base", "13º Salário", "Férias", "Bônus/PLR", "Outros"],
+        "Proventos": ["Dividendos", "Juros S/ Capital", "Rendimentos FII", "Outros"],
+        "Freelance": ["Projetos", "Consultoria", "Outros"],
+        "Vendas": ["Comissões", "Venda de Ativos", "Outros"],
+        "Reembolso": ["Empresa", "Saúde", "Outros"],
+        "Outros": ["Presentes", "Restituição IR", "Prêmios", "Outros"]
+      }
+    },
+    "Empresarial": {
+      "Despesa": {
+        "Operacional": ["Matéria-prima", "Insumos", "Fretes", "Embalagens", "Outros"],
+        "Pessoal": ["Salários", "Pró-labore", "Encargos Sociais", "Benefícios", "Outros"],
+        "Marketing": ["Anúncios", "Software", "Eventos", "Outros"],
+        "Infraestrutura": ["Aluguel Oficina/Escritório", "Energia", "Internet", "Manutenção", "Outros"],
+        "Impostos": ["DAS/Simples", "ISS", "ICMS", "Outros"],
+        "Financeiro": ["Taxas Maquininha", "Juros Empréstimo", "Tarifas", "Outros"],
+        "Outros": ["Diversos", "Outros"]
+      },
+      "Receita": {
+        "Vendas": ["Produtos", "Serviços", "Licenciamento", "Outros"],
+        "Investimentos": ["Aplicações", "Aportes", "Outros"],
+        "Outros": ["Recuperação de Crédito", "Outros"]
+      }
+    },
+    "Condomínio": {
+      "Despesa": {
+        "Folha de Pagamento": ["Salários", "Encargos", "Terceirizados", "Outros"],
+        "Manutenção": ["Elevadores", "Piscinas", "Jardim", "Pintura", "Outros"],
+        "Utilidades": ["Água Coletiva", "Energia Comum", "Gás Coletivo", "Outros"],
+        "Administrativo": ["Honorários Síndico", "Seguro Predial", "Material Escritório", "Outros"],
+        "Outros": ["Fundo de Reserva", "Benfeitorias", "Outros"]
+      },
+      "Receita": {
+        "Cotas Condominiais": ["Mensalidade", "Acordos", "Multas/Juros", "Outros"],
+        "Aluguéis": ["Espaço Gourmet", "Salão Festas", "Antenas", "Outros"],
+        "Outros": ["Rendimentos Fundo", "Outros"]
+      }
+    }
   };
 
   const initialFormState = {
@@ -235,8 +267,8 @@ export default function LancamentosPage() {
   }
 
   const isReceita = formData.natureza === "Receita";
+  const categoriasFiltradas = baseCategorias[formData.projeto][formData.natureza];
 
-  // Lógica do Carrossel Mobile
   const nextCard = () => setActiveCard((prev) => (prev + 1) % 3);
   const prevCard = () => setActiveCard((prev) => (prev - 1 + 3) % 3);
 
@@ -339,28 +371,56 @@ export default function LancamentosPage() {
               <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-3">
                 <span className="w-8 h-px bg-gray-200"></span> 01. Origem dos Lançamentos
               </h3>
+              
+              <div className="grid grid-cols-3 gap-3 mb-8">
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, projeto: "Pessoal", categoria: "", sub_categoria: ""})}
+                  className={`p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${formData.projeto === "Pessoal" ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-gray-100 text-gray-400'}`}
+                >
+                  <User size={18} />
+                  <span className="font-black text-[9px] uppercase tracking-tighter">Orçamento Pessoal</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, projeto: "Empresarial", categoria: "", sub_categoria: ""})}
+                  className={`p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${formData.projeto === "Empresarial" ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-gray-100 text-gray-400'}`}
+                >
+                  <Briefcase size={18} />
+                  <span className="font-black text-[9px] uppercase tracking-tighter">Orçamento Empresarial</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, projeto: "Condomínio", categoria: "", sub_categoria: ""})}
+                  className={`p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${formData.projeto === "Condomínio" ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-gray-100 text-gray-400'}`}
+                >
+                  <Building2 size={18} />
+                  <span className="font-black text-[9px] uppercase tracking-tighter">Orçamento Condomínio</span>
+                </button>
+              </div>
+
               <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 mb-6">
                 <button
                   type="button"
                   onClick={() => setFormData({...formData, tipo_origem: "CONTA_CORRENTE", parcelado: false})}
-                  className={`p-4 sm:p-6 rounded-[2rem] border-2 transition-all text-left flex flex-col items-start ${formData.tipo_origem === "CONTA_CORRENTE" ? 'border-blue-600 bg-blue-50/30 shadow-md' : 'border-gray-100 bg-white'}`}
+                  className={`p-4 rounded-2xl border-2 transition-all flex items-center gap-4 ${formData.tipo_origem === "CONTA_CORRENTE" ? 'border-blue-600 bg-blue-50/30 shadow-md' : 'border-gray-100 bg-white'}`}
                 >
-                  <div className={`p-3 rounded-xl w-fit mb-4 ${formData.tipo_origem === "CONTA_CORRENTE" ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-400'}`}>
+                  <div className={`p-3 rounded-xl ${formData.tipo_origem === "CONTA_CORRENTE" ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-400'}`}>
                     <Wallet size={20} />
                   </div>
-                  <span className="block font-bold text-[10px] sm:text-sm text-gray-900 uppercase leading-tight">Conta Corrente</span>
+                  <span className="font-bold text-[10px] sm:text-xs text-gray-900 uppercase leading-tight text-left">Conta Corrente</span>
                 </button>
 
                 <button
                   type="button"
                   disabled={isReceita}
                   onClick={() => setFormData({...formData, tipo_origem: "CARTAO"})}
-                  className={`p-4 sm:p-6 rounded-[2rem] border-2 transition-all text-left flex flex-col items-start ${formData.tipo_origem === "CARTAO" ? 'border-blue-600 bg-blue-50/30 shadow-md' : 'border-gray-100 bg-white'} disabled:opacity-40 disabled:grayscale`}
+                  className={`p-4 rounded-2xl border-2 transition-all flex items-center gap-4 ${formData.tipo_origem === "CARTAO" ? 'border-blue-600 bg-blue-50/30 shadow-md' : 'border-gray-100 bg-white'} disabled:opacity-40 disabled:grayscale`}
                 >
-                  <div className={`p-3 rounded-xl w-fit mb-4 ${formData.tipo_origem === "CARTAO" ? 'border-blue-600 bg-blue-50/30 shadow-md' : 'border-gray-100 bg-white'}`}>
+                  <div className={`p-3 rounded-xl ${formData.tipo_origem === "CARTAO" ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-400'}`}>
                     <CreditCard size={20} />
                   </div>
-                  <span className="block font-bold text-[10px] sm:text-sm text-gray-900 uppercase leading-tight">Cartão de Crédito</span>
+                  <span className="font-bold text-[10px] sm:text-xs text-gray-900 uppercase leading-tight text-left">Cartão de Crédito</span>
                 </button>
               </div>
               <input required type="text" placeholder="Instituição (Ex: Nubank)" value={formData.origem}
@@ -417,7 +477,8 @@ export default function LancamentosPage() {
                             tipo_origem: val === "Receita" ? "CONTA_CORRENTE" : formData.tipo_origem,
                             categoria: "",
                             sub_categoria: "",
-                            fixo_ate: "" 
+                            fixo_ate: "",
+                            parcelado: false
                           });
                         }}>
                         <option value="Despesa" className="bg-gray-900">Despesa</option>
@@ -429,7 +490,7 @@ export default function LancamentosPage() {
                       <select required className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none disabled:opacity-50 cursor-pointer"
                         value={isReceita ? "Fixo" : formData.tipo_de_custo} 
                         disabled={isReceita}
-                        onChange={(e) => setFormData({...formData, tipo_de_custo: e.target.value})}>
+                        onChange={(e) => setFormData({...formData, tipo_de_custo: e.target.value, parcelado: e.target.value === "Fixo" ? false : formData.parcelado})}>
                         {isReceita ? <option value="Fixo">Fixo (Receita)</option> : (
                           <>
                             <option value="Variável" className="bg-gray-900">Variável</option>
@@ -438,7 +499,7 @@ export default function LancamentosPage() {
                         )}
                       </select>
                     </div>
-                  </div>
+                  </div> 
 
                   <div className="space-y-6">
                     <div className="space-y-2">
@@ -448,7 +509,8 @@ export default function LancamentosPage() {
                         value={formData.categoria} 
                         onChange={(e) => setFormData({...formData, categoria: e.target.value, sub_categoria: ""})} />
                       <datalist id="cat-list">
-                        {Object.keys(isReceita ? categoriasReceita : categoriasDespesa).map((c, i) => <option key={i} value={c} />)}
+                        {Object.keys(categoriasFiltradas).map((c, i) => <option key={i} value={c} />)}
+                        <option value="Outros" />
                       </datalist>
                     </div>
                     
@@ -459,7 +521,8 @@ export default function LancamentosPage() {
                         value={formData.sub_categoria} 
                         onChange={(e) => setFormData({...formData, sub_categoria: e.target.value})} />
                       <datalist id="sub-list">
-                        {(isReceita ? categoriasReceita : categoriasDespesa)[formData.categoria]?.map((s, i) => <option key={i} value={s} />)}
+                        {categoriasFiltradas[formData.categoria]?.map((s: string, i: number) => <option key={i} value={s} />)}
+                        <option value="Outros" />
                       </datalist>
                     </div>
                   </div>
@@ -467,19 +530,19 @@ export default function LancamentosPage() {
 
                 <div className="animate-in fade-in slide-in-from-top-2">
                     {(formData.tipo_de_custo === "Fixo" || isReceita) && (
-                     <div className="p-4 bg-blue-500/10 rounded-xl border border-blue-500/20 mb-4">
-                       <p className="text-[10px] text-blue-400 font-bold uppercase mb-2">Recorrência mensal até:</p>
-                       <input 
+                      <div className="p-4 bg-blue-500/10 rounded-xl border border-blue-500/20 mb-4">
+                        <p className="text-[10px] text-blue-400 font-bold uppercase mb-2">Recorrência mensal até:</p>
+                        <input 
                           type="date" 
                           max={maxDate}
                           className="w-full bg-white/5 text-white text-xs p-2 rounded cursor-pointer" 
                           value={formData.fixo_ate}
                           onChange={(e) => setFormData({...formData, fixo_ate: e.target.value})} 
                         />
-                     </div>
+                      </div>
                     )}
                     
-                    {!isReceita && formData.tipo_origem === "CARTAO" && (
+                    {!isReceita && formData.tipo_origem === "CARTAO" && formData.tipo_de_custo !== "Fixo" && (
                       <div className="p-4 bg-orange-500/10 rounded-xl border border-orange-500/20">
                         <div className="flex justify-between items-center mb-3">
                           <span className="text-[10px] text-orange-400 font-bold uppercase">Pagamento parcelado?</span>
@@ -488,7 +551,7 @@ export default function LancamentosPage() {
                         {formData.parcelado && (
                           <div className="flex gap-2">
                             <div className="w-1/2 space-y-1">
-                              <label className="text-[9px] text-orange-400/70 uppercase font-bold ml-1">Quantidade Parcelas</label>
+                              <label className="text-[9px] text-orange-400/70 uppercase font-bold ml-1">Parcelas</label>
                               <input 
                                 type="number" 
                                 placeholder="Ex: 12" 
@@ -497,7 +560,7 @@ export default function LancamentosPage() {
                               />
                             </div>
                             <div className="w-1/2 space-y-1">
-                              <label className="text-[9px] text-orange-400/70 uppercase font-bold ml-1">Fatura 1º pagamento</label>
+                              <label className="text-[9px] text-orange-400/70 uppercase font-bold ml-1">Fatura 1º pag.</label>
                               <input 
                                 type="month" 
                                 value={formData.fatura_mes} 
