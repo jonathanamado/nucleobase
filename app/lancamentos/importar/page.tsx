@@ -77,7 +77,6 @@ export default function ImportarXLSPage() {
   const formatarDataExibicao = (serial: any) => {
     if (!serial) return "---";
     if (typeof serial === "number") {
-      // Ajuste para evitar recuo de data por fuso horário na prévia
       const data = new Date(Math.round((serial - 25569) * 86400 * 1000));
       const userTimezoneOffset = data.getTimezoneOffset() * 60000;
       const dataAjustada = new Date(data.getTime() + userTimezoneOffset);
@@ -198,7 +197,6 @@ export default function ImportarXLSPage() {
         let valorTotalXls = parseFloat(item.valor);
         const natureza = item.natureza || "Despesa";
         
-        // Ajuste: Dividir o valor total pelas parcelas caso seja Cartão Parcelado
         let valorPorParcela = (tipoImportacao === 'CARTAO' && totalParcelas > 1) 
             ? (valorTotalXls / totalParcelas) 
             : valorTotalXls;
@@ -300,17 +298,50 @@ export default function ImportarXLSPage() {
             Importe sua planilha e deixe que a <strong>Nucleo</strong> organize seus dados.
           </p>
         </div>
-        
-        <div className="flex gap-2 w-full md:w-auto">
+      </div>
+
+      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 md:mb-6 flex items-center gap-4 w-full">
+        Orientações Importação <div className="h-px bg-gray-300 flex-1"></div>
+      </h3>
+
+      {/* BLOCO DE DOWNLOADS REPOSICIONADO E CONTEXTUALIZADO */}
+      <div className="mb-10 bg-white border border-gray-100 p-6 md:p-8 rounded-[2rem] shadow-sm">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] items-center gap-6">
+          <div className="max-w-xl">
+            <h4 className="text-gray-900 font-bold text-lg mb-2 flex items-center gap-2">
+              <FileSpreadsheet size={20} className="text-orange-500" />
+              Utilize nossos modelos oficiais
+            </h4>
+            <p className="text-gray-500 text-sm leading-relaxed">
+              Para garantir que seus dados sejam processados corretamente, utilize nossas planilhas pré-configuradas. Elas contêm as colunas exatas para o sistema identificar categorias, bancos e parcelamentos.
+            </p>
+          </div>
+          <div className="flex flex-wrap lg:flex-nowrap gap-3 w-full md:w-auto">
+            <a 
+              href="/modelo_importacao_conta-corrente.xlsx" 
+              download 
+              className="flex-1 md:flex-none flex items-center justify-center gap-3 px-6 py-4 bg-white border border-gray-200 text-gray-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm text-center"
+            >
+              <Download size={16} className="text-orange-500 flex-shrink-0" /> 
+              <span>Arquivo Modelo <br/>Conta Corrente</span>
+            </a>
+            <a 
+              href="/modelo_importacao_cartao-credito.xlsx" 
+              download 
+              className="flex-1 md:flex-none flex items-center justify-center gap-3 px-6 py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-lg text-center"
+            >
+              <Download size={16} className="text-orange-500 flex-shrink-0" /> 
+              <span>Arquivo Modelo <br/>Cartão Crédito</span>
+            </a>
+          </div>
         </div>
       </div>
 
-      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 md:mb-10 flex items-center gap-4 w-full">
-        Configuração e Upload <div className="h-px bg-gray-300 flex-1"></div>
-      </h3>
-
       {/* 1. SELETOR DE CONTEXTO */}
       <div className={`mb-8 transition-all ${dadosPreview.length > 0 ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+          <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4 w-full">
+            Configuração e Upload <div className="h-px bg-gray-300 flex-1"></div>
+          </h3>
           <div className="grid grid-cols-2 md:flex md:flex-wrap gap-3 md:gap-4">
             <button 
                 onClick={() => setTipoImportacao('CC')}
