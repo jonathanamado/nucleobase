@@ -310,28 +310,33 @@ export default function ImportarXLSPage() {
           <div className="max-w-xl">
             <h4 className="text-gray-900 font-bold text-lg mb-2 flex items-center gap-2">
               <FileSpreadsheet size={20} className="text-orange-500" />
-              Utilize nossos modelos oficiais
+              Utilize os modelos oficiais
             </h4>
-            <p className="text-gray-500 text-sm leading-relaxed">
+            {/* Texto desktop */}
+            <p className="hidden md:block text-gray-500 text-sm leading-relaxed">
               Para garantir que seus dados sejam processados corretamente, utilize nossas planilhas pré-configuradas. Elas contêm as colunas exatas para o sistema identificar categorias, bancos e parcelamentos.
+            </p>
+            {/* Texto mobile reduzido */}
+            <p className="block md:hidden text-gray-500 text-xs leading-relaxed">
+              Efetue o download dos modelos de arquivos "Conta Corrente" e "Cartão", insira seus dados e garanta a leitura correta das colunas.
             </p>
           </div>
           <div className="flex flex-wrap lg:flex-nowrap gap-3 w-full md:w-auto">
             <a 
               href="/modelo_importacao_conta-corrente.xlsx" 
               download 
-              className="flex-1 md:flex-none flex items-center justify-center gap-3 px-6 py-4 bg-white border border-gray-200 text-gray-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm text-center"
+              className="flex-1 md:flex-none flex items-center justify-center gap-3 px-4 py-3 md:px-6 md:py-4 bg-white border border-gray-200 text-gray-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm text-center"
             >
               <Download size={16} className="text-orange-500 flex-shrink-0" /> 
-              <span>Arquivo Modelo <br/>Conta Corrente</span>
+              <span>Modelo <br className="hidden md:block"/>Conta Corrente</span>
             </a>
             <a 
               href="/modelo_importacao_cartao-credito.xlsx" 
               download 
-              className="flex-1 md:flex-none flex items-center justify-center gap-3 px-6 py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-lg text-center"
+              className="flex-1 md:flex-none flex items-center justify-center gap-3 px-4 py-3 md:px-6 md:py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-lg text-center"
             >
               <Download size={16} className="text-orange-500 flex-shrink-0" /> 
-              <span>Arquivo Modelo <br/>Cartão Crédito</span>
+              <span>Modelo <br className="hidden md:block"/>Cartão Crédito</span>
             </a>
           </div>
         </div>
@@ -388,7 +393,7 @@ export default function ImportarXLSPage() {
                 onDrop={(e) => { e.preventDefault(); setDragActive(false); if (e.dataTransfer.files[0]) processarArquivo(e.dataTransfer.files[0]); }}
             >
                {loading ? <Loader2 size={40} className="animate-spin text-orange-500" /> : (
-                  <>
+                 <>
                      <div className="bg-white p-4 md:p-5 rounded-3xl shadow-sm mb-4">
                         <FileSpreadsheet size={28} className="text-orange-500 md:w-8 md:h-8" />
                      </div>
