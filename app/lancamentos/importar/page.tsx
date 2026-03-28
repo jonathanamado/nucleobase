@@ -121,6 +121,7 @@ export default function ImportarXLSPage() {
         }
 
         const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Usuário não autenticado.");
 
         const dadosProcessados = json.map((row: any) => {
           const dataFormatada = formatarDataParaBanco(row.data_compra);
@@ -128,7 +129,8 @@ export default function ImportarXLSPage() {
           const subCat = row.sub_categoria || row.Subcategoria || row.subcategoria || null;
           const bancoOrigem = row.banco || "Não informado";
           
-          const hashBase = btoa(`${dataFormatada}-${valorRaw}-${row.descricao}-${subCat || ''}-${bancoOrigem}`).substring(0, 50);
+          // Adicionado user.id no hash para evitar conflito entre bases de usuários diferentes
+          const hashBase = btoa(`${user.id}-${dataFormatada}-${valorRaw}-${row.descricao}-${subCat || ''}-${bancoOrigem}`).substring(0, 50);
           
           const totalParcelas = parseInt(row.parcelas_totais) || 1;
           const hashParaBusca = (tipoImportacao === 'CARTAO' && totalParcelas > 1) 
@@ -144,20 +146,18 @@ export default function ImportarXLSPage() {
           };
         });
 
-        if (user) {
-          const hashesParaBusca = dadosProcessados.map(d => d.hash_busca);
-          const { data: existentes } = await supabase
-            .from("lancamentos_financeiros")
-            .select("hash_deduplicacao")
-            .eq("user_id", user.id)
-            .in("hash_deduplicacao", hashesParaBusca);
+        const hashesParaBusca = dadosProcessados.map(d => d.hash_busca);
+        const { data: existentes } = await supabase
+          .from("lancamentos_financeiros")
+          .select("hash_deduplicacao")
+          .eq("user_id", user.id)
+          .in("hash_deduplicacao", hashesParaBusca);
 
-          if (existentes) {
-            const hashesNoBanco = existentes.map(e => e.hash_deduplicacao);
-            dadosProcessados.forEach(d => {
-              if (hashesNoBanco.includes(d.hash_busca)) d.ja_existe = true;
-            });
-          }
+        if (existentes) {
+          const hashesNoBanco = existentes.map(e => e.hash_deduplicacao);
+          dadosProcessados.forEach(d => {
+            if (hashesNoBanco.includes(d.hash_busca)) d.ja_existe = true;
+          });
         }
 
         setDadosPreview(dadosProcessados);
@@ -304,7 +304,6 @@ export default function ImportarXLSPage() {
         Orientações Importação <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
-      {/* BLOCO DE DOWNLOADS REPOSICIONADO E CONTEXTUALIZADO */}
       <div className="mb-10 bg-white border border-gray-100 p-6 md:p-8 rounded-[2rem] shadow-sm">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] items-center gap-6">
           <div className="max-w-xl">
@@ -312,11 +311,9 @@ export default function ImportarXLSPage() {
               <FileSpreadsheet size={20} className="text-orange-500" />
               Utilize os modelos oficiais
             </h4>
-            {/* Texto desktop */}
             <p className="hidden md:block text-gray-500 text-sm leading-relaxed">
               Para garantir que seus dados sejam processados corretamente, utilize nossas planilhas pré-configuradas. Elas contêm as colunas exatas para o sistema identificar categorias, bancos e parcelamentos.
             </p>
-            {/* Texto mobile reduzido */}
             <p className="block md:hidden text-gray-500 text-xs leading-relaxed">
               Efetue o download dos modelos de arquivos "Conta Corrente" e "Cartão", insira seus dados e garanta a leitura correta das colunas.
             </p>
@@ -342,7 +339,6 @@ export default function ImportarXLSPage() {
         </div>
       </div>
 
-      {/* 1. SELETOR DE CONTEXTO */}
       <div className={`mb-8 transition-all ${dadosPreview.length > 0 ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
           <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4 w-full">
             Configuração e Upload <div className="h-px bg-gray-300 flex-1"></div>
@@ -382,7 +378,6 @@ export default function ImportarXLSPage() {
           </div>
       </div>
 
-      {/* 2. ÁREA DE UPLOAD */}
       <div className="mt-6 md:mt-8">
          {dadosPreview.length === 0 ? (
             <div 
@@ -424,7 +419,6 @@ export default function ImportarXLSPage() {
          )}
       </div>
 
-      {/* CONTEXTO DE IMPORTAÇÃO */}
       <div className="mt-12 mb-8">
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-4 flex items-center gap-4 w-full">
           Contexto de Importação <div className="h-px bg-gray-200 flex-1"></div>
@@ -434,7 +428,6 @@ export default function ImportarXLSPage() {
         </p>
       </div>
 
-      {/* 3. PREVIEW */}
       {dadosPreview.length > 0 && (
         <div className="mt-10 animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="bg-white border border-gray-100 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl shadow-orange-900/5">
@@ -507,7 +500,6 @@ export default function ImportarXLSPage() {
         </div>
       )}
 
-      {/* CARDS DE DICAS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mt-16 mb-24">
         <div className="bg-gray-900 p-8 md:p-10 rounded-[2.5rem] md:rounded-[3rem] shadow-xl relative overflow-hidden group">
           <Activity className="absolute -right-8 -bottom-8 text-orange-500 opacity-10" size={120} />
@@ -531,7 +523,6 @@ export default function ImportarXLSPage() {
         </div>
       </div>
 
-      {/* CONECTE-SE */}
       <div className="flex items-center gap-4 mb-12">
         <div className="h-px bg-gray-200 flex-1"></div>
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
