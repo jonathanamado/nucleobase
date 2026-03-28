@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { 
   Share2, Users, Check, Megaphone, 
   ArrowUpRight, Mail, Send, MessageCircle, 
-  Trophy, Gift, Stars, Heart, Eye, EyeOff, AtSign,
+  Trophy, Gift, Stars, Heart, Eye, EyeOff, AtSign, Key,
   History, TrendingUp, ChevronLeft, ChevronRight,
   Instagram
 } from "lucide-react";
@@ -144,7 +144,7 @@ export default function IndiquePage() {
 
   if (loadingData) return (
     <div className="w-full h-[60vh] flex items-center justify-center">
-      <div className="animate-pulse text-gray-400 font-black uppercase tracking-widest text-[10px]">Sincronizando Plataforma...</div>
+      <div className="animate-pulse text-gray-400 font-black uppercase tracking-widest text-[10px]">Sincronizando...</div>
     </div>
   );
 
@@ -414,10 +414,25 @@ export default function IndiquePage() {
             <form onSubmit={handleLogin} className="w-full space-y-3">
               <div className="relative">
                 <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                <input type="text" placeholder="ID ou E-mail" required value={slug} onChange={(e) => setSlug(e.target.value)} className="w-full pl-11 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-1 focus:ring-blue-600 outline-none text-xs font-bold" />
+                <input 
+                  type="text" 
+                  placeholder="ID ou E-mail" 
+                  required 
+                  value={slug} 
+                  onChange={(e) => setSlug(e.target.value)} 
+                  className="w-full pl-11 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-1 focus:ring-blue-600 outline-none text-xs font-bold" 
+                />
               </div>
               <div className="relative">
-                <input type={showPassword ? "text" : "password"} placeholder="Senha" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-1 focus:ring-blue-600 outline-none text-xs" />
+                <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  placeholder="Senha" 
+                  required 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  className="w-full pl-11 pr-12 py-4 bg-gray-50 border-none rounded-2xl focus:ring-1 focus:ring-blue-600 outline-none text-xs font-bold" 
+                />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -489,8 +504,14 @@ export default function IndiquePage() {
           ))}
         </div>
       </div>
+      
+      {/* SEÇÃO INSTAGRAM */}
+      <div className="flex items-center gap-4 mb-12">
+        <div className="h-px bg-gray-200 flex-1"></div>
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
+        <div className="h-px bg-gray-200 flex-1"></div>
+      </div>
 
-      {/* FOOTER INSTAGRAM */}
       <div className="flex flex-col items-center text-center">
         <div className="max-w-3xl mb-12">
           <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
@@ -509,10 +530,12 @@ export default function IndiquePage() {
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+            
             <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
               <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
             </div>
           </div>
+          
           <div className="flex flex-col items-center">
             <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
             <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>

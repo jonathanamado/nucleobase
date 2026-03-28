@@ -36,7 +36,6 @@ export default function AcessoUsuarioPage() {
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error || !session) {
-          // Se houver erro de token inválido ou não houver sessão, limpa estados
           setIsLoggedIn(false);
           if (error) await supabase.auth.signOut(); 
         } else {
@@ -206,21 +205,25 @@ export default function AcessoUsuarioPage() {
                   </h2>
                   <form onSubmit={handleLogin} className="flex flex-col gap-2">
                       <div className="space-y-2">
-                        <input 
-                          type="text" 
-                          placeholder="ID de Usuário ou E-mail" 
-                          required
-                          value={slug}
-                          className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900 font-bold"
-                          onChange={(e) => setSlug(e.target.value)}
-                        />
-                        <div className="relative">
+                        <div className="relative group">
+                          <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
+                          <input 
+                            type="text" 
+                            placeholder="ID de Usuário ou E-mail" 
+                            required
+                            value={slug}
+                            className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900 font-medium"
+                            onChange={(e) => setSlug(e.target.value)}
+                          />
+                        </div>
+                        <div className="relative group">
+                          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
                           <input 
                             type={showPassword ? "text" : "password"} 
                             placeholder="Senha" 
                             required
                             value={password}
-                            className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900 pr-10"
+                            className="w-full pl-11 pr-10 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900"
                             onChange={(e) => setPassword(e.target.value)}
                           />
                           <button

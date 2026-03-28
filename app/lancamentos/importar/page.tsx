@@ -121,6 +121,7 @@ export default function ImportarXLSPage() {
         }
 
         const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Usuário não autenticado.");
 
         const dadosProcessados = json.map((row: any) => {
           const dataFormatada = formatarDataParaBanco(row.data_compra);
@@ -128,13 +129,12 @@ export default function ImportarXLSPage() {
           const subCat = row.sub_categoria || row.Subcategoria || row.subcategoria || null;
           const bancoOrigem = row.banco || "Não informado";
           
-          // Hash base idêntico ao que será usado no salvamento
-          const hashBase = btoa(`${dataFormatada}-${valorRaw}-${row.descricao}-${subCat || ''}-${bancoOrigem}`).substring(0, 50);
+          // Ajuste: Removido substring para evitar colisões e mantido user.id para bater com a constraint composite
+          const hashBase = btoa(`${user.id}-${dataFormatada}-${valorRaw}-${row.descricao}-${subCat || ''}-${bancoOrigem}`);
           
           const totalParcelas = parseInt(row.parcelas_totais) || 1;
           const pAtual = parseInt(row.parcela_atual) || 1;
           
-          // Importante: Se for cartão com parcelas, o hash de busca deve ser o da parcela específica
           const hashParaBusca = (tipoImportacao === 'CARTAO' && totalParcelas > 1) 
             ? `${hashBase}-p${pAtual}` 
             : hashBase;
@@ -258,13 +258,10 @@ export default function ImportarXLSPage() {
         }
       });
 
-      // --- AJUSTE CRÍTICO AQUI ---
-      // 1. Remove duplicatas que possam existir dentro do próprio array potentialRows (antes de enviar ao banco)
       const uniqueRows = potentialRows.filter((value, index, self) =>
         index === self.findIndex((t) => t.hash_deduplicacao === value.hash_deduplicacao)
       );
 
-      // 2. Verifica novamente contra o banco para garantir que as parcelas projetadas também não existem
       const potentialHashes = uniqueRows.map(r => r.hash_deduplicacao);
       const { data: dbExistentes } = await supabase
         .from("lancamentos_financeiros")
@@ -438,7 +435,7 @@ export default function ImportarXLSPage() {
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-4 flex items-center gap-4 w-full">
           Contexto de Importação <div className="h-px bg-gray-200 flex-1"></div>
         </h3>
-        <p className="text-gray-500 text-[13px] font-medium leading-relaxed max-w-3xl">
+        <p className="text-gray-500 text-[13px] font-medium leading-relaxed w-full">
           Abaixo você encontra a prévia dos dados processados. O sistema aplica regras de integridade para garantir que valores parcelados não gerem duplicidade.
         </p>
       </div>

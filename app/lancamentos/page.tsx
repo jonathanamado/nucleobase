@@ -5,7 +5,7 @@ import {
   Save, CreditCard, Wallet, Calendar, 
   Tag, DollarSign, CheckCircle2, Layers, Repeat, 
   Rocket, Activity, Clock, AlertCircle, BarChart3, ArrowRight, LineChart, Zap, X, Instagram, Edit3,
-  Lock, Eye, EyeOff, UserPlus, FileUp, Cpu, ChevronLeft, ChevronRight, Briefcase, Building2, User
+  Lock, Eye, EyeOff, UserPlus, FileUp, Cpu, ChevronLeft, ChevronRight, Briefcase, Building2, User, AtSign, KeyRound
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
@@ -235,19 +235,23 @@ export default function LancamentosPage() {
           </div>
           <p className="text-gray-500 text-sm mb-8">Esta é uma área segura para gestão de dados. Por favor, valide sua identidade para realizar lançamentos.</p>
           <form onSubmit={handleLogin} className="space-y-4">
-            <input 
-              type="text" 
-              placeholder="ID ou E-mail" 
-              required 
-              className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100 text-gray-900 placeholder:text-gray-600" 
-              onChange={(e) => setSlug(e.target.value)} 
-            />
             <div className="relative">
+              <AtSign className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input 
+                type="text" 
+                placeholder="ID ou E-mail" 
+                required 
+                className="w-full pl-12 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100 text-gray-900 placeholder:text-gray-400" 
+                onChange={(e) => setSlug(e.target.value)} 
+              />
+            </div>
+            <div className="relative">
+              <KeyRound className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input 
                 type={showPassword ? "text" : "password"} 
                 placeholder="Senha" 
                 required 
-                className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100 text-gray-900 placeholder:text-gray-600" 
+                className="w-full pl-12 pr-12 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100 text-gray-900 placeholder:text-gray-400" 
                 onChange={(e) => setPassword(e.target.value)} 
               />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
@@ -257,8 +261,8 @@ export default function LancamentosPage() {
           
           <div className="mt-8 pt-8 border-t border-gray-100">
             <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Ainda não se cadastrou?</p>
-            <a href="/cadastro" className="flex items-center justify-center gap-2 bg-emerald-50 text-emerald-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest border border-emerald-100 hover:bg-emerald-100 transition-all">
-              <UserPlus size={18} /> Criar conta gratuita agora
+            <a href="/cadastro" className="flex items-center justify-center gap-3 bg-white text-gray-900 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] border border-gray-200 shadow-sm hover:shadow-md hover:border-orange-200 hover:text-orange-600 transition-all active:scale-95">
+              <UserPlus size={18} className="text-orange-500" /> Criar conta gratuita agora
             </a>
           </div>
         </div>
@@ -596,26 +600,6 @@ export default function LancamentosPage() {
           </h3>
 
           <div className="hidden lg:grid grid-cols-12 gap-6 mb-10">
-            <div className="lg:col-span-12 p-8 bg-blue-600 rounded-[2.5rem] text-white relative overflow-hidden shadow-xl shadow-blue-900/10 group">
-              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="flex items-center gap-6">
-                  <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
-                    <BarChart3 className="text-white" size={28} />
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-bold tracking-tight mb-1">Painel de Resultados</h4>
-                    <p className="text-blue-100 text-sm font-medium opacity-90">
-                      Lançamentos processados em tempo real. Navegue e acompanhe online.
-                    </p>
-                  </div>
-                </div>
-                <Link href="/resultados" className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-50 transition-all flex items-center gap-3 shadow-lg active:scale-95 whitespace-nowrap">
-                  Acessar Painel <ArrowRight size={16} />
-                </Link>
-              </div>
-              <Zap size={200} className="absolute -right-16 -bottom-16 text-white opacity-10 -rotate-12 pointer-events-none group-hover:rotate-0 transition-transform duration-700" />
-            </div>
-
             <div className="lg:col-span-6">
               <Link href="/lancamentos/integrar" className="flex flex-col h-full bg-gray-50 border border-gray-200 rounded-[2rem] p-8 hover:bg-emerald-50 hover:border-emerald-200 transition-all group relative overflow-hidden"> 
                 <div className="absolute top-6 right-6 bg-blue-600 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase">Em desenvolvimento</div>
@@ -699,32 +683,56 @@ export default function LancamentosPage() {
             <div className="h-px bg-gray-100 flex-1"></div>
           </h3>
 
-          <div className="overflow-x-auto bg-white border border-gray-100 rounded-[2.5rem] shadow-sm mb-20">
-            <table className="w-full text-left border-collapse min-w-[800px]">
-              <thead className="bg-gray-50/50">
-                <tr>
-                  <th className="p-6 text-[10px] font-black uppercase text-gray-400 tracking-widest">Data</th>
-                  <th className="p-6 text-[10px] font-black uppercase text-gray-400 tracking-widest">Descrição</th>
-                  <th className="p-6 text-[10px] font-black uppercase text-gray-400 tracking-widest">Categoria</th>
-                  <th className="p-6 text-[10px] font-black uppercase text-gray-400 text-right tracking-widest">Valor</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {ultimosLancamentos.map((l) => (
-                  <tr key={l.id} className="hover:bg-gray-50/50 transition-colors group">
-                    <td className="p-6 text-xs font-bold text-gray-900">{new Date(l.data_competencia).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</td>
-                    <td className="p-6">
-                      <span className="text-sm font-bold text-gray-900 block">{l.descricao}</span>
-                      <span className="text-[10px] text-gray-400 uppercase font-black">{l.origem}</span>
-                    </td>
-                    <td className="p-6 text-xs font-bold text-gray-500 uppercase">{l.categoria}</td>
-                    <td className={`p-6 font-black text-sm text-right ${l.valor < 0 ? 'text-red-500' : 'text-emerald-600'}`}>
+          <div className="bg-white border border-gray-100 rounded-[2rem] md:rounded-[2.5rem] shadow-sm mb-20 overflow-hidden">
+            <div className="md:hidden divide-y divide-gray-50">
+              {ultimosLancamentos.map((l) => (
+                <div key={l.id} className="p-5 flex flex-col gap-2">
+                  <div className="flex justify-between items-start">
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                      {new Date(l.data_competencia).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                    </span>
+                    <span className={`font-black text-sm ${l.valor < 0 ? 'text-red-500' : 'text-emerald-600'}`}>
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(l.valor)}
-                    </td>
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-sm font-bold text-gray-900 block">{l.descricao}</span>
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-[9px] text-gray-400 uppercase font-black">{l.origem}</span>
+                      <span className="text-[9px] font-bold text-blue-500 uppercase bg-blue-50 px-2 py-0.5 rounded-md">{l.categoria}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[800px]">
+                <thead className="bg-gray-50/50">
+                  <tr>
+                    <th className="p-6 text-[10px] font-black uppercase text-gray-400 tracking-widest">Data</th>
+                    <th className="p-6 text-[10px] font-black uppercase text-gray-400 tracking-widest">Descrição</th>
+                    <th className="p-6 text-[10px] font-black uppercase text-gray-400 tracking-widest">Categoria</th>
+                    <th className="p-6 text-[10px] font-black uppercase text-gray-400 text-right tracking-widest">Valor</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {ultimosLancamentos.map((l) => (
+                    <tr key={l.id} className="hover:bg-gray-50/50 transition-colors group">
+                      <td className="p-6 text-xs font-bold text-gray-900">{new Date(l.data_competencia).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</td>
+                      <td className="p-6">
+                        <span className="text-sm font-bold text-gray-900 block">{l.descricao}</span>
+                        <span className="text-[10px] text-gray-400 uppercase font-black">{l.origem}</span>
+                      </td>
+                      <td className="p-6 text-xs font-bold text-gray-500 uppercase">{l.categoria}</td>
+                      <td className={`p-6 font-black text-sm text-right ${l.valor < 0 ? 'text-red-500' : 'text-emerald-600'}`}>
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(l.valor)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 

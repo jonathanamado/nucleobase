@@ -14,7 +14,9 @@ import {
   AlertTriangle, 
   Gift,
   Instagram,
-  Clock
+  Clock,
+  User,
+  Mail
 } from "lucide-react";
 
 const supabase = createClient(
@@ -190,8 +192,8 @@ export default function CadastroPage() {
         <div className="flex-1 flex flex-col p-2 lg:px-16 justify-start bg-white">
           <div className="w-full max-w-md mx-auto pt-0 lg:pt-0 pb-12">
             
-            {/* DIVISÃO INTELIGENTE MOBILE */}
-            <div className="lg:hidden flex flex-col gap-4 mb-8 pt-4">
+            {/* DIVISÃO INTELIGENTE MOBILE - AJUSTADA PARA O TOPO */}
+            <div className="lg:hidden flex flex-col gap-4 mb-6 pt-0">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 leading-tight">
                   Crie sua conta para realizar seu <span className="text-blue-600">controle financeiro.</span>
@@ -209,9 +211,9 @@ export default function CadastroPage() {
               </p>
             </div>
 
-            <form onSubmit={handleCadastro} className="space-y-4">
+            <form onSubmit={handleCadastro} className="space-y-3">
               <div className="group">
-                <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-2 block">
+                <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-1.5 block">
                   ID de Usuário (Obrigatório)
                 </label>
                 <div className="relative">
@@ -219,7 +221,7 @@ export default function CadastroPage() {
                     type="text" 
                     placeholder="Exemplo: joao-silva" 
                     required 
-                    className="w-full px-6 py-4 bg-blue-50/30 border-2 border-blue-50 rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-400 transition-all text-sm pr-12 font-medium" 
+                    className="w-full px-6 py-3 bg-blue-50/30 border-2 border-blue-50 rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-400 transition-all text-sm pr-12 font-medium" 
                     onChange={(e) => setSlugDesejado(e.target.value)} 
                   />
                   <UserCircle className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-300" size={20} />
@@ -227,26 +229,32 @@ export default function CadastroPage() {
               </div>
 
               <div className="group">
-                <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-2 block">Nome Completo (Recomendado)</label>
-                <input 
-                  type="text" 
-                  placeholder="Exemplo: João Andrade Silva" 
-                  className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium" 
-                  onChange={(e) => setNome(e.target.value)} 
-                />
+                <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-1.5 block">Nome Completo (Recomendado)</label>
+                <div className="relative">
+                  <input 
+                    type="text" 
+                    placeholder="Exemplo: João Andrade Silva" 
+                    className="w-full px-6 py-3 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium pr-12" 
+                    onChange={(e) => setNome(e.target.value)} 
+                  />
+                  <User className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
+                </div>
               </div>
               
               <div className="group">
-                <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-2 block">E-mail (Recomendado)</label>
-                <input 
-                  type="email" 
-                  placeholder="Exemplo: joao@seudominio.com" 
-                  className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium" 
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (e.target.value.trim()) setShowWarning(false);
-                  }} 
-                />
+                <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-1.5 block">E-mail (Recomendado)</label>
+                <div className="relative">
+                  <input 
+                    type="email" 
+                    placeholder="Exemplo: joao@seudominio.com" 
+                    className="w-full px-6 py-3 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium pr-12" 
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (e.target.value.trim()) setShowWarning(false);
+                    }} 
+                  />
+                  <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
+                </div>
               </div>
 
               {showWarning && !email.trim() && (
@@ -272,13 +280,13 @@ export default function CadastroPage() {
               )}
               
               <div className="group">
-                <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-2 block">Senha (Obrigatório)</label>
+                <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-1.5 block">Senha (Obrigatório)</label>
                 <div className="relative">
                   <input 
                     type={showPassword ? "text" : "password"} 
                     placeholder="••••••••" 
                     required 
-                    className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium pr-14" 
+                    className="w-full px-6 py-3 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium pr-14" 
                     onChange={(e) => setPassword(e.target.value)} 
                   />
                   <button 
@@ -294,20 +302,20 @@ export default function CadastroPage() {
               <button 
                 disabled={loading} 
                 type="submit" 
-                className="w-full bg-gray-900 text-white py-5 rounded-2xl hover:bg-black transition-all font-bold text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-gray-200 disabled:bg-gray-400 mt-12 flex items-center justify-center gap-3 group"
+                className="w-full bg-gray-900 text-white py-4 rounded-2xl hover:bg-black transition-all font-bold text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-gray-200 disabled:bg-gray-400 mt-6 flex items-center justify-center gap-3 group"
               >
                 {loading ? (
                   <span className="animate-pulse">Sincronizando sua conta...</span>
                 ) : (
                   <>
-                    Finalizar cadastro gratuitamente 
+                    Finalizar cadastro 
                     <CheckCircle2 size={18} className="text-blue-500 group-hover:scale-110 transition-transform" />
                   </>
                 )}
               </button>
             </form>
 
-            <p className="mt-8 text-center text-[10px] text-gray-400 font-medium uppercase tracking-widest">
+            <p className="mt-6 text-center text-[10px] text-gray-400 font-medium uppercase tracking-widest">
               Já possui uma conta? <a href="/acesso-usuario" className="text-blue-600 font-bold hover:underline">Fazer login</a>
             </p>
 
@@ -319,9 +327,9 @@ export default function CadastroPage() {
         </div>
       </div>
 
-      {/* RODAPÉ PADRONIZADO (CONECTE-SE E INSTAGRAM) */}
+      {/* RODAPÉ PADRONIZADO */}
       <div className="bg-white pb-20 px-4 md:px-0">
-        <div className="mt-24 flex items-center gap-4 mb-12 max-w-6xl mx-auto">
+        <div className="mt-16 flex items-center gap-4 mb-12 max-w-6xl mx-auto">
           <div className="h-px bg-gray-200 flex-1"></div>
           <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
             Conecte-se
