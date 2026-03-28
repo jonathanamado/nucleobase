@@ -182,7 +182,8 @@ export function Header() {
       </a>
     );
 
-    if (pathname === "/lancamentos") {
+    // Ajuste solicitado: Incluindo /importar e /integrar na mesma lógica de /lancamentos
+    if (pathname === "/lancamentos" || pathname === "/lancamentos/importar" || pathname === "/lancamentos/integrar") {
       return [btnResultados, btnEdicao];
     } else if (pathname === "/lancamentos/gerenciar") {
       return [btnResultados, btnNovos];

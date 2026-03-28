@@ -18,7 +18,6 @@ export default function ImportarXLSPage() {
   const [dadosPreview, setDadosPreview] = useState<any[]>([]);
   const [tipoImportacao, setTipoImportacao] = useState<'CC' | 'CARTAO'>('CC');
 
-  // --- CONFIGURAÇÃO DE VALIDAÇÃO DE LAYOUT ---
   const COLUNAS_OBRIGATORIAS = {
     CC: ["data_compra", "descricao", "valor", "natureza", "categoria", "banco"],
     CARTAO: ["data_compra", "descricao", "valor", "natureza", "categoria", "nome_cartao_credito", "banco"]
@@ -78,8 +77,11 @@ export default function ImportarXLSPage() {
   const formatarDataExibicao = (serial: any) => {
     if (!serial) return "---";
     if (typeof serial === "number") {
+      // Ajuste para evitar recuo de data por fuso horário na prévia
       const data = new Date(Math.round((serial - 25569) * 86400 * 1000));
-      return data.toLocaleDateString('pt-BR');
+      const userTimezoneOffset = data.getTimezoneOffset() * 60000;
+      const dataAjustada = new Date(data.getTime() + userTimezoneOffset);
+      return dataAjustada.toLocaleDateString('pt-BR');
     }
     return serial;
   };
@@ -193,10 +195,16 @@ export default function ImportarXLSPage() {
         const totalParcelas = parseInt(item.parcelas_totais) || 1;
         const parcelaInicial = parseInt(item.parcela_atual) || 1;
         
-        let valorFinal = parseFloat(item.valor);
+        let valorTotalXls = parseFloat(item.valor);
         const natureza = item.natureza || "Despesa";
-        if (natureza.toLowerCase() === "despesa" && valorFinal > 0) {
-          valorFinal = valorFinal * -1;
+        
+        // Ajuste: Dividir o valor total pelas parcelas caso seja Cartão Parcelado
+        let valorPorParcela = (tipoImportacao === 'CARTAO' && totalParcelas > 1) 
+            ? (valorTotalXls / totalParcelas) 
+            : valorTotalXls;
+
+        if (natureza.toLowerCase() === "despesa" && valorPorParcela > 0) {
+          valorPorParcela = valorPorParcela * -1;
         }
 
         const dataFormatadaString = formatarDataParaBanco(item.data_compra);
@@ -209,12 +217,12 @@ export default function ImportarXLSPage() {
 
             potentialRows.push({
               user_id: user.id,
-              projeto: "Importação arquivo XLS", 
+              projeto: item.projeto || "Importação arquivo XLS", 
               tipo_origem: "Cartão de Crédito",
               origem: item.banco || "Cartão",
               cartao_nome: item.nome_cartao_credito,
               descricao: item.descricao || "Sem descrição",
-              valor: valorFinal,
+              valor: valorPorParcela,
               natureza: natureza,
               data_competencia: dataProjetada.toISOString().split('T')[0],
               fatura_mes: projetarFaturaMes(item.fatura_mes, (i - parcelaInicial)),
@@ -229,12 +237,12 @@ export default function ImportarXLSPage() {
         } else {
           potentialRows.push({
             user_id: user.id,
-            projeto: "Importação arquivo XLS", 
+            projeto: item.projeto || "Importação arquivo XLS", 
             tipo_origem: tipoImportacao === 'CARTAO' ? "Cartão de Crédito" : "Conta Corrente",
             origem: item.banco || "Não informado",
             cartao_nome: tipoImportacao === 'CARTAO' ? item.nome_cartao_credito : null,
             descricao: item.descricao || "Sem descrição",
-            valor: valorFinal,
+            valor: valorPorParcela,
             natureza: natureza,
             data_competencia: dataFormatadaString,
             fatura_mes: item.fatura_mes,
@@ -286,18 +294,14 @@ export default function ImportarXLSPage() {
         <div>
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
             <span>Importar XLS<span className="text-orange-500">.</span></span>
-            {/* Ícone reduzido para 32 e com margem aproximada */}
             <FileUp size={32} className="text-orange-500 skew-x-1 opacity-35 ml-3 hidden md:block" strokeWidth={1.5} />
           </h1>
-          {/* Subtítulo com mt-0 para colar no título e texto ajustado */}
           <p className="text-gray-500 text-[13px] md:text-lg font-medium max-w-2xl leading-tight mt-0">
             Importe sua planilha e deixe que a <strong>Nucleo</strong> organize seus dados.
           </p>
         </div>
         
-        {/* Espaço para os botões de download (se houver) que ficam à direita no seu layout flex */}
         <div className="flex gap-2 w-full md:w-auto">
-          {/* Seus links de download entram aqui */}
         </div>
       </div>
 
@@ -305,7 +309,7 @@ export default function ImportarXLSPage() {
         Configuração e Upload <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
-      {/* 1. SELETOR DE CONTEXTO - AJUSTADO PARA MOBILE */}
+      {/* 1. SELETOR DE CONTEXTO */}
       <div className={`mb-8 transition-all ${dadosPreview.length > 0 ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
           <div className="grid grid-cols-2 md:flex md:flex-wrap gap-3 md:gap-4">
             <button 
@@ -368,18 +372,18 @@ export default function ImportarXLSPage() {
             </div>
          ) : (
             <div className="bg-emerald-50 border border-emerald-100 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
-               <div className="flex items-center gap-4 md:gap-5">
-                  <div className="bg-emerald-500 text-white p-3 md:p-4 rounded-2xl shadow-lg">
-                     <CheckCircle2 size={24} className="md:w-7 md:h-7" />
-                  </div>
-                  <div>
-                     <p className="text-emerald-900 font-bold text-lg md:text-xl leading-tight">{contagemNovos} itens novos identificados</p>
-                     <p className="text-emerald-600 text-[10px] md:text-xs font-medium">Layout validado com sucesso.</p>
-                  </div>
-               </div>
-               <button onClick={limparFluxo} className="flex items-center gap-2 px-6 md:px-8 py-3 md:py-4 bg-white border border-emerald-200 text-emerald-600 rounded-2xl font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-emerald-100 transition-all">
-                  <RotateCcw size={14} /> Limpar e Refazer
-               </button>
+                <div className="flex items-center gap-4 md:gap-5">
+                   <div className="bg-emerald-500 text-white p-3 md:p-4 rounded-2xl shadow-lg">
+                      <CheckCircle2 size={24} className="md:w-7 md:h-7" />
+                   </div>
+                   <div>
+                      <p className="text-emerald-900 font-bold text-lg md:text-xl leading-tight">{contagemNovos} itens novos identificados</p>
+                      <p className="text-emerald-600 text-[10px] md:text-xs font-medium">Layout validado com sucesso.</p>
+                   </div>
+                </div>
+                <button onClick={limparFluxo} className="flex items-center gap-2 px-6 md:px-8 py-3 md:py-4 bg-white border border-emerald-200 text-emerald-600 rounded-2xl font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-emerald-100 transition-all">
+                   <RotateCcw size={14} /> Limpar e Refazer
+                </button>
             </div>
          )}
       </div>
@@ -515,7 +519,6 @@ export default function ImportarXLSPage() {
           className="group relative flex flex-col items-center gap-6"
         >
           <div className="relative">
-            {/* Efeito de brilho/glow ao fundo do ícone */}
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
             
             <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">

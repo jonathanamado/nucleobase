@@ -53,7 +53,7 @@ export default function LancamentosPage() {
     "Pessoal": {
       "Despesa": {
         "Alimentação": ["Mercado", "Feira", "Padaria", "Suplementos", "Outros"],
-        "Assinaturas & Serviços": ["Streaming", "Software/SaaS", "Internet", "Telefone", "Outros"],
+        "Assinaturas e Serviços": ["Streaming", "Software/SaaS", "Internet", "Telefone", "Outros"],
         "Compras": ["Roupas", "Eletrônicos", "Casa", "Beleza", "Pet Shop", "Outros"],
         "Educação": ["Curso/Treinamento", "Faculdade", "Livros", "Outros"],
         "Investimentos": ["Ações/FIIs", "Cripto", "Renda Fixa", "Outros"],
@@ -307,16 +307,12 @@ export default function LancamentosPage() {
       </div>
 
       <div>
-        <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-gray-400 mb-1 flex items-center gap-4">
+        <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-gray-400 mb-4 flex items-center gap-4">
           <span className="whitespace-nowrap">Registros em 3 etapas</span>
           <div className="h-px bg-gray-100 flex-1"></div>
         </h3>
 
-        <div className="mb-7 space-y-4">
-          <p className="text-sm text-gray-500 font-medium leading-relaxed">
-            <span className="hidden md:inline">Utilize a aplicação abaixo para registrar entradas e saídas de forma manual e detalhada.</span>
-            <span className="inline md:hidden">Registre entradas e saídas de forma manual.</span>
-          </p>
+        <div className="mb-7">
           <div className="inline-flex items-center gap-3 p-4 bg-orange-50 rounded-2xl border border-orange-100 w-full md:w-auto">
             <Zap size={16} className="text-orange-500 fill-orange-500" />
             
@@ -332,9 +328,9 @@ export default function LancamentosPage() {
                 <a href="/lancamentos/integrar" className="hover:opacity-80 transition-opacity">
                   <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
                     Automação em cloud
-                  </span>
+                  </span>, 
                 </a> 
-                para múltiplos registros.
+                ambos para múltiplos registros.
               </div>
 
               <div className="md:hidden flex items-center flex-wrap gap-1">
@@ -379,23 +375,23 @@ export default function LancamentosPage() {
                   className={`p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${formData.projeto === "Pessoal" ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-gray-100 text-gray-400'}`}
                 >
                   <User size={18} />
-                  <span className="font-black text-[9px] uppercase tracking-tighter">Orçamento Pessoal</span>
+                  <span className="font-black text-[9px] uppercase tracking-tighter">Orçamento <br /> Pessoal</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({...formData, projeto: "Empresarial", categoria: "", sub_categoria: ""})}
-                  className={`p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${formData.projeto === "Empresarial" ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-gray-100 text-gray-400'}`}
+                  className={`p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${formData.projeto === "Empresarial" ? 'border-amber-500 bg-amber-50 text-amber-600' : 'border-gray-100 text-gray-400'}`}
                 >
                   <Briefcase size={18} />
-                  <span className="font-black text-[9px] uppercase tracking-tighter">Orçamento Empresarial</span>
+                  <span className="font-black text-[9px] uppercase tracking-tighter">Orçamento <br /> Empresarial</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({...formData, projeto: "Condomínio", categoria: "", sub_categoria: ""})}
-                  className={`p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${formData.projeto === "Condomínio" ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-gray-100 text-gray-400'}`}
+                  className={`p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${formData.projeto === "Condomínio" ? 'border-rose-600 bg-rose-50 text-rose-600' : 'border-gray-100 text-gray-400'}`}
                 >
                   <Building2 size={18} />
-                  <span className="font-black text-[9px] uppercase tracking-tighter">Orçamento Condomínio</span>
+                  <span className="font-black text-[9px] uppercase tracking-tighter">Orçamento <br /> Condomínio</span>
                 </button>
               </div>
 
@@ -460,7 +456,7 @@ export default function LancamentosPage() {
               <div className="space-y-8 flex-1">
                 <div>
                   <h3 className={`text-[10px] font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-3 ${isReceita ? 'text-emerald-400' : 'text-orange-400'}`}>
-                    <span className={`w-8 h-px ${isReceita ? 'bg-emerald-400/30' : 'bg-orange-400/30'}`}></span> 03. Classificação
+                    <span className={`w-8 h-px ${isReceita ? 'bg-emerald-400/30' : 'bg-orange-400/30'}`}></span> 03. Classificação - {formData.projeto}
                   </h3>
 
                   <div className="grid grid-cols-2 gap-4 mb-6">
@@ -510,7 +506,7 @@ export default function LancamentosPage() {
                         onChange={(e) => setFormData({...formData, categoria: e.target.value, sub_categoria: ""})} />
                       <datalist id="cat-list">
                         {Object.keys(categoriasFiltradas).map((c, i) => <option key={i} value={c} />)}
-                        <option value="Outros" />
+                        <option value="Indefinido" />
                       </datalist>
                     </div>
                     
@@ -522,7 +518,7 @@ export default function LancamentosPage() {
                         onChange={(e) => setFormData({...formData, sub_categoria: e.target.value})} />
                       <datalist id="sub-list">
                         {categoriasFiltradas[formData.categoria]?.map((s: string, i: number) => <option key={i} value={s} />)}
-                        <option value="Outros" />
+                        <option value="Indefinido" />
                       </datalist>
                     </div>
                   </div>
