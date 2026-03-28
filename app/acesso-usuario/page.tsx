@@ -6,7 +6,7 @@ import {
   UserCog, Rocket, ArrowRight, 
   CheckCircle2, LogOut, X, Mail, LifeBuoy, AtSign,
   Eye, EyeOff, BarChart3, Sparkles, TrendingUp,
-  Clock, Gem, ShieldCheck, Zap, Lock, Database, FileSpreadsheet,
+  Clock, Gem, ShieldCheck, Zap, Key, Database, FileSpreadsheet,
   PlusCircle, Upload, Shield, Target, Fingerprint, Globe, LayoutDashboard,
   Instagram
 } from "lucide-react";
@@ -217,7 +217,7 @@ export default function AcessoUsuarioPage() {
                           />
                         </div>
                         <div className="relative group">
-                          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
+                          <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
                           <input 
                             type={showPassword ? "text" : "password"} 
                             placeholder="Senha" 
@@ -384,7 +384,7 @@ export default function AcessoUsuarioPage() {
                         </div>
                         
                         <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0">
-                          <Lock size={28} className="text-blue-400 row-span-2 self-start mt-1" />
+                          <Key size={28} className="text-blue-400 row-span-2 self-start mt-1" />
                           <span className="text-white font-bold text-xs uppercase tracking-tighter">Acesso Restrito</span>
                           <span className="text-[10px] text-gray-500 font-medium">Políticas RLS ativas</span>
                         </div>

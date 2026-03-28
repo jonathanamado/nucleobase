@@ -15,6 +15,7 @@ export default function IndiquePage() {
   const [loadingData, setLoadingData] = useState(true);
   const [cardAtivo, setCardAtivo] = useState(0); 
   const [recompensaAtiva, setRecompensaAtiva] = useState(0); 
+  const [isRecovering, setIsRecovering] = useState(false);
   
   // --- ESTADOS DE AUTENTICAÇÃO ---
   const [slug, setSlug] = useState(""); 
@@ -102,6 +103,28 @@ export default function IndiquePage() {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       window.location.reload();
+    } catch (err: any) { alert(err.message); } finally { setLoadingLogin(false); }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const input = slug.trim().toLowerCase();
+    if (!input) return alert("Por favor, insira seu ID ou E-mail para recuperar a senha.");
+    
+    setLoadingLogin(true);
+    try {
+      let email = input.includes("@") ? input : "";
+      if (!email) {
+        const { data: p } = await supabase.from('profiles').select('email').eq('slug', input).maybeSingle();
+        if (!p?.email) throw new Error("Usuário não encontrado.");
+        email = p.email;
+      }
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      alert("Link de recuperação enviado para seu e-mail.");
+      setIsRecovering(false);
     } catch (err: any) { alert(err.message); } finally { setLoadingLogin(false); }
   };
 
@@ -243,13 +266,16 @@ export default function IndiquePage() {
                       <div className="bg-blue-50 p-2 rounded-lg text-blue-600"><Mail size={16} /></div>
                       <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Enviar por E-mail</span>
                     </div>
-                    <input 
-                      type="email" 
-                      value={emailInvite} 
-                      onChange={(e) => setEmailInvite(e.target.value)} 
-                      placeholder="E-mail do convidado..." 
-                      className="w-full bg-gray-50 border-none rounded-2xl px-4 py-4 text-sm outline-none focus:ring-1 focus:ring-blue-600 mb-2" 
-                    />
+                    <div className="relative mb-2">
+                      <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                      <input 
+                        type="email" 
+                        value={emailInvite} 
+                        onChange={(e) => setEmailInvite(e.target.value)} 
+                        placeholder="E-mail do convidado..." 
+                        className="w-full bg-gray-50 border-none rounded-2xl pl-11 pr-4 py-4 text-xs font-bold outline-none focus:ring-1 focus:ring-blue-600" 
+                      />
+                    </div>
                   </div>
                   
                   <div className="flex flex-col gap-4">
@@ -361,7 +387,10 @@ export default function IndiquePage() {
                   <div className="text-5xl font-black text-gray-400 tracking-tighter">R$ {saldoPendente.toFixed(2)}</div>
                 </div>
                 <div className="bg-gray-900 p-10 rounded-[2.5rem] text-white flex flex-col justify-center">
-                  <input value={pixKey} onChange={(e) => setPixKey(e.target.value)} placeholder="Informe aqui sua Chave PIX" className="w-full bg-white/10 border-none rounded-xl px-4 py-4 text-xs mb-3 outline-none text-white" />
+                  <div className="relative mb-3">
+                    <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                    <input value={pixKey} onChange={(e) => setPixKey(e.target.value)} placeholder="Informe aqui sua Chave PIX" className="w-full bg-white/10 border-none rounded-xl pl-11 pr-4 py-4 text-xs outline-none text-white font-bold" />
+                  </div>
                   <button onClick={handleSaque} disabled={solicitandoSaque || saldoValidado < 20} className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 py-4 rounded-xl text-[10px] font-black uppercase">
                     {solicitandoSaque ? "Processando..." : "Solicitar resgate"}
                   </button>
@@ -395,7 +424,7 @@ export default function IndiquePage() {
                           <td className="px-10 py-6 text-right font-black text-gray-900">R$ {v.valor_comissao.toFixed(2)}</td>
                         </tr>
                       )) : (
-                        <tr><td colSpan={4} className="px-10 py-16 text-center text-gray-400 italic">Sem vendas ainda.</td></tr>
+                        <tr><td colSpan={4} className="px-10 py-16 text-center text-gray-400">Sem vendas até o momento.</td></tr>
                       )}
                     </tbody>
                   </table>
@@ -407,40 +436,84 @@ export default function IndiquePage() {
       ) : (
         <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-2xl shadow-blue-900/10 overflow-hidden mb-12 max-w-md mx-auto animate-in zoom-in-95 duration-500">
           <div className="p-10 bg-gray-50/50 border-b border-gray-100 text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-2 tracking-tight">Entre para indicar<span className="text-blue-600">.</span></h2>
-            <p className="text-gray-400 text-xs font-medium uppercase tracking-widest">Acesse sua conta e gere seu link</p>
+            <h2 className="text-xl font-bold text-gray-900 mb-2 tracking-tight">
+              {isRecovering ? "Recuperar acesso" : "Entre para indicar"}
+              <span className="text-blue-600">.</span>
+            </h2>
+            <p className="text-gray-400 text-xs font-medium uppercase tracking-widest">
+              {isRecovering ? "Informe seu ID ou E-mail cadastrado" : "Acesse e copie seu link"}
+            </p>
           </div>
           <div className="p-10 flex flex-col items-center bg-white">
-            <form onSubmit={handleLogin} className="w-full space-y-3">
-              <div className="relative">
-                <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                <input 
-                  type="text" 
-                  placeholder="ID ou E-mail" 
-                  required 
-                  value={slug} 
-                  onChange={(e) => setSlug(e.target.value)} 
-                  className="w-full pl-11 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-1 focus:ring-blue-600 outline-none text-xs font-bold" 
-                />
-              </div>
-              <div className="relative">
-                <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                <input 
-                  type={showPassword ? "text" : "password"} 
-                  placeholder="Senha" 
-                  required 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                  className="w-full pl-11 pr-12 py-4 bg-gray-50 border-none rounded-2xl focus:ring-1 focus:ring-blue-600 outline-none text-xs font-bold" 
-                />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            {isRecovering ? (
+              <form onSubmit={handleForgotPassword} className="w-full space-y-4">
+                <div className="relative">
+                  <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                  <input 
+                    type="text" 
+                    placeholder="ID ou E-mail" 
+                    required 
+                    value={slug} 
+                    onChange={(e) => setSlug(e.target.value)} 
+                    className="w-full pl-11 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-1 focus:ring-blue-600 outline-none text-xs font-bold" 
+                  />
+                </div>
+                <button disabled={loadingLogin} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700 transition shadow-lg text-[10px] disabled:opacity-50">
+                  {loadingLogin ? "Enviando..." : "Receber link por e-mail"}
                 </button>
-              </div>
-              <button disabled={loadingLogin} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700 transition shadow-lg text-[10px] disabled:opacity-50">
-                {loadingLogin ? "Autenticando..." : "Acessar Plataforma"}
-              </button>
-            </form>
+                <div className="text-center">
+                  <button 
+                    type="button" 
+                    onClick={() => setIsRecovering(false)}
+                    className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-blue-600 transition-colors"
+                  >
+                    Voltar para o Login
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleLogin} className="w-full space-y-3">
+                <div className="relative">
+                  <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                  <input 
+                    type="text" 
+                    placeholder="ID ou E-mail" 
+                    required 
+                    value={slug} 
+                    onChange={(e) => setSlug(e.target.value)} 
+                    className="w-full pl-11 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-1 focus:ring-blue-600 outline-none text-xs font-bold" 
+                  />
+                </div>
+                <div className="relative">
+                  <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="Senha" 
+                    required 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    className="w-full pl-11 pr-12 py-4 bg-gray-50 border-none rounded-2xl focus:ring-1 focus:ring-blue-600 outline-none text-xs font-bold" 
+                  />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                
+                <div className="text-right px-1">
+                  <button 
+                    type="button" 
+                    onClick={() => setIsRecovering(true)}
+                    className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-blue-600 transition-colors"
+                  >
+                    Esqueceu a senha?
+                  </button>
+                </div>
+
+                <button disabled={loadingLogin} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700 transition shadow-lg text-[10px] disabled:opacity-50 mt-2">
+                  {loadingLogin ? "Autenticando..." : "Acessar Plataforma"}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       )}
@@ -480,7 +553,6 @@ export default function IndiquePage() {
               </div>
             ))}
 
-            {/* INDICADORES (DOTS) PARA O CARROSSEL DE RECOMPENSAS NO MOBILE */}
             <div className="flex justify-center gap-2 mt-6">
               {cardsRecompensa.map((_, dot) => (
                 <button 
@@ -504,14 +576,14 @@ export default function IndiquePage() {
           ))}
         </div>
       </div>
-      
-      {/* SEÇÃO INSTAGRAM */}
-      <div className="flex items-center gap-4 mb-12">
+
+      <div className="mt-24 flex items-center gap-4 mb-12">
         <div className="h-px bg-gray-200 flex-1"></div>
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
         <div className="h-px bg-gray-200 flex-1"></div>
       </div>
 
+      {/* BLOCO INSTAGRAM */}
       <div className="flex flex-col items-center text-center">
         <div className="max-w-3xl mb-12">
           <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">

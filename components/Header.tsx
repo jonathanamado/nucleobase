@@ -182,6 +182,11 @@ export function Header() {
       </a>
     );
 
+    // Se estiver na página /acesso-usuario, não retorna o botão padrão
+    if (pathname === "/acesso-usuario") {
+        return null;
+    }
+
     // Ajuste solicitado: Incluindo /importar e /integrar na mesma lógica de /lancamentos
     if (pathname === "/lancamentos" || pathname === "/lancamentos/importar" || pathname === "/lancamentos/integrar") {
       return [btnResultados, btnEdicao];
@@ -250,8 +255,8 @@ export function Header() {
 
       <div className="w-full px-4 md:px-8 lg:px-10 h-20 flex items-center justify-between relative bg-white">
         <div className="flex items-center flex-shrink-0 min-w-fit bg-white"> 
-          {/* LOGO SEM LINK */}
-          <div className="flex-shrink-0">
+          {/* LOGO REDIRECIONA NO MOBILE */}
+          <div className="flex-shrink-0 cursor-pointer md:cursor-default" onClick={() => { if(window.innerWidth < 768) router.push("/"); }}>
             <img 
               src="/logo-oficial.png?v=3" 
               alt="Logo Nucleo Base"
@@ -430,9 +435,11 @@ export function Header() {
                     </div>
                   ) : (
                     <div className="flex flex-col gap-3 bg-white">
-                      <a href="/acesso-usuario" className="flex items-center justify-center gap-2 w-full py-4 bg-orange-500 text-white rounded-2xl font-bold text-sm shadow-lg active:scale-95 transition-all">
-                        <LayoutDashboard size={18} /> Painel Acesso APP
-                      </a>
+                      {pathname !== "/acesso-usuario" && (
+                        <a href="/acesso-usuario" className="flex items-center justify-center gap-2 w-full py-4 bg-orange-500 text-white rounded-2xl font-bold text-sm shadow-lg active:scale-95 transition-all">
+                          <LayoutDashboard size={18} /> Painel Acesso APP
+                        </a>
+                      )}
                       <a href="/resultados" className="flex items-center justify-center gap-2 w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-sm shadow-lg active:scale-95 transition-all">
                         <BarChart3 size={18} /> Visão de Resultados
                       </a>
