@@ -98,7 +98,7 @@ export function MainContent() {
              </h1>
              
              <p className="text-gray-500 text-lg font-medium leading-tight max-w-[280px]">
-               Sua trajetória merece uma <span className="text-gray-900">estratégia impecável.</span>
+               Uma nova forma de cuidar do seu <span className="text-gray-900">Orçamento</span> pessoal e profissional.
              </p>
           </div>
 
@@ -107,7 +107,7 @@ export function MainContent() {
             <div className="relative bg-white border border-gray-100 p-7 rounded-[2.5rem] shadow-xl shadow-blue-900/5">
               <div className="mb-6">
                 <p className="text-gray-700 text-base leading-snug font-medium text-center">
-                  Você acaba de chegar ao APP em que números brutos tornam-se <span className="text-gray-900 font-bold not-italic">decisões inteligentes</span> para quem domina o próprio destino. Clique na logo e acesse o seu <span className="text-gray-900 font-bold not-italic">'Painel de Controle'</span>.
+                  Você acaba de chegar ao APP em que números brutos tornam-se <span className="text-gray-900 font-bold not-italic">decisões inteligentes</span> para quem busca facilidade no dia a dia. Clique na logo e acesse o seu <span className="text-gray-900 font-bold not-italic">'Painel de Controle'</span>.
                 </p>
               </div>
               
@@ -164,7 +164,7 @@ export function MainContent() {
             </div>
 
           <p className="text-gray-600 text-base leading-relaxed font-medium py-1">
-            Faça um tour sobre a <span className="text-gray-900 font-bold">Nucleobase</span> e aprenda mais sobre a nossa aplicação. <Link href="/demonstracao" className="font-bold underline hover:text-blue-600 transition-colors"><u>Clique aqui</u></Link> e estude nossos materiais.
+            Faça um tour em poucos minutos pela <span className="text-gray-900 font-bold">Nucleobase</span> e aprenda mais sobre os benefícios do APP, garantindo o uso completo em seu dia a dia. Saiba mais <Link href="/demonstracao" className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
           </p>
 
           </div>

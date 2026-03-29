@@ -348,7 +348,7 @@ export default function LancamentosPage() {
                 <a href="/lancamentos/integrar">
                   <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
                     Cloud
-                  </span>
+                  </span> ,
                 </a>em caso de múltiplos registros.
               </div>
             </div>
