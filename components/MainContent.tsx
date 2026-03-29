@@ -5,7 +5,7 @@ import {
   Zap, ArrowRight, Mail, Newspaper, ShieldCheck, 
   BarChart3, MessageSquare, Lock, 
   Users, Gift, X, Loader2, CheckCircle2, FileWarning,
-  LayoutDashboard, Instagram, Dna
+  LayoutDashboard, Instagram, Dna, Play
 } from "lucide-react"; 
 import { supabase } from "@/lib/supabase"; 
 
@@ -147,10 +147,31 @@ export function MainContent() {
               </div>
             </div>
           </div>
+
+          {/* VÍDEO MOBILE */}
+          <div className="space-y-4">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-4">
+              Tour Rápido <div className="h-px bg-gray-200 flex-1"></div>
+            </h3>
+            <div className="relative aspect-video rounded-[2rem] overflow-hidden border-2 border-gray-100 shadow-lg">
+              <iframe 
+                className="absolute inset-0 w-full h-full"
+                src="https://www.youtube.com/embed/tmQMvox673g" 
+                title="Nucleobase Tour" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+              ></iframe>
+            </div>
+
+          <p className="text-gray-600 text-base leading-relaxed font-medium py-1">
+            Faça um tour sobre a <span className="text-gray-900 font-bold">Nucleobase</span> e aprenda mais sobre a nossa aplicação. <Link href="/demonstracao" className="font-bold underline hover:text-blue-600 transition-colors"><u>Clique aqui</u></Link> e estude nossos materiais.
+          </p>
+
+          </div>
         </div>
 
         <div className="space-y-6">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-0 flex items-center gap-4">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2 flex items-center gap-4">
             Informativos e acessos <div className="h-px bg-gray-300 flex-1"></div>
           </h3>
           <p className="text-gray-600 text-base leading-relaxed font-medium py-1">
@@ -311,7 +332,7 @@ export function MainContent() {
                 </span>{" "}
                 , transformamos dados em informações{" "}
                 <span className="text-gray-900 underline decoration-2 decoration-orange-500/30 underline-offset-4 font-medium">
-                  oferecendo clareza para que você possa economizar e acelerar seus projetos pessoais e profissionais.
+                  oferecendo clareza para você entender onde economizar e como acelerar seus projetos pessoais ou profissionais.
                 </span>
               </p>
               
@@ -336,12 +357,12 @@ export function MainContent() {
           </div>
 
           <div className="lg:col-span-3 flex">
-            <Link href="/acesso-usuario" className="flex-1 bg-white border border-gray-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
+            <Link href="/lancamentos" className="flex-1 bg-white border border-gray-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
               <div className="bg-orange-50 p-3 rounded-2xl text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all duration-300 mb-4">
                 <LayoutDashboard size={24} />
               </div>
               <h4 className="font-bold text-gray-900 text-base mb-1">Acessar APP</h4>
-              <p className="text-[11px] text-gray-500 leading-tight mb-4">Gerencie seus lançamentos e controle seu fluxo.</p>
+              <p className="text-[11px] text-gray-500 leading-tight mb-4">Gerencie seus lançamentos e controle seu fluxo de caixa.</p>
               <div className="w-full mt-auto py-2.5 bg-orange-50/50 border border-orange-100 text-orange-600 rounded-xl font-bold text-[10px] uppercase tracking-widest group-hover:bg-orange-600 group-hover:text-white transition-all flex items-center justify-center gap-2">
                 Entrar agora <ArrowRight size={12} />
               </div>
@@ -361,6 +382,45 @@ export function MainContent() {
             </Link>
           </div>
         </div>
+
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
+          Nucleobase Na Rede <div className="h-px bg-gray-300 flex-1"></div>
+        </h3>
+
+        {/* --- SEÇÃO DO VÍDEO DESKTOP --- */}
+        <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-10 items-center mb-16">
+          <div className="md:col-span-8 relative group">
+            <div className="absolute -inset-2 bg-gradient-to-r from-blue-600/20 to-indigo-600/20 rounded-[3.5rem] blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700"></div>
+            <div className="relative aspect-video bg-gray-900 rounded-[3rem] overflow-hidden border-4 border-white shadow-2xl">
+              <iframe 
+                className="absolute inset-0 w-full h-full"
+                src="https://www.youtube.com/embed/tmQMvox673g" 
+                title="Nucleobase Overview" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+              ></iframe>
+            </div>
+          </div>
+          <div className="md:col-span-4 space-y-6">
+            <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
+              <Play fill="currentColor" size={24} />
+            </div>
+            <h4 className="text-2xl font-bold tracking-tight text-gray-900">
+              Veja a Nucleobase <br /> em ação.
+            </h4>
+            <p className="text-gray-500 text-sm leading-relaxed font-medium">
+              Acompanhe um tour rápido pela interface e descubra como simplificamos o que antes era complexo.
+            </p>
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">Demonstração Ativa</span>
+            </div>
+          </div>
+        </div>
+
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
+          Saiba mais <div className="h-px bg-gray-300 flex-1"></div>
+        </h3>
 
         <div className="w-full mb-12">
           <p className="text-gray-600 text-base leading-[1.8]">
@@ -479,9 +539,12 @@ export function MainContent() {
             <div className="flex flex-col items-center text-center">
                 <a href="https://www.instagram.com/nucleobase.app/" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center gap-6">
                     <div className="w-24 h-24 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.5rem] flex items-center justify-center text-white shadow-xl group-hover:rotate-6 transition-all duration-500">
-                        <Instagram size={50} />
+                        <Instagram size={40} strokeWidth={1.5} />
                     </div>
-                    <span className="text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+                    <div className="flex flex-col items-center">
+                        <span className="text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+                        <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
+                    </div>
                 </a>
             </div>
           </section>

@@ -8,6 +8,7 @@ import {
   Instagram
 } from "lucide-react";
 import { supabase } from "@/lib/supabase"; 
+import Link from "next/link";
 
 export default function IndiquePage() {
   // --- ESTADOS DE UI E NAVEGAÇÃO ---
@@ -188,6 +189,15 @@ export default function IndiquePage() {
       <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-2 flex items-center gap-4">
         Regras do Motor <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
+
+      {!userId && (
+        <div className="mb-8 animate-in fade-in slide-in-from-left-2 duration-500">
+          <p className="text-sm md:text-base font-medium text-blue-900 leading-relaxed">
+            Para começar a indicar e garantir suas recompensas, você precisa estar autenticado em nossa plataforma. 
+            Caso ainda não possua uma conta, <Link href="/cadastro" className="text-blue-600 font-bold underline decoration-2 underline-offset-4 hover:text-blue-800 transition-colors">clique aqui</Link> para se cadastrar.
+          </p>
+        </div>
+      )}
 
       {userId ? (
         <>
@@ -397,7 +407,6 @@ export default function IndiquePage() {
                   <span className="text-[10px] text-gray-500 mt-2 uppercase font-bold text-center">Mínimo R$ 20,00</span>
                 </div>
               </div>
-
               <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-sm">
                 <div className="p-8 border-b border-gray-50 flex items-center gap-3">
                   <History size={18} className="text-blue-600" />
@@ -435,15 +444,6 @@ export default function IndiquePage() {
         </>
       ) : (
         <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-2xl shadow-blue-900/10 overflow-hidden mb-12 max-w-md mx-auto animate-in zoom-in-95 duration-500">
-          <div className="p-10 bg-gray-50/50 border-b border-gray-100 text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-2 tracking-tight">
-              {isRecovering ? "Recuperar acesso" : "Entre para indicar"}
-              <span className="text-blue-600">.</span>
-            </h2>
-            <p className="text-gray-400 text-xs font-medium uppercase tracking-widest">
-              {isRecovering ? "Informe seu ID ou E-mail cadastrado" : "Acesse e copie seu link"}
-            </p>
-          </div>
           <div className="p-10 flex flex-col items-center bg-white">
             {isRecovering ? (
               <form onSubmit={handleForgotPassword} className="w-full space-y-4">

@@ -72,65 +72,50 @@ export default function DemonstracaoPlataforma() {
         </div>
       </div>
 
-      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
+      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-4 flex items-center gap-4">
         Tour pela Interface <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
-        {/* ÁREA DO VÍDEO / PLACEHOLDER */}
+        {/* ÁREA DO VÍDEO INCORPORADO */}
         <div className="lg:col-span-8 flex flex-col justify-between">
           <div className="relative aspect-video bg-gray-900 rounded-[2.5rem] overflow-hidden shadow-2xl group border-4 border-white">
-            <div className="absolute inset-0 bg-black/40 z-10 flex flex-col items-center justify-center text-center p-6 backdrop-blur-[2px]">
-              <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mb-6 shadow-2xl shadow-blue-600/40 group-hover:scale-110 transition-transform duration-500">
-                <Play size={32} fill="white" className="text-white ml-1" />
-              </div>
-              <h4 className="text-white text-2xl font-bold mb-2">Vídeo demonstrativo em produção</h4>
-              <p className="text-blue-200 text-sm max-w-sm font-medium">
-                Estamos preparando um guia completo em alta definição para você dominar cada recurso da plataforma.
-              </p>
-              
-              <div className="mt-8 flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full border border-white/20">
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-                <span className="text-white text-[10px] font-black uppercase tracking-widest">Disponível em breve</span>
-              </div>
-            </div>
-
-            <div className="absolute inset-0 opacity-30 grayscale pointer-events-none">
-                <div className="p-8 space-y-4">
-                    <div className="h-8 w-48 bg-gray-700 rounded-lg" />
-                    <div className="grid grid-cols-3 gap-4">
-                        <div className="h-32 bg-gray-700 rounded-2xl" />
-                        <div className="h-32 bg-gray-700 rounded-2xl" />
-                        <div className="h-32 bg-gray-700 rounded-2xl" />
-                    </div>
-                    <div className="h-64 bg-gray-700 rounded-[2rem]" />
-                </div>
-            </div>
+            <iframe 
+              className="absolute inset-0 w-full h-full"
+              src="https://www.youtube.com/embed/tmQMvox673g" 
+              title="Vídeo Introdução Nucleobase" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+              allowFullScreen
+            ></iframe>
           </div>
           
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-blue-50/50 p-6 rounded-3xl border border-blue-100/50 flex-1">
-              <h5 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
-                <CheckCircle2 size={18} className="text-blue-600" />
-                O que você vai aprender
-              </h5>
-              <ul className="text-sm text-blue-800/70 space-y-2 font-medium">
-                <li>• Como importar dados de planilhas antigas.</li>
-                <li>• Criar centros de custo inteligentes.</li>
-                <li>• Analisar o gráfico de "Poder de Compra".</li>
-              </ul>
-            </div>
+
             <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100 flex-1">
               <h5 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
                 <Clock size={18} className="text-blue-600" />
                 Tempo de tour
               </h5>
               <p className="text-sm text-gray-500 font-medium">
-                O vídeo terá aproximadamente 4 minutos, cobrindo desde o primeiro acesso até o fechamento mensal.
+                O vídeo terá aproximadamente 2 minutos, cobrindo desde o primeiro acesso até o fechamento mensal.
                 <br /><br />
-                Este tour foi desenhado para ser objetivo e eficiente, respeitando seu tempo e foco na evolução financeira.
+                Este tour foi desenhado para ser objetivo e eficiente, respeitando seu tempo e foco em sua evolução.
               </p>
             </div>
+
+            <div className="bg-blue-50/50 p-6 rounded-3xl border border-blue-100/50 flex-1">
+              <h5 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
+                <CheckCircle2 size={18} className="text-blue-600" />
+                Em breve
+              </h5>
+              <ul className="text-sm text-blue-800/70 space-y-2 font-medium">
+                <li>• Como importar dados de planilhas antigas.</li>
+                <li>• Como definir centros de custo inteligentes.</li>
+                <li>• Como analisar o gráfico de "Poder de Compra".</li>
+              </ul>
+            </div>
+
           </div>
         </div>
 
@@ -199,7 +184,7 @@ export default function DemonstracaoPlataforma() {
         </div>
       </div>
 
-      {/* BLOCO INSTAGRAM CENTRALIZADO (Inserido ao final) */}
+      {/* BLOCO INSTAGRAM CENTRALIZADO */}
       <div className="mt-24 flex items-center gap-4 mb-12">
         <div className="h-px bg-gray-200 flex-1"></div>
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
