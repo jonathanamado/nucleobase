@@ -59,7 +59,7 @@ export function MainContent() {
             {!enviado ? (
               <>
                 <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
-                  <Mail size={24} />
+                  <span className="text-blue-600"><Mail size={24} /></span>
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Assinar Newsletter</h3>
                 <p className="text-gray-500 mb-8 font-medium">Insights financeiros e estratégicos toda semana.</p>
@@ -126,7 +126,7 @@ export function MainContent() {
             </div>
           </div>
 
-          <div className="flex flex-col items-start gap-5 pt-2">
+          <div className="flex flex-col items-start gap-5 pt-0">
             <div className="flex flex-col gap-4 w-full">
               <div className="flex items-center gap-3">
                 <div className="flex -space-x-2 shrink-0">
@@ -148,16 +148,16 @@ export function MainContent() {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-0">
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-4">
               Tour Rápido <div className="h-px bg-gray-200 flex-1"></div>
             </h3>
 
-            <div className="space-y-3 px-0">
+            <div className="space-y-3 px-2">
                 <p className="text-gray-600 text-base leading-relaxed font-medium py-1">
                   Assista ao nosso vídeo institucional e entenda como a <span className="text-gray-900 font-bold">Nucleobase</span> transforma sua gestão financeira em poucos cliques.
                 </p>
-                <Link href="/demonstracao" className="group flex items-center gap-2">
+                <Link href="/demonstracao" className="group flex items-center gap-2 mb-8">
                   <span className="text-gray-600 text-base font-bold underline hover:text-blue-600 transition-colors">
                     <u>Explore as dicas que criamos e aproveite o máximo da plataforma.</u>
                   </span>
@@ -610,16 +610,43 @@ export function MainContent() {
                 ))}
             </div>
 
+            {/* AJUSTE DESKTOP INSTAGRAM COM DIVISÓRIA */}
+            <div className="mt-24 flex items-center gap-4 mb-12">
+              <div className="h-px bg-gray-200 flex-1"></div>
+              <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
+              <div className="h-px bg-gray-200 flex-1"></div>
+            </div>
+
+            {/* BLOCO INSTAGRAM */}
             <div className="flex flex-col items-center text-center">
-                <a href="https://www.instagram.com/nucleobase.app/" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center gap-6">
-                    <div className="w-24 h-24 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.5rem] flex items-center justify-center text-white shadow-xl group-hover:rotate-6 transition-all duration-500">
-                        <Instagram size={40} strokeWidth={1.5} />
-                    </div>
-                    <div className="flex flex-col items-center">
-                        <span className="text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
-                        <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
-                    </div>
-                </a>
+              <div className="max-w-3xl mb-12">
+                <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
+                  Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+                </h4>
+                <p className="text-gray-500 font-medium text-sm md:text-base">
+                  Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
+                </p>
+              </div>
+              
+              <a 
+                href="https://www.instagram.com/nucleobase.app/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="group relative flex flex-col items-center gap-6"
+              >
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+                  
+                  <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+                    <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+                  </div>
+                </div>
+                
+                <div className="flex flex-col items-center">
+                  <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+                  <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
+                </div>
+              </a>
             </div>
           </section>
         </div>
