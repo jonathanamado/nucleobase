@@ -129,7 +129,7 @@ export function MainContent() {
           </div>
 
           {/* AJUSTE: Ícone de rede social e texto abaixo do botão de acesso */}
-          <div className="flex flex-col items-start gap-5 pt-2">
+          <div className="flex flex-col items-start gap-5 pt-0">
             <div className="flex flex-col gap-4 w-full">
               <div className="flex items-center gap-3">
                 <div className="flex -space-x-2 shrink-0">
@@ -187,7 +187,7 @@ export function MainContent() {
             Informativos e acessos <div className="h-px bg-gray-300 flex-1"></div>
           </h3>
           <p className="text-gray-600 text-base leading-relaxed font-medium py-1">
-            A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos seu controle financeiro em inteligência estratégica para que você reduza custos. Conheça a nossa história e os nossos objetivos <Link href="/sobre" className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
+            A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos seu controle financeiro em inteligência estratégica para que você reduza custos. Conheça nossa missão <Link href="/sobre" className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
           </p>
         </div>
 
