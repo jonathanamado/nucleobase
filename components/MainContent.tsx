@@ -59,9 +59,7 @@ export function MainContent() {
             {!enviado ? (
               <>
                 <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
-                  <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
-                    <Mail size={24} />
-                  </div>
+                  <Mail size={24} />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Assinar Newsletter</h3>
                 <p className="text-gray-500 mb-8 font-medium">Insights financeiros e estratégicos toda semana.</p>
@@ -99,8 +97,8 @@ export function MainContent() {
                <Zap size={22} className="text-orange-500 fill-orange-500 ml-1 animate-pulse" />
              </h1>
              
-             <p className="text-gray-500 text-lg font-medium leading-tight max-w-[280px]">
-               Sua trajetória merece uma <span className="text-gray-900">estratégia impecável.</span>
+             <p className="text-gray-500 text-base font-medium leading-tight max-w-[280px]">
+               Seu controle financeiro centralizado em uma <span className="text-gray-900">plataforma única.</span>
              </p>
           </div>
 
@@ -109,7 +107,7 @@ export function MainContent() {
             <div className="relative bg-white border border-gray-100 p-7 rounded-[2.5rem] shadow-xl shadow-blue-900/5">
               <div className="mb-6">
                 <p className="text-gray-700 text-base leading-snug font-medium text-center">
-                  Você acaba de chegar ao APP em que números brutos tornam-se <span className="text-gray-900 font-bold not-italic">decisões inteligentes</span> para quem domina o próprio destino. Clique na logo e acesse o seu <span className="text-gray-900 font-bold not-italic">'Painel de Controle'</span>.
+                  Você acaba de chegar ao APP em que números brutos tornam-se <span className="text-gray-900 font-bold not-italic">decisões inteligentes e práticas</span> para o seu dia a dia. Clique na <span className="text-blue-600 font-bold">Logo</span> <LayoutDashboard size={14} strokeWidth={3} className="inline-block text-blue-600 mb-1" /> e acesse o seu <span className="text-gray-900 font-bold not-italic">'Painel de Controle'</span>.
                 </p>
               </div>
               
@@ -128,8 +126,7 @@ export function MainContent() {
             </div>
           </div>
 
-          {/* AJUSTE: Ícone de rede social e texto abaixo do botão de acesso */}
-          <div className="flex flex-col items-start gap-5 pt-0">
+          <div className="flex flex-col items-start gap-5 pt-2">
             <div className="flex flex-col gap-4 w-full">
               <div className="flex items-center gap-3">
                 <div className="flex -space-x-2 shrink-0">
@@ -151,23 +148,20 @@ export function MainContent() {
             </div>
           </div>
 
-          {/* VÍDEO MOBILE COM MINI-CONTEXTO E LINK */}
           <div className="space-y-4">
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-4">
               Tour Rápido <div className="h-px bg-gray-200 flex-1"></div>
             </h3>
 
-            {/* AJUSTE: Mini-contexto e link antes do vídeo */}
-            <div className="space-y-3 px-2">
-              <p className="text-gray-500 text-sm font-medium leading-relaxed">
-                Assista aos nossos vídeos institucionais e entenda como a Nucleo transformará sua visão em poucos cliques no dia a dia.
-              </p>
-              <Link href="/demonstracao" className="group flex items-center gap-2">
-                <span className="text-blue-600 font-bold text-xs underline underline-offset-4 decoration-2">
-                  Clique aqui e aprenda mais sobre a Plataforma
-                </span>
-                <ArrowRight size={14} className="text-blue-600 group-hover:translate-x-1 transition-transform" />
-              </Link>
+            <div className="space-y-3 px-0">
+                <p className="text-gray-600 text-base leading-relaxed font-medium py-1">
+                  Assista ao nosso vídeo institucional e entenda como a <span className="text-gray-900 font-bold">Nucleobase</span> transforma sua gestão financeira em poucos cliques.
+                </p>
+                <Link href="/demonstracao" className="group flex items-center gap-2">
+                  <span className="text-gray-600 text-base font-bold underline hover:text-blue-600 transition-colors">
+                    <u>Explore as dicas que criamos e aproveite o máximo da plataforma.</u>
+                  </span>
+                </Link>
             </div>
 
             <div className="relative aspect-video rounded-[2rem] overflow-hidden border-2 border-gray-100 shadow-lg">
@@ -187,7 +181,7 @@ export function MainContent() {
             Informativos e acessos <div className="h-px bg-gray-300 flex-1"></div>
           </h3>
           <p className="text-gray-600 text-base leading-relaxed font-medium py-1">
-            A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos seu controle financeiro em inteligência estratégica para que você reduza custos. Conheça nossa missão <Link href="/sobre" className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
+            A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos seu controle financeiro em inteligência estratégica para que você reduza custos. Conheça a nossa história e os nossos objetivos <Link href="/sobre" className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
           </p>
         </div>
 
@@ -415,11 +409,9 @@ export function MainContent() {
           </div>
           
           <div className="md:col-span-4 flex flex-col">
-            {/* Container com h-full para igualar a altura do vídeo e borda estilizada */}
             <div className="h-full border border-gray-100 bg-gray-50/30 p-6 rounded-[2.5rem] flex flex-col justify-between shadow-sm">
               
               <div className="space-y-6">
-                {/* Título centralizado ocupando a largura completa */}
                 <div className="flex items-center justify-center gap-3 px-4 py-2 bg-gray-900/5 backdrop-blur-md border border-gray-200/50 rounded-2xl w-full">
                   <h4 className="text-sm font-bold tracking-tight text-gray-900 uppercase">
                     Nucleo em ação.
@@ -434,7 +426,6 @@ export function MainContent() {
                     Faça um tour rápido pela interface e descubra como simplificamos o que antes era complexo.
                   </p>
 
-                  {/* Miniaturas de Vídeo com legendas e ícones estilo YouTube */}
                   <div className="grid grid-cols-3 gap-2 pt-2">
                     {/* Item 01 */}
                     <div className="flex flex-col gap-2">
@@ -470,7 +461,7 @@ export function MainContent() {
                         </div>
                       </Link>
                       <span className="text-[9px] font-bold text-gray-400 uppercase leading-tight text-center">
-                        Realizar<br />Lançamentos
+                        Realizar<br />Lançamento
                       </span>
                     </div>
 
@@ -489,20 +480,18 @@ export function MainContent() {
                         </div>
                       </Link>
                       <span className="text-[9px] font-bold text-gray-400 uppercase leading-tight text-center">
-                        Analisar<br />Resultados
+                        Analisar<br />Resultado
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Link final com a cor laranjada e borda superior */}
               <Link href="/demonstracao" className="group/link block pt-4 border-t border-gray-100">
                 <span className="text-[13px] font-bold text-orange-600 leading-snug group-hover/link:text-orange-700 transition-colors">
                   Confira dicas sobre a plataforma e suas funcionalidades, <span className="underline underline-offset-4 decoration-2">clique aqui.</span>
                 </span>
               </Link>
-
             </div>
           </div>
         </div>
