@@ -59,7 +59,9 @@ export function MainContent() {
             {!enviado ? (
               <>
                 <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
-                  <Mail size={24} />
+                  <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
+                    <Mail size={24} />
+                  </div>
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Assinar Newsletter</h3>
                 <p className="text-gray-500 mb-8 font-medium">Insights financeiros e estratégicos toda semana.</p>
@@ -98,7 +100,7 @@ export function MainContent() {
              </h1>
              
              <p className="text-gray-500 text-lg font-medium leading-tight max-w-[280px]">
-               Uma nova forma de cuidar do seu <span className="text-gray-900">Orçamento</span> pessoal e profissional.
+               Sua trajetória merece uma <span className="text-gray-900">estratégia impecável.</span>
              </p>
           </div>
 
@@ -107,7 +109,7 @@ export function MainContent() {
             <div className="relative bg-white border border-gray-100 p-7 rounded-[2.5rem] shadow-xl shadow-blue-900/5">
               <div className="mb-6">
                 <p className="text-gray-700 text-base leading-snug font-medium text-center">
-                  Você acaba de chegar ao APP em que números brutos tornam-se <span className="text-gray-900 font-bold not-italic">decisões inteligentes</span> para quem busca facilidade no dia a dia. Clique na logo e acesse o seu <span className="text-gray-900 font-bold not-italic">'Painel de Controle'</span>.
+                  Você acaba de chegar ao APP em que números brutos tornam-se <span className="text-gray-900 font-bold not-italic">decisões inteligentes</span> para quem domina o próprio destino. Clique na logo e acesse o seu <span className="text-gray-900 font-bold not-italic">'Painel de Controle'</span>.
                 </p>
               </div>
               
@@ -116,7 +118,7 @@ export function MainContent() {
                 className="grid grid-cols-[1fr_auto_1fr] items-center w-full p-2 bg-gray-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl active:scale-[0.96] transition-all hover:bg-black"
               >
                 <div className="w-[36px]" aria-hidden="true" />
-                <span className="text-center">Acessar<br />Dashboard</span>
+                <span className="text-center">Acessar<br />Área do Usuário</span>
                 <div className="flex justify-end">
                   <div className="bg-blue-600 p-2 rounded-xl shadow-inner flex items-center justify-center">
                     <LayoutDashboard size={20} />
@@ -126,6 +128,7 @@ export function MainContent() {
             </div>
           </div>
 
+          {/* AJUSTE: Ícone de rede social e texto abaixo do botão de acesso */}
           <div className="flex flex-col items-start gap-5 pt-2">
             <div className="flex flex-col gap-4 w-full">
               <div className="flex items-center gap-3">
@@ -148,11 +151,25 @@ export function MainContent() {
             </div>
           </div>
 
-          {/* VÍDEO MOBILE */}
+          {/* VÍDEO MOBILE COM MINI-CONTEXTO E LINK */}
           <div className="space-y-4">
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-4">
               Tour Rápido <div className="h-px bg-gray-200 flex-1"></div>
             </h3>
+
+            {/* AJUSTE: Mini-contexto e link antes do vídeo */}
+            <div className="space-y-3 px-2">
+              <p className="text-gray-500 text-sm font-medium leading-relaxed">
+                Assista aos nossos vídeos institucionais e entenda como a Nucleo transformará sua visão em poucos cliques no dia a dia.
+              </p>
+              <Link href="/demonstracao" className="group flex items-center gap-2">
+                <span className="text-blue-600 font-bold text-xs underline underline-offset-4 decoration-2">
+                  Clique aqui e aprenda mais sobre a Plataforma
+                </span>
+                <ArrowRight size={14} className="text-blue-600 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+
             <div className="relative aspect-video rounded-[2rem] overflow-hidden border-2 border-gray-100 shadow-lg">
               <iframe 
                 className="absolute inset-0 w-full h-full"
@@ -162,16 +179,11 @@ export function MainContent() {
                 allowFullScreen
               ></iframe>
             </div>
-
-          <p className="text-gray-600 text-base leading-relaxed font-medium py-1">
-            Faça um tour em poucos minutos pela <span className="text-gray-900 font-bold">Nucleobase</span> e aprenda mais sobre os benefícios do APP, garantindo o uso completo em seu dia a dia. Saiba mais <Link href="/demonstracao" className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
-          </p>
-
           </div>
         </div>
 
         <div className="space-y-6">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2 flex items-center gap-4">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-0 flex items-center gap-4">
             Informativos e acessos <div className="h-px bg-gray-300 flex-1"></div>
           </h3>
           <p className="text-gray-600 text-base leading-relaxed font-medium py-1">
@@ -274,7 +286,7 @@ export function MainContent() {
           <div className="flex flex-col items-center text-center">
             <div className="mb-8">
                 <h4 className="text-2xl font-bold text-gray-900 tracking-tighter mb-2 leading-tight">
-                    Fique por dentro <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+                  Fique por dentro <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
                 </h4>
                 <p className="text-gray-500 font-medium text-xs mx-auto max-w-[280px]">Insights, novidades e bastidores da Nucleobase diretamente no seu feed.</p>
             </div>
@@ -384,11 +396,11 @@ export function MainContent() {
         </div>
 
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
-          Nucleobase Na Rede <div className="h-px bg-gray-300 flex-1"></div>
+          O que fazemos <div className="h-px bg-gray-300 flex-1"></div>
         </h3>
 
         {/* --- SEÇÃO DO VÍDEO DESKTOP --- */}
-        <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-10 items-center mb-16">
+        <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-10 items-stretch mb-16">
           <div className="md:col-span-8 relative group">
             <div className="absolute -inset-2 bg-gradient-to-r from-blue-600/20 to-indigo-600/20 rounded-[3.5rem] blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700"></div>
             <div className="relative aspect-video bg-gray-900 rounded-[3rem] overflow-hidden border-4 border-white shadow-2xl">
@@ -401,26 +413,99 @@ export function MainContent() {
               ></iframe>
             </div>
           </div>
-          <div className="md:col-span-4 space-y-6">
-            <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
-              <Play fill="currentColor" size={24} />
-            </div>
-            <h4 className="text-2xl font-bold tracking-tight text-gray-900">
-              Veja a Nucleobase <br /> em ação.
-            </h4>
-            <p className="text-gray-500 text-sm leading-relaxed font-medium">
-              Acompanhe um tour rápido pela interface e descubra como simplificamos o que antes era complexo.
-            </p>
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">Demonstração Ativa</span>
+          
+          <div className="md:col-span-4 flex flex-col">
+            {/* Container com h-full para igualar a altura do vídeo e borda estilizada */}
+            <div className="h-full border border-gray-100 bg-gray-50/30 p-6 rounded-[2.5rem] flex flex-col justify-between shadow-sm">
+              
+              <div className="space-y-6">
+                {/* Título centralizado ocupando a largura completa */}
+                <div className="flex items-center justify-center gap-3 px-4 py-2 bg-gray-900/5 backdrop-blur-md border border-gray-200/50 rounded-2xl w-full">
+                  <h4 className="text-sm font-bold tracking-tight text-gray-900 uppercase">
+                    Nucleo em ação.
+                  </h4>
+                  <div className="flex items-center justify-center w-6 h-6 bg-blue-600 rounded-lg shadow-lg shadow-blue-200 animate-pulse">
+                    <Play fill="white" size={12} className="ml-0.5" />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <p className="text-gray-500 text-sm leading-relaxed font-medium">
+                    Faça um tour rápido pela interface e descubra como simplificamos o que antes era complexo.
+                  </p>
+
+                  {/* Miniaturas de Vídeo com legendas e ícones estilo YouTube */}
+                  <div className="grid grid-cols-3 gap-2 pt-2">
+                    {/* Item 01 */}
+                    <div className="flex flex-col gap-2">
+                      <Link href="/demonstracao" className="group/thumb relative aspect-video bg-white rounded-xl overflow-hidden border border-gray-200 transition-all hover:border-blue-300 shadow-sm">
+                        <img 
+                          src="/imagem-miniatura-criar-conta.png" 
+                          alt="Como criar conta" 
+                          className="w-full h-full object-cover opacity-80 group-hover/thumb:opacity-100 transition-opacity"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-900/10 group-hover/thumb:bg-gray-900/0 transition-all">
+                          <div className="bg-[#FF0000] p-1 rounded-md shadow-lg">
+                            <Play fill="white" size={8} className="text-white ml-0.5" />
+                          </div>
+                        </div>
+                      </Link>
+                      <span className="text-[9px] font-bold text-gray-400 uppercase leading-tight text-center">
+                        Criar<br />Conta
+                      </span>
+                    </div>
+
+                    {/* Item 02 */}
+                    <div className="flex flex-col gap-2">
+                      <Link href="/demonstracao" className="group/thumb relative aspect-video bg-white rounded-xl overflow-hidden border border-gray-200 transition-all hover:border-blue-300 shadow-sm">
+                        <img 
+                          src="/imagem-miniatura-realizar-lancamento.png" 
+                          alt="Como realizar lançamento" 
+                          className="w-full h-full object-cover opacity-80 group-hover/thumb:opacity-100 transition-opacity"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-900/10 group-hover/thumb:bg-gray-900/0 transition-all">
+                          <div className="bg-[#FF0000] p-1 rounded-md shadow-lg">
+                            <Play fill="white" size={8} className="text-white ml-0.5" />
+                          </div>
+                        </div>
+                      </Link>
+                      <span className="text-[9px] font-bold text-gray-400 uppercase leading-tight text-center">
+                        Realizar<br />Lançamentos
+                      </span>
+                    </div>
+
+                    {/* Item 03 */}
+                    <div className="flex flex-col gap-2">
+                      <Link href="/demonstracao" className="group/thumb relative aspect-video bg-white rounded-xl overflow-hidden border border-gray-200 transition-all hover:border-blue-300 shadow-sm">
+                        <img 
+                          src="/imagem-miniatura-acompanhar-resultado.png" 
+                          alt="Como acompanhar resultados" 
+                          className="w-full h-full object-cover opacity-80 group-hover/thumb:opacity-100 transition-opacity"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-900/10 group-hover/thumb:bg-gray-900/0 transition-all">
+                          <div className="bg-[#FF0000] p-1 rounded-md shadow-lg">
+                            <Play fill="white" size={8} className="text-white ml-0.5" />
+                          </div>
+                        </div>
+                      </Link>
+                      <span className="text-[9px] font-bold text-gray-400 uppercase leading-tight text-center">
+                        Analisar<br />Resultados
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Link final com a cor laranjada e borda superior */}
+              <Link href="/demonstracao" className="group/link block pt-4 border-t border-gray-100">
+                <span className="text-[13px] font-bold text-orange-600 leading-snug group-hover/link:text-orange-700 transition-colors">
+                  Confira dicas sobre a plataforma e suas funcionalidades, <span className="underline underline-offset-4 decoration-2">clique aqui.</span>
+                </span>
+              </Link>
+
             </div>
           </div>
         </div>
-
-        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
-          Saiba mais <div className="h-px bg-gray-300 flex-1"></div>
-        </h3>
 
         <div className="w-full mb-12">
           <p className="text-gray-600 text-base leading-[1.8]">
