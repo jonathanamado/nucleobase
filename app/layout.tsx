@@ -2,7 +2,7 @@
 
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { MessageCircle, Undo2, ShieldCheck, AppWindow } from "lucide-react";
+import { MessageCircle, ShieldCheck } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
 import { MobileTabBar } from "@/components/MobileTabBar";
@@ -55,9 +55,9 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className="light" style={{ colorScheme: 'light' }}>
       <head>
-        {/* Bloqueia a inversão de cores automática de navegadores mobile */}
         <meta name="color-scheme" content="only light" />
         
+        {/* 1. Inicialização do Consent Mode e dataLayer (Obrigatório antes do GTM) */}
         <Script id="gtm-init" strategy="beforeInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
@@ -72,18 +72,20 @@ export default function RootLayout({
           `}
         </Script>
         
+        {/* 2. Script principal do GTM usando URL oficial */}
         <Script
           id="google-tag-manager"
           strategy="afterInteractive"
-          src="/metrics/gtm.js?id=GTM-NS5KWXFL"
+          src="https://www.googletagmanager.com/gtm.js?id=GTM-NS5KWXFL"
         />
       </head>
-      {/* Alterado de bg-gray-50 para bg-white e forçado text-gray-900 */}
+
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-gray-900 min-h-screen flex flex-col overflow-x-hidden max-w-full`}>
         
+        {/* NoScript corrigido para URL oficial */}
         <noscript>
           <iframe 
-            src="/metrics/ns.html?id=GTM-NS5KWXFL"
+            src="https://www.googletagmanager.com/ns.html?id=GTM-NS5KWXFL"
             height="0" 
             width="0" 
             style={{ display: 'none', visibility: 'hidden' }}
@@ -95,13 +97,11 @@ export default function RootLayout({
         <main className="flex-1 flex w-full max-w-full overflow-x-hidden bg-white">
           <Sidebar />
           
-          {/* Adicionado bg-white explicitamente na section para cobrir as laterais */}
           <section className="flex-1 w-full max-w-full px-4 md:px-10 py-6 pb-20 md:pb-6 scroll-smooth md:ml-80 overflow-x-hidden flex flex-col bg-white">
             <div className="min-h-[calc(100vh-200px)] w-full bg-white">
               {children}
             </div>
             
-            {/* Rodapé Unificado e Minimalista */}
             <footer className="mt-16 mb-10 w-full flex flex-col items-center">
               <div className="w-full max-w-2xl bg-gray-50 border border-gray-100 rounded-3xl md:rounded-full p-5 flex flex-col md:flex-row items-center justify-center gap-4 backdrop-blur-sm">
                 <div className="flex items-center gap-3">
