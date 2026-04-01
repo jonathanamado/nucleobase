@@ -28,31 +28,41 @@ export default function CookieNotice() {
 
   const handleAccept = () => {
     if (typeof window !== "undefined") {
+      // 1. Inicializa o dataLayer se não existir
       window.dataLayer = window.dataLayer || [];
 
-      // Atualiza consentimento
-      window.dataLayer.push([
-        "consent",
-        "update",
-        {
+      // 2. DISPARO OFICIAL DO CONSENT MODE
+      // Usamos a função gtag diretamente para garantir que o Google entenda o comando
+      if (typeof window.gtag === "function") {
+        window.gtag("consent", "update", {
           analytics_storage: "granted",
           ad_storage: "granted",
           ad_user_data: "granted",
           ad_personalization: "granted",
-        },
-      ]);
+        });
+      } else {
+        // Fallback caso o script do GTM ainda não tenha carregado a função gtag
+        window.dataLayer.push({
+          event: "gtm.consent",
+          consent_type: "update",
+          analytics_storage: "granted",
+          ad_storage: "granted",
+          ad_user_data: "granted",
+          ad_personalization: "granted",
+        });
+      }
 
-      // Evento customizado
+      // 3. Evento customizado para disparar tags que não dependem do Consent Mode nativo
       window.dataLayer.push({
         event: "cookie_consent_accepted",
         consent_type: "full",
       });
 
-      // CRIA O COOKIE PARA O MIDDLEWARE
+      // 4. CRIA O COOKIE PARA O MIDDLEWARE
       document.cookie =
         "nucleobase-consent=true; path=/; max-age=31536000; SameSite=Lax";
       
-      // Persistência local
+      // 5. Persistência local
       localStorage.setItem("nucleo-consent", "true");
 
       setIsVisible(false);
@@ -61,7 +71,6 @@ export default function CookieNotice() {
 
   if (!isVisible) return null;
 
-  // Verifica se o usuário está na página de política para esconder o card informativo
   const isPolicyPage = pathname === "/politica-de-cookies";
 
   return (
@@ -71,7 +80,6 @@ export default function CookieNotice() {
         onMouseEnter={() => setIsExpanded(true)}
       >
         
-        {/* CONTEXTO EXPLICATIVO (CARD PRIVACIDADE) */}
         {!isPolicyPage && (
           <div
             className={`
@@ -117,7 +125,6 @@ export default function CookieNotice() {
           </div>
         )}
 
-        {/* BOTÃO */}
         <button
           onClick={handleAccept}
           className="
