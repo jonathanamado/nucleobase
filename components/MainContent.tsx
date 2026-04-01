@@ -107,7 +107,7 @@ export function MainContent() {
             <div className="relative bg-white border border-gray-100 p-7 rounded-[2.5rem] shadow-xl shadow-blue-900/5">
               <div className="mb-6">
                 <p className="text-gray-700 text-base leading-snug font-medium text-center">
-                  Você acaba de chegar ao APP em que números brutos tornam-se <span className="text-gray-900 font-bold not-italic">decisões inteligentes e práticas</span> para o seu dia a dia. Clique na <span className="text-blue-600 font-bold">Logo</span> <LayoutDashboard size={14} strokeWidth={3} className="inline-block text-blue-600 mb-1" /> abaixo, acesse seu <span className="text-gray-900 font-bold not-italic">'Painel'</span> e profissionalize seu controle.
+                  Você acaba de chegar ao APP em que números brutos tornam-se <span className="text-gray-900 font-bold not-italic">decisões inteligentes e práticas</span> para o seu dia a dia. Clique na <span className="text-blue-600 font-bold">Logo</span> <LayoutDashboard size={14} strokeWidth={3} className="inline-block text-blue-600 mb-1" /> abaixo, acesse seu <span className="text-gray-900 font-bold not-italic">Painel</span> e profissionalize seu controle.
                 </p>
               </div>
               
@@ -159,7 +159,7 @@ export function MainContent() {
                 </p>
                 <Link href="/demonstracao" className="group flex items-center gap-2 mb-8">
                   <span className="text-gray-600 text-base font-bold underline hover:text-blue-600 transition-colors">
-                    <u>Explore as dicas que criamos e aproveite o máximo da plataforma.</u>
+                    <u>Explore as dicas que criamos e aproveite ao máximo a plataforma.</u>
                   </span>
                 </Link>
             </div>
@@ -181,18 +181,18 @@ export function MainContent() {
             Informativos e acessos <div className="h-px bg-gray-300 flex-1"></div>
           </h3>
           <p className="text-gray-600 text-base leading-relaxed font-medium py-1">
-            A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos seu controle financeiro em inteligência estratégica para que você reduza custos. Conheça a nossa história e os nossos objetivos <Link href="/sobre" className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
+            A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos seu controle financeiro em inteligência estratégica para que você reduza custos. Conheça a nossa história e a nossa missão <Link href="/sobre" className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3 mt-4">
             <button onClick={() => setIsModalOpen(true)} className="col-span-1 bg-blue-50 p-6 rounded-3xl flex flex-col gap-4 border border-blue-100 text-left relative overflow-hidden active:scale-95 transition-transform">
                 <Mail className="text-blue-600" size={24} />
-                <span className="font-bold text-[10px] uppercase tracking-widest text-gray-800">Assinar Newsletter</span>
+                <span className="font-bold text-[10px] uppercase tracking-widest text-gray-800">Assinar <br /> Newsletter</span>
             </button>
             <Link href="/blog" className="col-span-1 bg-gray-50 p-6 rounded-3xl flex flex-col gap-4 border border-gray-100 text-left active:scale-95 transition-transform">
                 <Newspaper className="text-gray-400" size={24} />
-                <span className="font-bold text-[10px] uppercase tracking-widest text-gray-800">Blog da Nucleo</span>
+                <span className="font-bold text-[10px] uppercase tracking-widest text-gray-800">Blog da <br /> Nucleobase</span>
             </Link>
 
             <Link href="/resultados" className="col-span-2 bg-white p-5 rounded-[2rem] border border-gray-100 flex items-center justify-between shadow-lg shadow-gray-200/50 active:scale-[0.98] transition-all">
