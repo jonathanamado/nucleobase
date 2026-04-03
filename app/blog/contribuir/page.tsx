@@ -6,7 +6,7 @@ import {
   Unlock, Briefcase, Lock, Mail, Clock, FileText, 
   ChevronRight, Eye, EyeOff, AtSign, Dna, PenTool,
   LogOut, X, LifeBuoy, ArrowRight, Instagram,
-  ShieldCheck, Zap, Globe
+  ShieldCheck, Zap, Globe, Key, UserPlus
 } from "lucide-react";
 
 const supabase = createClient(
@@ -74,7 +74,8 @@ export default function ContribuirBlog() {
     setSlug(supabaseUser.email || "");
   };
 
-  const handleAuthRapido = async () => {
+  const handleAuthRapido = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!slug || !senha) {
       alert("Preencha o acesso e a senha para liberar.");
       return;
@@ -183,7 +184,7 @@ export default function ContribuirBlog() {
         body: JSON.stringify(Object.fromEntries(formData))
       });
       if (response.ok) {
-        formElement.reset(); // Limpa o formulário após sucesso
+        formElement.reset(); 
         setEnviado(true);
       }
     } catch (error) {
@@ -226,63 +227,96 @@ export default function ContribuirBlog() {
             <PenTool size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
           </h1>
           <h2 className="text-gray-500 text-base md:text-lg font-medium w-full leading-relaxed mt-0">
-            Simplicidade em compartilhar o seu conhecimento.
+            Compartilhando seu conhecimento.
           </h2>
         </div>
-        {user && (
-          <button onClick={handleLogout} className="flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-red-500 transition-colors bg-gray-50 px-3 py-2 rounded-xl">
-            <LogOut size={16} /> Logoff
-          </button>
-        )}
       </div>
 
-      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4 w-full">
+      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-5 flex items-center gap-2 w-full">
         Conteúdo e Identidade <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         
-        {/* FORMULÁRIO (ESQUERDA) */}
-        <div className="lg:col-span-7 space-y-8 h-full">
+        {/* FORMULÁRIO / LOGIN (ESQUERDA) */}
+        <div className="lg:col-span-7 h-full">
           {!user ? (
-            <div className="bg-white rounded-[3rem] border border-gray-100 p-8 md:p-12 shadow-2xl shadow-blue-900/5 h-full">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="bg-orange-50 p-3 rounded-2xl text-orange-500"><AtSign size={28} /></div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">Acesso Rápido</h3>
-                  <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Identifique-se para liberar o envio</p>
-                </div>
-              </div>
+            <div className="h-full">
+                <div className="w-full bg-white p-6 md:p-4 rounded-[3rem] border border-gray-100 shadow-2xl shadow-blue-900/5 h-full flex flex-col">
+                  <h2 className="text-lg font-bold text-gray-900 mb-2 px-1">
+                    Realizar login<span className="text-orange-500">.</span>
+                  </h2>
+                  <form onSubmit={handleAuthRapido} className="flex flex-col gap-1 flex-grow">
+                      <div className="space-y-3">
+                        <div className="relative group">
+                          <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
+                          <input 
+                            type="text" 
+                            placeholder="ID de Usuário ou E-mail" 
+                            required
+                            value={slug}
+                            className="w-full pl-11 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900 font-medium"
+                            onChange={(e) => setSlug(e.target.value)}
+                          />
+                        </div>
+                        <div className="relative group">
+                          <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
+                          <input 
+                            type={showPassword ? "text" : "password"} 
+                            placeholder="Senha" 
+                            required
+                            value={senha}
+                            className="w-full pl-11 pr-10 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900"
+                            onChange={(e) => setSenha(e.target.value)}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition-colors"
+                          >
+                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <button 
+                        type="button"
+                        onClick={() => setShowForgotModal(true)}
+                        className="text-[10px] text-gray-400 font-bold hover:text-orange-500 transition-colors text-right pr-1"
+                      >
+                        Esqueceu a senha?
+                      </button>
 
-              <div className="space-y-4 mb-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input type="text" placeholder="ID ou E-mail" value={slug} onChange={(e) => setSlug(e.target.value)} className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-100" />
-                  <div className="relative">
-                    <input type={showPassword ? "text" : "password"} placeholder="Senha" value={senha} onChange={(e) => setSenha(e.target.value)} className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-100" />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600">
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
+                      <button 
+                        disabled={authLoading}
+                        className="w-full bg-orange-500 text-white h-[56px] rounded-2xl font-bold hover:bg-orange-600 transition shadow-lg text-xs disabled:opacity-50 mt-2"
+                      >
+                        {authLoading ? "Verificando..." : "Acessar Plataforma"}
+                      </button>
+                  </form>
+
+                  <div className="mt-8 pt-8 border-t border-gray-100">
+                    <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4 text-center">Ainda não se cadastrou?</p>
+                    <a href="/cadastro" className="flex items-center justify-center gap-3 bg-white text-gray-900 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] border border-gray-200 shadow-sm hover:shadow-md hover:border-orange-200 hover:text-orange-600 transition-all active:scale-95">
+                      <UserPlus size={18} className="text-orange-500" /> Criar conta gratuita
+                    </a>
                   </div>
-                </div>
-                <input type="text" placeholder="Nome Completo (Apenas para novos autores)" value={nome} onChange={(e) => setNome(e.target.value)} className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-100" />
               </div>
-
-              <button type="button" onClick={() => setShowForgotModal(true)} className="text-[10px] text-gray-400 font-bold hover:text-blue-600 mb-6 block">Esqueceu a senha?</button>
-
-              <button onClick={handleAuthRapido} disabled={authLoading} className="w-full bg-gray-900 text-white py-5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] flex items-center justify-center gap-3">
-                {authLoading ? <Loader2 className="animate-spin" size={18} /> : <Unlock size={18} />}
-                {authLoading ? "Verificando..." : "Liberar Envio"}
-              </button>
-            </div>
+            </div> 
           ) : (
             <form id="artigo-form" onSubmit={handleSubmit} className="bg-white rounded-[3rem] border border-gray-100 p-8 md:p-12 shadow-2xl shadow-blue-900/5 space-y-8 flex flex-col h-full">
                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-gray-50">
                 <div className="flex items-center gap-2 text-gray-400"><Mail size={18} /><h3 className="text-[11px] font-black uppercase tracking-widest">Editor de Conteúdo</h3></div>
-                <label className="flex items-center gap-3 cursor-pointer group bg-gray-50 px-4 py-2 rounded-full text-[9px] font-black text-gray-400 uppercase">
-                    Receber cópia
-                    <input type="checkbox" checked={enviarCopia} onChange={() => setEnviarCopia(!enviarCopia)} className="sr-only peer" />
-                    <div className="w-7 h-4 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 transition-all peer-checked:after:translate-x-3"></div>
-                </label>
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-3 cursor-pointer group bg-gray-50 px-4 py-2 rounded-full text-[9px] font-black text-gray-400 uppercase">
+                      Receber cópia
+                      <input type="checkbox" checked={enviarCopia} onChange={() => setEnviarCopia(!enviarCopia)} className="sr-only peer" />
+                      <div className="w-7 h-4 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 transition-all peer-checked:after:translate-x-3"></div>
+                  </label>
+                  <button type="button" onClick={handleLogout} className="text-gray-400 hover:text-red-500 transition-colors">
+                    <LogOut size={18} />
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-6 flex-grow flex flex-col">
@@ -303,60 +337,64 @@ export default function ContribuirBlog() {
 
         {/* SIDEBAR (DIREITA) */}
         <div className="lg:col-span-5 flex flex-col gap-6 h-full">
-          {/* CARD CREDIBILIDADE */}
-          <div className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center min-h-[300px]">
-            <div className="absolute -top-10 -right-10 opacity-10 pointer-events-none group-hover:rotate-12 transition-transform duration-700">
-              <Dna size={180} strokeWidth={1} className="text-blue-500" />
-            </div>
-            <div className="relative z-10 w-full">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg"><Briefcase size={24} /></div>
-                <div><p className="text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]">Credibilidade</p><h4 className="font-bold text-white text-xl">Perfil do Autor</h4></div>
+          {/* CARD CREDIBILIDADE - Agora condicional ao login */}
+          {user && (
+            <div className="bg-gray-900 p-8 md:p-12 rounded-[2.5rem] md:rounded-[3rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center h-full">
+              <div className="absolute -top-10 -right-10 opacity-10 pointer-events-none group-hover:rotate-12 transition-transform duration-700">
+                <Dna size={180} strokeWidth={1} className="text-blue-500" />
               </div>
-              <div className="space-y-4">
-                <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-500 uppercase">Instagram</label><input form="artigo-form" name="Autor_Social" type="text" placeholder="@seuuser" className="w-full bg-white/5 border-none rounded-xl py-3 px-5 text-xs text-white outline-none focus:ring-1 focus:ring-blue-500" /></div>
-                <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-500 uppercase">Website</label><input form="artigo-form" name="Autor_Website" type="text" placeholder="www.link.com" className="w-full bg-white/5 border-none rounded-xl py-3 px-5 text-xs text-white outline-none focus:ring-1 focus:ring-blue-500" /></div>
-                <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-500 uppercase">Atuação</label><input form="artigo-form" name="Autor_Atuacao" type="text" placeholder="Ex: Gestor Financeiro" className="w-full bg-white/5 border-none rounded-xl py-3 px-5 text-xs text-white outline-none focus:ring-1 focus:ring-blue-500" /></div>
+              <div className="relative z-10 w-full">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg"><Briefcase size={24} /></div>
+                  <div><p className="text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]">Credibilidade</p><h4 className="font-bold text-white text-xl">Perfil do Autor</h4></div>
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-500 uppercase">Instagram</label><input form="artigo-form" name="Autor_Social" type="text" placeholder="@seuuser" className="w-full bg-white/5 border-none rounded-xl py-3 px-5 text-xs text-white outline-none focus:ring-1 focus:ring-blue-500" /></div>
+                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-500 uppercase">Website</label><input form="artigo-form" name="Autor_Website" type="text" placeholder="www.link.com" className="w-full bg-white/5 border-none rounded-xl py-3 px-5 text-xs text-white outline-none focus:ring-1 focus:ring-blue-500" /></div>
+                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-500 uppercase">Atuação</label><input form="artigo-form" name="Autor_Atuacao" type="text" placeholder="Ex: Gestor Financeiro" className="w-full bg-white/5 border-none rounded-xl py-3 px-5 text-xs text-white outline-none focus:ring-1 focus:ring-blue-500" /></div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
           
           {/* CARD DIRETRIZES E IMPACTO */}
-          <div className="bg-white border border-gray-100 p-8 rounded-[2.5rem] shadow-sm flex-grow flex flex-col justify-between">
-            <div>
-              <div className="flex items-center gap-3 mb-8">
-                <ShieldCheck className="text-emerald-500" size={24} />
-                <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-900">Diretrizes de Publicação</h4>
-              </div>
-              <ul className="space-y-6">
-                {[
-                  { title: "Conteúdo Autoral", desc: "Artigos devem ser originais e inéditos." },
-                  { title: "Tom Técnico-Executivo", desc: "Foco em clareza, dados e aplicabilidade." },
-                  { title: "Revisão Nucleo", desc: "O texto passará por curadoria antes de ir ao ar." }
-                ].map((item, i) => (
-                  <li key={i} className="flex gap-4">
-                    <div className="mt-1.5 w-1.5 h-1.5 bg-blue-600 rounded-full shrink-0"></div>
-                    <div>
-                      <p className="text-sm font-bold text-gray-800">{item.title}</p>
-                      <p className="text-xs text-gray-400 font-medium leading-relaxed">{item.desc}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          {user && (
+            <div className="bg-white border border-gray-100 p-8 rounded-[2.5rem] shadow-sm flex-grow flex flex-col justify-between">
+                <div>
+                <div className="flex items-center gap-3 mb-8">
+                    <ShieldCheck className="text-emerald-500" size={24} />
+                    <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-900">Diretrizes de Publicação</h4>
+                </div>
+                <ul className="space-y-6">
+                    {[
+                    { title: "Conteúdo Autoral", desc: "Artigos devem ser originais e inéditos." },
+                    { title: "Tom Técnico-Executivo", desc: "Foco em clareza, dados e aplicabilidade." },
+                    { title: "Revisão Nucleo", desc: "O texto passará por curadoria antes de ir ao ar." }
+                    ].map((item, i) => (
+                    <li key={i} className="flex gap-4">
+                        <div className="mt-1.5 w-1.5 h-1.5 bg-blue-600 rounded-full shrink-0"></div>
+                        <div>
+                        <p className="text-sm font-bold text-gray-800">{item.title}</p>
+                        <p className="text-xs text-gray-400 font-medium leading-relaxed">{item.desc}</p>
+                        </div>
+                    </li>
+                    ))}
+                </ul>
+                </div>
 
-            <div className="mt-10 pt-8 border-t border-gray-50">
-              <div className="flex items-center gap-3 mb-4">
-                <Sparkles className="text-blue-500" size={20} />
-                <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-900">Impacto na Rede</h4>
-              </div>
-              <div className="bg-blue-50/40 border-l-4 border-blue-600 p-6 rounded-r-3xl transition-all hover:bg-blue-50/60">
-                <p className="text-blue-900 font-bold text-xs md:text-sm text-center leading-relaxed italic">
-                  "Sua trajetória inspira pessoas, transformando conhecimento humano em um legado poderoso que conecta, guia e fortalece toda a nossa comunidade."
-                </p>
-              </div>
+                <div className="mt-10 pt-8 border-t border-gray-50">
+                <div className="flex items-center gap-3 mb-4">
+                    <Sparkles className="text-blue-500" size={20} />
+                    <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-900">Impacto na Rede</h4>
+                </div>
+                <div className="bg-blue-50/40 border-l-4 border-blue-600 p-6 rounded-r-3xl transition-all hover:bg-blue-50/60">
+                    <p className="text-blue-900 font-bold text-xs md:text-sm text-center leading-relaxed italic">
+                    "Sua trajetória inspira pessoas, transformando conhecimento humano em um legado poderoso que conecta, guia e fortalece toda a nossa comunidade."
+                    </p>
+                </div>
+                </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
