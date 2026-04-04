@@ -12,7 +12,6 @@ import {
   EyeOff, 
   UserCircle, 
   AlertTriangle, 
-  Gift,
   Instagram,
   Clock,
   User,
@@ -52,11 +51,33 @@ export default function CadastroPage() {
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
           access_key: "9ef5a274-150a-4664-a885-0b052efd06f7",
-          subject: "🚀 Nova Indicação Registrada!",
-          message: `O usuário ${nomeNovo || "Anônimo"} (${emailNovo || "Sem e-mail"}) acabou de se cadastrar.`
+          subject: "🚀 Novo Cadastro na Nucleobase!",
+          message: `O usuário ${nomeNovo || "Anônimo"} se cadastrou.\nE-mail: ${emailNovo}`
         }),
       });
-    } catch (e) { console.error("Erro ao enviar e-mail adm", e); }
+    } catch (e) { console.error("Erro Web3Forms:", e); }
+  };
+
+  const enviarOnboardingUsuario = async (nomeUsuario: string, emailDestino: string) => {
+    try {
+      const res = await fetch("/api/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nome: nomeUsuario || "Investidor(a)",
+          email: emailDestino,
+        }),
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("Erro na rota de e-mail:", errorData);
+      }
+    } catch (e) { 
+      console.error("Erro ao conectar com a API interna:", e); 
+    }
   };
 
   const handleCadastro = async (e: React.FormEvent) => {
@@ -97,6 +118,11 @@ export default function CadastroPage() {
     });
 
     if (authError) {
+      if (authError.message === "User already registered") {
+        alert("Este e-mail já possui uma conta vinculada. Redirecionando para o login...");
+        window.location.href = "/acesso-usuario";
+        return;
+      }
       alert("Erro ao cadastrar: " + authError.message);
       setLoading(false);
       return;
@@ -114,16 +140,20 @@ export default function CadastroPage() {
         }
       ]);
 
+      await enviarNotificacaoAdm(nome || "Anônimo", emailParaAuth);
+
+      if (email.trim()) {
+        await enviarOnboardingUsuario(nome, email.trim());
+      }
+
       const indicadorId = localStorage.getItem("nucleobase_referral_id");
       if (indicadorId && indicadorId !== authData.user.id) {
-        const { error: indError } = await supabase.from("indicacoes").insert([
+        await supabase.from("indicacoes").insert([
           { indicador_id: indicadorId, indicado_id: authData.user.id, status: 'pendente' }
         ]);
-        if (!indError) {
-          await enviarNotificacaoAdm(nome, emailParaAuth);
-          localStorage.removeItem("nucleobase_referral_id");
-        }
+        localStorage.removeItem("nucleobase_referral_id");
       }
+
       window.location.href = "/minha-conta";
     }
     setLoading(false);
@@ -132,10 +162,10 @@ export default function CadastroPage() {
   return (
     <div className="min-h-screen w-full flex flex-col bg-white font-sans">
       <div className="flex flex-col-reverse lg:flex-row flex-1">
-        {/* LADO: BRANDING E DEPOIMENTOS */}
+        {/* LADO ESQUERDO: BRANDING */}
         <div className="w-full lg:w-1/2 bg-gray-900 p-8 lg:p-12 flex flex-col justify-start relative border-r border-white/5">
           <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-              <Globe size={400} className="absolute -bottom-20 -left-20 text-blue-500" />
+            <Globe size={400} className="absolute -bottom-20 -left-20 text-blue-500" />
           </div>
 
           <div className="relative z-10 w-full max-w-md mx-auto space-y-10 pt-4 lg:pt-0 pb-8">
@@ -151,14 +181,14 @@ export default function CadastroPage() {
               <div className="space-y-6">
                 <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4">
                   {[
-                      { icon: <Clock size={20} className="text-blue-400" />, text: "90 dias: Acesso irrestrito a todas as funções e suporte humanizado." },
-                      { icon: <CheckCircle2 size={20} className="text-emerald-500" />, text: "Pós-90 dias: Sua conta continua ativa. Consulta, blog e métricas seguem livres." },
-                      { icon: <ShieldCheck size={20} className="text-blue-500" />, text: "Segurança de dados e privacidade nível bancário em qualquer momento." }
+                    { icon: <Clock size={20} className="text-blue-400" />, text: "90 dias: Acesso irrestrito a todas as funções e suporte humanizado." },
+                    { icon: <CheckCircle2 size={20} className="text-emerald-500" />, text: "Pós-90 dias: Sua conta continua ativa. Consulta e métricas seguem livres." },
+                    { icon: <ShieldCheck size={20} className="text-blue-500" />, text: "Segurança de dados e privacidade, garantindo personalizaçôes exclusivamente para o seu perfil." }
                   ].map((item, i) => (
-                      <div key={i} className="flex items-start gap-4 text-white/80 font-medium text-sm">
-                          <div className="p-2 bg-white/5 rounded-xl shrink-0">{item.icon}</div>
-                          <span className="leading-snug">{item.text}</span>
-                      </div>
+                    <div key={i} className="flex items-start gap-4 text-white/80 font-medium text-sm">
+                      <div className="p-2 bg-white/5 rounded-xl shrink-0">{item.icon}</div>
+                      <span className="leading-snug">{item.text}</span>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -167,55 +197,39 @@ export default function CadastroPage() {
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-gray-500">
                 <div className="h-px w-8 bg-gray-800"></div>
-                <span className="text-[9px] font-black uppercase tracking-widest">A percepção de quem já organiza o lar</span>
+                <span className="text-[9px] font-black uppercase tracking-widest">A percepção de quem já usa</span>
               </div>
               <div className="relative p-6 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-sm">
-                  <div className="flex gap-1 mb-4">
-                      {[...Array(5)].map((_, i) => <Star key={i} size={12} className="fill-blue-500 text-blue-500" />)}
+                <div className="flex gap-1 mb-4">
+                  {[...Array(5)].map((_, i) => <Star key={i} size={12} className="fill-blue-500 text-blue-500" />)}
+                </div>
+                <p className="text-white text-xs italic mb-5 leading-relaxed">
+                  "Finalmente encontrei uma plataforma que simplifica o que era complexo. A visualização clara dos meus rendimentos me trouxe paz."
+                </p>
+                <div className="flex items-center gap-3">
+                  <img src="/depoimentos/a-silva.png" alt="A. Silva" className="w-10 h-10 rounded-full border-2 border-blue-500/30 object-cover" />
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-white font-black uppercase tracking-widest">A. Silva</span>
+                    <span className="text-[9px] text-gray-500 font-medium uppercase">Empreendedor Digital</span>
                   </div>
-                  <p className="text-white text-xs italic mb-5 leading-relaxed">
-                    "Finalmente encontrei uma plataforma que simplifica o que era complexo. A visualização clara dos meus rendimentos me trouxe uma paz de espírito que eu não tinha com planilhas manuais."
-                  </p>
-                  <div className="flex items-center gap-3">
-                      <img src="/depoimentos/a-silva.png" alt="A. Silva" className="w-10 h-10 rounded-full border-2 border-blue-500/30 object-cover" />
-                      <div className="flex flex-col">
-                          <span className="text-[10px] text-white font-black uppercase tracking-widest">A. Silva</span>
-                          <span className="text-[9px] text-gray-500 font-medium uppercase">Empreendedor Digital</span>
-                      </div>
-                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* LADO: FORMULÁRIO */}
+        {/* LADO DIREITO: FORMULÁRIO */}
         <div className="flex-1 flex flex-col p-2 lg:px-16 justify-start bg-white">
           <div className="w-full max-w-md mx-auto pt-0 lg:pt-0 pb-12">
-            
-            {/* DIVISÃO INTELIGENTE MOBILE - AJUSTADA PARA O TOPO */}
-            <div className="lg:hidden flex flex-col gap-4 mb-6 pt-0">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 leading-tight">
-                  Crie sua conta para realizar seu <span className="text-blue-600">controle financeiro.</span>
-                </h2>
-              </div>
-            </div>
-
-            {/* TÍTULO DESKTOP */}
-            <div className="hidden lg:block mb-8 text-left">
+            <div className="hidden lg:block mb-8 text-left mt-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-1 tracking-tight">
-                Crie sua conta e inicie seu <span className="text-blue-600 font-black">controle financeiro pessoal ou profissional.</span>
+                Crie sua conta e inicie seu <span className="text-blue-600 font-black">controle financeiro.</span>
               </h2>
-              <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em]">
-                Explore o poder da inteligência financeira.
-              </p>
             </div>
 
             <form onSubmit={handleCadastro} className="space-y-3">
               <div className="group">
-                <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-1.5 block">
-                  ID de Usuário (Obrigatório)
-                </label>
+                <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-1.5 block">ID de Usuário</label>
                 <div className="relative">
                   <input 
                     type="text" 
@@ -229,11 +243,11 @@ export default function CadastroPage() {
               </div>
 
               <div className="group">
-                <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-1.5 block">Nome Completo (Recomendado)</label>
+                <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-1.5 block">Nome Completo</label>
                 <div className="relative">
                   <input 
                     type="text" 
-                    placeholder="Exemplo: João Andrade Silva" 
+                    placeholder="João Silva" 
                     className="w-full px-6 py-3 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium pr-12" 
                     onChange={(e) => setNome(e.target.value)} 
                   />
@@ -242,11 +256,11 @@ export default function CadastroPage() {
               </div>
               
               <div className="group">
-                <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-1.5 block">E-mail (Recomendado)</label>
+                <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-1.5 block">E-mail</label>
                 <div className="relative">
                   <input 
                     type="email" 
-                    placeholder="Exemplo: joao@seudominio.com" 
+                    placeholder="joao@exemplo.com" 
                     className="w-full px-6 py-3 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium pr-12" 
                     onChange={(e) => {
                       setEmail(e.target.value);
@@ -258,21 +272,19 @@ export default function CadastroPage() {
               </div>
 
               {showWarning && !email.trim() && (
-                <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 animate-in fade-in zoom-in-95 duration-200">
+                <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4">
                   <div className="flex gap-3">
                     <AlertTriangle className="text-orange-500 shrink-0" size={18} />
                     <div className="space-y-2">
-                      <p className="text-[11px] text-orange-800 font-bold leading-tight uppercase tracking-tighter">
-                        Atenção: Sem um e-mail real, você não poderá recuperar sua senha se esquecê-la.
-                      </p>
-                      <label className="flex items-center gap-2 cursor-pointer group">
+                      <p className="text-[11px] text-orange-800 font-bold uppercase">Sem e-mail, você não poderá recuperar sua senha.</p>
+                      <label className="flex items-center gap-2 cursor-pointer">
                         <input 
                           type="checkbox" 
-                          className="rounded border-orange-300 text-orange-600 focus:ring-orange-500 h-3.5 w-3.5 transition-transform active:scale-90"
+                          className="rounded text-orange-600"
                           checked={cienteSemEmail}
                           onChange={(e) => setCienteSemEmail(e.target.checked)}
                         />
-                        <span className="text-[10px] text-orange-700 font-bold uppercase tracking-tight">Estou ciente e desejo prosseguir</span>
+                        <span className="text-[10px] text-orange-700 font-bold">Estou ciente</span>
                       </label>
                     </div>
                   </div>
@@ -280,7 +292,7 @@ export default function CadastroPage() {
               )}
               
               <div className="group">
-                <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-1.5 block">Senha (Obrigatório)</label>
+                <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-1.5 block">Senha</label>
                 <div className="relative">
                   <input 
                     type={showPassword ? "text" : "password"} 
@@ -289,11 +301,7 @@ export default function CadastroPage() {
                     className="w-full px-6 py-3 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium pr-14" 
                     onChange={(e) => setPassword(e.target.value)} 
                   />
-                  <button 
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                  >
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-gray-400">
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
@@ -302,71 +310,32 @@ export default function CadastroPage() {
               <button 
                 disabled={loading} 
                 type="submit" 
-                className="w-full bg-gray-900 text-white py-4 rounded-2xl hover:bg-black transition-all font-bold text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-gray-200 disabled:bg-gray-400 mt-6 flex items-center justify-center gap-3 group"
+                className="w-full bg-gray-900 text-white py-4 rounded-2xl hover:bg-black transition-all font-bold text-[10px] uppercase tracking-[0.2em] mt-6 flex items-center justify-center gap-3 disabled:bg-gray-400"
               >
-                {loading ? (
-                  <span className="animate-pulse">Sincronizando sua conta...</span>
-                ) : (
-                  <>
-                    Finalizar cadastro 
-                    <CheckCircle2 size={18} className="text-blue-500 group-hover:scale-110 transition-transform" />
-                  </>
-                )}
+                {loading ? "Sincronizando..." : "Finalizar cadastro"}
               </button>
             </form>
 
             <p className="mt-6 text-center text-[10px] text-gray-400 font-medium uppercase tracking-widest">
               Já possui uma conta? <a href="/acesso-usuario" className="text-blue-600 font-bold hover:underline">Fazer login</a>
             </p>
-
-            <div className="mt-6 pt-6 flex items-center justify-center gap-4 opacity-40 grayscale border-t border-gray-50">
-               <span className="text-[9px] font-black uppercase tracking-widest text-gray-900">Nucleobase Secured System</span>
-               <ShieldCheck size={14} className="text-gray-900" />
-            </div>
           </div>
         </div>
       </div>
 
-      {/* RODAPÉ PADRONIZADO */}
-      <div className="bg-white pb-20 px-4 md:px-0">
-        <div className="mt-16 flex items-center gap-4 mb-12 max-w-6xl mx-auto">
+      {/* RODAPÉ */}
+      <div className="bg-white pb-20 text-center">
+        <div className="mt-16 flex items-center gap-4 mb-12 max-w-6xl mx-auto px-4">
           <div className="h-px bg-gray-200 flex-1"></div>
-          <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
-            Conecte-se
-          </h3>
+          <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400">Conecte-se</h3>
           <div className="h-px bg-gray-200 flex-1"></div>
         </div>
-
-        <div className="flex flex-col items-center text-center">
-          <div className="max-w-3xl mb-12">
-            <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
-              Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
-            </h4>
-            <p className="text-gray-500 font-medium text-sm md:text-base">
-              Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
-            </p>
+        <a href="https://www.instagram.com/nucleobase.app/" target="_blank" rel="noopener noreferrer" className="group inline-flex flex-col items-center gap-4">
+          <div className="w-20 h-20 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2rem] flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform">
+            <Instagram size={40} />
           </div>
-          
-          <a 
-            href="https://www.instagram.com/nucleobase.app/" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="group relative flex flex-col items-center gap-6"
-          >
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
-              
-              <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
-                <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
-              </div>
-            </div>
-            
-            <div className="flex flex-col items-center">
-              <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
-              <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
-            </div>
-          </a>
-        </div>
+          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-pink-500">@nucleobase.app</span>
+        </a>
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ import {
   Send, CheckCircle2, Loader2, Sparkles, 
   Unlock, Briefcase, Lock, Mail, Clock, FileText, 
   ChevronRight, Eye, EyeOff, AtSign, Dna, PenTool,
-  LogOut, X, LifeBuoy, ArrowRight, Instagram,
+  X, LifeBuoy, ArrowRight, Instagram,
   ShieldCheck, Zap, Globe, Key, UserPlus
 } from "lucide-react";
 
@@ -137,11 +137,6 @@ export default function ContribuirBlog() {
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.reload();
-  };
-
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setResetLoading(true);
@@ -159,10 +154,23 @@ export default function ContribuirBlog() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) return;
-    setLoading(true);
 
     const formElement = e.currentTarget;
     const formData = new FormData(formElement);
+
+    // Lógica Sugerida: Validar Perfil do Autor
+    const autorSocial = formData.get("Autor_Social");
+    const autorWebsite = formData.get("Autor_Website");
+    const autorAtuacao = formData.get("Autor_Atuacao");
+
+    if (!autorSocial && !autorWebsite && !autorAtuacao) {
+      const confirmarEnvio = window.confirm(
+        "Você ainda não preencheu o seu 'Perfil do Autor' (Instagram, Website ou Atuação). \n\nSugerimos preencher para dar mais credibilidade ao seu artigo. Deseja enviar assim mesmo?"
+      );
+      if (!confirmarEnvio) return;
+    }
+
+    setLoading(true);
     formData.append("access_key", "9ef5a274-150a-4664-a885-0b052efd06f7");
     formData.append("email_do_autor", user.email); 
     formData.append("nome_do_autor", user.nome);
@@ -172,9 +180,9 @@ export default function ContribuirBlog() {
         user_id: user.id,
         titulo: formData.get("Titulo_do_Artigo"),
         categoria: formData.get("Categoria"),
-        autor_social: formData.get("Autor_Social"),
-        autor_website: formData.get("Autor_Website"),
-        autor_atuacao: formData.get("Autor_Atuacao")
+        autor_social: autorSocial,
+        autor_website: autorWebsite,
+        autor_atuacao: autorAtuacao
       }]);
 
       if (dbError) throw dbError;
@@ -295,8 +303,8 @@ export default function ContribuirBlog() {
                       </button>
                   </form>
 
-                  <div className="mt-8 pt-8 border-t border-gray-100">
-                    <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4 text-center">Ainda não se cadastrou?</p>
+                  <div className="mt-6 pt-2 border-t border-gray-100">
+                    <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2 text-center">Ainda não se cadastrou?</p>
                     <a href="/cadastro" className="flex items-center justify-center gap-3 bg-white text-gray-900 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] border border-gray-200 shadow-sm hover:shadow-md hover:border-orange-200 hover:text-orange-600 transition-all active:scale-95">
                       <UserPlus size={18} className="text-orange-500" /> Criar conta gratuita
                     </a>
@@ -313,18 +321,37 @@ export default function ContribuirBlog() {
                       <input type="checkbox" checked={enviarCopia} onChange={() => setEnviarCopia(!enviarCopia)} className="sr-only peer" />
                       <div className="w-7 h-4 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 transition-all peer-checked:after:translate-x-3"></div>
                   </label>
-                  <button type="button" onClick={handleLogout} className="text-gray-400 hover:text-red-500 transition-colors">
-                    <LogOut size={18} />
-                  </button>
                 </div>
               </div>
 
               <div className="space-y-6 flex-grow flex flex-col">
-                <input name="Titulo_do_Artigo" required placeholder="Título do seu artigo..." className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-gray-900 font-bold focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none text-2xl" />
-                <select name="Categoria" className="w-full bg-gray-50 border-none rounded-2xl py-4 px-8 text-sm font-bold text-gray-500 outline-none cursor-pointer">
-                    <option>Gestão</option><option>Estratégia</option><option>Tributário</option><option>Mentalidade</option><option>Tecnologia</option>
-                </select>
-                <textarea name="Conteudo_Completo" required placeholder="Desenvolva seu conhecimento aqui..." className="w-full flex-grow bg-gray-50 border-none rounded-[2rem] p-8 text-lg focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none resize-none font-medium text-gray-700 shadow-inner min-h-[400px]"></textarea>
+                <input 
+                  name="Titulo_do_Artigo" 
+                  required 
+                  placeholder="Título do seu artigo..." 
+                  className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-gray-900 font-bold focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none text-2xl placeholder:text-gray-400" 
+                />
+                
+                <div className="relative">
+                  <select 
+                    name="Categoria" 
+                    className="w-full bg-gray-50 border-none rounded-2xl py-5 pl-8 pr-14 text-sm font-bold text-gray-500 outline-none cursor-pointer focus:bg-white focus:ring-2 focus:ring-blue-100 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 20 20%27%3D%3Cpath stroke=%27%236b7280%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27m6 8 4 4 4-4%27/%3E%3C/svg%3E')] bg-[length:1.25rem_1.25rem] bg-[position:right_1.5rem_center] bg-no-repeat transition-all"
+                  >
+                    <option value="" disabled selected className="text-gray-400">Escolha uma categoria...</option>
+                    <option>Gestão</option>
+                    <option>Estratégia</option>
+                    <option>Tributário</option>
+                    <option>Mentalidade</option>
+                    <option>Tecnologia</option>
+                  </select>
+                </div>
+
+                <textarea 
+                  name="Conteudo_Completo" 
+                  required 
+                  placeholder="Desenvolva seu conhecimento aqui..." 
+                  className="w-full flex-grow bg-gray-50 border-none rounded-[2rem] p-8 text-lg focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none resize-none font-medium text-gray-700 shadow-inner min-h-[400px] placeholder:text-gray-400"
+                ></textarea>
               </div>
 
               <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-6 rounded-2xl font-black text-[12px] uppercase tracking-[0.3em] hover:bg-blue-700 flex items-center justify-center gap-3 shadow-xl">

@@ -160,16 +160,6 @@ export default function BlogDaNucleo() {
                       {loading ? <Loader2 className="animate-spin" size={18} /> : "Assinar"}
                     </button>
                   </form>
-                  <div className="relative py-2">
-                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
-                    <div className="relative flex justify-center text-[8px] uppercase tracking-widest font-bold"><span className="bg-white px-2 text-gray-400">ou</span></div>
-                  </div>
-                  <a 
-                    href="/escrever" 
-                    className="w-full py-4 bg-gray-900 text-white rounded-full font-bold text-[10px] uppercase tracking-[0.2em] hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg shadow-gray-200"
-                  >
-                    Escrever Artigo
-                  </a>
                 </div>
               </>
             ) : (
