@@ -307,17 +307,21 @@ export default function MinhaContaPage() {
     <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
       
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 md:mb-10">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
             <span>Minha conta<span className="text-blue-600">.</span></span>
             <UserCircle size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
           </h1>
-          <p className="text-gray-500 text-xs md:text-sm font-medium">
-              Olá<span className="whitespace-nowrap font-bold text-gray-900"> {getPrimeiroNome()},</span> gerencie seus dados e acompanhe seu comportamento.
-          </p>
+          <h2 className="text-gray-500 text-base md:text-lg font-medium max-w-2xl leading-relaxed mt-0">
+            Olá<span className="whitespace-nowrap font-bold text-gray-900"> {getPrimeiroNome()},</span> gerencie seus dados e acompanhe seu comportamento.
+          </h2>
         </div>
       </div>
+
+      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
+        Perfil e Configurações <div className="h-px bg-gray-300 flex-1"></div>
+      </h3>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         
@@ -447,11 +451,11 @@ export default function MinhaContaPage() {
                   </div>
                 ) : (
                   <Link href="/lancamentos" className="block w-full p-6 bg-orange-500 rounded-[2rem] group hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/10 text-center">
-                    <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">
-                      Você ainda não possui lançamentos.
+                    <p className="text-[8px] font-black text-white/70 uppercase tracking-widest mb-1">
+                      Você ainda não possui lançamentos.<br /><br />
                     </p>
                     <p className="text-white text-xs font-bold leading-tight">
-                      Clique aqui e importe seus primeiros registros, iniciando sua gestão digital.
+                      Clique aqui para importar seus registros e iniciar sua gestão digital.
                     </p>
                   </Link>
                 )}
