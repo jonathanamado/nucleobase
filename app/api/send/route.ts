@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         from: "Nucleobase <boasvindas@nucleobase.app>",
         to: [email],
-        subject: `Bem-vindo à NucleoBase 🚀`,
+        subject: `Bem-vindo à Nucleobase 🚀`,
         html: `
           <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f7fa; padding: 60px 20px; color: #1e293b; margin: 0;">
             <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
@@ -52,21 +52,31 @@ export async function POST(request: Request) {
                 </p>
 
                 <p style="font-size: 16px; line-height: 1.6; color: #475569; margin-bottom: 30px;">
-                  A partir de agora, você dá um passo além das planilhas manuais e entra em uma nova forma de organizar sua vida financeira. 
+                  A partir de agora, você dá um passo além das planilhas manuais e entra em uma nova forma de organizar sua vida financeira.<br/><br/>
                   A Nucleo foi pensada para <strong>centralizar e automatizar seu controle</strong>, trazendo clareza sobre o seu orçamento 
                   e contribuindo em suas decisões sobre compras e investimentos no dia a dia.
                 </p>
 
-                <!-- IDENTIDADE (MANTIDO) -->
-                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 25px; margin-bottom: 40px; text-align: left;">
-                  <div style="font-size: 16px; color: #0f172a; line-height: 1.5;">
-                    <strong style="color: #2563eb;">Sua Identidade de Acesso:</strong><br/>
+                <!-- IDENTIDADE -->
+                <div style="background: linear-gradient(135deg, #0f172a, #1e293b); border-radius: 18px; padding: 30px; margin-bottom: 40px; text-align: center; color: #ffffff; box-shadow: 0 15px 25px rgba(15, 23, 42, 0.25);">
+                  
+                  <span style="background-color: #2563eb; color: #ffffff; padding: 6px 12px; border-radius: 999px; font-size: 11px; font-weight: 800; display: inline-block; margin-bottom: 15px; letter-spacing: 1px;">
+                    SUA IDENTIDADE DE ACESSO
+                  </span>
+
+                  <div style="font-size: 18px; font-weight: 700; letter-spacing: 0.3px; color: #475569;">
                     <strong>E-mail:</strong> <span style="color: #475569;">${email}</span>
+                  </div>
+
+                  <div style="margin-top: 20px; height: 1px; background: #475569; width: 60%; margin-left: auto; margin-right: auto;"></div>
+
+                  <div style="margin-top: 15px; font-size: 11px; letter-spacing: 1.5px; color: #475569;">
+                    NUCLEOBASE • DIGITAL ACCESS
                   </div>
                 </div>
 
-                <h3 style="font-size: 20px; font-weight: 700; color: #0f172a; margin-bottom: 15px; text-align: left;">
-                  Com a Nucleo, você pode:
+                <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 15px; text-align: left;">
+                  Com o APP, você poderá:
                 </h3>
 
                 <ul style="text-align: left; color: #475569; font-size: 15px; line-height: 1.8; margin-bottom: 40px; padding-left: 20px;">

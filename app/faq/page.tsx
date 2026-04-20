@@ -15,8 +15,10 @@ import {
   Instagram,
   ArrowRight,
   Clock,
-  Dna
+  Dna,
+  Lock
 } from "lucide-react";
+import Link from "next/link";
 
 export default function FAQ() {
   const [aberto, setAberto] = useState<number | null>(null);
@@ -36,7 +38,7 @@ export default function FAQ() {
     {
       category: "Segurança",
       icon: <ShieldCheck size={20} />,
-      pergunta: "Meus dados financeiros estão seguros na Nucleobase?",
+      pergunta: "Meus dados estão seguros na Nucleo?",
       resposta: "Sim. Utilizamos criptografia de nível bancário e infraestrutura distribuída para garantir que suas informações estejam protegidas sob os mais rígidos padrões da LGPD. Seus dados são sua soberania."
     },
     {
@@ -48,7 +50,7 @@ export default function FAQ() {
     {
       category: "Estratégia",
       icon: <BarChart3 size={20} />,
-      pergunta: "Posso personalizar os indicadores do meu dashboard?",
+      pergunta: "Posso personalizar os indicadores?",
       resposta: "Com certeza. O sistema é modular. Você define os KPIs (Indicadores Chave de Desempenho) vitais para seu modelo de negócio, garantindo uma visão cirúrgica da sua saúde financeira."
     },
     {
@@ -81,14 +83,15 @@ export default function FAQ() {
         </div>
       </div>
 
+      {/* LINHA DIVISÓRIA EXTENSÃO TOTAL */}
+      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4 w-full">
+        Dúvidas e Respostas <div className="h-px bg-gray-300 flex-1"></div>
+      </h3>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-24">
         
         {/* ACCORDION DE PERGUNTAS */}
         <div className="lg:col-span-8 space-y-4">
-          <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
-            Dúvidas e Respostas <div className="h-px bg-gray-300 flex-1"></div>
-          </h3>
-          
           {perguntas.map((item, index) => (
             <div 
               key={index}
@@ -140,22 +143,22 @@ export default function FAQ() {
         </div>
 
         {/* SIDEBAR DE SUPORTE */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="bg-gray-900 p-8 rounded-[2.5rem] text-white relative overflow-hidden group">
+        <div className="lg:col-span-4 space-y-4">
+          <div className="bg-gray-900 p-6 md:p-7 rounded-[2.5rem] text-white relative overflow-hidden group">
             <div className="relative z-10">
-              <div className="flex items-center gap-2 text-green-400 text-[10px] font-black uppercase tracking-widest mb-6">
+              <div className="flex items-center gap-2 text-green-400 text-[10px] font-black uppercase tracking-widest mb-4">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                 Suporte Online
               </div>
-              <h3 className="text-2xl font-bold mb-4 tracking-tight">Dúvida rápida?</h3>
-              <p className="text-gray-400 text-sm mb-8 leading-relaxed font-medium italic">
+              <h3 className="text-xl font-bold mb-3 tracking-tight">Dúvida rápida?</h3>
+              <p className="text-gray-400 text-xs mb-6 leading-relaxed font-medium italic">
                 Nosso time operacional está pronto para te atender via WhatsApp agora.
               </p>
               <a 
                 href={whatsappLink} 
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-3 bg-white text-gray-900 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-50 transition-all shadow-lg"
+                className="flex items-center justify-center gap-3 bg-white text-gray-900 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-50 transition-all shadow-lg"
               >
                 Chamar no WhatsApp <ArrowRight size={14} />
               </a>
@@ -163,13 +166,24 @@ export default function FAQ() {
             <div className="absolute -right-16 -bottom-16 w-48 h-48 bg-blue-600/10 blur-3xl rounded-full"></div>
           </div>
 
-          <div className="bg-blue-50/40 border border-blue-100 p-8 rounded-[2.5rem]">
-            <h4 className="text-gray-900 font-bold mb-4 flex items-center gap-2">
-              <Mail size={18} className="text-blue-600" /> E-mail Oficial
+          <div className="bg-blue-50/40 border border-blue-100 p-6 md:p-7 rounded-[2.5rem]">
+            <h4 className="text-gray-900 font-bold mb-3 flex items-center gap-2 text-sm">
+              <Mail size={16} className="text-blue-600" /> E-mail Oficial
             </h4>
-            <p className="text-gray-500 text-sm mb-4 font-medium leading-relaxed">Para dúvidas adicionais ou sugestões:</p>
+            <p className="text-gray-500 text-[13px] mb-3 font-medium leading-relaxed">Para dúvidas adicionais ou suporte por e-mail, fale conosco através do endereço:</p>
             <a href="mailto:contato@nucleobase.app" className="text-blue-600 font-bold hover:underline text-sm">contato@nucleobase.app</a>
           </div>
+
+          {/* CARD SEGURANÇA E PRIVACIDADE */}
+          <Link href="/seguranca_privacidade" className="block bg-white border border-gray-100 p-6 md:p-7 rounded-[2.5rem] hover:border-blue-200 transition-all group shadow-sm">
+            <h4 className="text-gray-900 font-bold mb-3 flex items-center gap-2 text-sm">
+              <Lock size={16} className="text-blue-600" /> Segurança & Dados
+            </h4>
+            <p className="text-gray-500 text-[13px] mb-4 font-medium leading-relaxed">Confira nossas diretrizes de privacidade e entenda como nós garantirmos a proteção dos seus dados pessoais e financeiros.</p>
+            <span className="text-blue-600 font-black text-[9px] uppercase tracking-widest flex items-center gap-2 group-hover:gap-3 transition-all">
+              Acessar Políticas <ArrowRight size={12} />
+            </span>
+          </Link>
         </div>
       </div>
 

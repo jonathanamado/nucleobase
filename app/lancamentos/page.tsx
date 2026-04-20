@@ -54,6 +54,7 @@ export default function LancamentosPage() {
       "Despesa": {
         "Alimentação": ["Mercado", "Feira", "Padaria", "Suplementos", "Outros"],
         "Assinaturas e Serviços": ["Streaming", "Software/SaaS", "Internet", "Telefone", "Outros"],
+        "Bem estar": ["Salão de beleza", "Barbearia", "Estética", "Spa/Massagem", "Outros"],
         "Compras": ["Roupas", "Eletrônicos", "Casa", "Beleza", "Pet Shop", "Outros"],
         "Educação": ["Curso/Treinamento", "Faculdade", "Livros", "Outros"],
         "Investimentos": ["Ações/FIIs", "Cripto", "Renda Fixa", "Outros"],
