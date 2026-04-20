@@ -171,15 +171,14 @@ export default function FAQ() {
               <Mail size={16} className="text-blue-600" /> E-mail Oficial
             </h4>
             <p className="text-gray-500 text-[13px] mb-3 font-medium leading-relaxed">Para dúvidas adicionais ou suporte por e-mail, fale conosco através do endereço:</p>
-            <a href="mailto:contato@nucleobase.app" className="text-blue-600 font-bold hover:underline text-sm">contato@nucleobase.app</a>
+            <a href="mailto:contato@nucleobase.app" className="text-blue-600 font-black text-[9px] uppercase tracking-widest hover:underline">contato@nucleobase.app</a>
           </div>
 
-          {/* CARD SEGURANÇA E PRIVACIDADE */}
           <Link href="/seguranca_privacidade" className="block bg-white border border-gray-100 p-6 md:p-7 rounded-[2.5rem] hover:border-blue-200 transition-all group shadow-sm">
             <h4 className="text-gray-900 font-bold mb-3 flex items-center gap-2 text-sm">
               <Lock size={16} className="text-blue-600" /> Segurança & Dados
             </h4>
-            <p className="text-gray-500 text-[13px] mb-4 font-medium leading-relaxed">Confira nossas diretrizes de privacidade e entenda como nós garantirmos a proteção dos seus dados pessoais e financeiros.</p>
+            <p className="text-gray-500 text-[13px] mb-3 font-medium leading-relaxed">Confira nossas diretrizes de privacidade e entenda como nós garantirmos a proteção dos seus dados pessoais e financeiros.</p>
             <span className="text-blue-600 font-black text-[9px] uppercase tracking-widest flex items-center gap-2 group-hover:gap-3 transition-all">
               Acessar Políticas <ArrowRight size={12} />
             </span>
