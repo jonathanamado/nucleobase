@@ -60,7 +60,7 @@ export default function SuportePage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
-            <span>Como podemos ajudar hoje<span className="text-blue-600">?</span></span>
+            <span>Como podemos ajudá-lo(a) hoje<span className="text-blue-600">?</span></span>
             <Lightbulb 
               size={32} 
               className="text-blue-600 opacity-35 ml-3" 

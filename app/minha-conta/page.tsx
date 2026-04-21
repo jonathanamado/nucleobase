@@ -314,7 +314,7 @@ export default function MinhaContaPage() {
             <UserCircle size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
           </h1>
           <h2 className="text-gray-500 text-base md:text-lg font-medium max-w-2xl leading-relaxed mt-0">
-            Olá<span className="whitespace-nowrap font-bold text-gray-900"> {getPrimeiroNome()},</span> gerencie seus dados e acompanhe seu comportamento.
+            Olá<span className="whitespace-nowrap font-bold text-gray-900"> {getPrimeiroNome()},</span> gerencie seus dados e entenda o seu comportamento.
           </h2>
         </div>
       </div>
@@ -554,7 +554,7 @@ export default function MinhaContaPage() {
                   </div>
                   <p className="text-lg font-black text-gray-900">{stats.mediaGastosDiarios.split(',')[0]}</p>
                 </div>
-                <InsightPopover id="media" title="Média/Dia" colorClass="text-orange-400" content={`Sua média diária atual de despesas é de ${stats.mediaGastosDiarios}. Este indicador é vital para o seu controle comportamental. Ao monitorar este valor, a Nucleo consegue propor formas eficazes de otimização financeira. Sua memória de cálculo é o 'Total de Despesas do mês atual' dividido pela 'Soma de dias do mês atual até o dia atual'`} align="left" />
+                <InsightPopover id="media" title="Média/Dia (Mês atual)" colorClass="text-orange-400" content={`Sua média diária atual de despesas é de ${stats.mediaGastosDiarios}. Este indicador é vital para o seu controle comportamental. Ao monitorar este valor, a Nucleo consegue propor formas eficazes de otimização financeira. Sua memória de cálculo é o 'Total de Despesas do mês atual' dividido pela 'Soma de dias do mês atual até o dia atual'`} align="left" />
               </div>
 
               <div className="flex items-center gap-4 relative" 
@@ -567,12 +567,12 @@ export default function MinhaContaPage() {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-1.5">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Tempo</p>
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Cadastro</p>
                     <Info size={10} className="text-gray-300" />
                   </div>
                   <p className="text-lg font-black text-gray-900">{stats.diasCadastro}</p>
                 </div>
-                <InsightPopover id="membro" title="Tempo de Uso" colorClass="text-amber-500" content={`Você está conosco há ${stats.diasCadastro}! Quanto maior o seu tempo de uso na plataforma, mais refinados se tornam nossos algoritmos de inteligência de dados, proporcionando insights cada vez mais precisos para sua governança financeira pessoal.`} align="right" />
+                <InsightPopover id="membro" title="Uso da Plataforma" colorClass="text-amber-500" content={`Você está conosco há ${stats.diasCadastro}! Quanto maior o seu tempo de uso na plataforma, mais refinados se tornam nossos algoritmos de inteligência de dados, proporcionando insights cada vez mais precisos para sua governança financeira pessoal.`} align="right" />
               </div>
             </div>
 
