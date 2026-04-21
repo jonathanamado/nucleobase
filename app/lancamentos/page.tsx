@@ -5,7 +5,7 @@ import {
   Save, CreditCard, Wallet, Calendar, 
   Tag, DollarSign, CheckCircle2, Layers, Repeat, 
   Rocket, Activity, Clock, AlertCircle, BarChart3, ArrowRight, LineChart, Zap, X, Instagram, Edit3,
-  Lock, Eye, EyeOff, UserPlus, FileUp, Cpu, ChevronLeft, ChevronRight, Briefcase, Building2, User, AtSign, KeyRound
+  Lock, Eye, EyeOff, UserPlus, FileUp, Cpu, ChevronLeft, ChevronRight, Briefcase, Building2, User, AtSign, KeyRound, Mail
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
@@ -56,6 +56,7 @@ export default function LancamentosPage() {
         "Assinaturas e Serviços": ["Streaming", "Software/SaaS", "Internet", "Telefone", "Outros"],
         "Bem estar": ["Salão de beleza", "Barbearia", "Estética", "Spa/Massagem", "Outros"],
         "Compras": ["Roupas", "Eletrônicos", "Casa", "Beleza", "Pet Shop", "Outros"],
+        "Doações": ["Instituições de caridade", "Dízimos e Ofertas", "Ajuda a Terceiros", "Causas Ambientais/Animais", "Outros"],
         "Educação": ["Curso/Treinamento", "Faculdade", "Livros", "Outros"],
         "Investimentos": ["Ações/FIIs", "Cripto", "Renda Fixa", "Outros"],
         "Lazer": ["Viagem", "Hospedagem", "Cinema", "Bares/Festas", "Outros"],
@@ -399,7 +400,6 @@ export default function LancamentosPage() {
                   <span className="font-black text-[9px] uppercase tracking-tighter">Orçamento <br /> Condomínio</span>
                 </button>
               </div>
-
               <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
                 <button
                   type="button"
