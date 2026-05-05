@@ -6,7 +6,7 @@ import {
   Calendar, Tag, DollarSign, X, Save, 
   ChevronLeft, ChevronRight, AlertCircle, CheckCircle2,
   Database, BarChart3, ArrowUpRight, RotateCcw,
-  Lock, Eye, EyeOff, UserPlus
+  Lock, Eye, EyeOff, UserPlus, Trash
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
@@ -31,6 +31,7 @@ export default function GerenciarLancamentosPage() {
   // Filtros
   const [searchTerm, setSearchTerm] = useState("");
   const [filterNatureza, setFilterNatureza] = useState("TODOS");
+  const [filterBanco, setFilterBanco] = useState("TODOS");
   const [filterMes, setFilterMes] = useState("");
 
   // Edição
@@ -49,8 +50,7 @@ export default function GerenciarLancamentosPage() {
         const { data } = await supabase
           .from("lancamentos_financeiros")
           .select("*")
-          .eq("user_id", session.user.id)
-          .order("data_competencia", { ascending: false });
+          .eq("user_id", session.user.id);
         
         if (data) setLancamentos(data);
       }
@@ -80,16 +80,27 @@ export default function GerenciarLancamentosPage() {
     }
   };
 
+  const bancosUnicos = useMemo(() => {
+    const bancos = lancamentos.map(l => l.origem).filter(Boolean);
+    return Array.from(new Set(bancos)).sort();
+  }, [lancamentos]);
+
   const lancamentosFiltrados = useMemo(() => {
-    return lancamentos.filter(l => {
+    const filtrados = lancamentos.filter(l => {
       const matchBusca = l.descricao.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          l.categoria.toLowerCase().includes(searchTerm.toLowerCase());
       const matchNatureza = filterNatureza === "TODOS" || l.natureza === filterNatureza;
+      const matchBanco = filterBanco === "TODOS" || l.origem === filterBanco;
       const matchMes = filterMes === "" || l.data_competencia.startsWith(filterMes);
       
-      return matchBusca && matchNatureza && matchMes;
+      return matchBusca && matchNatureza && matchBanco && matchMes;
     });
-  }, [searchTerm, filterNatureza, filterMes, lancamentos]);
+
+    // Classificação por Competência (Antigo para o Novo)
+    return filtrados.sort((a, b) => {
+      return new Date(a.data_competencia).getTime() - new Date(b.data_competencia).getTime();
+    });
+  }, [searchTerm, filterNatureza, filterBanco, filterMes, lancamentos]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Deseja realmente excluir este registro?")) return;
@@ -97,6 +108,27 @@ export default function GerenciarLancamentosPage() {
     const { error } = await supabase.from("lancamentos_financeiros").delete().eq("id", id);
     if (error) alert("Erro ao excluir");
     else setLancamentos(lancamentos.filter(l => l.id !== id));
+  };
+
+  const handleDeleteAll = async () => {
+    if (!userId) return;
+    const confirmar = confirm("ATENÇÃO: Você está prestes a excluir TODOS os seus registros permanentemente. Esta ação não pode ser desfeita. Deseja continuar?");
+    
+    if (confirmar) {
+      setLoading(true);
+      const { error } = await supabase
+        .from("lancamentos_financeiros")
+        .delete()
+        .eq("user_id", userId);
+
+      if (error) {
+        alert("Erro ao excluir registros: " + error.message);
+      } else {
+        setLancamentos([]);
+        alert("Todos os registros foram excluídos com sucesso.");
+      }
+      setLoading(false);
+    }
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -175,17 +207,46 @@ export default function GerenciarLancamentosPage() {
         </div>
       </div>
 
-      <h3 className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 md:mb-10 flex items-center gap-4">
-        Controle de Lançamentos <div className="h-px bg-gray-300 flex-1"></div>
-      </h3>
+      <div className="flex items-center justify-between gap-4 mb-4">
+        <h3 className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 flex items-center gap-4 flex-1">
+          Controle de Lançamentos <div className="h-px bg-gray-300 flex-1"></div>
+        </h3>
+        
+        <div className="flex items-center gap-3">
+
+          {/* BOTÃO LIMPAR FILTROS */}
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-[9px] font-black uppercase tracking-tighter text-gray-400">Limpar filtro</span>
+            <button 
+              onClick={() => {setSearchTerm(""); setFilterNatureza("TODOS"); setFilterBanco("TODOS"); setFilterMes("");}}
+              className="w-10 h-10 md:w-12 md:h-12 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-gray-400 hover:text-blue-600 hover:border-blue-100 hover:bg-blue-50 transition-all shadow-sm group"
+              title="Limpar todos os filtros"
+            >
+              <RotateCcw size={18} className="group-hover:rotate-[-90deg] transition-transform duration-300" />
+            </button>
+          </div>
+
+          {/* BOTÃO EXCLUIR TUDO */}
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-[9px] font-black uppercase tracking-tighter text-red-400">Excluir dados</span>
+            <button 
+              onClick={handleDeleteAll}
+              className="w-10 h-10 md:w-12 md:h-12 bg-white border border-red-100 rounded-2xl flex items-center justify-center text-red-400 hover:text-white hover:bg-red-500 transition-all shadow-sm group"
+              title="Excluir todos os registros permanentemente"
+            >
+              <Trash size={18} />
+            </button>
+          </div>
+
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 mb-8 items-stretch">
         
-        {/* BLOCO DE FILTROS */}
-        <section className="lg:col-span-8 bg-gray-50/50 border border-gray-100 rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-8">
+        <section className="lg:col-span-12 bg-gray-50/50 border border-gray-100 rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-8">
           <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-end">
             
-            <div className="flex-1 w-full space-y-2">
+            <div className="flex-[2] w-full space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Busca livre</label>
               <div className="relative group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-500 transition-colors" size={16} />
@@ -218,6 +279,20 @@ export default function GerenciarLancamentosPage() {
             </div>
 
             <div className="flex-1 w-full space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Banco</label>
+              <select 
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold outline-none shadow-sm cursor-pointer"
+                value={filterBanco}
+                onChange={(e) => setFilterBanco(e.target.value)}
+              >
+                <option value="TODOS">Todos</option>
+                {bancosUnicos.map(banco => (
+                  <option key={banco} value={banco}>{banco}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex-1 w-full space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Mês / Ano</label>
               <div className="relative">
                 <input 
@@ -229,43 +304,10 @@ export default function GerenciarLancamentosPage() {
               </div>
             </div>
 
-            <div className="flex-none w-full md:w-20 space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2 opacity-0 hidden md:block">Limpar</label>
-              <button 
-                onClick={() => {setSearchTerm(""); setFilterNatureza("TODOS"); setFilterMes("");}}
-                className="w-full h-[46px] bg-red-50 border border-red-100 rounded-2xl flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-100 transition-all shadow-sm group"
-                title="Limpar todos os filtros"
-              >
-                <RotateCcw size={18} className="group-hover:rotate-[-90deg] transition-transform duration-300" />
-              </button>
-            </div>
           </div>
         </section>
-
-        <Link 
-          href="/resultados" 
-          className="hidden lg:flex lg:col-span-4 bg-gray-900 rounded-[2.5rem] p-6 relative overflow-hidden group hover:scale-[1.02] transition-all duration-500 shadow-xl items-center"
-        >
-          <div className="absolute -right-4 -bottom-4 text-blue-600 opacity-10 group-hover:scale-110 transition-all duration-700">
-            <BarChart3 size={100} strokeWidth={1} />
-          </div>
-          
-          <div className="relative z-10 w-full flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20">
-                <BarChart3 size={24} />
-              </div>
-              <div>
-                <h4 className="text-white font-bold text-base leading-tight">Painel de Resultados</h4>
-                <p className="text-gray-400 text-[9px] font-black uppercase tracking-widest">Análise Estratégica</p>
-              </div>
-            </div>
-            <ArrowUpRight size={20} className="text-blue-400 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-          </div>
-        </Link>
       </div>
 
-      {/* TABELA DE GERENCIAMENTO */}
       <div className="bg-white border border-gray-100 rounded-[2rem] md:rounded-[2.5rem] shadow-sm overflow-hidden mb-20">
         <div className="overflow-x-auto relative">
           <table className="w-full text-left border-collapse min-w-[320px] md:min-w-[800px]">

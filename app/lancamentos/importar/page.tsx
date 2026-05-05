@@ -129,7 +129,6 @@ export default function ImportarXLSPage() {
           const subCat = row.sub_categoria || row.Subcategoria || row.subcategoria || null;
           const bancoOrigem = row.banco || "Não informado";
           
-          // Ajuste: Removido substring para evitar colisões e mantido user.id para bater com a constraint composite
           const hashBase = btoa(`${user.id}-${dataFormatada}-${valorRaw}-${row.descricao}-${subCat || ''}-${bancoOrigem}`);
           
           const totalParcelas = parseInt(row.parcelas_totais) || 1;
@@ -150,18 +149,25 @@ export default function ImportarXLSPage() {
 
         if (user) {
           const hashesParaBusca = dadosProcessados.map(d => d.hash_busca);
-          const { data: existentes } = await supabase
-            .from("lancamentos_financeiros")
-            .select("hash_deduplicacao")
-            .eq("user_id", user.id)
-            .in("hash_deduplicacao", hashesParaBusca);
+          const tamanhoLoteBusca = 100;
+          const hashesNoBanco: string[] = [];
 
-          if (existentes) {
-            const hashesNoBanco = existentes.map(e => e.hash_deduplicacao);
-            dadosProcessados.forEach(d => {
-              if (hashesNoBanco.includes(d.hash_busca)) d.ja_existe = true;
-            });
+          for (let i = 0; i < hashesParaBusca.length; i += tamanhoLoteBusca) {
+            const lote = hashesParaBusca.slice(i, i + tamanhoLoteBusca);
+            const { data: existentes } = await supabase
+              .from("lancamentos_financeiros")
+              .select("hash_deduplicacao")
+              .eq("user_id", user.id)
+              .in("hash_deduplicacao", lote);
+            
+            if (existentes) {
+              existentes.forEach(e => hashesNoBanco.push(e.hash_deduplicacao));
+            }
           }
+
+          dadosProcessados.forEach(d => {
+            if (hashesNoBanco.includes(d.hash_busca)) d.ja_existe = true;
+          });
         }
 
         setDadosPreview(dadosProcessados);
@@ -197,16 +203,17 @@ export default function ImportarXLSPage() {
       novosLancamentos.forEach((item) => {
         const totalParcelas = parseInt(item.parcelas_totais) || 1;
         const parcelaInicial = parseInt(item.parcela_atual) || 1;
-        
         let valorTotalXls = parseFloat(item.valor);
         const natureza = item.natureza || "Despesa";
         
-        let valorPorParcela = (tipoImportacao === 'CARTAO' && totalParcelas > 1) 
-            ? (valorTotalXls / totalParcelas) 
-            : valorTotalXls;
+        let valorFinal = valorTotalXls;
 
-        if (natureza.toLowerCase() === "despesa" && valorPorParcela > 0) {
-          valorPorParcela = valorPorParcela * -1;
+        // AJUSTE SOLICITADO: Se for Receita, força o valor a ser sempre positivo.
+        if (natureza.toLowerCase() === "receita") {
+            valorFinal = Math.abs(valorTotalXls);
+        } else if (natureza.toLowerCase() === "despesa") {
+            // Se for Despesa, garante que o valor seja negativo
+            valorFinal = Math.abs(valorTotalXls) * -1;
         }
 
         const dataFormatadaString = formatarDataParaBanco(item.data_compra);
@@ -224,7 +231,7 @@ export default function ImportarXLSPage() {
               origem: item.banco || "Cartão",
               cartao_nome: item.nome_cartao_credito,
               descricao: item.descricao || "Sem descrição",
-              valor: valorPorParcela,
+              valor: valorFinal,
               natureza: natureza,
               data_competencia: dataProjetada.toISOString().split('T')[0],
               fatura_mes: projetarFaturaMes(item.fatura_mes, (i - parcelaInicial)),
@@ -244,7 +251,7 @@ export default function ImportarXLSPage() {
             origem: item.banco || "Não informado",
             cartao_nome: tipoImportacao === 'CARTAO' ? item.nome_cartao_credito : null,
             descricao: item.descricao || "Sem descrição",
-            valor: valorPorParcela,
+            valor: valorFinal,
             natureza: natureza,
             data_competencia: dataFormatadaString,
             fatura_mes: item.fatura_mes,
@@ -263,14 +270,18 @@ export default function ImportarXLSPage() {
       );
 
       const potentialHashes = uniqueRows.map(r => r.hash_deduplicacao);
-      const { data: dbExistentes } = await supabase
-        .from("lancamentos_financeiros")
-        .select("hash_deduplicacao")
-        .eq("user_id", user.id)
-        .in("hash_deduplicacao", potentialHashes);
+      const hashesExistentesNoDB: string[] = [];
+      for (let i = 0; i < potentialHashes.length; i += 100) {
+        const loteHashes = potentialHashes.slice(i, i + 100);
+        const { data: dbExistentes } = await supabase
+          .from("lancamentos_financeiros")
+          .select("hash_deduplicacao")
+          .eq("user_id", user.id)
+          .in("hash_deduplicacao", loteHashes);
+        if (dbExistentes) dbExistentes.forEach(e => hashesExistentesNoDB.push(e.hash_deduplicacao));
+      }
 
-      const finalHashesExistentes = dbExistentes?.map(e => e.hash_deduplicacao) || [];
-      const rowsToInsert = uniqueRows.filter(r => !finalHashesExistentes.includes(r.hash_deduplicacao));
+      const rowsToInsert = uniqueRows.filter(r => !hashesExistentesNoDB.includes(r.hash_deduplicacao));
 
       if (rowsToInsert.length === 0) {
         alert("Todos os lançamentos deste arquivo já existem no banco.");
@@ -278,10 +289,18 @@ export default function ImportarXLSPage() {
         return;
       }
 
-      const { error } = await supabase.from("lancamentos_financeiros").insert(rowsToInsert);
-      if (error) throw error;
+      const TAMANHO_LOTE = 50; 
+      let totalInseridos = 0;
 
-      alert(`${rowsToInsert.length} registros salvos com sucesso!`);
+      for (let i = 0; i < rowsToInsert.length; i += TAMANHO_LOTE) {
+        const loteParaGravar = rowsToInsert.slice(i, i + TAMANHO_LOTE);
+        const { error } = await supabase.from("lancamentos_financeiros").insert(loteParaGravar);
+        
+        if (error) throw error;
+        totalInseridos += loteParaGravar.length;
+      }
+
+      alert(`${totalInseridos} registros salvos com sucesso!`);
       limparFluxo();
     } catch (error: any) {
       alert("Erro ao salvar: " + error.message);
@@ -295,7 +314,6 @@ export default function ImportarXLSPage() {
   return (
     <div className="w-full lg:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
       
-      {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
@@ -312,7 +330,6 @@ export default function ImportarXLSPage() {
         Orientações Importação <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
-      {/* BLOCO DE DOWNLOADS */}
       <div className="mb-10 bg-white border border-gray-100 p-6 md:p-8 rounded-[2rem] shadow-sm">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] items-center gap-6">
           <div className="max-w-xl">
@@ -348,7 +365,6 @@ export default function ImportarXLSPage() {
         </div>
       </div>
 
-      {/* 1. SELETOR DE CONTEXTO */}
       <div className={`mb-8 transition-all ${dadosPreview.length > 0 ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
           <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4 w-full">
             Configuração e Upload <div className="h-px bg-gray-300 flex-1"></div>
@@ -388,7 +404,6 @@ export default function ImportarXLSPage() {
           </div>
       </div>
 
-      {/* 2. ÁREA DE UPLOAD */}
       <div className="mt-6 md:mt-8">
          {dadosPreview.length === 0 ? (
             <div 
@@ -430,7 +445,6 @@ export default function ImportarXLSPage() {
          )}
       </div>
 
-      {/* CONTEXTO DE IMPORTAÇÃO */}
       <div className="mt-12 mb-8">
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-4 flex items-center gap-4 w-full">
           Contexto de Importação <div className="h-px bg-gray-200 flex-1"></div>
@@ -440,7 +454,6 @@ export default function ImportarXLSPage() {
         </p>
       </div>
 
-      {/* 3. PREVIEW */}
       {dadosPreview.length > 0 && (
         <div className="mt-10 animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="bg-white border border-gray-100 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl shadow-orange-900/5">
@@ -459,7 +472,7 @@ export default function ImportarXLSPage() {
                 className="w-full md:w-auto px-8 md:px-10 py-3 md:py-4 bg-orange-500 text-white rounded-xl md:rounded-2xl font-black text-[10px] md:text-[11px] uppercase tracking-widest hover:bg-orange-600 disabled:opacity-50 transition-all flex items-center justify-center gap-3 shadow-xl shadow-orange-500/20"
               >
                 {isSaving ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
-                {isSaving ? "Gravando..." : `Confirmar Importação`}
+                {isSaving ? "Gravando Lotes..." : `Confirmar Importação`}
               </button>
             </div>
 
@@ -513,7 +526,6 @@ export default function ImportarXLSPage() {
         </div>
       )}
 
-      {/* CARDS DE DICAS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mt-16 mb-24">
         <div className="bg-gray-900 p-8 md:p-10 rounded-[2.5rem] md:rounded-[3rem] shadow-xl relative overflow-hidden group">
           <Activity className="absolute -right-8 -bottom-8 text-orange-500 opacity-10" size={120} />
@@ -537,7 +549,6 @@ export default function ImportarXLSPage() {
         </div>
       </div>
 
-      {/* CONECTE-SE */}
       <div className="flex items-center gap-4 mb-12">
         <div className="h-px bg-gray-200 flex-1"></div>
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
