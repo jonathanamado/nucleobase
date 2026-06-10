@@ -48,6 +48,16 @@ export default function DashboardResultados() {
   const [showPassword, setShowPassword] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [kpiIndex, setKpiIndex] = useState(0); 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const fetchUserData = async (user: any) => {
     setIsLoggedIn(true);
@@ -232,6 +242,27 @@ export default function DashboardResultados() {
   const nextKpi = () => setKpiIndex((prev) => (prev + 1) % 4);
   const prevKpi = () => setKpiIndex((prev) => (prev - 1 + 4) % 4);
 
+  const handleUnifiedFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    if (val === "GERAL") {
+      setSelectedYear("GERAL");
+      setSelectedMonthCategory("GERAL");
+    } else if (val.includes("-")) {
+      const [mes, ano] = val.split("-");
+      setSelectedYear(ano);
+      setSelectedMonthCategory(mes);
+    } else {
+      setSelectedYear(val);
+      setSelectedMonthCategory("GERAL");
+    }
+  };
+
+  const getUnifiedValue = () => {
+    if (selectedYear === "GERAL") return "GERAL";
+    if (selectedMonthCategory !== "GERAL") return `${selectedMonthCategory}-${selectedYear}`;
+    return selectedYear;
+  };
+
   if (loading) return <div className="w-full h-screen flex items-center justify-center bg-[#FAFAFA]"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>;
 
   if (!isLoggedIn) {
@@ -319,7 +350,7 @@ export default function DashboardResultados() {
         <div className="p-4 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-100 transition-all hover:scale-105"><Mail size={20}/></div>
         <div className="text-left">
             <p className="text-sm font-bold text-gray-900">Consultoria</p>
-            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">Falar com especialista</p>
+            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">Falar com specialist</p>
         </div>
     </a>
   ];
@@ -378,16 +409,14 @@ export default function DashboardResultados() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8 items-stretch">
-        <section className="lg:col-span-8 bg-white border border-gray-100 rounded-[3rem] p-6 md:p-10 shadow-sm relative overflow-hidden flex flex-col min-h-[400px]">
+        <section className="lg:col-span-8 bg-white border border-gray-100 rounded-[3rem] p-6 md:p-10 shadow-sm relative overflow-hidden flex flex-col min-h-[350px]">
           
-          {/* Cabeçalho Reestruturado: Título sempre na primeira linha */}
-          <div className="w-full flex flex-col gap-6 mb-8 relative z-10">
+          <div className="w-full flex flex-col gap-6 mb-6 relative z-10">
             <h3 className="font-bold text-gray-800 flex items-center gap-2 uppercase text-xs tracking-widest w-full">
               <BarChart3 size={18} className="text-blue-600" /> Fluxo de Caixa Comparativo
             </h3>
             
             <div className="flex flex-wrap items-center gap-3 w-full justify-start md:justify-end">
-              {/* Grupo 1: Visão (Caixa vs Competência) */}
               <div className="flex bg-gray-50 p-1.5 rounded-2xl flex-1 md:flex-none">
                 <button 
                   onClick={() => setViewMode('CAIXA')} 
@@ -403,7 +432,6 @@ export default function DashboardResultados() {
                 </button>
               </div>
 
-              {/* Grupo 2: Período (Mensal vs Acumulado) */}
               <div className="flex bg-gray-50 p-1.5 rounded-2xl flex-1 md:flex-none">
                 <button 
                   onClick={() => setChartType('MENSAL')} 
@@ -421,13 +449,14 @@ export default function DashboardResultados() {
             </div>
           </div>
 
-          <div className="flex-1 h-[300px] md:h-[400px] w-full relative z-10">
+          <div className="flex-1 h-[300px] w-full relative z-10">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartType === 'MENSAL' ? chartData : chartDataAcumulado}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#94A3B8'}} />
                 <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94A3B8'}} />
                 <Tooltip 
+                  active={isMobile ? false : undefined}
                   formatter={(value: any) => [`R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`]}
                   contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 50px rgba(0,0,0,0.1)', padding: '20px' }} 
                 />
@@ -445,38 +474,40 @@ export default function DashboardResultados() {
           </div>
         </section>
 
-        <section className="lg:col-span-4 bg-white border border-gray-100 rounded-[3rem] p-6 md:p-10 shadow-sm flex flex-col justify-between">
+        <section className="lg:col-span-4 bg-white border border-gray-100 rounded-[3rem] p-6 md:p-10 shadow-sm flex flex-col justify-between min-h-[350px]">
           <div className="w-full">
-            <div className="mb-8">
+            <div className="mb-6">
                 <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2 uppercase text-xs tracking-widest">
                   <Layers size={18} className="text-blue-600" /> Distribuição
                 </h3>
                 <div className="flex flex-col gap-2 mt-4">
                     <select 
-                      className="bg-gray-50 border-none rounded-xl px-4 py-2 text-[10px] font-bold uppercase text-gray-500 outline-none w-full"
-                      value={selectedYear}
-                      onChange={(e) => setSelectedYear(e.target.value)}
+                      className="bg-gray-50 border-none rounded-xl px-4 py-2.5 text-[10px] font-bold uppercase text-gray-500 outline-none w-full"
+                      value={getUnifiedValue()}
+                      onChange={handleUnifiedFilterChange}
                     >
                         <option value="GERAL">Visão Consolidada</option>
-                        {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
+                        {availableYears.map(y => (
+                          <React.Fragment key={y}>
+                            <option value={y}>{y} (Ano Inteiro)</option>
+                            {["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+                              .filter(m => mesesCategoriasMap[`${m}/${y}`])
+                              .map(m => (
+                                <option key={`${m}-${y}`} value={`${m}-${y}`}>
+                                  &nbsp;&nbsp;{m} / {y}
+                                </option>
+                              ))
+                            }
+                          </React.Fragment>
+                        ))}
                     </select>
-                    {selectedYear !== "GERAL" && (
-                      <select 
-                        className="bg-gray-50 border-none rounded-xl px-4 py-2 text-[10px] font-bold uppercase text-gray-500 outline-none w-full"
-                        value={selectedMonthCategory}
-                        onChange={(e) => setSelectedMonthCategory(e.target.value)}
-                      >
-                          <option value="GERAL">Ano Inteiro</option>
-                          {availableMonthsForYear.map(m => <option key={m} value={m}>{m}</option>)}
-                      </select>
-                    )}
                 </div>
             </div>
             
-            <div className="space-y-4 w-full">
+            <div className="space-y-3 w-full">
                 {displayCategories.length > 0 ? displayCategories.map((item: any, idx: number) => (
-                  <div key={idx} className={`group pb-4 w-full ${idx !== displayCategories.length - 1 ? 'border-b border-gray-50' : ''}`}>
-                      <div className="flex justify-between text-[11px] font-black uppercase mb-2 tracking-tight w-full">
+                  <div key={idx} className={`group pb-2.5 w-full ${idx !== displayCategories.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                      <div className="flex justify-between text-[10px] font-black uppercase mb-1.5 tracking-tight w-full">
                         <span className="text-gray-400 group-hover:text-blue-600 transition-colors">{item.category}</span>
                         <span className="text-gray-900">R$ {item.gastos.toLocaleString('pt-BR')}</span>
                       </div>
@@ -486,11 +517,6 @@ export default function DashboardResultados() {
                   </div>
                 )) : <p className="text-center text-xs text-gray-400 py-10">Sem dados para o filtro.</p>}
             </div>
-          </div>
-          
-          <div className="flex flex-col gap-3 mt-8">
-            <a href="/lancamentos" className="w-full py-5 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-700 transition-all text-center flex items-center justify-center gap-2"><PlusCircle size={14} /> Lançar despesas</a>
-            <a href="/lancamentos/gerenciar" className="w-full py-5 bg-transparent border-2 border-blue-50 text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-50 transition-all text-center flex items-center justify-center gap-2"><Edit3 size={14} /> Editar Registros</a>
           </div>
         </section>
       </div>
@@ -550,7 +576,7 @@ export default function DashboardResultados() {
                 <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
               </div>
             </div>
-            
+
             <div className="flex flex-col items-center">
               <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
               <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
