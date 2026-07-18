@@ -104,7 +104,7 @@ export default function CondoAdm() {
                 .eq("role", "sindico")
                 .maybeSingle();
 
-            if (membroError) throw miembroError;
+            if (miembroError) throw miembroError;
 
             if (membroData && membroData.condominio) {
                 // @ts-ignore
