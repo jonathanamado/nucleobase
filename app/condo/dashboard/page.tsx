@@ -277,7 +277,7 @@ export default function CondoDashboard() {
                     <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Painel do Condomínio</span>
                     </div>
-                    <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1">{memberData.condominio.nome}</h1>
+                    <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1">{memberData?.condominio?.nome || "Condomínio"}</h1>
                 </div>
 
                 {/* Botão de Voltar Minimalista Premium */}
