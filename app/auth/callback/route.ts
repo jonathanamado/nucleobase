@@ -2,10 +2,10 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
-// Usamos o cliente administrativo com a Service Role mestre para modificar tabelas internas
+// Mantenha apenas a URL pública, a SERVICE_ROLE_KEY deve ser lida apenas do servidor
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY! // IMPORTANTE: Sem NEXT_PUBLIC_ aqui
 )
 
 export async function POST(request: Request) {
@@ -32,12 +32,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Este perfil já possui um e-mail definitivo associado." }, { status: 400 })
     }
 
-    // 2. Atualiza o e-mail no Core de Autenticação (auth.users) via Admin Client
+    // 2. Atualiza o e-mail no Core de Autenticação (auth.users)
     const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
       profile.id,
-      { 
+      {
         email: realEmail.trim().toLowerCase(),
-        email_confirm: true // Evita travamentos de dupla confirmação no e-mail provisório anterior
+        email_confirm: true
       }
     )
 
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Erro ao atualizar credenciais no sistema de autenticação." }, { status: 400 })
     }
 
-    // 3. Atualiza o campo correspondente na tabela pública para manter os dados síncronos
+    // 3. Atualiza o campo correspondente na tabela pública
     const { error: updateProfileError } = await supabaseAdmin
       .from("profiles")
       .update({ email_contato: realEmail.trim().toLowerCase() })
