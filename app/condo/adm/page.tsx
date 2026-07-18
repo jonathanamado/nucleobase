@@ -326,7 +326,6 @@ export default function CondoAdm() {
 
                     const { error: profileError } = await tempSupabase
                         .from("profiles")
-                        .from("profiles")
                         .upsert({
                             id: targetUserId,
                             nome_completo: nomeFormatado,
