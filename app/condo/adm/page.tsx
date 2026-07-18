@@ -103,8 +103,7 @@ export default function CondoAdm() {
                 .eq("role", "sindico")
                 .maybeSingle();
 
-            // Correção do erro de compilação: alterado 'miembroError' para 'membroError'
-            if (membroError) throw miembroError;
+            if (membroError) throw membroError;
 
             if (membroData && membroData.condominio) {
                 // @ts-ignore
@@ -121,8 +120,6 @@ export default function CondoAdm() {
                 code: e?.code,
                 error: e
             });
-        } catch {
-            // Fallback genérico em caso de falha silenciosa
         } finally {
             setLoading(false);
         }
@@ -329,6 +326,7 @@ export default function CondoAdm() {
 
                     const { error: profileError } = await tempSupabase
                         .from("profiles")
+                        .from("profiles")
                         .upsert({
                             id: targetUserId,
                             nome_completo: nomeFormatado,
@@ -384,8 +382,6 @@ export default function CondoAdm() {
         } catch (err: any) {
             console.error("Erro detalhado na transação de cadastro de morador:", err);
             setFormError(err?.message || "Ocorreu um erro ao processar a operação de cadastro. Tente novamente.");
-        } declare {
-            // Silencia blocos vazios de captura inesperada
         } finally {
             setActionLoading(false);
         }
