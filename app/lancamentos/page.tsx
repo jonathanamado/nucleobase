@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
-  Save, CreditCard, Wallet, Calendar, 
-  Tag, DollarSign, CheckCircle2, Layers, Repeat, 
+import {
+  Save, CreditCard, Wallet, Calendar,
+  Tag, DollarSign, CheckCircle2, Layers, Repeat,
   Rocket, Activity, Clock, AlertCircle, BarChart3, ArrowRight, LineChart, Zap, X, Instagram, Edit3,
   Lock, Eye, EyeOff, UserPlus, FileUp, Cpu, ChevronLeft, ChevronRight, Briefcase, Building2, User, AtSign, KeyRound, Mail
 } from "lucide-react";
@@ -22,9 +22,9 @@ export default function LancamentosPage() {
   const [sucesso, setSucesso] = useState(false);
   const [showAviso, setShowAviso] = useState(false);
   const [ultimosLancamentos, setUltimosLancamentos] = useState<any[]>([]);
-  const [activeCard, setActiveCard] = useState(0); 
-  
-  const [slug, setSlug] = useState(""); 
+  const [activeCard, setActiveCard] = useState(0);
+
+  const [slug, setSlug] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
@@ -160,7 +160,7 @@ export default function LancamentosPage() {
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault(); 
+    e.preventDefault();
     setAuthLoading(true);
     const inputAcesso = slug.trim().toLowerCase();
     try {
@@ -173,10 +173,10 @@ export default function LancamentosPage() {
       const { error } = await supabase.auth.signInWithPassword({ email: emailParaLogin, password });
       if (error) throw new Error("Senha incorreta.");
       window.location.reload();
-    } catch (err: any) { 
-      alert(err.message); 
-    } finally { 
-      setAuthLoading(false); 
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setAuthLoading(false);
     }
   };
 
@@ -185,8 +185,8 @@ export default function LancamentosPage() {
     if (loading || !userId) return;
 
     const valorBase = typeof formData.valorTotal === "string" ? parseFloat(formData.valorTotal) : formData.valorTotal;
-    const valorFinal = formData.natureza === "Despesa" 
-      ? -Math.abs(valorBase) 
+    const valorFinal = formData.natureza === "Despesa"
+      ? -Math.abs(valorBase)
       : Math.abs(valorBase);
 
     const payload = {
@@ -212,7 +212,7 @@ export default function LancamentosPage() {
         }
         throw new Error(errorBody.message || "Erro ao salvar");
       }
-      
+
       setSucesso(true);
       setFormData(initialFormState);
       fetchUltimos(userId);
@@ -239,28 +239,28 @@ export default function LancamentosPage() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="relative">
               <AtSign className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-              <input 
-                type="text" 
-                placeholder="ID ou E-mail" 
-                required 
-                className="w-full pl-12 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100 text-gray-900 placeholder:text-gray-400" 
-                onChange={(e) => setSlug(e.target.value)} 
+              <input
+                type="text"
+                placeholder="ID ou E-mail"
+                required
+                className="w-full pl-12 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100 text-gray-900 placeholder:text-gray-400"
+                onChange={(e) => setSlug(e.target.value)}
               />
             </div>
             <div className="relative">
               <KeyRound className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-              <input 
-                type={showPassword ? "text" : "password"} 
-                placeholder="Senha" 
-                required 
-                className="w-full pl-12 pr-12 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100 text-gray-900 placeholder:text-gray-400" 
-                onChange={(e) => setPassword(e.target.value)} 
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Senha"
+                required
+                className="w-full pl-12 pr-12 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100 text-gray-900 placeholder:text-gray-400"
+                onChange={(e) => setPassword(e.target.value)}
               />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
             </div>
             <button disabled={authLoading} className="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold shadow-lg shadow-orange-100 transition-transform active:scale-95 disabled:opacity-50">{authLoading ? "Verificando..." : "Entrar na Plataforma"}</button>
           </form>
-          
+
           <div className="mt-8 pt-8 border-t border-gray-100">
             <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Ainda não se cadastrou?</p>
             <a href="/cadastro" className="flex items-center justify-center gap-3 bg-white text-gray-900 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] border border-gray-200 shadow-sm hover:shadow-md hover:border-orange-200 hover:text-orange-600 transition-all active:scale-95">
@@ -280,7 +280,7 @@ export default function LancamentosPage() {
 
   return (
     <div className="w-full min-h-screen animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative bg-white px-4 md:px-8">
-      
+
       {showAviso && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl border border-gray-100 flex flex-col items-center text-center animate-in zoom-in-95 duration-300">
@@ -291,7 +291,7 @@ export default function LancamentosPage() {
             <p className="text-sm text-gray-500 font-medium leading-relaxed mb-8">
               A importação via "Upload arquivo" é a solução <span className="text-orange-600 font-bold">mais rápida</span> no seu processo de múltiplos lançamentos.
             </p>
-            <button 
+            <button
               onClick={() => setShowAviso(false)}
               className="w-full py-4 bg-gray-900 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-gray-800 transition-all shadow-lg shadow-gray-200"
             >
@@ -321,32 +321,32 @@ export default function LancamentosPage() {
         <div className="mb-7">
           <div className="inline-flex items-center gap-3 p-4 bg-orange-50 rounded-2xl border border-orange-100 w-full md:w-auto">
             <Zap size={16} className="text-orange-500 fill-orange-500" />
-            
+
             <div className="text-xs font-bold text-orange-700 flex items-center flex-wrap gap-2">
               <div className="hidden md:flex items-center flex-wrap gap-2">
-                Precisa de mais agilidade? Utilize a 
+                Precisa de mais agilidade? Utilize a
                 <a href="/lancamentos/importar" className="hover:opacity-80 transition-opacity">
                   <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
                     Importação via arquivo
                   </span>
-                </a> 
-                ou também a 
+                </a>
+                ou também a
                 <a href="/lancamentos/integrar" className="hover:opacity-80 transition-opacity">
                   <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
                     Automação em cloud
-                  </span>, 
-                </a> 
+                  </span>,
+                </a>
                 ambos para múltiplos registros.
               </div>
 
               <div className="md:hidden flex items-center flex-wrap gap-1">
-                Importe seus dados via 
+                Importe dados via
                 <a href="/lancamentos/importar">
                   <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
                     Arquivo
                   </span>
-                </a> 
-                ou 
+                </a>
+                ou
                 <a href="/lancamentos/integrar">
                   <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
                     Cloud
@@ -373,11 +373,11 @@ export default function LancamentosPage() {
               <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-3">
                 <span className="w-8 h-px bg-gray-200"></span> 01. Origem dos Lançamentos
               </h3>
-              
+
               <div className="grid grid-cols-3 gap-3 mb-8">
                 <button
                   type="button"
-                  onClick={() => setFormData({...formData, projeto: "Pessoal", categoria: "", sub_categoria: ""})}
+                  onClick={() => setFormData({ ...formData, projeto: "Pessoal", categoria: "", sub_categoria: "" })}
                   className={`p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${formData.projeto === "Pessoal" ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-gray-100 text-gray-400'}`}
                 >
                   <User size={18} />
@@ -385,7 +385,7 @@ export default function LancamentosPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setFormData({...formData, projeto: "Empresarial", categoria: "", sub_categoria: ""})}
+                  onClick={() => setFormData({ ...formData, projeto: "Empresarial", categoria: "", sub_categoria: "" })}
                   className={`p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${formData.projeto === "Empresarial" ? 'border-amber-500 bg-amber-50 text-amber-600' : 'border-gray-100 text-gray-400'}`}
                 >
                   <Briefcase size={18} />
@@ -393,7 +393,7 @@ export default function LancamentosPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setFormData({...formData, projeto: "Condomínio", categoria: "", sub_categoria: ""})}
+                  onClick={() => setFormData({ ...formData, projeto: "Condomínio", categoria: "", sub_categoria: "" })}
                   className={`p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${formData.projeto === "Condomínio" ? 'border-rose-600 bg-rose-50 text-rose-600' : 'border-gray-100 text-gray-400'}`}
                 >
                   <Building2 size={18} />
@@ -403,30 +403,34 @@ export default function LancamentosPage() {
               <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
                 <button
                   type="button"
-                  onClick={() => setFormData({...formData, tipo_origem: "CONTA_CORRENTE", parcelado: false})}
-                  className={`p-3 sm:p-4 rounded-2xl border-2 transition-all flex items-center gap-2 sm:gap-4 ${formData.tipo_origem === "CONTA_CORRENTE" ? 'border-blue-600 bg-blue-50/30 shadow-md' : 'border-gray-100 bg-white'}`}
+                  onClick={() => setFormData({ ...formData, tipo_origem: "CONTA_CORRENTE", parcelado: false })}
+                  className={`p-3 sm:p-4 rounded-2xl border-2 transition-all flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 sm:gap-4 min-w-0 w-full ${formData.tipo_origem === "CONTA_CORRENTE" ? 'border-blue-600 bg-blue-50/30 shadow-md' : 'border-gray-100 bg-white'}`}
                 >
-                  <div className={`p-2 sm:p-3 rounded-xl flex-shrink-0 ${formData.tipo_origem === "CONTA_CORRENTE" ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-400'}`}>
-                    <Wallet className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <div className={`p-2 sm:p-3 rounded-xl flex-shrink-0 flex items-center justify-center w-8 h-8 sm:w-11 sm:h-11 ${formData.tipo_origem === "CONTA_CORRENTE" ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-400'}`}>
+                    <Wallet className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                   </div>
-                  <span className="font-bold text-[9px] sm:text-xs text-gray-900 uppercase leading-tight text-left">Conta Corrente</span>
+                  <span className="font-bold text-[9px] sm:text-xs text-gray-900 uppercase leading-tight text-center sm:text-left break-words min-w-0">
+                    Conta Corrente
+                  </span>
                 </button>
 
                 <button
                   type="button"
                   disabled={isReceita}
-                  onClick={() => setFormData({...formData, tipo_origem: "CARTAO"})}
-                  className={`p-3 sm:p-4 rounded-2xl border-2 transition-all flex items-center gap-2 sm:gap-4 ${formData.tipo_origem === "CARTAO" ? 'border-blue-600 bg-blue-50/30 shadow-md' : 'border-gray-100 bg-white'} disabled:opacity-40 disabled:grayscale`}
+                  onClick={() => setFormData({ ...formData, tipo_origem: "CARTAO" })}
+                  className={`p-3 sm:p-4 rounded-2xl border-2 transition-all flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 sm:gap-4 min-w-0 w-full ${formData.tipo_origem === "CARTAO" ? 'border-blue-600 bg-blue-50/30 shadow-md' : 'border-gray-100 bg-white'} disabled:opacity-40 disabled:grayscale`}
                 >
-                  <div className={`p-2 sm:p-3 rounded-xl flex-shrink-0 ${formData.tipo_origem === "CARTAO" ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-400'}`}>
-                    <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <div className={`p-2 sm:p-3 rounded-xl flex-shrink-0 flex items-center justify-center w-8 h-8 sm:w-11 sm:h-11 ${formData.tipo_origem === "CARTAO" ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-400'}`}>
+                    <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                   </div>
-                  <span className="font-bold text-[9px] sm:text-xs text-gray-900 uppercase leading-tight text-left">Cartão de Crédito</span>
+                  <span className="font-bold text-[9px] sm:text-xs text-gray-900 uppercase leading-tight text-center sm:text-left break-words min-w-0">
+                    Cartão de Crédito
+                  </span>
                 </button>
               </div>
               <input required type="text" placeholder="Instituição (Ex: Nubank)" value={formData.origem}
-                  className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm mt-auto text-gray-900 placeholder:text-gray-600"
-                  onChange={(e) => setFormData({...formData, origem: e.target.value})} />
+                className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm mt-auto text-gray-900 placeholder:text-gray-600"
+                onChange={(e) => setFormData({ ...formData, origem: e.target.value })} />
             </section>
 
             <section className="flex-1 flex flex-col bg-white rounded-[2.5rem] p-8 border border-gray-100 border-t-4 border-t-blue-600 shadow-sm transition-all">
@@ -436,20 +440,20 @@ export default function LancamentosPage() {
               <div className="space-y-4">
                 <input required type="text" placeholder="Descrição do Lançamento" value={formData.descricao}
                   className="w-full px-6 py-5 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm text-gray-900 placeholder:text-gray-600"
-                  onChange={(e) => setFormData({...formData, descricao: e.target.value})} />
-                
+                  onChange={(e) => setFormData({ ...formData, descricao: e.target.value })} />
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="relative">
                     <DollarSign className={`absolute left-5 top-1/2 -translate-y-1/2 ${isReceita ? 'text-emerald-500' : 'text-red-500'}`} size={18} />
                     <input required type="number" step="0.01" placeholder="Valor Total (R$)" value={formData.valorTotal || ""}
                       className="w-full pl-14 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm text-gray-900 placeholder:text-gray-600"
-                      onChange={(e) => setFormData({...formData, valorTotal: parseFloat(e.target.value) || 0})} />
+                      onChange={(e) => setFormData({ ...formData, valorTotal: parseFloat(e.target.value) || 0 })} />
                   </div>
                   <div className="relative">
                     <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
                     <input required type="date" value={formData.dataCompetencia}
                       className="w-full pl-14 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm text-gray-800"
-                      onChange={(e) => setFormData({...formData, dataCompetencia: e.target.value})} />
+                      onChange={(e) => setFormData({ ...formData, dataCompetencia: e.target.value })} />
                   </div>
                 </div>
               </div>
@@ -468,11 +472,11 @@ export default function LancamentosPage() {
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-2">Natureza</label>
                       <select required className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
-                        value={formData.natureza} 
+                        value={formData.natureza}
                         onChange={(e) => {
                           const val = e.target.value;
                           setFormData({
-                            ...formData, 
+                            ...formData,
                             natureza: val,
                             tipo_de_custo: val === "Receita" ? "Fixo" : "Variável",
                             tipo_origem: val === "Receita" ? "CONTA_CORRENTE" : formData.tipo_origem,
@@ -489,9 +493,9 @@ export default function LancamentosPage() {
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-2">Tipo de Custo</label>
                       <select required className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none disabled:opacity-50 cursor-pointer"
-                        value={isReceita ? "Fixo" : formData.tipo_de_custo} 
+                        value={isReceita ? "Fixo" : formData.tipo_de_custo}
                         disabled={isReceita}
-                        onChange={(e) => setFormData({...formData, tipo_de_custo: e.target.value, parcelado: e.target.value === "Fixo" ? false : formData.parcelado})}>
+                        onChange={(e) => setFormData({ ...formData, tipo_de_custo: e.target.value, parcelado: e.target.value === "Fixo" ? false : formData.parcelado })}>
                         {isReceita ? <option value="Fixo">Fixo (Receita)</option> : (
                           <>
                             <option value="Variável" className="bg-gray-900">Variável</option>
@@ -500,27 +504,27 @@ export default function LancamentosPage() {
                         )}
                       </select>
                     </div>
-                  </div> 
+                  </div>
 
                   <div className="space-y-6">
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-2">Categoria</label>
                       <input list="cat-list" required placeholder="Escolha..."
                         className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none placeholder:text-gray-400"
-                        value={formData.categoria} 
-                        onChange={(e) => setFormData({...formData, categoria: e.target.value, sub_categoria: ""})} />
+                        value={formData.categoria}
+                        onChange={(e) => setFormData({ ...formData, categoria: e.target.value, sub_categoria: "" })} />
                       <datalist id="cat-list">
                         {Object.keys(categoriasFiltradas).map((c, i) => <option key={i} value={c} />)}
                         <option value="Indefinido" />
                       </datalist>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-2">Sub-categoria</label>
                       <input list="sub-list" placeholder="Escolha..."
                         className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none placeholder:text-gray-400"
-                        value={formData.sub_categoria} 
-                        onChange={(e) => setFormData({...formData, sub_categoria: e.target.value})} />
+                        value={formData.sub_categoria}
+                        onChange={(e) => setFormData({ ...formData, sub_categoria: e.target.value })} />
                       <datalist id="sub-list">
                         {categoriasFiltradas[formData.categoria]?.map((s: string, i: number) => <option key={i} value={s} />)}
                         <option value="Indefinido" />
@@ -530,49 +534,49 @@ export default function LancamentosPage() {
                 </div>
 
                 <div className="animate-in fade-in slide-in-from-top-2">
-                    {(formData.tipo_de_custo === "Fixo" || isReceita) && (
-                      <div className="p-4 bg-blue-500/10 rounded-xl border border-blue-500/20 mb-4">
-                        <p className="text-[10px] text-blue-400 font-bold uppercase mb-2">Recorrência mensal até:</p>
-                        <input 
-                          type="date" 
-                          max={maxDate}
-                          className="w-full bg-white/5 text-white text-xs p-2 rounded cursor-pointer" 
-                          value={formData.fixo_ate}
-                          onChange={(e) => setFormData({...formData, fixo_ate: e.target.value})} 
-                        />
+                  {(formData.tipo_de_custo === "Fixo" || isReceita) && (
+                    <div className="p-4 bg-blue-500/10 rounded-xl border border-blue-500/20 mb-4">
+                      <p className="text-[10px] text-blue-400 font-bold uppercase mb-2">Recorrência mensal até:</p>
+                      <input
+                        type="date"
+                        max={maxDate}
+                        className="w-full bg-white/5 text-white text-xs p-2 rounded cursor-pointer"
+                        value={formData.fixo_ate}
+                        onChange={(e) => setFormData({ ...formData, fixo_ate: e.target.value })}
+                      />
+                    </div>
+                  )}
+
+                  {!isReceita && formData.tipo_origem === "CARTAO" && formData.tipo_de_custo !== "Fixo" && (
+                    <div className="p-4 bg-orange-500/10 rounded-xl border border-orange-500/20">
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-[10px] text-orange-400 font-bold uppercase">Pagamento parcelado?</span>
+                        <input type="checkbox" checked={formData.parcelado} onChange={(e) => setFormData({ ...formData, parcelado: e.target.checked })} className="accent-orange-500" />
                       </div>
-                    )}
-                    
-                    {!isReceita && formData.tipo_origem === "CARTAO" && formData.tipo_de_custo !== "Fixo" && (
-                      <div className="p-4 bg-orange-500/10 rounded-xl border border-orange-500/20">
-                        <div className="flex justify-between items-center mb-3">
-                          <span className="text-[10px] text-orange-400 font-bold uppercase">Pagamento parcelado?</span>
-                          <input type="checkbox" checked={formData.parcelado} onChange={(e) => setFormData({...formData, parcelado: e.target.checked})} className="accent-orange-500" />
-                        </div>
-                        {formData.parcelado && (
-                          <div className="flex gap-2">
-                            <div className="w-1/2 space-y-1">
-                              <label className="text-[9px] text-orange-400/70 uppercase font-bold ml-1">Parcelas</label>
-                              <input 
-                                type="number" 
-                                placeholder="Ex: 12" 
-                                className="w-full bg-white/5 text-white p-2 rounded text-xs outline-none focus:bg-white/10 transition-colors placeholder:text-gray-400" 
-                                onChange={(e) => setFormData({...formData, parcelasTotais: parseInt(e.target.value)})} 
-                              />
-                            </div>
-                            <div className="w-1/2 space-y-1">
-                              <label className="text-[9px] text-orange-400/70 uppercase font-bold ml-1">Fatura 1º pag.</label>
-                              <input 
-                                type="month" 
-                                value={formData.fatura_mes} 
-                                className="w-full bg-white/5 text-white p-2 rounded text-xs outline-none focus:bg-white/10 transition-colors cursor-pointer" 
-                                onChange={(e) => setFormData({...formData, fatura_mes: e.target.value})} 
-                              />
-                            </div>
+                      {formData.parcelado && (
+                        <div className="flex gap-2">
+                          <div className="w-1/2 space-y-1">
+                            <label className="text-[9px] text-orange-400/70 uppercase font-bold ml-1">Parcelas</label>
+                            <input
+                              type="number"
+                              placeholder="Ex: 12"
+                              className="w-full bg-white/5 text-white p-2 rounded text-xs outline-none focus:bg-white/10 transition-colors placeholder:text-gray-400"
+                              onChange={(e) => setFormData({ ...formData, parcelasTotais: parseInt(e.target.value) })}
+                            />
                           </div>
-                        )}
-                      </div>
-                    )}
+                          <div className="w-1/2 space-y-1">
+                            <label className="text-[9px] text-orange-400/70 uppercase font-bold ml-1">Fatura 1º pag.</label>
+                            <input
+                              type="month"
+                              value={formData.fatura_mes}
+                              className="w-full bg-white/5 text-white p-2 rounded text-xs outline-none focus:bg-white/10 transition-colors cursor-pointer"
+                              onChange={(e) => setFormData({ ...formData, fatura_mes: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -582,11 +586,11 @@ export default function LancamentosPage() {
                   {loading ? "Processando..." : <><Save size={18} /> {isReceita ? 'Confirmar Receita' : 'Salvar Despesa'}</>}
                 </button>
 
-                <Link 
+                <Link
                   href="/lancamentos/gerenciar"
                   className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-3 text-amber-400 bg-amber-400/5 border border-amber-400/20 hover:bg-amber-400/10 hover:border-amber-400/40 hover:text-amber-300 shadow-lg shadow-black/20"
                 >
-                  <Edit3 size={16} className="animate-pulse" /> 
+                  <Edit3 size={16} className="animate-pulse" />
                   Editar lançamentos
                 </Link>
               </div>
@@ -602,7 +606,7 @@ export default function LancamentosPage() {
 
           <div className="hidden lg:grid grid-cols-12 gap-6 mb-10">
             <div className="lg:col-span-6">
-              <Link href="/lancamentos/integrar" className="flex flex-col h-full bg-gray-50 border border-gray-200 rounded-[2rem] p-8 hover:bg-emerald-50 hover:border-emerald-200 transition-all group relative overflow-hidden"> 
+              <Link href="/lancamentos/integrar" className="flex flex-col h-full bg-gray-50 border border-gray-200 rounded-[2rem] p-8 hover:bg-emerald-50 hover:border-emerald-200 transition-all group relative overflow-hidden">
                 <div className="absolute top-6 right-6 bg-blue-600 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase">Em desenvolvimento</div>
                 <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-gray-400 group-hover:text-emerald-500 mb-6 shadow-sm">
                   <Cpu size={24} />
@@ -613,7 +617,7 @@ export default function LancamentosPage() {
             </div>
 
             <div className="lg:col-span-6">
-              <Link href="/lancamentos/importar" className="flex flex-col h-full bg-orange-50/30 border-2 border-orange-200 rounded-[2rem] p-8 hover:bg-orange-50 hover:border-orange-300 transition-all group relative overflow-hidden"> 
+              <Link href="/lancamentos/importar" className="flex flex-col h-full bg-orange-50/30 border-2 border-orange-200 rounded-[2rem] p-8 hover:bg-orange-50 hover:border-orange-300 transition-all group relative overflow-hidden">
                 <div className="absolute top-6 right-6 bg-orange-500 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase animate-bounce">Recomendado</div>
                 <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-orange-500 mb-6 shadow-sm">
                   <FileUp size={24} />
@@ -626,9 +630,9 @@ export default function LancamentosPage() {
 
           <div className="lg:hidden relative mb-10 overflow-hidden px-2">
             <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${activeCard * 100}%)` }}>
-              
+
               <div className="w-full flex-shrink-0 px-2">
-                <Link href="/lancamentos/importar" className="flex flex-col bg-orange-50/30 border-2 border-orange-200 rounded-[2rem] p-8 h-[250px] relative overflow-hidden"> 
+                <Link href="/lancamentos/importar" className="flex flex-col bg-orange-50/30 border-2 border-orange-200 rounded-[2rem] p-8 h-[250px] relative overflow-hidden">
                   <div className="absolute top-6 right-6 bg-orange-500 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase">Recomendado</div>
                   <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-orange-500 mb-6 shadow-sm">
                     <FileUp size={24} />
@@ -639,7 +643,7 @@ export default function LancamentosPage() {
               </div>
 
               <div className="w-full flex-shrink-0 px-2">
-                <Link href="/lancamentos/integrar" className="flex flex-col bg-gray-50 border border-gray-200 rounded-[2rem] p-8 h-[250px] relative overflow-hidden"> 
+                <Link href="/lancamentos/integrar" className="flex flex-col bg-gray-50 border border-gray-200 rounded-[2rem] p-8 h-[250px] relative overflow-hidden">
                   <div className="absolute top-6 right-6 bg-blue-600 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase">Desenvolvimento</div>
                   <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-gray-400 mb-6 shadow-sm">
                     <Cpu size={24} />
@@ -748,29 +752,29 @@ export default function LancamentosPage() {
         <div className="flex flex-col items-center text-center">
           <div className="max-w-3xl mb-12">
             <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
-              Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+              Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
             </h4>
             <p className="text-gray-500 font-medium text-sm md:text-base">
               Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
             </p>
           </div>
-          
-          <a 
-            href="https://www.instagram.com/nucleobase.app/" 
-            target="_blank" 
+
+          <a
+            href="https://www.instagram.com/nucleobase.app/"
+            target="_blank"
             rel="noopener noreferrer"
             className="group relative flex flex-col items-center gap-6"
           >
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
-              
+
               <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
                 <span className="flex items-center justify-center">
-                    <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+                  <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
                 </span>
               </div>
             </div>
-            
+
             <div className="flex flex-col items-center">
               <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
               <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>

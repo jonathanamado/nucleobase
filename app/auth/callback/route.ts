@@ -1,56 +1,64 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+// app/api/auth/onboarding/route.ts
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
-export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url)
-  const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/acesso-usuario'
+// Usamos o cliente administrativo com a Service Role mestre para modificar tabelas internas
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
-  if (code) {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value
-          },
-          set(name: string, value: string, options: CookieOptions) {
-            cookieStore.set({ name, value, ...options })
-          },
-          remove(name: string, options: CookieOptions) {
-            cookieStore.set({ name, value: '', ...options })
-          },
-        },
+export async function POST(request: Request) {
+  try {
+    const { slug, realEmail } = await request.json()
+
+    if (!slug || !realEmail) {
+      return NextResponse.json({ error: "Parâmetros inválidos." }, { status: 400 })
+    }
+
+    // 1. Localiza o id do morador pelo slug na tabela pública de profiles
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from("profiles")
+      .select("id, email_contato")
+      .eq("slug", slug.trim().toLowerCase())
+      .maybeSingle()
+
+    if (profileError || !profile) {
+      return NextResponse.json({ error: "ID de Usuário (Slug) não encontrado." }, { status: 404 })
+    }
+
+    // Se já tiver e-mail normal (sem a tag pendente), barra a operação por segurança
+    if (profile.email_contato && !profile.email_contato.startsWith("pendente.morador.")) {
+      return NextResponse.json({ error: "Este perfil já possui um e-mail definitivo associado." }, { status: 400 })
+    }
+
+    // 2. Atualiza o e-mail no Core de Autenticação (auth.users) via Admin Client
+    const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
+      profile.id,
+      { 
+        email: realEmail.trim().toLowerCase(),
+        email_confirm: true // Evita travamentos de dupla confirmação no e-mail provisório anterior
       }
     )
 
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-    
-    if (!error && data.user) {
-      // --- AJUSTE PARA O HEADER: Garantir que o perfil exista ---
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', data.user.id)
-        .single()
-
-      if (!profile) {
-        // Cria o perfil automaticamente com dados do Google
-        await supabase.from('profiles').insert({
-          id: data.user.id,
-          nome_completo: data.user.user_metadata.full_name,
-          avatar_url: data.user.user_metadata.avatar_url,
-          email: data.user.email
-        })
-      }
-      // -------------------------------------------------------
-
-      return NextResponse.redirect(`${origin}${next}`)
+    if (authError) {
+      console.error("Erro interno Supabase Auth:", authError)
+      return NextResponse.json({ error: "Erro ao atualizar credenciais no sistema de autenticação." }, { status: 400 })
     }
-  }
 
-  return NextResponse.redirect(`${origin}/acesso-usuario?error=auth_failed`)
+    // 3. Atualiza o campo correspondente na tabela pública para manter os dados síncronos
+    const { error: updateProfileError } = await supabaseAdmin
+      .from("profiles")
+      .update({ email_contato: realEmail.trim().toLowerCase() })
+      .eq("id", profile.id)
+
+    if (updateProfileError) {
+      return NextResponse.json({ error: "Erro ao sincronizar e-mail de contato no perfil público." }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (err: any) {
+    console.error("Erro na rota de Onboarding:", err)
+    return NextResponse.json({ error: "Ocorreu um erro inesperado no processamento." }, { status: 500 })
+  }
 }

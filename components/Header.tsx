@@ -2,13 +2,13 @@
 
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState, useRef } from "react";
-import { usePathname, useRouter } from "next/navigation"; 
-import { 
-  UserCircle, LayoutDashboard, X, Menu, 
-  Info, Newspaper, CreditCard, BarChart3, Star, HelpCircle, 
+import { usePathname, useRouter } from "next/navigation";
+import {
+  UserCircle, LayoutDashboard, X, Menu,
+  Info, Newspaper, CreditCard, BarChart3, Star, HelpCircle,
   Shield, ChevronRight, Power,
   Search, Gift, Settings, Key, UserPlus, LogIn, PlayCircle,
-  KeyRound, Eye, EyeOff, Play, Rocket, Pencil
+  KeyRound, Eye, EyeOff, Play, Rocket, Pencil, Building2
 } from "lucide-react";
 
 export function Header() {
@@ -19,7 +19,7 @@ export function Header() {
     nome: "",
     avatar: null,
   });
-  
+
   const userDropdownRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const mobileButtonRef = useRef<HTMLButtonElement>(null);
@@ -43,12 +43,12 @@ export function Header() {
       if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
         setIsUserDropdownOpen(false);
       }
-      
+
       if (
-        isMenuOpen && 
-        mobileMenuRef.current && 
+        isMenuOpen &&
+        mobileMenuRef.current &&
         !mobileMenuRef.current.contains(event.target as Node) &&
-        mobileButtonRef.current && 
+        mobileButtonRef.current &&
         !mobileButtonRef.current.contains(event.target as Node)
       ) {
         setIsMenuOpen(false);
@@ -134,13 +134,14 @@ export function Header() {
     }
   };
 
+  // Menu Mobile Ajustado: "Administração Condo" incluído estrategicamente na lista
   const menuLinks = [
     { name: "Sobre a Plataforma", href: "/sobre", icon: <Info size={18} /> },
     { name: "Indique e ganhe", href: "/indique", icon: <Gift size={18} /> },
     { name: "Blog da Nucleo", href: "/blog", icon: <Newspaper size={18} /> },
     { name: "Assinatura digital", href: "/planos", icon: <CreditCard size={18} /> },
+    { name: "Administração Condo", href: "/condo", icon: <Building2 size={18} /> },
     { name: "Depoimentos", href: "/depoimentos", icon: <Star size={18} /> },
-    { name: "FAQ", href: "/faq", icon: <HelpCircle size={18} /> },
     { name: "Segurança", href: "/seguranca_privacidade", icon: <Shield size={18} /> },
   ];
 
@@ -154,13 +155,11 @@ export function Header() {
     </button>
   );
 
-  // Lógica de Renderização Condicional dos Botões de Navegação Financeira
   const renderFinanceButtons = () => {
     if (!isLoggedIn) return null;
 
     const btnBase = "flex items-center gap-2 px-5 py-2 rounded-md transition font-bold shadow-sm text-white";
-    
-    // Configurações dos botões solicitados
+
     const btnResultados = (
       <a key="res" href="/resultados" className={`${btnBase} bg-blue-600 hover:bg-blue-700`}>
         <BarChart3 size={18} /> Painel de Resultados
@@ -182,12 +181,10 @@ export function Header() {
       </a>
     );
 
-    // Se estiver na página /acesso-usuario, não retorna o botão padrão
     if (pathname === "/acesso-usuario") {
-        return null;
+      return null;
     }
 
-    // Ajuste solicitado: Incluindo /importar e /integrar na mesma lógica de /lancamentos
     if (pathname === "/lancamentos" || pathname === "/lancamentos/importar" || pathname === "/lancamentos/integrar") {
       return [btnResultados, btnEdicao];
     } else if (pathname === "/lancamentos/gerenciar") {
@@ -227,23 +224,23 @@ export function Header() {
             </div>
             <form onSubmit={handlePasswordReset} className="space-y-5">
               <div className="relative">
-                <input 
-                  type={showPass ? "text" : "password"} 
-                  placeholder="Nova senha" 
-                  required 
-                  onChange={(e) => setNewPassword(e.target.value)} 
-                  className="w-full h-14 px-6 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-gray-900 placeholder:text-gray-400" 
+                <input
+                  type={showPass ? "text" : "password"}
+                  placeholder="Nova senha"
+                  required
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full h-14 px-6 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-gray-900 placeholder:text-gray-400"
                 />
                 <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400">
                   {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              <input 
-                type={showPass ? "text" : "password"} 
-                placeholder="Confirmar nova senha" 
-                required 
-                onChange={(e) => setConfirmPassword(e.target.value)} 
-                className="w-full h-14 px-6 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-gray-900 placeholder:text-gray-400" 
+              <input
+                type={showPass ? "text" : "password"}
+                placeholder="Confirmar nova senha"
+                required
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full h-14 px-6 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-gray-900 placeholder:text-gray-400"
               />
               <button disabled={passLoading} className="w-full bg-gray-900 text-white h-16 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-lg mt-4 active:scale-95 transition-all disabled:opacity-50">
                 {passLoading ? "Atualizando..." : "Confirmar Alteração"}
@@ -254,27 +251,25 @@ export function Header() {
       )}
 
       <div className="w-full px-4 md:px-8 lg:px-10 h-20 flex items-center justify-between relative bg-white">
-        <div className="flex items-center flex-shrink-0 min-w-fit bg-white"> 
-          {/* LOGO REDIRECIONA NO MOBILE */}
-          <div className="flex-shrink-0 cursor-pointer md:cursor-default" onClick={() => { if(window.innerWidth < 768) router.push("/"); }}>
-            <img 
-              src="/logo-oficial.png?v=3" 
+        <div className="flex items-center flex-shrink-0 min-w-fit bg-white">
+          <div className="flex-shrink-0 cursor-pointer md:cursor-default" onClick={() => { if (window.innerWidth < 768) router.push("/"); }}>
+            <img
+              src="/logo-oficial.png?v=3"
               alt="Logo Nucleo Base"
-              width={125} 
-              height={65} 
-              className="w-[125px] h-auto lg:w-[155px] lg:h-auto object-contain" 
+              width={125}
+              height={65}
+              className="w-[125px] h-auto lg:w-[155px] lg:h-auto object-contain"
             />
           </div>
 
-          {/* TEXTO COM LINK */}
           <div className="hidden lg:flex flex-col text-[13px] font-bold text-gray-900 leading-tight tracking-tighter -ml-8 select-none">
             <a href="/" rel="external" className="flex flex-col no-underline hover:opacity-80 transition-opacity">
               <span className="pl-0 text-gray-900">Sua plataforma</span>
-              <span className="pl-7.5 mt-0 text-gray-500">financeira</span>
-              <span className="pl-9.5 mt-0.5">
-                  <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block">
-                    DIGITAL 
-                  </span>
+              <span className="pl-4 mt-1 text-gray-500">de controle</span>
+              <span className="pl-8 mt-0.5">
+                <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block">
+                  DIGITAL
+                </span>
               </span>
             </a>
           </div>
@@ -283,10 +278,10 @@ export function Header() {
         <nav className="hidden md:flex items-center gap-3 text-[13px] text-gray-600 bg-white">
           {pathname === "/" && (
             <form onSubmit={handleSearch} className="flex items-center bg-gray-50 border border-gray-100 rounded-full px-3 py-1.5 focus-within:border-blue-300 transition-all mr-2 group">
-              <input 
+              <input
                 name="q"
-                type="text" 
-                placeholder="Pesquisar..." 
+                type="text"
+                placeholder="Pesquisar..."
                 className="bg-transparent outline-none text-[12px] w-24 lg:w-40 transition-all focus:w-32 lg:focus:w-56 text-gray-900"
               />
               <button type="submit" className="text-gray-400 group-hover:text-blue-600 transition-colors ml-1">
@@ -308,9 +303,9 @@ export function Header() {
             ) : (
               <div className="flex items-center gap-2 bg-white">
                 {renderFinanceButtons()}
-                
+
                 {pathname === "/minha-conta" && (
-                  <button 
+                  <button
                     onClick={handleLogout}
                     className="flex items-center justify-center w-10 h-10 rounded-md bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 border border-gray-100 transition-all shadow-sm active:scale-95"
                     title="Sair da conta"
@@ -320,10 +315,10 @@ export function Header() {
                 )}
               </div>
             )}
-            
+
             {pathname !== "/minha-conta" && (
               <div className="relative" ref={userDropdownRef}>
-                <button 
+                <button
                   onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
                   className={`ml-1 flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all overflow-hidden bg-gray-50 ${isUserDropdownOpen ? 'border-blue-500 shadow-md' : 'border-gray-100 hover:border-blue-400'}`}
                 >
@@ -367,14 +362,14 @@ export function Header() {
 
         {/* MENU MOBILE */}
         <div className="md:hidden flex items-center bg-white">
-          <button 
+          <button
             ref={mobileButtonRef}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className={`
               relative flex items-center justify-center gap-2 
               h-9 px-4 rounded-xl transition-all duration-300 z-[110]
-              ${isMenuOpen 
-                ? "bg-gray-900 text-white shadow-lg ring-4 ring-gray-900/10" 
+              ${isMenuOpen
+                ? "bg-gray-900 text-white shadow-lg ring-4 ring-gray-900/10"
                 : "bg-white text-gray-600 border border-gray-200 shadow-sm active:scale-95"
               }
             `}
@@ -394,12 +389,12 @@ export function Header() {
 
         {isMenuOpen && (
           <>
-            <div 
-              className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-[90] md:hidden animate-in fade-in duration-300" 
+            <div
+              className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-[90] md:hidden animate-in fade-in duration-300"
               onClick={() => setIsMenuOpen(false)}
             />
 
-            <div 
+            <div
               ref={mobileMenuRef}
               className="absolute top-[85px] right-4 left-4 bg-white rounded-[2rem] shadow-2xl border border-gray-100 z-[100] overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300 md:hidden"
             >

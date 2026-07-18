@@ -2,16 +2,16 @@
 
 import React, { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { 
-  ShieldCheck, 
-  Zap, 
-  Star, 
-  CheckCircle2, 
-  Globe, 
-  Eye, 
-  EyeOff, 
-  UserCircle, 
-  AlertTriangle, 
+import {
+  ShieldCheck,
+  Zap,
+  Star,
+  CheckCircle2,
+  Globe,
+  Eye,
+  EyeOff,
+  UserCircle,
+  AlertTriangle,
   Instagram,
   Clock,
   User,
@@ -30,7 +30,7 @@ export default function CadastroPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const [showWarning, setShowWarning] = useState(false);
   const [cienteSemEmail, setCienteSemEmail] = useState(false);
 
@@ -70,19 +70,19 @@ export default function CadastroPage() {
           email: emailDestino,
         }),
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json();
         console.error("Erro na rota de e-mail:", errorData);
       }
-    } catch (e) { 
-      console.error("Erro ao conectar com a API interna:", e); 
+    } catch (e) {
+      console.error("Erro ao conectar com a API interna:", e);
     }
   };
 
   const handleCadastro = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email.trim()) {
       if (!showWarning) {
         setShowWarning(true);
@@ -130,13 +130,13 @@ export default function CadastroPage() {
 
     if (authData.user) {
       await supabase.from('profiles').insert([
-        { 
-          id: authData.user.id, 
-          email: emailParaAuth, 
-          email_contato: email.trim() || null, 
-          nome_completo: nome || "Anônimo", 
+        {
+          id: authData.user.id,
+          email: emailParaAuth,
+          email_contato: email.trim() || null,
+          nome_completo: nome || "Anônimo",
           plan_type: 'free',
-          slug: slugFinal 
+          slug: slugFinal
         }
       ]);
 
@@ -174,10 +174,10 @@ export default function CadastroPage() {
                 <Zap fill="currentColor" size={24} />
                 <span className="font-black uppercase tracking-[0.3em] text-xs">Nucleobase</span>
               </div>
-              <h1 className="text-3xl font-bold text-white leading-tight tracking-tighter mb-8">
-                Sua jornada para a <span className="text-blue-500">clareza financeira</span> começa aqui.
+              <h1 className="text-2xl font-bold text-white leading-tight tracking-tighter mb-8">
+                Sua jornada para uma <span className="text-blue-500">gestão eficiente</span> começa aqui.
               </h1>
-              
+
               <div className="space-y-6">
                 <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4">
                   {[
@@ -223,7 +223,7 @@ export default function CadastroPage() {
           <div className="w-full max-w-md mx-auto pt-0 lg:pt-0 pb-12">
             <div className="hidden lg:block mb-8 text-left mt-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-1 tracking-tight">
-                Crie sua conta e inicie seu <span className="text-blue-600 font-black">controle financeiro.</span>
+                Cadastre-se e inicie sua <span className="text-blue-600 font-black">história com a Nucleo.</span>
               </h2>
             </div>
 
@@ -231,12 +231,12 @@ export default function CadastroPage() {
               <div className="group">
                 <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-1.5 block">ID de Usuário</label>
                 <div className="relative">
-                  <input 
-                    type="text" 
-                    placeholder="Exemplo: joao-silva" 
-                    required 
-                    className="w-full px-6 py-3 bg-blue-50/30 border-2 border-blue-50 rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-400 transition-all text-sm pr-12 font-medium" 
-                    onChange={(e) => setSlugDesejado(e.target.value)} 
+                  <input
+                    type="text"
+                    placeholder="Exemplo: joao-silva"
+                    required
+                    className="w-full px-6 py-3 bg-blue-50/30 border-2 border-blue-50 rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-400 transition-all text-sm pr-12 font-medium"
+                    onChange={(e) => setSlugDesejado(e.target.value)}
                   />
                   <UserCircle className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-300" size={20} />
                 </div>
@@ -245,27 +245,27 @@ export default function CadastroPage() {
               <div className="group">
                 <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-1.5 block">Nome Completo</label>
                 <div className="relative">
-                  <input 
-                    type="text" 
-                    placeholder="João Silva" 
-                    className="w-full px-6 py-3 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium pr-12" 
-                    onChange={(e) => setNome(e.target.value)} 
+                  <input
+                    type="text"
+                    placeholder="João Silva"
+                    className="w-full px-6 py-3 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium pr-12"
+                    onChange={(e) => setNome(e.target.value)}
                   />
                   <User className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
                 </div>
               </div>
-              
+
               <div className="group">
                 <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-1.5 block">E-mail</label>
                 <div className="relative">
-                  <input 
-                    type="email" 
-                    placeholder="joao@exemplo.com" 
-                    className="w-full px-6 py-3 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium pr-12" 
+                  <input
+                    type="email"
+                    placeholder="joao@dominio.com"
+                    className="w-full px-6 py-3 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium pr-12"
                     onChange={(e) => {
                       setEmail(e.target.value);
                       if (e.target.value.trim()) setShowWarning(false);
-                    }} 
+                    }}
                   />
                   <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
                 </div>
@@ -278,8 +278,8 @@ export default function CadastroPage() {
                     <div className="space-y-2">
                       <p className="text-[11px] text-orange-800 font-bold uppercase">Sem e-mail, você não poderá recuperar sua senha.</p>
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <input 
-                          type="checkbox" 
+                        <input
+                          type="checkbox"
                           className="rounded text-orange-600"
                           checked={cienteSemEmail}
                           onChange={(e) => setCienteSemEmail(e.target.checked)}
@@ -290,26 +290,26 @@ export default function CadastroPage() {
                   </div>
                 </div>
               )}
-              
+
               <div className="group">
                 <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1 mb-1.5 block">Senha</label>
                 <div className="relative">
-                  <input 
-                    type={showPassword ? "text" : "password"} 
-                    placeholder="••••••••" 
-                    required 
-                    className="w-full px-6 py-3 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium pr-14" 
-                    onChange={(e) => setPassword(e.target.value)} 
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    required
+                    className="w-full px-6 py-3 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium pr-14"
+                    onChange={(e) => setPassword(e.target.value)}
                   />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-gray-400">
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
               </div>
-              
-              <button 
-                disabled={loading} 
-                type="submit" 
+
+              <button
+                disabled={loading}
+                type="submit"
                 className="w-full bg-gray-900 text-white py-4 rounded-2xl hover:bg-black transition-all font-bold text-[10px] uppercase tracking-[0.2em] mt-6 flex items-center justify-center gap-3 disabled:bg-gray-400"
               >
                 {loading ? "Sincronizando..." : "Finalizar cadastro"}

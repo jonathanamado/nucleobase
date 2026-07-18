@@ -1,14 +1,15 @@
+// app/acesso-usuario/page.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { 
-  UserCog, Rocket, ArrowRight, 
+import {
+  UserCog, Rocket, ArrowRight,
   CheckCircle2, LogOut, X, Mail, LifeBuoy, AtSign,
   Eye, EyeOff, BarChart3, Sparkles, TrendingUp,
   Clock, Gem, ShieldCheck, Zap, Key, Database, FileSpreadsheet,
   PlusCircle, Upload, Shield, Target, Fingerprint, Globe, LayoutDashboard,
-  Instagram
+  Instagram, KeyRound, UserCheck
 } from "lucide-react";
 import Link from "next/link";
 
@@ -18,26 +19,33 @@ const supabase = createClient(
 );
 
 export default function AcessoUsuarioPage() {
-  const [slug, setSlug] = useState(""); 
+  const [slug, setSlug] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userName, setUserName] = useState(""); 
+  const [userName, setUserName] = useState("");
   const [userPlan, setUserPlan] = useState("Free");
   const [showPassword, setShowPassword] = useState(false);
-  
+
+  // Modais de Recuperação e Primeiro Acesso
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
+
+  // Estados do Novo Fluxo de Primeiro Acesso com ID/Slug
+  const [showFirstAccessModal, setShowFirstAccessModal] = useState(false);
+  const [firstAccessSlug, setFirstAccessSlug] = useState("");
+  const [firstAccessRealEmail, setFirstAccessRealEmail] = useState("");
+  const [firstAccessLoading, setFirstAccessLoading] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        
+
         if (error || !session) {
           setIsLoggedIn(false);
-          if (error) await supabase.auth.signOut(); 
+          if (error) await supabase.auth.signOut();
         } else {
           fetchProfileData(session.user);
         }
@@ -69,7 +77,7 @@ export default function AcessoUsuarioPage() {
 
     if (profile?.nome_completo && profile.nome_completo.trim() !== "") {
       setUserName(profile.nome_completo);
-    } 
+    }
     else if (user.user_metadata?.full_name) {
       setUserName(user.user_metadata.full_name);
     }
@@ -95,26 +103,26 @@ export default function AcessoUsuarioPage() {
       } else {
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('email')
+          .select('email_contato')
           .eq('slug', inputAcesso)
           .maybeSingle();
 
         if (profileError) throw profileError;
-        if (!profile || !profile.email) {
-          alert("ID de usuário não encontrado.");
+        if (!profile || !profile.email_contato) {
+          alert("ID de usuário (Slug) não foi localizado.");
           setLoading(false);
           return;
         }
-        emailParaLogin = profile.email;
+        emailParaLogin = profile.email_contato;
       }
 
-      const { error: authError } = await supabase.auth.signInWithPassword({ 
-        email: emailParaLogin, 
-        password 
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: emailParaLogin,
+        password
       });
 
       if (authError) {
-        alert("Erro ao acessar: Senha incorreta ou problema na conta.");
+        alert("Erro ao acessar: Verifique suas credenciais de acesso.");
       } else {
         window.location.href = "/minha-conta";
       }
@@ -140,9 +148,66 @@ export default function AcessoUsuarioPage() {
     setResetLoading(false);
   };
 
+  // Processa a validação do primeiro acesso do morador vinculando o e-mail definitivo de forma síncrona
+  const handleFirstAccessSetup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFirstAccessLoading(true);
+
+    const inputSlug = firstAccessSlug.trim().toLowerCase();
+    const inputEmailReal = firstAccessRealEmail.trim().toLowerCase();
+
+    try {
+      // AJUSTE PRECISÃO ROTAS: Aponta perfeitamente para /auth/onboarding baseando-se na sua pasta de arquivos
+      const response = await fetch("/auth/onboarding", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          slug: inputSlug,
+          realEmail: inputEmailReal,
+        }),
+      });
+
+      // Validação defensiva do tipo de retorno para evitar quebras por HTML (Erros 404/500 do Next)
+      const contentType = response.headers.get("content-type");
+      let responseData;
+
+      if (contentType && contentType.includes("application/json")) {
+        responseData = await response.json();
+      } else {
+        const textError = await response.text();
+        console.error("Resposta em formato inválido detectada:", textError);
+        throw new Error("O servidor retornou uma página inesperada. Certifique-se de que o arquivo route.ts na pasta app/auth/onboarding possui o método POST exportado adequadamente.");
+      }
+
+      // Se a API retornar erro de validação ou duplicidade estruturado em JSON
+      if (!response.ok) {
+        throw new Error(responseData.error || "Falha ao processar sincronização de dados administrativos.");
+      }
+
+      // 2. Agora que o e-mail real foi ativado na conta interna auth.users, o disparo do reset de senha funciona perfeitamente
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(inputEmailReal, {
+        redirectTo: `https://nucleobase.app/reset-password?activation=true&slug=${inputSlug}`,
+      });
+
+      if (resetError) throw resetError;
+
+      alert(`Chave identificada com sucesso! Um link de definição de senha foi encaminhado para seu e-mail legítimo: ${inputEmailReal}`);
+      setShowFirstAccessModal(false);
+      setFirstAccessSlug("");
+      setFirstAccessRealEmail("");
+    } catch (err: any) {
+      console.error("Erro detalhado no Onboarding de Primeiro Acesso:", err);
+      alert(err?.message || "Houve uma falha interna na ativação de credenciais de Onboarding.");
+    } finally {
+      setFirstAccessLoading(false);
+    }
+  };
+
   return (
     <div className="w-full pr-0 md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
-      
+
       {/* Cabeçalho */}
       <div className="mb-6 mt-2 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
         <div className="lg:col-span-12 text-left">
@@ -156,7 +221,7 @@ export default function AcessoUsuarioPage() {
             <span className="font-bold tracking-tight">
               {isLoggedIn ? userName.split(" ")[0] : <>à Plataforma da <span className="text-orange-500">Nucleobase!</span></>}
             </span>
-            
+
             {!isLoggedIn && (
               <Gem size={24} className="text-orange-500 md:hidden ml-2" strokeWidth={2.5} />
             )}
@@ -168,9 +233,9 @@ export default function AcessoUsuarioPage() {
               </span>
             )}
 
-            <Gem 
-              size={40} 
-              className="text-orange-500 skew-x-2 ml-6 hidden md:block" 
+            <Gem
+              size={40}
+              className="text-orange-500 skew-x-2 ml-6 hidden md:block"
               strokeWidth={2.0}
             />
           </div>
@@ -179,7 +244,7 @@ export default function AcessoUsuarioPage() {
             {isLoggedIn ? (
               <>
                 <span className="md:inline hidden">
-                  Substitua controles manuais pela inteligência da Nucleo para obter total visibilidade 
+                  Substitua controles manuais pela inteligência da Nucleo para obter total visibilidade
                   de suas finanças.
                 </span>
                 <span className="md:hidden inline">Explore o APP para lançamentos e análise de resultados.</span>
@@ -199,58 +264,68 @@ export default function AcessoUsuarioPage() {
 
           {!isLoggedIn && (
             <div className="max-w-md mt-6">
-                <div className="w-full bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
-                  <h2 className="text-lg font-bold text-gray-900 mb-4 px-1">
-                    Realizar login<span className="text-orange-500">.</span>
-                  </h2>
-                  <form onSubmit={handleLogin} className="flex flex-col gap-2">
-                      <div className="space-y-2">
-                        <div className="relative group">
-                          <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
-                          <input 
-                            type="text" 
-                            placeholder="ID de Usuário ou E-mail" 
-                            required
-                            value={slug}
-                            className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900 font-medium"
-                            onChange={(e) => setSlug(e.target.value)}
-                          />
-                        </div>
-                        <div className="relative group">
-                          <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
-                          <input 
-                            type={showPassword ? "text" : "password"} 
-                            placeholder="Senha" 
-                            required
-                            value={password}
-                            className="w-full pl-11 pr-10 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900"
-                            onChange={(e) => setPassword(e.target.value)}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition-colors"
-                          >
-                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                          </button>
-                        </div>
-                      </div>
-                      
-                      <button 
+              <div className="w-full bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
+                <h2 className="text-lg font-bold text-gray-900 mb-4 px-1">
+                  Realizar login<span className="text-orange-500">.</span>
+                </h2>
+                <form onSubmit={handleLogin} className="flex flex-col gap-2">
+                  <div className="space-y-2">
+                    <div className="relative group">
+                      <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
+                      <input
+                        type="text"
+                        placeholder="ID de Usuário ou E-mail"
+                        required
+                        value={slug}
+                        className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900 font-medium"
+                        onChange={(e) => setSlug(e.target.value)}
+                      />
+                    </div>
+                    <div className="relative group">
+                      <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Senha"
+                        required
+                        value={password}
+                        className="w-full pl-11 pr-10 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900"
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                      <button
                         type="button"
-                        onClick={() => setShowForgotModal(true)}
-                        className="text-[10px] text-gray-400 font-bold hover:text-orange-500 transition-colors text-right pr-1"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition-colors"
                       >
-                        Esqueceu a senha?
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
+                    </div>
+                  </div>
 
-                      <button 
-                        disabled={loading}
-                        className="w-full bg-orange-500 text-white h-[48px] rounded-xl font-bold hover:bg-orange-600 transition shadow-lg text-xs disabled:opacity-50 mt-1"
-                      >
-                        {loading ? "Verificando..." : "Acessar Plataforma"}
-                      </button>
-                  </form>
+                  {/* Bloco de Links de Recuperação Alinhados à Direita */}
+                  <div className="flex flex-col items-end gap-1.5 mt-1 pr-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotModal(true)}
+                      className="text-[10px] text-gray-400 font-bold hover:text-orange-500 transition-colors"
+                    >
+                      Esqueceu a senha?
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowFirstAccessModal(true)}
+                      className="text-[10px] text-blue-600 font-black hover:text-blue-700 transition-colors"
+                    >
+                      Primeiro acesso com ID de usuário?
+                    </button>
+                  </div>
+
+                  <button
+                    disabled={loading}
+                    className="w-full bg-orange-500 text-white h-[48px] rounded-xl font-bold hover:bg-orange-600 transition shadow-lg text-xs disabled:opacity-50 mt-2"
+                  >
+                    {loading ? "Verificando..." : "Acessar Plataforma"}
+                  </button>
+                </form>
               </div>
             </div>
           )}
@@ -259,7 +334,7 @@ export default function AcessoUsuarioPage() {
 
       {/* Seção Condicional */}
       <div className={!isLoggedIn ? "hidden md:block mt-14" : "block mt-8"}>
-        
+
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-3 flex items-center gap-4 w-full">
           Navegação e Acessos <div className="h-px bg-gray-300 flex-1"></div>
         </h3>
@@ -279,7 +354,7 @@ export default function AcessoUsuarioPage() {
               permitindo seu entendimento sobre onde economizar e como acelerar objetivos.
             </span>{" "}
           </p>
-          
+
           <p className="md:hidden text-sm text-gray-600 leading-relaxed">
             Acesse o <span className="font-bold text-orange-600">APP</span> para novos lançamentos ou o <span className="font-bold text-blue-600">Painel</span> para análise estratégica de seus resultados em tempo real.
           </p>
@@ -287,68 +362,68 @@ export default function AcessoUsuarioPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-16">
           <div className={`lg:col-span-12 grid gap-5 ${isLoggedIn ? "grid-cols-2 md:grid-cols-2" : "grid-cols-1 md:grid-cols-2"}`}>
-              
-              <div className="md:min-h-[480px] min-h-[200px] flex">
-                <a 
-                  href="/lancamentos"
-                  className={`p-6 md:p-8 rounded-[2.5rem] shadow-lg transition-all border flex flex-col text-center md:text-left bg-orange-500 border-orange-400 hover:bg-orange-600 group w-full h-full relative overflow-hidden ${!isLoggedIn && "pointer-events-none opacity-50"}`}
-                >
-                  <div className="p-3 rounded-2xl mb-4 w-fit bg-white/20 text-white group-hover:scale-110 transition-transform mx-auto md:mx-0">
-                    <Rocket size={28} />
-                  </div>
-                  <h3 className="text-lg md:text-xl font-bold text-white mb-3">
-                    <span className="md:hidden">Acesso ao APP</span>
-                    <span className="hidden md:block">Acesso <br /> ao APP</span>
-                  </h3>
-                  
-                  <p className="text-orange-50 text-[14px] md:text-[16px] leading-relaxed mb-6 font-medium md:block hidden">
-                    Realize lançamentos manuais em tela, importações via arquivo ou integrações em D-1:
-                  </p>
-                  
-                  <div className="md:flex hidden flex-col gap-2 mb-6 text-left">
-                    <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90"><PlusCircle size={14} /> Lançamento manual</div>
-                    <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90"><Upload size={14} /> Importação XLS</div>
-                    <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90"><Database size={14} /> Integração D-1</div>
-                  </div>
 
-                  <div className="mt-auto flex items-center justify-center gap-3 bg-white text-orange-500 h-[48px] md:h-[56px] rounded-2xl font-black shadow-md text-[10px] uppercase tracking-widest group-hover:shadow-xl transition-all">
-                    Acessar <span className="md:inline hidden">APP</span> 
-                    <Zap size={16} className="fill-orange-500 group-hover:scale-125 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </a>
-              </div>
+            <div className="md:min-h-[480px] min-h-[200px] flex">
+              <a
+                href="/lancamentos"
+                className={`p-6 md:p-8 rounded-[2.5rem] shadow-lg transition-all border flex flex-col text-center md:text-left bg-orange-500 border-orange-400 hover:bg-orange-600 group w-full h-full relative overflow-hidden ${!isLoggedIn && "pointer-events-none opacity-50"}`}
+              >
+                <div className="p-3 rounded-2xl mb-4 w-fit bg-white/20 text-white group-hover:scale-110 transition-transform mx-auto md:mx-0">
+                  <Rocket size={28} />
+                </div>
+                <h3 className="text-lg md:text-xl font-bold text-white mb-3">
+                  <span className="md:hidden">Acesso ao APP</span>
+                  <span className="hidden md:block">Acesso <br /> ao APP</span>
+                </h3>
 
-              <div className="md:min-h-[480px] min-h-[200px] flex">
-                <a 
-                  href="/resultados" 
-                  className="group bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-gray-300 flex flex-col text-center md:text-left w-full h-full relative overflow-hidden"
-                >
-                  <div className="absolute top-6 right-6 bg-blue-600 text-white text-[9px] font-black px-2 py-1 rounded-full uppercase tracking-tighter animate-pulse text-center hidden md:block">
-                    Visualização <br /> realtime 
-                  </div>
-                  <div className="bg-blue-50 p-3 rounded-2xl mb-4 w-fit text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm mx-auto md:mx-0">
-                    <BarChart3 size={28} />
-                  </div>
-                  <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 tracking-tight">
-                    <span className="md:hidden">Painel de Resultados</span>
-                    <span className="hidden md:block">Painel de <br /> Resultados</span>
-                  </h3>                   
-                  <p className="text-gray-500 text-[14px] md:text-[16px] leading-relaxed font-medium mb-6 md:block hidden">
-                    Acompanhe a evolução da sua saúde financeira com relatórios e insights poderosos:
-                  </p>
-                  
-                  <div className="md:flex hidden flex-col gap-2 mb-6 text-left">
-                      <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-blue-600 transition-colors"><TrendingUp size={14} className="text-blue-500" /> Dashboards exclusivos</div>
-                      <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-blue-600 transition-colors"><Target size={14} className="text-blue-500" /> Metas e orçamentos</div>
-                      <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-blue-600 transition-colors"><Sparkles size={14} className="text-blue-500" /> Relatórios analíticos</div>
-                  </div>
-                  
-                  <div className="mt-auto flex items-center justify-center gap-3 w-full bg-gray-900 text-white h-[48px] md:h-[56px] rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest shadow-lg group-hover:scale-[1.02]">
-                    Acessar <span className="md:inline hidden"> Dashboard</span> 
-                    <LayoutDashboard size={16} className="text-blue-400 group-hover:rotate-6 transition-transform" />
-                  </div>
-                </a>
-              </div>
+                <p className="text-orange-50 text-[14px] md:text-[16px] leading-relaxed mb-6 font-medium md:block hidden">
+                  Realize lançamentos manuais em tela, importações via arquivo ou integrações em D-1:
+                </p>
+
+                <div className="md:flex hidden flex-col gap-2 mb-6 text-left">
+                  <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90"><PlusCircle size={14} /> Lançamento manual</div>
+                  <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90"><Upload size={14} /> Importação XLS</div>
+                  <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90"><Database size={14} /> Integração D-1</div>
+                </div>
+
+                <div className="mt-auto flex items-center justify-center gap-3 bg-white text-orange-500 h-[48px] md:h-[56px] rounded-2xl font-black shadow-md text-[10px] uppercase tracking-widest group-hover:shadow-xl transition-all">
+                  Acessar <span className="md:inline hidden">APP</span>
+                  <Zap size={16} className="fill-orange-500 group-hover:scale-125 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </a>
+            </div>
+
+            <div className="md:min-h-[480px] min-h-[200px] flex">
+              <a
+                href="/resultados"
+                className="group bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-gray-300 flex flex-col text-center md:text-left w-full h-full relative overflow-hidden"
+              >
+                <div className="absolute top-6 right-6 bg-blue-600 text-white text-[9px] font-black px-2 py-1 rounded-full uppercase tracking-tighter animate-pulse text-center hidden md:block">
+                  Visualização <br /> realtime
+                </div>
+                <div className="bg-blue-50 p-3 rounded-2xl mb-4 w-fit text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm mx-auto md:mx-0">
+                  <BarChart3 size={28} />
+                </div>
+                <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 tracking-tight">
+                  <span className="md:hidden">Painel de Resultados</span>
+                  <span className="hidden md:block">Painel de <br /> Resultados</span>
+                </h3>
+                <p className="text-gray-500 text-[14px] md:text-[16px] leading-relaxed font-medium mb-6 md:block hidden">
+                  Acompanhe a evolução da sua saúde financeira com relatórios e insights poderosos:
+                </p>
+
+                <div className="md:flex hidden flex-col gap-2 mb-6 text-left">
+                  <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-blue-600 transition-colors"><TrendingUp size={14} className="text-blue-500" /> Dashboards exclusivos</div>
+                  <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-blue-600 transition-colors"><Target size={14} className="text-blue-500" /> Metas e orçamentos</div>
+                  <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-blue-600 transition-colors"><Sparkles size={14} className="text-blue-500" /> Relatórios analíticos</div>
+                </div>
+
+                <div className="mt-auto flex items-center justify-center gap-3 w-full bg-gray-900 text-white h-[48px] md:h-[56px] rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest shadow-lg group-hover:scale-[1.02]">
+                  Acessar <span className="md:inline hidden"> Dashboard</span>
+                  <LayoutDashboard size={16} className="text-blue-400 group-hover:rotate-6 transition-transform" />
+                </div>
+              </a>
+            </div>
           </div>
         </div>
 
@@ -364,55 +439,55 @@ export default function AcessoUsuarioPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-10">
           <div className="lg:col-span-12 min-h-[320px] flex">
-              <div className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl w-full h-full flex flex-col md:flex-row gap-12 items-center">
-                  <div className="relative z-10 flex-1 flex flex-col h-full">
-                      <div className="flex items-center gap-2 mb-4 bg-white/10 w-fit px-3 py-1.5 rounded-full border border-white/10">
-                          <Fingerprint size={14} className="text-orange-400" />
-                          <span className="text-[10px] font-black uppercase tracking-widest text-orange-400">Privacidade Blindada</span>
-                      </div>
-                      
-                      <h4 className="text-2xl font-bold mb-3">Sua conta, suas regras.</h4>
-                      <p className="text-gray-400 text-sm leading-relaxed mb-8 max-w-2xl font-medium">
-                        Na Nucleo, a segurança dos seus dados é o pilar central. Utilizamos criptografia de ponta a ponta e Row Level Security (RLS) para garantir que apenas você tenha acesso às suas informações financeiras.
-                      </p>
+            <div className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl w-full h-full flex flex-col md:flex-row gap-12 items-center">
+              <div className="relative z-10 flex-1 flex flex-col h-full">
+                <div className="flex items-center gap-2 mb-4 bg-white/10 w-fit px-3 py-1.5 rounded-full border border-white/10">
+                  <Fingerprint size={14} className="text-orange-400" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-orange-400">Privacidade Blindada</span>
+                </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0">
-                          <ShieldCheck size={28} className="text-blue-400 row-span-2 self-start mt-1" />
-                          <span className="text-white font-bold text-xs uppercase tracking-tighter">Criptografia</span>
-                          <span className="text-[10px] text-gray-500 font-medium">Proteção total SSL/TLS 1.3</span>
-                        </div>
-                        
-                        <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0">
-                          <Key size={28} className="text-blue-400 row-span-2 self-start mt-1" />
-                          <span className="text-white font-bold text-xs uppercase tracking-tighter">Acesso Restrito</span>
-                          <span className="text-[10px] text-gray-500 font-medium">Políticas RLS ativas</span>
-                        </div>
+                <h4 className="text-2xl font-bold mb-3">Sua conta, suas regras.</h4>
+                <p className="text-gray-400 text-sm leading-relaxed mb-8 max-w-2xl font-medium">
+                  Na Nucleo, a segurança dos seus dados é o pilar central. Utilizamos criptografia de ponta a ponta e Row Level Security (RLS) para garantir que apenas você tenha acesso às suas informações financeiras.
+                </p>
 
-                        <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0">
-                          <Globe size={28} className="text-blue-400 row-span-2 self-start mt-1" />
-                          <span className="text-white font-bold text-xs uppercase tracking-tighter">Backup em Nuvem</span>
-                          <span className="text-[10px] text-gray-500 font-medium">Sincronização realtime</span>
-                        </div>
-                      </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0">
+                    <ShieldCheck size={28} className="text-blue-400 row-span-2 self-start mt-1" />
+                    <span className="text-white font-bold text-xs uppercase tracking-tighter">Criptografia</span>
+                    <span className="text-[10px] text-gray-500 font-medium">Proteção total SSL/TLS 1.3</span>
                   </div>
-                  
-                  <div className="flex flex-col gap-4 relative z-10 w-full md:w-auto">
-                    <Link href="/minha-conta" className="bg-white text-black px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all whitespace-nowrap text-center">
-                      Configurações de Perfil
-                    </Link>
-                    <Link href="/seguranca_privacidade" className="bg-white/5 border border-white/10 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all whitespace-nowrap text-center">
-                      Segurança e Privacidade
-                    </Link>
+
+                  <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0">
+                    <Key size={28} className="text-blue-400 row-span-2 self-start mt-1" />
+                    <span className="text-white font-bold text-xs uppercase tracking-tighter">Acesso Restrito</span>
+                    <span className="text-[10px] text-gray-500 font-medium">Políticas RLS ativas</span>
                   </div>
-                  
-                  <Database size={300} className="absolute -left-20 -bottom-20 text-white/[0.03] -rotate-12 pointer-events-none" />
+
+                  <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0">
+                    <Globe size={28} className="text-blue-400 row-span-2 self-start mt-1" />
+                    <span className="text-white font-bold text-xs uppercase tracking-tighter">Backup em Nuvem</span>
+                    <span className="text-[10px] text-gray-500 font-medium">Sincronização realtime</span>
+                  </div>
+                </div>
               </div>
+
+              <div className="flex flex-col gap-4 relative z-10 w-full md:w-auto">
+                <Link href="/minha-conta" className="bg-white text-black px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all whitespace-nowrap text-center">
+                  Configurações de Perfil
+                </Link>
+                <Link href="/seguranca_privacidade" className="bg-white/5 border border-white/10 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all whitespace-nowrap text-center">
+                  Segurança e Privacidade
+                </Link>
+              </div>
+
+              <Database size={300} className="absolute -left-20 -bottom-20 text-white/[0.03] -rotate-12 pointer-events-none" />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* NOVO BLOCO: CONECTE-SE (PADRÃO SOBRE) */}
+      {/* LINHA DIVISÓRIA CONECTE-SE */}
       <div className="mt-24 flex items-center gap-4 mb-12">
         <div className="h-px bg-gray-200 flex-1"></div>
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
@@ -424,27 +499,27 @@ export default function AcessoUsuarioPage() {
       <div className="flex flex-col items-center text-center">
         <div className="max-w-3xl mb-12">
           <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
-            Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+            Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
           </h4>
           <p className="text-gray-500 font-medium text-sm md:text-base">
             Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
           </p>
         </div>
-        
-        <a 
-          href="https://www.instagram.com/nucleobase.app/" 
-          target="_blank" 
+
+        <a
+          href="https://www.instagram.com/nucleobase.app/"
+          target="_blank"
           rel="noopener noreferrer"
           className="group relative flex flex-col items-center gap-6"
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
-            
+
             <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
               <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
             </div>
           </div>
-          
+
           <div className="flex flex-col items-center">
             <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
             <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
@@ -452,10 +527,11 @@ export default function AcessoUsuarioPage() {
         </a>
       </div>
 
+      {/* MODAL: RECOVERY PASSWORD */}
       {showForgotModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
-            <button 
+            <button
               onClick={() => setShowForgotModal(false)}
               className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-colors"
             >
@@ -474,7 +550,7 @@ export default function AcessoUsuarioPage() {
               <form onSubmit={handleForgotPassword} className="w-full space-y-4">
                 <div className="relative group">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-500 transition-colors" size={16} />
-                  <input 
+                  <input
                     type="email"
                     required
                     placeholder="seu@email.com"
@@ -483,12 +559,70 @@ export default function AcessoUsuarioPage() {
                     className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-blue-100 outline-none text-sm"
                   />
                 </div>
-                <button 
+                <button
                   disabled={resetLoading}
                   className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-100 text-xs flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {resetLoading ? "Enviando..." : "Enviar Link de Acesso"}
                   <ArrowRight size={16} />
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: PRIMEIRO ACESSO VIA ID/SLUG */}
+      {showFirstAccessModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setShowFirstAccessModal(false)}
+              className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-colors"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex flex-col items-center text-center">
+              <div className="bg-orange-50 p-4 rounded-2xl text-orange-500 mb-4">
+                <KeyRound size={32} />
+              </div>
+              <h2 className="text-xl font-black text-gray-900 tracking-tight mb-2">Primeiro Acesso</h2>
+              <p className="text-gray-500 text-xs mb-6">
+                Insira a chave/slug gerada pelo síndico e vincule seu e-mail pessoal para ativar o acesso ao app.
+              </p>
+
+              <form onSubmit={handleFirstAccessSetup} className="w-full space-y-3">
+                <div className="relative group">
+                  <UserCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ex: condo-joao-xyz"
+                    value={firstAccessSlug}
+                    onChange={(e) => setFirstAccessSlug(e.target.value)}
+                    className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-100 outline-none text-xs font-mono font-bold text-gray-700 uppercase"
+                  />
+                </div>
+
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
+                  <input
+                    type="email"
+                    required
+                    placeholder="Seu e-mail pessoal definitivo"
+                    value={firstAccessRealEmail}
+                    onChange={(e) => setFirstAccessRealEmail(e.target.value)}
+                    className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-100 outline-none text-xs font-medium"
+                  />
+                </div>
+
+                <button
+                  disabled={firstAccessLoading}
+                  className="w-full bg-zinc-900 text-white py-3.5 rounded-xl font-bold hover:bg-black transition shadow-lg text-xs flex items-center justify-center gap-2 disabled:opacity-50 mt-2 uppercase tracking-widest text-[10px]"
+                >
+                  {firstAccessLoading ? "Validando Chave..." : "Ativar minha Conta"}
+                  <ArrowRight size={14} />
                 </button>
               </form>
             </div>

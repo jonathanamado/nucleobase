@@ -3,12 +3,12 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
-import { 
-  Save, MapPin, UserCircle, Camera, GraduationCap, Briefcase, 
-  Baby, CalendarDays, Activity, MousePointerClick, 
+import {
+  Save, MapPin, UserCircle, Camera, GraduationCap, Briefcase,
+  Baby, CalendarDays, Activity, MousePointerClick,
   KeyRound, Instagram, X, Eye, EyeOff,
   Target, Share2, Wallet, Zap, Rocket, LayoutDashboard, Info,
-  ShieldCheck, PieChart, Award, ChartPie
+  ShieldCheck, PieChart, Award, ChartPie, Building2, FileCheck2
 } from "lucide-react";
 
 const supabase = createClient(
@@ -19,9 +19,9 @@ const supabase = createClient(
 export default function MinhaContaPage() {
   // --- ESTADOS DE DADOS ---
   const [nome, setNome] = useState("");
-  const [email, setEmail] = useState(""); 
-  const [emailContato, setEmailContato] = useState(""); 
-  const [slug, setSlug] = useState(""); 
+  const [email, setEmail] = useState("");
+  const [emailContato, setEmailContato] = useState("");
+  const [slug, setSlug] = useState("");
   const [telefone, setTelefone] = useState("");
   const [profissao, setProfissao] = useState("");
   const [formacao, setFormacao] = useState("");
@@ -36,7 +36,13 @@ export default function MinhaContaPage() {
   const [possuiFilhos, setPossuiFilhos] = useState("");
   const [objetivoPlataforma, setObjetivoPlataforma] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  
+
+  // --- NOVO ESTADO: ACESSO EMPRESARIAL (CONDOMÍNIO) ---
+  const [condoId, setCondoId] = useState<string | null>(null);
+  const [condoNome, setCondoNome] = useState("");
+  const [condoCnpj, setCondoCnpj] = useState("");
+  const [unidadeSindico, setUnidadeSindico] = useState("");
+
   // --- ESTADOS DE SISTEMA ---
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -66,7 +72,7 @@ export default function MinhaContaPage() {
     const handleInternalNavigation = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const link = target.closest("a");
-      
+
       if (isDirty && link && link.href && !link.href.includes("#") && !link.target) {
         const confirmExit = window.confirm("Você possui alterações não salvas. Deseja sair sem salvar?");
         if (!confirmExit) {
@@ -184,7 +190,7 @@ export default function MinhaContaPage() {
 
       const percFixos = despesasTotais > 0 ? Math.round((custosFixos / despesasTotais) * 100) : 0;
       const percVariaveis = despesasTotais > 0 ? Math.round((custosVariaveis / despesasTotais) * 100) : 0;
-      
+
       const datasFixos = allRecords.filter(l => l.fixo_ate).map(l => l.fixo_ate).sort();
       const limiteFixos = datasFixos.length > 0 ? datasFixos[datasFixos.length - 1].split('-').reverse().slice(0, 2).join('/') : "---";
 
@@ -214,8 +220,8 @@ export default function MinhaContaPage() {
         diasCadastro: diasDeUso
       });
     } else {
-        // Caso não haja registros ainda carregar o tempo de casa
-        setStats(prev => ({ ...prev, diasCadastro: diasDeUso, tempoCasa: userData?.criado_em ? new Date(userData.criado_em).toLocaleDateString('pt-BR') : "" }));
+      // Caso não haja registros ainda carregar o tempo de casa
+      setStats(prev => ({ ...prev, diasCadastro: diasDeUso, tempoCasa: userData?.criado_em ? new Date(userData.criado_em).toLocaleDateString('pt-BR') : "" }));
     }
   }
 
@@ -223,7 +229,7 @@ export default function MinhaContaPage() {
     async function carregarDados() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        setEmail(user.email || ""); 
+        setEmail(user.email || "");
         const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
         if (profile) {
           setNome(profile.nome_completo || "");
@@ -244,6 +250,27 @@ export default function MinhaContaPage() {
           setObjetivoPlataforma(profile.objetivo_plataforma || "");
           setAvatarUrl(profile.avatar_url || null);
         }
+
+        // --- BUSCA INFORMAÇÕES DE CONDOMÍNIO DO SÍNDICO ---
+        const { data: membro } = await supabase
+          .from("condominio_membros")
+          .select("unidade, condominio:condominios(id, nome, cnpj)")
+          .eq("user_id", user.id)
+          .eq("role", "sindico")
+          .maybeSingle();
+
+        if (membro) {
+          setUnidadeSindico(membro.unidade || "");
+          if (membro.condominio) {
+            // @ts-ignore
+            setCondoId(membro.condominio.id);
+            // @ts-ignore
+            setCondoNome(membro.condominio.nome || "");
+            // @ts-ignore
+            setCondoCnpj(membro.condominio.cnpj || "");
+          }
+        }
+
         await carregarEstatisticas(user.id);
       } else { window.location.href = "/"; }
       setLoading(false);
@@ -255,18 +282,82 @@ export default function MinhaContaPage() {
     setUpdating(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { error } = await supabase.from("profiles").upsert({ 
+      // 1. Atualiza dados padrão do perfil
+      const { error: profileError } = await supabase.from("profiles").upsert({
         id: user.id, nome_completo: nome, email_contato: emailContato, telefone: telefone,
         profissao: profissao, formacao: formacao, data_nascimento: dataNascimento || null,
         genero: genero, estado_civil: estadoCivil, cidade: cidade, estado: estado,
         uso_app: usoApp, objetivo_financeiro: objetivoFinanceiro, origem: origem,
         possui_filhos: possuiFilhos, objetivo_plataforma: objetivoPlataforma, updated_at: new Date()
       });
-      if (error) alert("Erro: " + error.message);
-      else {
-        alert("Dados salvos!");
-        setIsDirty(false);
+
+      if (profileError) {
+        alert("Erro ao atualizar perfil: " + profileError.message);
+        setUpdating(false);
+        return;
       }
+
+      // 2. Lógica de atualização/cadastro empresarial do condomínio
+      if (condoNome.trim()) {
+        try {
+          let currentCondoId = condoId;
+
+          if (!currentCondoId) {
+            // Se o síndico não tem condomínio vinculado ainda, cria um novo
+            const { data: novoCondo, error: condoInsertError } = await supabase
+              .from("condominios")
+              .insert([{ nome: condoNome.trim(), cnpj: condoCnpj.trim() }])
+              .select("id")
+              .single();
+
+            if (condoInsertError) throw condoInsertError;
+
+            if (novoCondo) {
+              currentCondoId = novoCondo.id;
+              setCondoId(novoCondo.id);
+
+              // Cria o vínculo como síndico na tabela condominio_membros
+              const { error: membroInsertError } = await supabase
+                .from("condominio_membros")
+                .insert([
+                  {
+                    condominio_id: novoCondo.id,
+                    user_id: user.id,
+                    role: "sindico",
+                    unidade: unidadeSindico.trim() || "Administração"
+                  }
+                ]);
+
+              if (membroInsertError) throw membroInsertError;
+            }
+          } else {
+            // Se já possui condomínio vinculado, apenas atualiza as informações do mesmo
+            const { error: condoUpdateError } = await supabase
+              .from("condominios")
+              .update({ nome: condoNome.trim(), cnpj: condoCnpj.trim() })
+              .eq("id", currentCondoId);
+
+            if (condoUpdateError) throw condoUpdateError;
+
+            // Atualiza também a unidade correspondente do síndico
+            const { error: membroUpdateError } = await supabase
+              .from("condominio_membros")
+              .update({ unidade: unidadeSindico.trim() || "Administração" })
+              .eq("user_id", user.id)
+              .eq("condominio_id", currentCondoId)
+              .eq("role", "sindico");
+
+            if (membroUpdateError) throw membroUpdateError;
+          }
+        } catch (condoError: any) {
+          alert("Erro ao salvar dados do condomínio: " + condoError.message);
+          setUpdating(false);
+          return;
+        }
+      }
+
+      alert("Dados salvos com sucesso!");
+      setIsDirty(false);
     }
     setUpdating(false);
   };
@@ -283,18 +374,18 @@ export default function MinhaContaPage() {
 
   const InsightPopover = ({ id, title, content, colorClass, align = "left" }: { id: string, title: string, content: string, colorClass: string, align?: "left" | "right" }) => {
     if (activeInsight !== id) return null;
-    
+
     const positionClasses = align === "left" ? "bottom-[calc(100%+15px)] left-0" : "bottom-[calc(100%+15px)] right-0";
     const arrowClasses = align === "left" ? "left-6" : "right-6";
 
     return (
-      <div 
+      <div
         ref={insightRef}
         className={`absolute ${positionClasses} w-[280px] md:w-80 p-5 bg-gray-900 text-white rounded-[2rem] shadow-2xl z-[100] animate-in fade-in slide-in-from-bottom-4 duration-300`}
       >
         <div className={`absolute w-4 h-4 bg-gray-900 -bottom-2 ${arrowClasses} border-l border-b rotate-[-45deg]`}></div>
         <h4 className={`text-[10px] font-black uppercase tracking-widest ${colorClass} mb-2 flex items-center gap-2`}>
-           <Zap size={12} fill="currentColor"/> Insight de {title}
+          <Zap size={12} fill="currentColor" /> Insight de {title}
         </h4>
         <p className="text-[11px] leading-relaxed text-gray-200 font-medium">{content}</p>
       </div>
@@ -305,7 +396,7 @@ export default function MinhaContaPage() {
 
   return (
     <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
-      
+
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
@@ -324,7 +415,7 @@ export default function MinhaContaPage() {
       </h3>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-        
+
         {/* COLUNA ESQUERDA */}
         <div className="lg:col-span-7 h-full order-2 md:order-1">
           <section className="bg-white rounded-[2.5rem] p-8 md:p-10 border border-gray-100 shadow-sm h-full flex flex-col">
@@ -381,7 +472,7 @@ export default function MinhaContaPage() {
                 </select>
               </div>
               <div className="space-y-2">
-                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><Baby size={14}/> Possui filhos?</label>
+                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><Baby size={14} /> Possui filhos?</label>
                 <select value={possuiFilhos} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setPossuiFilhos, e.target.value)}>
                   <option value=""></option>
                   <option value="sim">Sim</option>
@@ -389,21 +480,21 @@ export default function MinhaContaPage() {
                 </select>
               </div>
               <div className="space-y-2">
-                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><MapPin size={14}/> Cidade / UF</label>
+                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><MapPin size={14} /> Cidade / UF</label>
                 <div className="flex gap-2 flex-nowrap">
-                    <input type="text" value={cidade} placeholder="Cidade" className="flex-1 min-w-0 h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setCidade, e.target.value)} />
-                    <select value={estado} className="w-20 shrink-0 h-12 px-2 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setEstado, e.target.value)}>
-                        <option value=""></option>
-                        {["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"].map(uf => <option key={uf} value={uf}>{uf}</option>)}
-                    </select>
+                  <input type="text" value={cidade} placeholder="Cidade" className="flex-1 min-w-0 h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setCidade, e.target.value)} />
+                  <select value={estado} className="w-20 shrink-0 h-12 px-2 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setEstado, e.target.value)}>
+                    <option value=""></option>
+                    {["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"].map(uf => <option key={uf} value={uf}>{uf}</option>)}
+                  </select>
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><Briefcase size={14}/> Profissão Atual</label>
+                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><Briefcase size={14} /> Profissão Atual</label>
                 <input type="text" value={profissao} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setProfissao, e.target.value)} />
               </div>
               <div className="md:col-span-2 space-y-2">
-                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><GraduationCap size={14}/> Formação Acadêmica</label>
+                <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><GraduationCap size={14} /> Formação Acadêmica</label>
                 <select value={formacao} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setFormacao, e.target.value)}>
                   <option value="">Selecione...</option>
                   <option value="medio">Ensino Médio</option>
@@ -420,11 +511,11 @@ export default function MinhaContaPage() {
         {/* COLUNA DIREITA */}
         <div className="lg:col-span-5 flex flex-col gap-6 order-1 md:order-2">
           <section className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm flex-1 flex flex-col">
-            
+
             <div className="mb-10">
               <div className="flex items-center gap-3 mb-4">
                 <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2">
-                   <CalendarDays size={16} className="text-purple-600" /> Controle lançamentos
+                  <CalendarDays size={16} className="text-purple-600" /> Controle lançamentos
                 </h3>
               </div>
               <div className="bg-gray-50 rounded-2xl p-4">
@@ -463,12 +554,12 @@ export default function MinhaContaPage() {
             </div>
 
             <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2 mb-10">
-              <Activity size={16} className="text-blue-600"/> Atividades Recentes
+              <Activity size={16} className="text-blue-600" /> Atividades Recentes
             </h3>
-            
+
             <div className="grid grid-cols-2 gap-x-6 gap-y-10">
-              <div className="flex items-center gap-4 relative" 
-                onMouseEnter={() => setActiveInsight('lancamentos')} 
+              <div className="flex items-center gap-4 relative"
+                onMouseEnter={() => setActiveInsight('lancamentos')}
                 onMouseLeave={() => setActiveInsight(null)}
                 onClick={() => setActiveInsight(activeInsight === 'lancamentos' ? null : 'lancamentos')}
               >
@@ -485,8 +576,8 @@ export default function MinhaContaPage() {
                 <InsightPopover id="lancamentos" title="Lançamentos" colorClass="text-blue-400" content={stats.detalheLancamentos} align="left" />
               </div>
 
-              <div className="flex items-center gap-4 relative" 
-                onMouseEnter={() => setActiveInsight('conexoes')} 
+              <div className="flex items-center gap-4 relative"
+                onMouseEnter={() => setActiveInsight('conexoes')}
                 onMouseLeave={() => setActiveInsight(null)}
                 onClick={() => setActiveInsight(activeInsight === 'conexoes' ? null : 'conexoes')}
               >
@@ -503,8 +594,8 @@ export default function MinhaContaPage() {
                 <InsightPopover id="conexoes" title="Cartões" colorClass="text-emerald-400" content={`Você possui ${stats.patrimonioConectado} fontes de dados conectadas à plataforma, permitindo uma visão consolidada do seu patrimônio.`} align="right" />
               </div>
 
-              <div className="flex items-center gap-4 relative" 
-                onMouseEnter={() => setActiveInsight('previsibilidade')} 
+              <div className="flex items-center gap-4 relative"
+                onMouseEnter={() => setActiveInsight('previsibilidade')}
                 onMouseLeave={() => setActiveInsight(null)}
                 onClick={() => setActiveInsight(activeInsight === 'previsibilidade' ? null : 'previsibilidade')}
               >
@@ -518,11 +609,11 @@ export default function MinhaContaPage() {
                   </div>
                   <p className="text-lg font-black text-gray-900">{stats.percCustosFixos}%</p>
                 </div>
-                <InsightPopover id="previsibilidade" title="Custo Fixo" colorClass="text-indigo-400" content={`Analisamos que ${stats.percCustosFixos}% das suas despesas estão atreladas a custos fixos até ${stats.dataLimiteFixos}. Manter custos fixos sob controle é o primeiro passo para a liberdade financeira e aumento do seu fluxo de caixa mensal.`} align="left" />
+                <InsightPopover id="previsibilidade" title="Custo Fixo" colorClass="text-indigo-400" content={`Analisamos que ${stats.percCustosFixos}% das suas despesas estão atreladas a custos fixos até ${stats.dataLimiteFixos}. Manter custos fixos sob controle é o primeiro passo para a liberdade financeira and aumento do seu fluxo de caixa mensal.`} align="left" />
               </div>
 
-              <div className="flex items-center gap-4 relative" 
-                onMouseEnter={() => setActiveInsight('eficiencia')} 
+              <div className="flex items-center gap-4 relative"
+                onMouseEnter={() => setActiveInsight('eficiencia')}
                 onMouseLeave={() => setActiveInsight(null)}
                 onClick={() => setActiveInsight(activeInsight === 'eficiencia' ? null : 'eficiencia')}
               >
@@ -536,11 +627,11 @@ export default function MinhaContaPage() {
                   </div>
                   <p className="text-lg font-black text-gray-900">{stats.percGastosVariaveis}%</p>
                 </div>
-                <InsightPopover id="eficiencia" title="Variáveis" colorClass="text-rose-400" content={`Atualmente, seus Gastos Variáveis representam ${stats.percGastosVariaveis}% das suas despesas totais. Este é o grupo onde você tem maior poder de decision imediata. Pequenos ajustes aqui são o caminho mais rápido para aumentar sua capacidade de investimento.`} align="right" />
+                <InsightPopover id="eficiencia" title="Variáveis" colorClass="text-rose-400" content={`Atualmente, seus Gastos Variáveis representam ${stats.percGastosVariaveis}% das suas despesas totais. Este é o grupo onde você tem maior poder de decisão imediata. Pequenos ajustes aqui são o caminho mais rápido para aumentar sua capacidade de investimento.`} align="right" />
               </div>
 
-              <div className="flex items-center gap-4 relative" 
-                onMouseEnter={() => setActiveInsight('media')} 
+              <div className="flex items-center gap-4 relative"
+                onMouseEnter={() => setActiveInsight('media')}
                 onMouseLeave={() => setActiveInsight(null)}
                 onClick={() => setActiveInsight(activeInsight === 'media' ? null : 'media')}
               >
@@ -557,8 +648,8 @@ export default function MinhaContaPage() {
                 <InsightPopover id="media" title="Média/Dia (Mês atual)" colorClass="text-orange-400" content={`Sua média diária atual de despesas é de ${stats.mediaGastosDiarios}. Este indicador é vital para o seu controle comportamental. Ao monitorar este valor, a Nucleo consegue propor formas eficazes de otimização financeira. Sua memória de cálculo é o 'Total de Despesas do mês atual' dividido pela 'Soma de dias do mês atual até o dia atual'`} align="left" />
               </div>
 
-              <div className="flex items-center gap-4 relative" 
-                onMouseEnter={() => setActiveInsight('membro')} 
+              <div className="flex items-center gap-4 relative"
+                onMouseEnter={() => setActiveInsight('membro')}
                 onMouseLeave={() => setActiveInsight(null)}
                 onClick={() => setActiveInsight(activeInsight === 'membro' ? null : 'membro')}
               >
@@ -605,57 +696,107 @@ export default function MinhaContaPage() {
       </div>
 
       <div className="mt-12">
-          <section className="bg-gray-50/50 rounded-[2.5rem] p-6 md:p-10 border border-gray-100">
-             <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
-                Preferências <div className="h-px bg-gray-200 flex-1"></div>
-             </h3>
-             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
-                <div className="space-y-3">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><Share2 size={12}/> Canal Origem</label>
-                    <select value={origem} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none" onChange={(e) => handleChange(setOrigem, e.target.value)}>
-                        <option value="">Selecione...</option>
-                        <option value="instagram">Instagram</option>
-                        <option value="google">Google</option>
-                        <option value="linkedin">LinkedIn</option>
-                        <option value="indicacao">Indicação</option>
-                    </select>
-                </div>
-                <div className="space-y-3">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><Target size={12}/> Objetivo</label>
-                    <select value={objetivoPlataforma} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none" onChange={(e) => handleChange(setObjetivoPlataforma, e.target.value)}>
-                        <option value="">Selecione...</option>
-                        <option value="liberdade">Liberdade Financeira</option>
-                        <option value="sair_dividas">Sair de Dívidas</option>
-                        <option value="investir">Começar a Investir</option>
-                    </select>
-                </div>
-                <div className="space-y-3">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Frequência</label>
-                    <select value={usoApp} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none" onChange={(e) => handleChange(setUsoApp, e.target.value)}>
-                        <option value="">Selecione...</option>
-                        <option value="diario">Diário</option>
-                        <option value="semanal">Semanal</option>
-                        <option value="mensal">Mensal</option>
-                    </select>
-                </div>
-                <div className="space-y-3">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Foco Atual</label>
-                    <select value={objetivoFinanceiro} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none" onChange={(e) => handleChange(setObjetivoFinanceiro, e.target.value)}>
-                        <option value="">Selecione...</option>
-                        <option value="pessoal">Pessoal</option>
-                        <option value="familiar">Familiar</option>
-                        <option value="empresa">Empresarial</option>
-                    </select>
-                </div>
-             </div>
-          </section>
+        <section className="bg-gray-50/50 rounded-[2.5rem] p-6 md:p-10 border border-gray-100">
+          <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
+            Preferências <div className="h-px bg-gray-200 flex-1"></div>
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><Share2 size={12} /> Canal Origem</label>
+              <select value={origem} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none" onChange={(e) => handleChange(setOrigem, e.target.value)}>
+                <option value="">Selecione...</option>
+                <option value="instagram">Instagram</option>
+                <option value="google">Google</option>
+                <option value="linkedin">LinkedIn</option>
+                <option value="indicacao">Indicação</option>
+              </select>
+            </div>
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><Target size={12} /> Objetivo</label>
+              <select value={objetivoPlataforma} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none" onChange={(e) => handleChange(setObjetivoPlataforma, e.target.value)}>
+                <option value="">Selecione...</option>
+                <option value="liberdade">Liberdade Financeira</option>
+                <option value="sair_dividas">Sair de Dívidas</option>
+                <option value="investir">Começar a Investir</option>
+              </select>
+            </div>
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Frequência</label>
+              <select value={usoApp} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none" onChange={(e) => handleChange(setUsoApp, e.target.value)}>
+                <option value="">Selecione...</option>
+                <option value="diario">Diário</option>
+                <option value="semanal">Semanal</option>
+                <option value="mensal">Mensal</option>
+              </select>
+            </div>
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Foco Atual</label>
+              <select value={objetivoFinanceiro} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none" onChange={(e) => handleChange(setObjetivoFinanceiro, e.target.value)}>
+                <option value="">Selecione...</option>
+                <option value="pessoal">Pessoal</option>
+                <option value="familiar">Familiar</option>
+                <option value="empresa">Empresarial</option>
+              </select>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      {/* --- NOVO BLOCO: ACESSO EMPRESARIAL (CONDOMÍNIO) --- */}
+      <div className="mt-8">
+        <section className="bg-blue-50/10 rounded-[2.5rem] p-6 md:p-10 border border-blue-100/30">
+          <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-blue-600/70 mb-8 flex items-center gap-4">
+            Acesso Empresarial (Condomínio) <div className="h-px bg-blue-100/50 flex-1"></div>
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                <Building2 size={12} className="text-blue-500" /> Nome do Edifício
+              </label>
+              <input
+                type="text"
+                placeholder="Residencial Bela Vista"
+                value={condoNome}
+                className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none transition-all focus:border-blue-300"
+                onChange={(e) => handleChange(setCondoNome, e.target.value)}
+              />
+            </div>
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                <FileCheck2 size={12} className="text-blue-500" /> CNPJ do Condomínio
+              </label>
+              <input
+                type="text"
+                placeholder="00.000.000/0000-00"
+                value={condoCnpj}
+                className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none transition-all focus:border-blue-300"
+                onChange={(e) => handleChange(setCondoCnpj, e.target.value)}
+              />
+            </div>
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                Unidade / Identificação do Síndico
+              </label>
+              <input
+                type="text"
+                placeholder="Ex: Apto 302 Bloco B"
+                value={unidadeSindico}
+                className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none transition-all focus:border-blue-300"
+                onChange={(e) => handleChange(setUnidadeSindico, e.target.value)}
+              />
+            </div>
+          </div>
+          <p className="text-[10px] text-zinc-400 italic font-medium">
+            * Ao salvar estas informações, o seu perfil estará automaticamente habilitado como Síndico Administrador do respectivo condomínio.
+          </p>
+        </section>
       </div>
 
       <div className="mt-4 flex flex-col md:flex-row gap-4 justify-end border-gray-50 pt-8">
-        <button 
+        <button
           ref={saveButtonRef}
-          onClick={handleUpdate} 
-          disabled={updating} 
+          onClick={handleUpdate}
+          disabled={updating}
           className="flex items-center justify-center gap-3 px-10 py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all"
         >
           <Save size={16} /> {updating ? "Sincronizando..." : "Salvar Alterações"}
@@ -671,27 +812,27 @@ export default function MinhaContaPage() {
       <div className="flex flex-col items-center text-center">
         <div className="max-w-3xl mb-12">
           <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
-            Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+            Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
           </h4>
           <p className="text-gray-500 font-medium text-sm md:text-base">
             Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
           </p>
         </div>
-        
-        <a 
-          href="https://www.instagram.com/nucleobase.app/" 
-          target="_blank" 
+
+        <a
+          href="https://www.instagram.com/nucleobase.app/"
+          target="_blank"
           rel="noopener noreferrer"
           className="group relative flex flex-col items-center gap-6"
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
-            
+
             <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
               <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
             </div>
           </div>
-          
+
           <div className="flex flex-col items-center">
             <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
             <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>

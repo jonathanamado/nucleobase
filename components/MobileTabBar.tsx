@@ -1,7 +1,8 @@
+// Substitua o conteúdo completo de app/components/MobileTabBar.tsx (ou onde estiver salvo) por este:
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, Share2, User, Home, X, Rocket, Power, Dna, Settings, Key, UserPlus, PlayCircle, LogIn, KeyRound, Eye, EyeOff, Info, Fingerprint } from "lucide-react";
+import { Search, Share2, User, Home, X, Rocket, Power, Dna, Settings, Key, UserPlus, PlayCircle, LogIn, KeyRound, Eye, EyeOff, Info, Fingerprint, Building2 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -16,7 +17,7 @@ export function MobileTabBar() {
     nome: "",
     avatar: null,
   });
-  
+
   const [showPassModal, setShowPassModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -142,7 +143,7 @@ export function MobileTabBar() {
   };
 
   const MenuItem = ({ icon: Icon, label, onClick, color = "text-gray-700" }: any) => (
-    <button 
+    <button
       onClick={onClick}
       className="flex flex-col items-center justify-center gap-1.5 flex-1 h-full active:bg-gray-50 transition-colors"
     >
@@ -151,9 +152,9 @@ export function MobileTabBar() {
     </button>
   );
 
-  const isProfileActive = isMenuOpen || (showPassModal && !isSearchOpen && !isSharing) || 
-    (!isSharing && !isSearchOpen && !isMenuOpen && 
-    (pathname === "/minha-conta" || pathname === "/configuracoes" || pathname === "/cadastro" || pathname === "/acesso-usuario" || pathname === "/demonstracao" || pathname === "/sobre"));
+  const isProfileActive = isMenuOpen || (showPassModal && !isSearchOpen && !isSharing) ||
+    (!isSharing && !isSearchOpen && !isMenuOpen &&
+      (pathname === "/minha-conta" || pathname === "/configuracoes" || pathname === "/cadastro" || pathname === "/acesso-usuario" || pathname === "/demonstracao" || pathname === "/sobre"));
 
   return (
     <div ref={menuRef}>
@@ -215,8 +216,8 @@ export function MobileTabBar() {
       {/* Overlay de Busca */}
       {isSearchOpen && (
         <div className="fixed inset-0 z-[110] animate-in fade-in duration-300">
-          <div 
-            className="absolute inset-0 bg-black/20 backdrop-blur-sm" 
+          <div
+            className="absolute inset-0 bg-black/20 backdrop-blur-sm"
             onClick={() => setIsSearchOpen(false)}
           />
           <div className="absolute bottom-0 left-0 right-0 bg-white h-[50vh] rounded-t-[3rem] shadow-2xl flex flex-col p-8 animate-in slide-in-from-bottom duration-500">
@@ -233,13 +234,13 @@ export function MobileTabBar() {
                 O que você procura? <Dna size={18} className="text-blue-600 opacity-30" />
               </h2>
               <form onSubmit={handleSearch} className="relative">
-                <input 
-                  autoFocus 
-                  type="text" 
-                  placeholder="Ex: Cadastro, Lançamentos..." 
-                  value={searchQuery} 
-                  onChange={(e) => setSearchQuery(e.target.value)} 
-                  className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-gray-900 focus:ring-2 focus:ring-blue-600 outline-none transition-all shadow-inner" 
+                <input
+                  autoFocus
+                  type="text"
+                  placeholder="Ex: Cadastro, Lançamentos..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-gray-900 focus:ring-2 focus:ring-blue-600 outline-none transition-all shadow-inner"
                 />
                 <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 bg-blue-600 text-white p-2 rounded-xl shadow-md">
                   <Search size={18} />
@@ -247,7 +248,7 @@ export function MobileTabBar() {
               </form>
             </div>
             <div className="mt-auto pb-4 flex flex-col items-center">
-                <span className="text-gray-300 font-bold tracking-tighter text-sm italic">nucleobase.app</span>
+              <span className="text-gray-300 font-bold tracking-tighter text-sm italic">nucleobase.app</span>
             </div>
           </div>
         </div>
@@ -255,13 +256,18 @@ export function MobileTabBar() {
 
       {/* Tab Bar Principal */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 h-[60px] z-[100] flex items-center justify-between shadow-[0_-1px_10px_rgba(0,0,0,0.02)] pb-safe-bottom">
-        
+
         <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); setIsSharing(false); router.push("/"); }} className={`p-2 transition-colors ${!isSharing && !isSearchOpen && !isMenuOpen && pathname === "/" ? "text-blue-600" : "text-gray-400"}`}>
           <Home size={22} strokeWidth={!isSharing && !isSearchOpen && !isMenuOpen && pathname === "/" ? 2.5 : 2} />
         </button>
 
         <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); setIsSharing(false); router.push("/lancamentos"); }} className={`p-2 transition-colors ${!isSharing && !isSearchOpen && !isMenuOpen && pathname === "/lancamentos" ? "text-orange-500" : "text-gray-400"}`}>
           <Rocket size={22} strokeWidth={!isSharing && !isSearchOpen && !isMenuOpen && pathname === "/lancamentos" ? 2.5 : 2} />
+        </button>
+
+        {/* INCLUSÃO: Administração Condo (Ícone de Prédio centralizado entre Foguete e Lupa) */}
+        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); setIsSharing(false); router.push("/condo"); }} className={`p-2 transition-colors ${!isSharing && !isSearchOpen && !isMenuOpen && pathname === "/condo" ? "text-blue-600" : "text-gray-400"}`}>
+          <Building2 size={22} strokeWidth={!isSharing && !isSearchOpen && !isMenuOpen && pathname === "/condo" ? 2.5 : 2} />
         </button>
 
         <button onClick={() => { setIsSharing(false); setIsMenuOpen(false); setIsSearchOpen(true); }} className={`p-2 transition-colors ${(isSearchOpen || pathname === "/busca") && !isMenuOpen ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}>
@@ -275,12 +281,12 @@ export function MobileTabBar() {
         <button onClick={handleProfileClick} className={`w-9 h-9 rounded-full border transition-all overflow-hidden flex items-center justify-center relative ${isProfileActive ? "border-blue-600 ring-2 ring-blue-600/20 shadow-[0_0_10px_rgba(37,99,235,0.1)]" : "border-gray-100 bg-gray-50"}`}>
           {isLoggedIn && userProfile.avatar ? (
             <div className="relative w-full h-full">
-                <img src={userProfile.avatar} alt="Perfil" className="w-full h-full object-cover" />
-                {isProfileActive && (isMenuOpen || pathname === "/minha-conta") && (
-                  <div className="absolute inset-0 bg-blue-600/10 flex items-center justify-center">
-                     {isMenuOpen ? <X size={14} className="text-white drop-shadow-md" /> : null}
-                  </div>
-                )}
+              <img src={userProfile.avatar} alt="Perfil" className="w-full h-full object-cover" />
+              {isProfileActive && (isMenuOpen || pathname === "/minha-conta") && (
+                <div className="absolute inset-0 bg-blue-600/10 flex items-center justify-center">
+                  {isMenuOpen ? <X size={14} className="text-white drop-shadow-md" /> : null}
+                </div>
+              )}
             </div>
           ) : isLoggedIn ? (
             <span className={`text-[10px] font-black tracking-tighter ${isProfileActive ? "text-blue-600" : "text-gray-400"}`}>
