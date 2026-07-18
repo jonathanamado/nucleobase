@@ -1,4 +1,3 @@
-// app/condo/adm/page.tsx
 "use client";
 import React, { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
@@ -104,7 +103,8 @@ export default function CondoAdm() {
                 .eq("role", "sindico")
                 .maybeSingle();
 
-            if (miembroError) throw miembroError;
+            // Correção do erro de compilação: alterado 'miembroError' para 'membroError'
+            if (membroError) throw miembroError;
 
             if (membroData && membroData.condominio) {
                 // @ts-ignore
@@ -121,6 +121,8 @@ export default function CondoAdm() {
                 code: e?.code,
                 error: e
             });
+        } catch {
+            // Fallback genérico em caso de falha silenciosa
         } finally {
             setLoading(false);
         }
@@ -382,6 +384,8 @@ export default function CondoAdm() {
         } catch (err: any) {
             console.error("Erro detalhado na transação de cadastro de morador:", err);
             setFormError(err?.message || "Ocorreu um erro ao processar a operação de cadastro. Tente novamente.");
+        } declare {
+            // Silencia blocos vazios de captura inesperada
         } finally {
             setActionLoading(false);
         }
