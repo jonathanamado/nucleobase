@@ -157,49 +157,34 @@ export default function AcessoUsuarioPage() {
     const inputEmailReal = firstAccessRealEmail.trim().toLowerCase();
 
     try {
-      // AJUSTE PRECISÃO ROTAS: Aponta perfeitamente para /auth/onboarding baseando-se na sua pasta de arquivos
       const response = await fetch("/auth/onboarding", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          slug: inputSlug,
-          realEmail: inputEmailReal,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: inputSlug, realEmail: inputEmailReal }),
       });
 
-      // Validação defensiva do tipo de retorno para evitar quebras por HTML (Erros 404/500 do Next)
-      const contentType = response.headers.get("content-type");
-      let responseData;
+      const responseData = await response.json();
 
-      if (contentType && contentType.includes("application/json")) {
-        responseData = await response.json();
-      } else {
-        const textError = await response.text();
-        console.error("Resposta em formato inválido detectada:", textError);
-        throw new Error("O servidor retornou uma página inesperada. Certifique-se de que o arquivo route.ts na pasta app/auth/onboarding possui o método POST exportado adequadamente.");
-      }
-
-      // Se a API retornar erro de validação ou duplicidade estruturado em JSON
       if (!response.ok) {
-        throw new Error(responseData.error || "Falha ao processar sincronização de dados administrativos.");
+        throw new Error(responseData.error || "Falha na ativação.");
       }
 
-      // 2. Agora que o e-mail real foi ativado na conta interna auth.users, o disparo do reset de senha funciona perfeitamente
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(inputEmailReal, {
-        redirectTo: `https://nucleobase.app/reset-password?activation=true&slug=${inputSlug}`,
-      });
+      // SUCESSO: A API retornou o magicLink gerado administrativamente
+      if (responseData.success && responseData.magicLink) {
+        alert("Conta ativada com sucesso! Redirecionando para o sistema...");
+        // O link mágico faz o login automaticamente
+        window.location.href = responseData.magicLink;
+      } else {
+        alert("Conta ativada com sucesso! Você já pode realizar o login.");
+        setShowFirstAccessModal(false);
+      }
 
-      if (resetError) throw resetError;
-
-      alert(`Chave identificada com sucesso! Um link de definição de senha foi encaminhado para seu e-mail legítimo: ${inputEmailReal}`);
-      setShowFirstAccessModal(false);
       setFirstAccessSlug("");
       setFirstAccessRealEmail("");
     } catch (err: any) {
-      console.error("Erro detalhado no Onboarding de Primeiro Acesso:", err);
-      alert(err?.message || "Houve uma falha interna na ativação de credenciais de Onboarding.");
+      console.error("Erro no Onboarding:", err);
+      // Se aparecer erro de tempo, o usuário saberá que precisa esperar
+      alert(err?.message || "Houve uma falha interna.");
     } finally {
       setFirstAccessLoading(false);
     }
