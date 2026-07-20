@@ -39,7 +39,7 @@ export default function NucleobaseCondo() {
     const [solicitanteUnidade, setSolicitanteUnidade] = useState("");
     const [solicitanteCondo, setSolicitanteCondo] = useState("");
 
-    // Telefone de suporte oficial da Administração Nucleo formatado (DDI 55 + DDD 31 + Número)
+    // Telefone de suporte oficial da Administração Nucleo formatado
     const whatsappAdminPhone = "5531971078832";
 
     const pilares = [
@@ -102,22 +102,17 @@ export default function NucleobaseCondo() {
         else setPilarAtivo(pilares.length - 1);
     };
 
-    // Função de Envio com injeção dinâmica de parâmetros na API oficial do WhatsApp
     const handleEnviarSolicitacao = (e: React.FormEvent) => {
         e.preventDefault();
-
-        // Mensagem estruturada contendo os inputs do condômino
         const textoMensagem = `Olá! Gostaria de solicitar meu cadastro para Acesso ao APP da Nucleo como Morador, utilizando o módulo de Gestão de Condomínio. Segue abaixo dados para realização do Cadastro:\n\n` +
             `• *Nome:* ${solicitanteNome}\n` +
             `• *E-mail:* ${solicitanteEmail}\n` +
             `• *Condomínio:* ${solicitanteCondo}\n` +
             `• *Unidade:* ${solicitanteUnidade}`;
 
-        // Redirecionamento de link utilizando a API oficial com o número correto configurado
         const urlCompleta = `https://api.whatsapp.com/send?phone=${whatsappAdminPhone}&text=${encodeURIComponent(textoMensagem)}`;
         window.open(urlCompleta, "_blank");
 
-        // Limpa campos e fecha janela modal
         setSolicitanteNome("");
         setSolicitanteEmail("");
         setSolicitanteUnidade("");
@@ -249,6 +244,17 @@ export default function NucleobaseCondo() {
     return (
         <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
 
+            {/* Botões Prioritários Mobile */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full mb-8 mt-4 md:hidden">
+                <a href="/condo/adm" className="flex items-center justify-between flex-1 bg-gray-900 text-white py-4 px-6 rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest shadow-lg">
+                    <div className="flex items-center gap-2"><Building2 size={15} className="text-blue-500" /> Área do Síndico</div>
+                    <ArrowUpRight size={15} />
+                </a>
+                <button onClick={() => setIsModalOpen(true)} className="flex items-center justify-between flex-1 bg-white border border-gray-200 text-gray-700 py-4 px-6 rounded-2xl hover:border-blue-600 hover:text-blue-600 transition-all font-black text-[10px] uppercase tracking-widest shadow-sm">
+                    <div className="flex items-center gap-2"><MessageSquarePlus size={15} className="text-blue-600" /> Solicitar Acesso</div>
+                </button>
+            </div>
+
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
                 <div>
                     <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
@@ -260,7 +266,7 @@ export default function NucleobaseCondo() {
                     </h2>
                 </div>
 
-                {/* BOTÕES LADO A LADO EQUALIZADOS COM LARGURA DO CARD DO FUTURO DO PRÉDIO */}
+                {/* BOTÕES DESKTOP */}
                 <div className="hidden md:flex flex-row gap-3 w-full md:max-w-[340px] shrink-0">
                     <a
                         href="/condo/adm"
@@ -371,7 +377,6 @@ export default function NucleobaseCondo() {
                 <div className="h-px bg-gray-200 flex-1"></div>
             </div>
 
-            {/* BLOCO INSTAGRAM */}
             <div className="flex flex-col items-center text-center">
                 <div className="max-w-3xl mb-12">
                     <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
@@ -403,7 +408,6 @@ export default function NucleobaseCondo() {
                 </a>
             </div>
 
-            {/* MODAL PREMIUM DE INCLUSÃO DE MORADOR (CONFIGURADO COM O TELEFONE OFICIAL) */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md z-[150] flex items-center justify-center p-6 animate-in fade-in duration-250">
                     <div className="bg-white w-full max-w-lg rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative animate-in zoom-in-95 duration-250">
