@@ -42,7 +42,7 @@ export default function PrestacaoContasPage() {
     const [contas, setContas] = useState<ContaCondominio[]>([]);
 
     // Estados de Filtro de Período (Pré-filtrado no mês vigente, ex: '2026-07' ou 'acumulado')
-    const mesVigentePadrao = new Date().toISOString().slice(0, 7); // '2026-07'
+    const mesVigentePadrao = new Date().toISOString().slice(0, 7);
     const [filtroPeriodo, setFiltroPeriodo] = useState<string>(mesVigentePadrao);
 
     // Estados do Formulário de Cadastro / Importação
@@ -58,23 +58,26 @@ export default function PrestacaoContasPage() {
     const [formError, setFormError] = useState('');
     const [formSuccess, setFormSuccess] = useState('');
 
-    useEffect(() => {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-            setSession(currentSession);
-            if (currentSession) {
-                await verifyCondoAndLoadData(currentSession.user.id);
-            } else {
-                setLoading(false);
-            }
-        });
-
-        return () => subscription.unsubscribe();
-    }, []);
-
-    const verifyCondoAndLoadData = async (userId: string) => {
+    // Verificação robusta de sessão e condomínio vinculado (priorizando síndico)
+    const verifyCondoAndLoadData = async () => {
         try {
             setLoading(true);
-            const { data: membroData, error: membroError } = await supabase
+
+            // 1. Obtém a sessão de forma síncrona para evitar falhas de timing do onAuthStateChange
+            const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+
+            if (sessionError || !currentSession) {
+                setSession(null);
+                setCondominio(null);
+                setLoading(false);
+                return;
+            }
+
+            setSession(currentSession);
+            const userId = currentSession.user.id;
+
+            // 2. Consulta o vínculo priorizando explicitamente o papel de 'sindico' e acesso liberado
+            const { data, error } = await supabase
                 .from("condominio_membros")
                 .select(`
                     condominio_id,
@@ -82,16 +85,21 @@ export default function PrestacaoContasPage() {
                     condominio:condominios ( id, nome )
                 `)
                 .eq("user_id", userId)
-                .limit(1)
-                .maybeSingle();
+                .eq("acesso_app", true)
+                .order("role", { ascending: false }) // Prioriza 'sindico' sobre 'morador' alfabeticamente/desc
+                .order("criado_em", { ascending: false })
+                .limit(1);
 
-            if (membroError) throw membroError;
+            if (error) throw error;
 
-            if (membroData && membroData.condominio) {
+            if (data && data.length > 0 && data[0].condominio) {
                 // @ts-ignore
-                setCondominio(membroData.condominio);
+                setCondominio(data[0].condominio);
                 // @ts-ignore
-                await loadContas(membroData.condominio_id);
+                await loadContas(data[0].condominio_id);
+            } else {
+                setCondominio(null);
+                setContas([]);
             }
         } catch (e: any) {
             console.error("Erro ao carregar dados do condomínio:", {
@@ -100,10 +108,31 @@ export default function PrestacaoContasPage() {
                 code: e?.code,
                 error: e
             });
+            setCondominio(null);
+            setContas([]);
         } finally {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        // Executa imediatamente ao carregar a página
+        verifyCondoAndLoadData();
+
+        // Monitora alterações futuras de autenticação
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                await verifyCondoAndLoadData();
+            } else if (event === 'SIGNED_OUT') {
+                setSession(null);
+                setCondominio(null);
+                setContas([]);
+                setLoading(false);
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
 
     const loadContas = async (condoId: string) => {
         const { data, error } = await supabase
@@ -119,7 +148,7 @@ export default function PrestacaoContasPage() {
 
     const handleSaveConta = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!condominio) return;
+        if (!condominio || !session) return;
 
         setActionLoading(true);
         setFormError('');

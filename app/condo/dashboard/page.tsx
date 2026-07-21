@@ -46,24 +46,25 @@ export default function CondoDashboard() {
     // Dados do Vínculo do Morador/Síndico
     const [memberData, setMemberData] = useState<UserMemberData | null>(null);
 
-    useEffect(() => {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, currentSession) => {
-            setSession(currentSession);
-            if (currentSession) {
-                await fetchMemberPermissions(currentSession.user.id);
-            } else {
-                setMemberData(null);
-                setLoading(false);
-            }
-        });
-
-        return () => subscription.unsubscribe();
-    }, []);
-
-    // Busca permissão do usuário na tabela vinculada do Condomínio de forma segura para múltiplos vínculos
-    const fetchMemberPermissions = async (userId: string) => {
+    // Função centralizada para verificar sessão e carregar permissões de forma robusta
+    const fetchMemberPermissionsAndSession = async () => {
         try {
             setLoading(true);
+
+            // 1. Obtém a sessão diretamente de forma síncrona do cliente Supabase
+            const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+
+            if (sessionError || !currentSession) {
+                setSession(null);
+                setMemberData(null);
+                setLoading(false);
+                return;
+            }
+
+            setSession(currentSession);
+            const userId = currentSession.user.id;
+
+            // 2. Busca permissão priorizando explicitamente o papel de "sindico" e ordenando pelo mais recente
             const { data, error } = await supabase
                 .from("condominio_membros")
                 .select(`
@@ -73,6 +74,7 @@ export default function CondoDashboard() {
                 `)
                 .eq("user_id", userId)
                 .eq("acesso_app", true)
+                .order("role", { ascending: false }) // 'sindico' vem antes de 'morador' alfabeticamente/desc
                 .order("criado_em", { ascending: false })
                 .limit(1);
 
@@ -90,6 +92,24 @@ export default function CondoDashboard() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        // Executa imediatamente ao carregar a página
+        fetchMemberPermissionsAndSession();
+
+        // Monitora alterações futuras de autenticação
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                await fetchMemberPermissionsAndSession();
+            } else if (event === 'SIGNED_OUT') {
+                setSession(null);
+                setMemberData(null);
+                setLoading(false);
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
 
     // Login suportando tanto E-mail real quanto Slug (ID do Usuário)
     const handleLogin = async (e: React.FormEvent) => {
@@ -115,7 +135,7 @@ export default function CondoDashboard() {
         }
 
         if (data.session) {
-            await fetchMemberPermissions(data.session.user.id);
+            await fetchMemberPermissionsAndSession();
         }
         setAuthLoading(false);
     };
