@@ -14,7 +14,8 @@ import {
     XCircle,
     ArrowLeft,
     Instagram,
-    KeyRound
+    KeyRound,
+    Rocket
 } from "lucide-react";
 
 const supabase = createClient(
@@ -50,6 +51,12 @@ export default function CondoAdm() {
     // Dados do Condomínio do Síndico
     const [condominio, setCondominio] = useState<{ id: string; nome: string } | null>(null);
     const [moradores, setMoradores] = useState<Morador[]>([]);
+
+    // Estados para criação automática de gestão pelo próprio usuário autenticado
+    const [criandoGestao, setCriandoGestao] = useState(false);
+    const [novoCondoNomeInput, setNovoCondoNomeInput] = useState("");
+    const [novoCondoCnpjInput, setNovoCondoCnpjInput] = useState("");
+    const [novaUnidadeSindicoInput, setNovaUnidadeSindicoInput] = useState("Administração");
 
     // Formulário para Adicionar Morador
     const [novoMoradorNome, setNovoMoradorNome] = useState("");
@@ -95,12 +102,13 @@ export default function CondoAdm() {
             const { data: membroData, error: membroError } = await supabase
                 .from("condominio_membros")
                 .select(`
-                  condominio_id,
-                  role,
-                  condominio:condominios ( id, nome )
+                    condominio_id,
+                    role,
+                    condominio:condominios ( id, nome )
                 `)
                 .eq("user_id", userId)
                 .eq("role", "sindico")
+                .limit(1)
                 .maybeSingle();
 
             if (membroError) throw membroError;
@@ -120,6 +128,7 @@ export default function CondoAdm() {
                 code: e?.code,
                 error: e
             });
+            setCondominio(null);
         } finally {
             setLoading(false);
         }
@@ -172,6 +181,54 @@ export default function CondoAdm() {
             await verifySindicoAndLoadData(data.session.user.id);
         }
         setAuthLoading(false);
+    };
+
+    // Função para o usuário iniciar sua própria gestão de condomínio como Síndico
+    const handleIniciarGestaoPropria = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!session || !session.user) return;
+
+        setCriandoGestao(true);
+        try {
+            const nomeCondo = novoCondoNomeInput.trim() || "Meu Condomínio";
+            const cnpjCondo = novoCondoCnpjInput.trim() || null;
+            const unidadeGestor = novaUnidadeSindicoInput.trim() || "Administração";
+
+            // 1. Cria o registro do condomínio
+            const { data: novoCondo, error: condoError } = await supabase
+                .from("condominios")
+                .insert([{ nome: nomeCondo, cnpj: cnpjCondo }])
+                .select("id, nome")
+                .single();
+
+            if (condoError) throw condoError;
+
+            if (novoCondo) {
+                // 2. Insere o usuário atual na tabela condominio_membros com o papel "sindico"
+                const { error: membroError } = await supabase
+                    .from("condominio_membros")
+                    .insert([
+                        {
+                            condominio_id: novoCondo.id,
+                            user_id: session.user.id,
+                            role: "sindico",
+                            unidade: unidadeGestor,
+                            acesso_app: true
+                        }
+                    ]);
+
+                if (membroError) throw membroError;
+
+                // 3. Atualiza os estados locais para carregar a interface de administração imediatamente
+                setCondominio({ id: novoCondo.id, nome: novoCondo.nome });
+                await loadMoradores(novoCondo.id);
+            }
+        } catch (err: any) {
+            console.error("Erro ao iniciar gestão própria:", err);
+            alert("Não foi possível iniciar sua gestão: " + (err?.message || "Erro desconhecido"));
+        } finally {
+            setCriandoGestao(false);
+        }
     };
 
     // Prepara o formulário para a edição do morador selecionado
@@ -259,7 +316,7 @@ export default function CondoAdm() {
                     .toLowerCase()
                     .normalize("NFD")
                     .replace(/[\u0300-\u036f]/g, "") // Remove acentos
-                    .replace(/[^a-z0-9]/g, "");     // Garante apenas alfanuméricos
+                    .replace(/[^a-z0-9]/g, "");    // Garante apenas alfanuméricos
 
                 // Gerador de ID/E-mail provisório caso o e-mail não seja preenchido
                 const uuidFalso = Math.random().toString(36).substring(2, 7);
@@ -472,18 +529,67 @@ export default function CondoAdm() {
     if (session && !condominio) {
         return (
             <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
-                <div className="w-full max-w-md bg-white border border-zinc-200 p-8 md:p-10 rounded-[2.5rem] shadow-sm text-center space-y-6">
-                    <div className="mx-auto w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center text-red-500">
-                        <ShieldAlert size={32} />
+                <div className="w-full max-w-lg bg-white border border-zinc-200 p-8 md:p-10 rounded-[2.5rem] shadow-sm text-center space-y-6">
+                    <div className="mx-auto w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+                        <Building2 size={32} />
                     </div>
                     <div className="space-y-2">
-                        <h1 className="text-xl font-black tracking-tight">Acesso Não Autorizado</h1>
-                        <p className="text-sm text-zinc-500 leading-relaxed">
-                            O seu perfil <span className="font-bold text-zinc-800">{session.user.email}</span> não está cadastrado como administrador de nenhum condomínio ativo.
+                        <h1 className="text-xl font-black tracking-tight">Gestão de Condomínio</h1>
+                        <p className="text-xs text-zinc-500 leading-relaxed max-w-sm mx-auto">
+                            O seu perfil <span className="font-bold text-zinc-800">{session.user.email}</span> ainda não está vinculado a uma administração ativa. Cadastre os dados abaixo para habilitar seu acesso como Síndico.
                         </p>
                     </div>
+
+                    <form onSubmit={handleIniciarGestaoPropria} className="space-y-3 text-left">
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Nome do Condomínio / Edifício</label>
+                            <input
+                                type="text"
+                                placeholder="Ex: Residencial Bela Vista"
+                                required
+                                value={novoCondoNomeInput}
+                                onChange={(e) => setNovoCondoNomeInput(e.target.value)}
+                                className="w-full px-5 py-2.5 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
+                            />
+                        </div>
+
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">CNPJ do Condomínio (Opcional)</label>
+                            <input
+                                type="text"
+                                placeholder="00.000.000/0000-00"
+                                value={novoCondoCnpjInput}
+                                onChange={(e) => setNovoCondoCnpjInput(e.target.value)}
+                                className="w-full px-5 py-2.5 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
+                            />
+                        </div>
+
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Unidade / Identificação do Gestor</label>
+                            <input
+                                type="text"
+                                placeholder="Ex: Administração ou Apto 101"
+                                required
+                                value={novaUnidadeSindicoInput}
+                                onChange={(e) => setNovaUnidadeSindicoInput(e.target.value)}
+                                className="w-full px-5 py-2.5 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
+                            />
+                        </div>
+
+                        <div className="pt-2">
+                            <button
+                                type="submit"
+                                disabled={criandoGestao}
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-blue-600/10 transition-all"
+                            >
+                                {criandoGestao ? <Loader2 className="animate-spin" size={16} /> : <Rocket size={16} />}
+                                {criandoGestao ? "Configurando Gestão..." : "Iniciar Gestão na Nucleobase"}
+                            </button>
+                        </div>
+                    </form>
+
                     <div className="pt-4 border-t border-zinc-100 flex gap-4">
-                        <button onClick={handleLogout} className="flex-1 bg-zinc-900 hover:bg-black text-white py-3 rounded-xl font-bold text-xs transition-colors">
+                        <button onClick={handleLogout} className="w-full bg-zinc-100 hover:bg-zinc-200 text-zinc-700 py-3 rounded-xl font-bold text-xs transition-colors">
                             Trocar de Conta
                         </button>
                     </div>
@@ -503,7 +609,7 @@ export default function CondoAdm() {
                         </div>
                         <div>
                             <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Painel do Síndico</span>
+                                <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Painel do Síndico - Controle de cadastro e acesso</span>
                             </div>
                             <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1">{condominio?.nome}</h1>
                         </div>

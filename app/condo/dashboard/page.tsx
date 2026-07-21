@@ -230,7 +230,7 @@ export default function CondoDashboard() {
             desc: "Balancetes mensais, gráficos de receitas vs. despesas e relatórios acumulados.",
             icon: <Wallet className="text-emerald-500" size={24} />,
             badge: "Financeiro",
-            path: "/condo/dashboard/prestacao-contas"
+            path: "/condo/dashboard/prestacao-de-contas"
         },
         {
             title: "Cadastro de Moradores",
@@ -244,28 +244,28 @@ export default function CondoDashboard() {
             desc: "Suporte em Emissão de taxas condominiais ordinárias, fundos de reserva e taxas extras.",
             icon: <FileText className="text-blue-500" size={24} />,
             badge: "Cobranças",
-            path: "/condo/dashboard/boletos"
+            path: "/condo/dashboard/boletos-segunda-via"
         },
         {
             title: "Reserva de Espaços",
             desc: "Agendamento de salão de festas, churrasqueira e espaço gourmet sem conflitos.",
             icon: <CalendarDays className="text-purple-500" size={24} />,
             badge: "Operacional",
-            path: "/condo/dashboard/reservas"
+            path: "/condo/dashboard/reserva-de-espacos"
         },
         {
             title: "Enquetes e Decisões",
             desc: "Assembleias virtuais, votações rápidas de melhorias e decisões do conselho.",
             icon: <Vote className="text-amber-500" size={24} />,
             badge: "Comunidade",
-            path: "/condo/dashboard/enquetes"
+            path: "/condo/dashboard/enquetes-e-decisoes"
         },
         {
             title: "Ocorrências e Sugestões",
             desc: "Livro de ocorrência digital para registrar formalmente elogios, críticas ou solicitações de manutenção.",
             icon: <MessageSquarePlus className="text-rose-500" size={24} />,
             badge: "Ouvidoria",
-            path: "/condo/dashboard/ocorrencias"
+            path: "/condo/dashboard/ocorrencias-e-sugestoes"
         }
     ];
 
@@ -275,7 +275,7 @@ export default function CondoDashboard() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-6 mb-10">
                 <div>
                     <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Painel do Condomínio</span>
+                        <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Painel do Condomínio - Funcionalidades da Plataforma</span>
                     </div>
                     <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1">{memberData?.condominio?.nome || "Condomínio"}</h1>
                 </div>

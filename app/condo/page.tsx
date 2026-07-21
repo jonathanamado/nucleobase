@@ -201,6 +201,11 @@ export default function NucleobaseCondo() {
                 <div className="h-px bg-blue-100 flex-1"></div>
             </div>
 
+            {/* Texto de gestão democrática posicionado logo após a linha divisória do texto Destaques no mobile */}
+            <p className="text-gray-700 text-sm font-medium mb-6 text-center leading-relaxed">
+                Acreditamos que a <span className="text-gray-900 font-bold underline decoration-blue-200 underline-offset-4 decoration-2">gestão democrática</span> é o caminho para valorizar seu patrimônio.
+            </p>
+
             <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2 bg-gray-900 p-6 rounded-[2rem] relative overflow-hidden">
                     <div className="flex items-center justify-between relative z-10 mb-4">
@@ -224,6 +229,13 @@ export default function NucleobaseCondo() {
                     </div>
 
                     <BotaoAcessoDinamico />
+                </div>
+
+                {/* Contexto breve sobre as funcionalidades do módulo de Administração Condo */}
+                <div className="col-span-2 bg-blue-50/60 border border-blue-100 p-4 rounded-2xl my-2 text-center">
+                    <p className="text-xs text-blue-900 font-medium leading-relaxed">
+                        Explore abaixo as ferramentas integradas do nosso módulo de Administração Condo, projetadas para otimizar a rotina de síndicos e condôminos com total agilidade.
+                    </p>
                 </div>
 
                 {[
@@ -250,9 +262,10 @@ export default function NucleobaseCondo() {
                     <div className="flex items-center gap-2"><Building2 size={15} className="text-blue-500" /> Área do Síndico</div>
                     <ArrowUpRight size={15} />
                 </a>
-                <button onClick={() => setIsModalOpen(true)} className="flex items-center justify-between flex-1 bg-white border border-gray-200 text-gray-700 py-4 px-6 rounded-2xl hover:border-blue-600 hover:text-blue-600 transition-all font-black text-[10px] uppercase tracking-widest shadow-sm">
-                    <div className="flex items-center gap-2"><MessageSquarePlus size={15} className="text-blue-600" /> Solicitar Acesso</div>
-                </button>
+                <a href="/condo/dashboard" onClick={() => trackClick("Acessar Dashboard", "/condo/dashboard")} className="flex items-center justify-between flex-1 bg-blue-600 hover:bg-blue-700 text-white py-4 px-6 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest shadow-lg">
+                    <div className="flex items-center gap-2"><UserPlus size={15} className="text-white" /> Acessar Dashboard</div>
+                    <ArrowUpRight size={15} />
+                </a>
             </div>
 
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
@@ -262,7 +275,8 @@ export default function NucleobaseCondo() {
                         <Dna size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
                     </h1>
                     <h2 className="text-gray-500 text-base md:text-lg font-medium max-w-2xl leading-relaxed mt-0">
-                        A gestão financeira e de convivência do seu condomínio de forma descomplicada.
+                        <span className="md:hidden">Gestão de convivência descomplicada</span>
+                        <span className="hidden md:block">A gestão financeira e de convivência do seu condomínio de forma descomplicada.</span>
                     </h2>
                 </div>
 
@@ -306,9 +320,18 @@ export default function NucleobaseCondo() {
                             do seu condomínio. Sabendo que o principal calcanhar de Aquiles das gestões residenciais é a falta de transparência financeira, nós unimos tecnologia e clareza para simplificar a rotina de síndicos e condôminos.
                         </p>
 
-                        <p className="mb-6 text-sm leading-relaxed text-gray-600 md:hidden font-medium">
-                            Eliminamos o desgaste das prestações de contas complexas. O Nucleobase Condo centraliza controles financeiros, boletos e demandas administrativas essenciais em uma experiência 100% clara e livre de ruídos.
-                        </p>
+                        <div className="mb-6 md:hidden">
+                            <p className="text-sm leading-relaxed text-gray-600 font-medium mb-6">
+                                A Nucleobase Condo centraliza controles financeiros, apoio em boletos e processos internos de maneira prática e funcional.
+                            </p>
+
+                            <button
+                                onClick={() => setIsModalOpen(true)}
+                                className="w-full flex items-center justify-center gap-2 bg-white border border-blue-600 text-blue-600 py-4 px-6 rounded-2xl hover:bg-blue-50 transition-all font-black text-[10px] uppercase tracking-widest shadow-sm"
+                            >
+                                <MessageSquarePlus size={16} /> Solicitar Acesso
+                            </button>
+                        </div>
 
                         <div className="bg-blue-50/40 border-l-4 border-blue-600 p-6 md:p-10 my-12 rounded-2xl md:rounded-r-[3rem] relative overflow-hidden group transition-all hover:bg-blue-50/60">
                             <ShieldCheck className="absolute -right-6 -bottom-6 text-blue-600 opacity-5 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-700" size={180} />
@@ -354,15 +377,16 @@ export default function NucleobaseCondo() {
                 </div>
             </div>
 
+            {/* Card Fale Conosco alterado para redirecionar para a página /contato */}
             <div className="mt-12 md:mt-20 bg-blue-600 rounded-3xl md:rounded-[4rem] p-8 md:p-20 text-center relative overflow-hidden group w-full">
                 <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
                 <div className="relative z-10">
                     <h2 className="text-2xl md:text-5xl font-bold text-white mb-4 md:mb-6 tracking-tight">
-                        Leve clareza financeira e <br className="hidden md:block" /> organização para seu condomínio.
+                        Fale com nossa equipe e <br className="hidden md:block" /> leve inovação para seu condomínio.
                     </h2>
                     <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
-                        <a href="/condo/dashboard" className="bg-white text-blue-600 px-6 py-4 md:px-10 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-[10px] md:text-[12px] uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all w-full md:w-auto text-center">
-                            Acessar Dashboard
+                        <a href="/contato" className="bg-white text-blue-600 px-6 py-4 md:px-10 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-[10px] md:text-[12px] uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all w-full md:w-auto text-center">
+                            Entrar em Contato
                         </a>
                         <button onClick={() => setIsModalOpen(true)} className="bg-blue-700 text-white border border-white/20 px-6 py-4 md:px-10 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-[10px] md:text-[12px] uppercase tracking-widest hover:bg-blue-800 transition-all w-full md:w-auto text-center">
                             Solicitar Entrada
