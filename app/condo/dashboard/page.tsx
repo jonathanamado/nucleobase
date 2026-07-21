@@ -8,7 +8,6 @@ import {
     CalendarDays,
     Vote,
     Wallet,
-    LockKeyhole,
     Eye,
     EyeOff,
     ShieldAlert,
@@ -44,7 +43,7 @@ export default function CondoDashboard() {
     const [showPassword, setShowPassword] = useState(false);
     const [loginError, setLoginError] = useState("");
 
-    // Dados do Vínculo do Morador
+    // Dados do Vínculo do Morador/Síndico
     const [memberData, setMemberData] = useState<UserMemberData | null>(null);
 
     useEffect(() => {
@@ -61,29 +60,32 @@ export default function CondoDashboard() {
         return () => subscription.unsubscribe();
     }, []);
 
-    // Busca permissão do usuário na tabela vinculada do Condomínio
+    // Busca permissão do usuário na tabela vinculada do Condomínio de forma segura para múltiplos vínculos
     const fetchMemberPermissions = async (userId: string) => {
         try {
             setLoading(true);
             const { data, error } = await supabase
                 .from("condominio_membros")
                 .select(`
-                  role,
-                  unidade,
-                  condominio:condominios ( nome )
+                    role,
+                    unidade,
+                    condominio:condominios ( nome )
                 `)
                 .eq("user_id", userId)
-                .maybeSingle();
+                .eq("acesso_app", true)
+                .order("criado_em", { ascending: false })
+                .limit(1);
 
             if (error) throw error;
 
-            if (data) {
-                setMemberData(data as unknown as UserMemberData);
+            if (data && data.length > 0) {
+                setMemberData(data[0] as unknown as UserMemberData);
             } else {
                 setMemberData(null);
             }
         } catch (e) {
             console.error("Erro ao carregar permissões condominiais:", e);
+            setMemberData(null);
         } finally {
             setLoading(false);
         }
