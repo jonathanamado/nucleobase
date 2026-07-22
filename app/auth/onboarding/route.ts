@@ -5,7 +5,13 @@ import { NextResponse } from 'next/server'
 // Instancia o cliente com a Service Role Key para ter permissão administrativa total
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    }
+  }
 )
 
 export async function POST(request: Request) {
@@ -29,16 +35,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "ID de Usuário (Slug) não localizado no sistema." }, { status: 404 })
     }
 
-    // Validação de segurança: permite apenas atualizar perfis "pendentes"
+    // Validação de segurança: permite apenas atualizar perfis "pendentes" ou sem e-mail definitivo
     if (profile.email_contato && !profile.email_contato.startsWith("pendente.morador.")) {
       return NextResponse.json({ error: "Este perfil já possui um e-mail definitivo associado." }, { status: 400 })
     }
 
-    // 2. Verificação de Duplicidade: Verifica se o e-mail real já existe em outro perfil
+    // 2. Verificação de Duplicidade: Verifica se o e-mail real já existe em outro perfil (tanto em email quanto em email_contato)
     const { data: existingUser, error: checkError } = await supabaseAdmin
       .from("profiles")
       .select("id")
-      .eq("email_contato", emailFormatado)
+      .or(`email.eq.${emailFormatado},email_contato.eq.${emailFormatado}`)
       .neq("id", profile.id) // Ignora o próprio usuário atual
       .maybeSingle()
 
@@ -57,16 +63,19 @@ export async function POST(request: Request) {
 
     if (authError) {
       console.error("Erro interno no Supabase Auth:", authError)
-      return NextResponse.json({ error: "Erro ao atualizar credenciais internas de autenticação." }, { status: 400 })
+      return NextResponse.json({ error: "Erro ao atualizar credenciais internas de autenticação: " + authError.message }, { status: 400 })
     }
 
     // --- Delay de Segurança ---
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // 4. Atualiza na tabela pública profiles para consistência
+    // 4. Atualiza na tabela pública profiles tanto o email de login quanto o email_contato para consistência total
     const { error: updateProfileError } = await supabaseAdmin
       .from("profiles")
-      .update({ email_contato: emailFormatado })
+      .update({
+        email: emailFormatado,
+        email_contato: emailFormatado
+      })
       .eq("id", profile.id)
 
     if (updateProfileError) {
