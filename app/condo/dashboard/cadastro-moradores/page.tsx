@@ -39,15 +39,9 @@ export default function ListaMoradoresCondomino() {
     const [moradores, setMoradores] = useState<Morador[]>([]);
     const [filtroBusca, setFiltroBusca] = useState("");
 
-    // Verificação robusta de sessão e condomínio vinculado (priorizando síndico)
-    const loadDadosCondominio = async () => {
+    const loadDadosCondominio = async (currentSession: any) => {
         try {
-            setLoading(true);
-
-            // 1. Obtém a sessão de forma síncrona para evitar falhas de timing do onAuthStateChange
-            const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-
-            if (sessionError || !currentSession) {
+            if (!currentSession) {
                 setSession(null);
                 setMoradores([]);
                 setLoading(false);
@@ -57,23 +51,30 @@ export default function ListaMoradoresCondomino() {
             setSession(currentSession);
             const userId = currentSession.user.id;
 
-            // 2. Identifica a qual condomínio o usuário pertence (priorizando síndico e acesso liberado)
+            // 1. Identifica o condomínio do usuário com tratamento de múltiplos formatos
             const { data: membroData, error: membroError } = await supabase
                 .from("condominio_membros")
                 .select("condominio_id, role, condominio:condominios(nome)")
                 .eq("user_id", userId)
                 .eq("acesso_app", true)
-                .order("role", { ascending: false }) // Prioriza 'sindico' sobre 'morador'
+                .order("role", { ascending: false })
                 .order("criado_em", { ascending: false })
                 .limit(1);
 
             if (membroError) throw membroError;
 
-            if (membroData && membroData.length > 0 && membroData[0].condominio) {
-                // @ts-ignore
-                setCondominioNome(membroData[0].condominio.nome);
+            if (membroData && membroData.length > 0) {
+                const registro = membroData[0];
 
-                // 3. Carrega membros autorizados do mesmo condomínio
+                // Normaliza o nome do condomínio independentemente se veio como objeto ou array
+                const condoRelacionamento = registro.condominio;
+                const nomeCondo = Array.isArray(condoRelacionamento)
+                    ? condoRelacionamento[0]?.nome
+                    : (condoRelacionamento as any)?.nome;
+
+                setCondominioNome(nomeCondo || "Meu Condomínio");
+
+                // 2. Carrega membros autorizados do mesmo condomínio
                 const { data: lista, error: listaError } = await supabase
                     .from("condominio_membros")
                     .select(`
@@ -82,7 +83,7 @@ export default function ListaMoradoresCondomino() {
                         role,
                         profile:profiles(nome_completo, email_contato, slug)
                     `)
-                    .eq("condominio_id", membroData[0].condominio_id)
+                    .eq("condominio_id", registro.condominio_id)
                     .eq("acesso_app", true);
 
                 if (listaError) throw listaError;
@@ -94,12 +95,14 @@ export default function ListaMoradoresCondomino() {
                 setMoradores([]);
             }
         } catch (e: any) {
-            console.error("Erro completo ao carregar dados dos condôminos:", {
-                message: e?.message,
-                details: e?.details,
-                code: e?.code,
-                error: e
-            });
+            // Tratamento seguro para evitar logs vazios ({})
+            const erroFormatado = {
+                mensagem: e?.message || "Erro desconhecido na requisição",
+                detalhes: e?.details || null,
+                codigo: e?.code || null,
+                original: String(e)
+            };
+            console.error("Erro completo ao carregar dados dos condôminos:", erroFormatado);
             setMoradores([]);
         } finally {
             setLoading(false);
@@ -107,19 +110,39 @@ export default function ListaMoradoresCondomino() {
     };
 
     useEffect(() => {
-        loadDadosCondominio();
+        let isMounted = true;
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                await loadDadosCondominio();
-            } else if (event === 'SIGNED_OUT') {
-                setSession(null);
-                setMoradores([]);
-                setLoading(false);
+        // Inicialização robusta via getSession combinada com o listener de auth
+        const initAuth = async () => {
+            try {
+                const { data: { session: initialSession } } = await supabase.auth.getSession();
+                if (isMounted) {
+                    await loadDadosCondominio(initialSession);
+                }
+            } catch (err) {
+                console.error("Erro ao recuperar sessão inicial:", err);
+                if (isMounted) setLoading(false);
+            }
+        };
+
+        initAuth();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+            if (isMounted) {
+                if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+                    await loadDadosCondominio(currentSession);
+                } else if (event === 'SIGNED_OUT') {
+                    setSession(null);
+                    setMoradores([]);
+                    setLoading(false);
+                }
             }
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            isMounted = false;
+            subscription.unsubscribe();
+        };
     }, []);
 
     // Função utilitária para limpar e padronizar o número da unidade para ordenação precisa

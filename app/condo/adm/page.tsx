@@ -99,7 +99,10 @@ export default function CondoAdm() {
     const verifySindicoAndLoadData = async (userId: string) => {
         try {
             setLoading(true);
-            const { data: membroData, error: membroError } = await supabase
+            console.log("Verificando credenciais para o user_id:", userId);
+
+            // 1. Busca todos os vínculos de síndico para este usuário (removendo o maybeSingle restrito temporariamente para debug)
+            const { data: membroDataList, error: membroError } = await supabase
                 .from("condominio_membros")
                 .select(`
                     condominio_id,
@@ -107,18 +110,30 @@ export default function CondoAdm() {
                     condominio:condominios ( id, nome )
                 `)
                 .eq("user_id", userId)
-                .eq("role", "sindico")
-                .limit(1)
-                .maybeSingle();
+                .eq("role", "sindico");
 
             if (membroError) throw membroError;
 
-            if (membroData && membroData.condominio) {
-                // @ts-ignore
-                setCondominio(membroData.condominio);
-                // @ts-ignore
-                await loadMoradores(membroData.condominio_id);
+            console.log("Vínculos de síndico encontrados:", membroDataList);
+
+            if (membroDataList && membroDataList.length > 0) {
+                // Pega o primeiro condomínio válido vinculado como síndico
+                const membroData = membroDataList[0];
+
+                if (membroData.condominio) {
+                    // Trata caso o retorno venha como array ou objeto único do relacionamento
+                    const condoInfo = Array.isArray(membroData.condominio)
+                        ? membroData.condominio[0]
+                        : membroData.condominio;
+
+                    setCondominio(condoInfo);
+                    await loadMoradores(membroData.condominio_id);
+                } else {
+                    console.error("O condomínio associado não foi encontrado na tabela condominios (possível violação de FK ou RLS). ID buscado:", membroData.condominio_id);
+                    setCondominio(null);
+                }
             } else {
+                console.warn("Nenhum registro com role 'sindico' encontrado para este user_id.");
                 setCondominio(null);
             }
         } catch (e: any) {

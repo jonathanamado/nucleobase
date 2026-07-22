@@ -104,7 +104,7 @@ export default function NucleobaseCondo() {
 
     const handleEnviarSolicitacao = (e: React.FormEvent) => {
         e.preventDefault();
-        const textoMensagem = `Olá! Gostaria de solicitar meu cadastro para Acesso ao APP da Nucleo como Morador, utilizando o módulo de Gestão de Condomínio. Segue abaixo dados para realização do Cadastro:\n\n` +
+        const textoMensagem = `Olá! Gostaria de solicitar meu cadastro para Acesso ao APP da Nucleo como Morador, utilizando o módulo de Gestão de Condomínio. Segue abaixo dados para liberação:\n\n` +
             `• *Nome:* ${solicitanteNome}\n` +
             `• *E-mail:* ${solicitanteEmail}\n` +
             `• *Condomínio:* ${solicitanteCondo}\n` +

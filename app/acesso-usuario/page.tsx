@@ -148,7 +148,7 @@ export default function AcessoUsuarioPage() {
     setResetLoading(false);
   };
 
-  // Processa a validação do primeiro acesso do morador vinculando o e-mail definitivo de forma síncrona
+  // Processa a validação do primeiro acesso do morador vinculando o e-mail definitivo e atualizando a tabela profiles
   const handleFirstAccessSetup = async (e: React.FormEvent) => {
     e.preventDefault();
     setFirstAccessLoading(true);
@@ -157,6 +157,28 @@ export default function AcessoUsuarioPage() {
     const inputEmailReal = firstAccessRealEmail.trim().toLowerCase();
 
     try {
+      // 1. Localiza o usuário correspondente ao slug na tabela profiles para obter o ID
+      const { data: profileData, error: profileQueryError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('slug', inputSlug)
+        .maybeSingle();
+
+      if (profileQueryError) throw profileQueryError;
+
+      if (profileData && profileData.id) {
+        // 2. Atualiza diretamente o e-mail de contato na tabela profiles conforme solicitado
+        const { error: updateProfileError } = await supabase
+          .from('profiles')
+          .update({ email_contato: inputEmailReal })
+          .eq('id', profileData.id);
+
+        if (updateProfileError) {
+          console.error("Erro ao atualizar profiles:", updateProfileError);
+        }
+      }
+
+      // 3. Executa a requisição para o endpoint de onboarding/ativação
       const response = await fetch("/auth/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -166,13 +188,19 @@ export default function AcessoUsuarioPage() {
       const responseData = await response.json();
 
       if (!response.ok) {
-        throw new Error(responseData.error || "Falha na ativação.");
+        const errorMessage = responseData.error || "Falha na ativação.";
+
+        if (errorMessage.toLowerCase().includes("já está sendo utilizado") || errorMessage.toLowerCase().includes("already registered")) {
+          alert("Este e-mail já está cadastrado na plataforma. Por favor, faça login diretamente ou utilize a opção 'Esqueceu a senha?' se necessário.");
+        } else {
+          alert(errorMessage);
+        }
+        return;
       }
 
       // SUCESSO: A API retornou o magicLink gerado administrativamente
       if (responseData.success && responseData.magicLink) {
         alert("Conta ativada com sucesso! Redirecionando para o sistema...");
-        // O link mágico faz o login automaticamente
         window.location.href = responseData.magicLink;
       } else {
         alert("Conta ativada com sucesso! Você já pode realizar o login.");
@@ -183,8 +211,7 @@ export default function AcessoUsuarioPage() {
       setFirstAccessRealEmail("");
     } catch (err: any) {
       console.error("Erro no Onboarding:", err);
-      // Se aparecer erro de tempo, o usuário saberá que precisa esperar
-      alert(err?.message || "Houve uma falha interna.");
+      alert(err?.message || "Houve uma falha interna ao processar sua solicitação.");
     } finally {
       setFirstAccessLoading(false);
     }
