@@ -1,5 +1,7 @@
+// app/condo/dashboard/reserva-de-espacos/page.tsx
 "use client";
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import {
     Building2,
@@ -7,7 +9,8 @@ import {
     ArrowLeft,
     Instagram,
     Wrench,
-    Sparkles
+    Sparkles,
+    ShieldAlert
 } from "lucide-react";
 
 const supabase = createClient(
@@ -15,14 +18,73 @@ const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default function PrestacaoContasPage() {
+interface UserMemberData {
+    role: string;
+    condominio: {
+        nome: string;
+    };
+}
+
+export default function ReservaEspacosPage() {
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [memberData, setMemberData] = useState<UserMemberData | null>(null);
+
+    const verifyAccess = async () => {
+        try {
+            setLoading(true);
+
+            const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+
+            if (sessionError || !currentSession) {
+                setSession(null);
+                setMemberData(null);
+                setLoading(false);
+                return;
+            }
+
+            setSession(currentSession);
+            const userId = currentSession.user.id;
+
+            const { data, error } = await supabase
+                .from("condominio_membros")
+                .select(`
+                    role,
+                    acesso_app,
+                    condominio:condominios ( nome )
+                `)
+                .eq("user_id", userId)
+                .eq("acesso_app", true)
+                .order("role", { ascending: false })
+                .order("criado_em", { ascending: false })
+                .limit(1);
+
+            if (error) throw error;
+
+            if (data && data.length > 0) {
+                setMemberData(data[0] as unknown as UserMemberData);
+            } else {
+                setMemberData(null);
+            }
+        } catch (e) {
+            console.error("Erro ao verificar acesso:", e);
+            setMemberData(null);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-            setSession(currentSession);
-            setLoading(false);
+        verifyAccess();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                await verifyAccess();
+            } else if (event === 'SIGNED_OUT') {
+                setSession(null);
+                setMemberData(null);
+                setLoading(false);
+            }
         });
 
         return () => subscription.unsubscribe();
@@ -33,6 +95,39 @@ export default function PrestacaoContasPage() {
             <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
                 <Loader2 className="animate-spin text-blue-600 mb-4" size={32} />
                 <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Carregando painel...</p>
+            </div>
+        );
+    }
+
+    if (!session) {
+        return (
+            <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
+                <div className="w-full max-w-sm bg-white border border-zinc-200 p-8 rounded-[2.5rem] text-center space-y-4 shadow-sm">
+                    <h1 className="text-xl font-black text-zinc-900">Acesso restrito</h1>
+                    <p className="text-sm text-zinc-500">Faça login na plataforma para visualizar o módulo de reservas.</p>
+                    <Link href="/condo/dashboard" className="inline-block bg-zinc-900 hover:bg-black text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
+                        Ir para Login
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
+    if (session && !memberData) {
+        return (
+            <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
+                <div className="w-full max-w-sm bg-white border border-zinc-200 p-8 rounded-[2.5rem] text-center space-y-4 shadow-sm">
+                    <div className="mx-auto w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 mb-2">
+                        <ShieldAlert size={24} />
+                    </div>
+                    <h1 className="text-xl font-black text-zinc-900">Sem vínculo ativo</h1>
+                    <p className="text-sm text-zinc-500">
+                        Seu perfil não possui acesso liberado neste condomínio no momento.
+                    </p>
+                    <Link href="/condo/dashboard" className="inline-block bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors mt-2">
+                        Voltar ao Início
+                    </Link>
+                </div>
             </div>
         );
     }
@@ -49,7 +144,9 @@ export default function PrestacaoContasPage() {
                             </div>
                             <div>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Módulo Condominial</span>
+                                    <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">
+                                        {memberData?.condominio?.nome || "Módulo Condominial"}
+                                    </span>
                                 </div>
                                 <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1">Reserva de Espaços</h1>
                             </div>

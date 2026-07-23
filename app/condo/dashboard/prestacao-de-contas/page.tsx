@@ -1,5 +1,7 @@
+// app/condo/dashboard/prestacao-de-contas/page.tsx
 "use client";
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import {
     Building2,
@@ -13,7 +15,8 @@ import {
     Trash2,
     FileSpreadsheet,
     BarChart3,
-    Filter
+    Filter,
+    ShieldAlert
 } from "lucide-react";
 
 const supabase = createClient(
@@ -41,7 +44,7 @@ export default function PrestacaoContasPage() {
     const [condominio, setCondominio] = useState<{ id: string; nome: string } | null>(null);
     const [contas, setContas] = useState<ContaCondominio[]>([]);
 
-    // Estados de Filtro de Período (Pré-filtrado no mês vigente, ex: '2026-07' ou 'acumulado')
+    // Estados de Filtro de Período
     const mesVigentePadrao = new Date().toISOString().slice(0, 7);
     const [filtroPeriodo, setFiltroPeriodo] = useState<string>(mesVigentePadrao);
 
@@ -58,17 +61,16 @@ export default function PrestacaoContasPage() {
     const [formError, setFormError] = useState('');
     const [formSuccess, setFormSuccess] = useState('');
 
-    // Verificação robusta de sessão e condomínio vinculado (priorizando síndico)
     const verifyCondoAndLoadData = async () => {
         try {
             setLoading(true);
 
-            // 1. Obtém a sessão de forma síncrona para evitar falhas de timing do onAuthStateChange
             const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
 
             if (sessionError || !currentSession) {
                 setSession(null);
                 setCondominio(null);
+                setContas([]);
                 setLoading(false);
                 return;
             }
@@ -76,17 +78,17 @@ export default function PrestacaoContasPage() {
             setSession(currentSession);
             const userId = currentSession.user.id;
 
-            // 2. Consulta o vínculo priorizando explicitamente o papel de 'sindico' e acesso liberado
             const { data, error } = await supabase
                 .from("condominio_membros")
                 .select(`
                     condominio_id,
                     role,
+                    acesso_app,
                     condominio:condominios ( id, nome )
                 `)
                 .eq("user_id", userId)
                 .eq("acesso_app", true)
-                .order("role", { ascending: false }) // Prioriza 'sindico' sobre 'morador' alfabeticamente/desc
+                .order("role", { ascending: false })
                 .order("criado_em", { ascending: false })
                 .limit(1);
 
@@ -116,10 +118,8 @@ export default function PrestacaoContasPage() {
     };
 
     useEffect(() => {
-        // Executa imediatamente ao carregar a página
         verifyCondoAndLoadData();
 
-        // Monitora alterações futuras de autenticação
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
             if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
                 await verifyCondoAndLoadData();
@@ -205,21 +205,18 @@ export default function PrestacaoContasPage() {
         setActionLoading(false);
     };
 
-    // Filtragem de contas com base no período selecionado (Mês específico ou 'acumulado')
     const contasFiltradas = contas.filter(c => {
         if (filtroPeriodo === 'acumulado') return true;
         const compMes = c.data_competencia ? c.data_competencia.slice(0, 7) : '';
         return compMes === filtroPeriodo;
     });
 
-    // Cálculos de Resumo Financeiro baseados no filtro aplicado
     const totalPrevistoReceitas = contasFiltradas.filter(c => c.tipo === 'receita').reduce((acc, curr) => acc + Number(curr.valor_previsto), 0);
     const totalRealizadoReceitas = contasFiltradas.filter(c => c.tipo === 'receita').reduce((acc, curr) => acc + Number(curr.valor_realizado), 0);
     const totalPrevistoDespesas = contasFiltradas.filter(c => c.tipo === 'despesa').reduce((acc, curr) => acc + Number(curr.valor_previsto), 0);
     const totalRealizadoDespesas = contasFiltradas.filter(c => c.tipo === 'despesa').reduce((acc, curr) => acc + Number(curr.valor_realizado), 0);
     const saldoLiquido = totalRealizadoReceitas - totalRealizadoDespesas;
 
-    // Dados para o Gráfico de Barras Proporcional (Receita x Despesa)
     const maiorValorGrafico = Math.max(totalRealizadoReceitas, totalRealizadoDespesas, 1);
     const larguraBarraReceita = Math.round((totalRealizadoReceitas / maiorValorGrafico) * 100);
     const larguraBarraDespesa = Math.round((totalRealizadoDespesas / maiorValorGrafico) * 100);
@@ -229,6 +226,39 @@ export default function PrestacaoContasPage() {
             <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
                 <Loader2 className="animate-spin text-blue-600 mb-4" size={32} />
                 <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Carregando painel financeiro...</p>
+            </div>
+        );
+    }
+
+    if (!session) {
+        return (
+            <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
+                <div className="w-full max-w-sm bg-white border border-zinc-200 p-8 rounded-[2.5rem] text-center space-y-4 shadow-sm">
+                    <h1 className="text-xl font-black text-zinc-900">Acesso restrito</h1>
+                    <p className="text-sm text-zinc-500">Faça login na plataforma para visualizar a prestação de contas.</p>
+                    <Link href="/condo/dashboard" className="inline-block bg-zinc-900 hover:bg-black text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
+                        Ir para Login
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
+    if (session && !condominio) {
+        return (
+            <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
+                <div className="w-full max-w-sm bg-white border border-zinc-200 p-8 rounded-[2.5rem] text-center space-y-4 shadow-sm">
+                    <div className="mx-auto w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 mb-2">
+                        <ShieldAlert size={24} />
+                    </div>
+                    <h1 className="text-xl font-black text-zinc-900">Sem vínculo ativo</h1>
+                    <p className="text-sm text-zinc-500">
+                        Seu perfil não possui acesso liberado neste condomínio no momento.
+                    </p>
+                    <Link href="/condo/dashboard" className="inline-block bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors mt-2">
+                        Voltar ao Início
+                    </Link>
+                </div>
             </div>
         );
     }
@@ -400,7 +430,7 @@ export default function PrestacaoContasPage() {
                                             </td>
                                             <td className="py-3 text-center">
                                                 <span className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase ${conta.status === 'pago' || conta.status === 'recebido' ? 'bg-emerald-100 text-emerald-800' :
-                                                        conta.status === 'pendente' ? 'bg-amber-100 text-amber-800' : 'bg-zinc-100 text-zinc-600'
+                                                    conta.status === 'pendente' ? 'bg-amber-100 text-amber-800' : 'bg-zinc-100 text-zinc-600'
                                                     }`}>
                                                     {conta.status}
                                                 </span>
@@ -422,7 +452,7 @@ export default function PrestacaoContasPage() {
                     )}
                 </div>
 
-                {/* Bloco de Gráfico Comparativo (Receitas x Despesas) */}
+                {/* Bloco de Gráfico Comparativo */}
                 <div className="bg-white border border-zinc-200 rounded-[2rem] shadow-sm p-6 mb-10">
                     <div className="flex items-center justify-between pb-4 border-b border-zinc-100 mb-6">
                         <div className="flex items-center gap-2">
@@ -435,7 +465,6 @@ export default function PrestacaoContasPage() {
                     </div>
 
                     <div className="space-y-6 max-w-4xl mx-auto py-2">
-                        {/* Barra de Receitas */}
                         <div className="space-y-2">
                             <div className="flex justify-between items-center text-xs font-bold">
                                 <span className="flex items-center gap-1.5 text-emerald-600 uppercase tracking-wider">
@@ -453,7 +482,6 @@ export default function PrestacaoContasPage() {
                             </div>
                         </div>
 
-                        {/* Barra de Despesas */}
                         <div className="space-y-2">
                             <div className="flex justify-between items-center text-xs font-bold">
                                 <span className="flex items-center gap-1.5 text-rose-600 uppercase tracking-wider">

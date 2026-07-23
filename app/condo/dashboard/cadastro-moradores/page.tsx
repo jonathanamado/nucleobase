@@ -51,12 +51,11 @@ export default function ListaMoradoresCondomino() {
             setSession(currentSession);
             const userId = currentSession.user.id;
 
-            // 1. Identifica o condomínio do usuário com tratamento de múltiplos formatos
+            // 1. Identifica o condomínio do usuário com tratamento unificado e flexível
             const { data: membroData, error: membroError } = await supabase
                 .from("condominio_membros")
                 .select("condominio_id, role, condominio:condominios(nome)")
                 .eq("user_id", userId)
-                .eq("acesso_app", true)
                 .order("role", { ascending: false })
                 .order("criado_em", { ascending: false })
                 .limit(1);
@@ -66,7 +65,6 @@ export default function ListaMoradoresCondomino() {
             if (membroData && membroData.length > 0) {
                 const registro = membroData[0];
 
-                // Normaliza o nome do condomínio independentemente se veio como objeto ou array
                 const condoRelacionamento = registro.condominio;
                 const nomeCondo = Array.isArray(condoRelacionamento)
                     ? condoRelacionamento[0]?.nome
@@ -74,7 +72,7 @@ export default function ListaMoradoresCondomino() {
 
                 setCondominioNome(nomeCondo || "Meu Condomínio");
 
-                // 2. Carrega membros autorizados do mesmo condomínio
+                // 2. Carrega membros do mesmo condomínio
                 const { data: lista, error: listaError } = await supabase
                     .from("condominio_membros")
                     .select(`
@@ -83,8 +81,7 @@ export default function ListaMoradoresCondomino() {
                         role,
                         profile:profiles(nome_completo, email_contato, slug)
                     `)
-                    .eq("condominio_id", registro.condominio_id)
-                    .eq("acesso_app", true);
+                    .eq("condominio_id", registro.condominio_id);
 
                 if (listaError) throw listaError;
 
@@ -95,7 +92,6 @@ export default function ListaMoradoresCondomino() {
                 setMoradores([]);
             }
         } catch (e: any) {
-            // Tratamento seguro para evitar logs vazios ({})
             const erroFormatado = {
                 mensagem: e?.message || "Erro desconhecido na requisição",
                 detalhes: e?.details || null,
@@ -112,7 +108,6 @@ export default function ListaMoradoresCondomino() {
     useEffect(() => {
         let isMounted = true;
 
-        // Inicialização robusta via getSession combinada com o listener de auth
         const initAuth = async () => {
             try {
                 const { data: { session: initialSession } } = await supabase.auth.getSession();

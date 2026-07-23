@@ -191,7 +191,7 @@ export default function AcessoUsuarioPage() {
         const errorMessage = responseData.error || "Falha na ativação.";
 
         if (errorMessage.toLowerCase().includes("já está sendo utilizado") || errorMessage.toLowerCase().includes("already registered")) {
-          alert("Este e-mail já está cadastrado na plataforma. Por favor, faça login diretamente ou utilize a opção 'Esqueceu a senha?' se necessário.");
+          alert("Este e-mail já está cadastrado na plataforma. Por favor, solicite ao Síndico que permita o acesso no seu cadastro já existente ou utilize outro endereço de e-mail.");
         } else {
           alert(errorMessage);
         }

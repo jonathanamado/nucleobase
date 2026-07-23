@@ -1,3 +1,4 @@
+// app/condo/dashboard/adm/page.tsx
 "use client";
 import React, { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
@@ -42,13 +43,12 @@ export default function CondoAdm() {
     const [actionLoading, setActionLoading] = useState(false);
     const [authLoading, setAuthLoading] = useState(false);
 
-    // Controle de Login do Síndico
+    // Controle de Login
     const [emailOrSlug, setEmailOrSlug] = useState("");
     const [password, setPassword] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
     const [loginError, setLoginError] = useState("");
 
-    // Dados do Condomínio do Síndico
+    // Dados do Condomínio e Vínculo
     const [condominio, setCondominio] = useState<{ id: string; nome: string } | null>(null);
     const [moradores, setMoradores] = useState<Morador[]>([]);
 
@@ -71,12 +71,71 @@ export default function CondoAdm() {
     const [editandoNome, setEditandoNome] = useState("");
     const [editandoSemEmail, setEditandoSemEmail] = useState(false);
 
-    useEffect(() => {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+    // Verificação robusta unificada: Prioriza síndico, mas aceita vínculo ativo para evitar bloqueio cruzado
+    const verifySindicoAndLoadData = async () => {
+        try {
+            setLoading(true);
+
+            const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+
+            if (sessionError || !currentSession) {
+                setSession(null);
+                setCondominio(null);
+                setMoradores([]);
+                setLoading(false);
+                return;
+            }
+
             setSession(currentSession);
-            if (currentSession) {
-                await verifySindicoAndLoadData(currentSession.user.id);
+            const userId = currentSession.user.id;
+
+            // Busca vínculos ordenando por privilégio (sindico primeiro) e acesso liberado
+            const { data: membroDataList, error: membroError } = await supabase
+                .from("condominio_membros")
+                .select(`
+                    condominio_id,
+                    role,
+                    acesso_app,
+                    condominio:condominios ( id, nome )
+                `)
+                .eq("user_id", userId)
+                .order("role", { ascending: false }) // 'sindico' tem precedência sobre 'morador'
+                .order("criado_em", { ascending: false })
+                .limit(1);
+
+            if (membroError) throw membroError;
+
+            if (membroDataList && membroDataList.length > 0) {
+                const membroData = membroDataList[0];
+                if (membroData.condominio) {
+                    const condoInfo = Array.isArray(membroData.condominio)
+                        ? membroData.condominio[0]
+                        : membroData.condominio;
+
+                    setCondominio(condoInfo);
+                    await loadMoradores(membroData.condominio_id);
+                } else {
+                    setCondominio(null);
+                }
             } else {
+                setCondominio(null);
+            }
+        } catch (e: any) {
+            console.error("Erro ao verificar credenciais administrativas:", e);
+            setCondominio(null);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        verifySindicoAndLoadData();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                await verifySindicoAndLoadData();
+            } else if (event === 'SIGNED_OUT') {
+                setSession(null);
                 setCondominio(null);
                 setMoradores([]);
                 setLoading(false);
@@ -86,7 +145,6 @@ export default function CondoAdm() {
         return () => subscription.unsubscribe();
     }, []);
 
-    // Função utilitária para anonimização em tela (LGPD)
     const mascararEmail = (email: string) => {
         if (!email || !email.includes("@")) return email || "@user";
         if (email.startsWith("pendente.morador.")) return "E-mail não cadastrado";
@@ -95,61 +153,6 @@ export default function CondoAdm() {
         return `${usuario[0]}*****@${dominio}`;
     };
 
-    // Verifica se o usuário logado é Síndico e carrega as informações
-    const verifySindicoAndLoadData = async (userId: string) => {
-        try {
-            setLoading(true);
-            console.log("Verificando credenciais para o user_id:", userId);
-
-            // 1. Busca todos os vínculos de síndico para este usuário (removendo o maybeSingle restrito temporariamente para debug)
-            const { data: membroDataList, error: membroError } = await supabase
-                .from("condominio_membros")
-                .select(`
-                    condominio_id,
-                    role,
-                    condominio:condominios ( id, nome )
-                `)
-                .eq("user_id", userId)
-                .eq("role", "sindico");
-
-            if (membroError) throw membroError;
-
-            console.log("Vínculos de síndico encontrados:", membroDataList);
-
-            if (membroDataList && membroDataList.length > 0) {
-                // Pega o primeiro condomínio válido vinculado como síndico
-                const membroData = membroDataList[0];
-
-                if (membroData.condominio) {
-                    // Trata caso o retorno venha como array ou objeto único do relacionamento
-                    const condoInfo = Array.isArray(membroData.condominio)
-                        ? membroData.condominio[0]
-                        : membroData.condominio;
-
-                    setCondominio(condoInfo);
-                    await loadMoradores(membroData.condominio_id);
-                } else {
-                    console.error("O condomínio associado não foi encontrado na tabela condominios (possível violação de FK ou RLS). ID buscado:", membroData.condominio_id);
-                    setCondominio(null);
-                }
-            } else {
-                console.warn("Nenhum registro com role 'sindico' encontrado para este user_id.");
-                setCondominio(null);
-            }
-        } catch (e: any) {
-            console.error("Erro completo ao verificar credenciais de síndico:", {
-                message: e?.message,
-                details: e?.details,
-                code: e?.code,
-                error: e
-            });
-            setCondominio(null);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Carrega lista de moradores autorizados
     const loadMoradores = async (condoId: string) => {
         const { data, error } = await supabase
             .from("condominio_membros")
@@ -162,7 +165,6 @@ export default function CondoAdm() {
                 profile:profiles ( nome_completo, email_contato, slug )
             `)
             .eq("condominio_id", condoId)
-            .eq("role", "morador")
             .order("unidade", { ascending: true });
 
         if (!error && data) {
@@ -170,7 +172,6 @@ export default function CondoAdm() {
         }
     };
 
-    // Login do Síndico
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setAuthLoading(true);
@@ -193,12 +194,11 @@ export default function CondoAdm() {
         }
 
         if (data.session) {
-            await verifySindicoAndLoadData(data.session.user.id);
+            await verifySindicoAndLoadData();
         }
         setAuthLoading(false);
     };
 
-    // Função para o usuário iniciar sua própria gestão de condomínio como Síndico
     const handleIniciarGestaoPropria = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!session || !session.user) return;
@@ -209,7 +209,6 @@ export default function CondoAdm() {
             const cnpjCondo = novoCondoCnpjInput.trim() || null;
             const unidadeGestor = novaUnidadeSindicoInput.trim() || "Administração";
 
-            // 1. Cria o registro do condomínio
             const { data: novoCondo, error: condoError } = await supabase
                 .from("condominios")
                 .insert([{ nome: nomeCondo, cnpj: cnpjCondo }])
@@ -219,7 +218,6 @@ export default function CondoAdm() {
             if (condoError) throw condoError;
 
             if (novoCondo) {
-                // 2. Insere o usuário atual na tabela condominio_membros com o papel "sindico"
                 const { error: membroError } = await supabase
                     .from("condominio_membros")
                     .insert([
@@ -234,7 +232,6 @@ export default function CondoAdm() {
 
                 if (membroError) throw membroError;
 
-                // 3. Atualiza os estados locais para carregar a interface de administração imediatamente
                 setCondominio({ id: novoCondo.id, nome: novoCondo.nome });
                 await loadMoradores(novoCondo.id);
             }
@@ -246,7 +243,6 @@ export default function CondoAdm() {
         }
     };
 
-    // Prepara o formulário para a edição do morador selecionado
     const iniciarEdicao = (morador: Morador) => {
         setFormError("");
         setFormSuccess("");
@@ -258,15 +254,11 @@ export default function CondoAdm() {
         const semEmail = emailContato.startsWith("pendente.morador.");
 
         setEditandoSemEmail(semEmail);
-
-        // Se o e-mail for o gerador interno provisório, renderiza travado ou vazio
         setNovoMoradorEmail(semEmail ? "Cadastro sem e-mail" : emailContato);
-
         setNovoMoradorUnidade(morador.unidade);
         setAutorizadoApp(morador.acesso_app);
     };
 
-    // Cancela o modo de edição e limpa os inputs
     const cancelarEdicao = () => {
         setEditandoId(null);
         setEditandoNome("");
@@ -279,7 +271,6 @@ export default function CondoAdm() {
         setFormSuccess("");
     };
 
-    // Adicionar ou Editar Morador com Autonomia Completa para Criação de Perfis
     const handleSaveForm = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!condominio) return;
@@ -290,7 +281,6 @@ export default function CondoAdm() {
 
         try {
             if (editandoId) {
-                // MODO EDIÇÃO: Atualiza os dados de acesso e unidade do membro existente
                 const { error: updateError } = await supabase
                     .from("condominio_membros")
                     .update({
@@ -304,36 +294,30 @@ export default function CondoAdm() {
                 const moradorAtual = moradores.find(m => m.id === editandoId);
                 if (moradorAtual?.user_id) {
                     const camposUpdate: any = { nome_completo: novoMoradorNome.trim() };
-
-                    // Apenas tenta atualizar e-mail se o usuário NÃO foi cadastrado sem e-mail originariamente
                     if (!editandoSemEmail && novoMoradorEmail.trim()) {
                         camposUpdate.email_contato = novoMoradorEmail.trim().toLowerCase();
                     }
 
-                    const { error: profileUpdateError } = await supabase
+                    await supabase
                         .from("profiles")
                         .update(camposUpdate)
                         .eq("id", moradorAtual.user_id);
-                    if (profileUpdateError) console.error("Erro ao atualizar dados do perfil:", profileUpdateError);
                 }
 
                 setFormSuccess(`Sucesso! Os dados de ${editandoNome} foram atualizados.`);
                 cancelarEdicao();
             } else {
-                // MODO CADASTRO: Cria ou localiza o perfil de usuário correspondente
                 const nomeFormatado = novoMoradorNome.trim();
                 let emailFormatado = novoMoradorEmail.trim().toLowerCase();
                 let targetUserId = null;
                 let generatedSlug = "";
 
-                // Regra de geração de chave (slug) baseada no primeiro nome do morador
                 const primeiroNome = nomeFormatado.split(" ")[0]
                     .toLowerCase()
                     .normalize("NFD")
-                    .replace(/[\u0300-\u036f]/g, "") // Remove acentos
-                    .replace(/[^a-z0-9]/g, "");    // Garante apenas alfanuméricos
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .replace(/[^a-z0-9]/g, "");
 
-                // Gerador de ID/E-mail provisório caso o e-mail não seja preenchido
                 const uuidFalso = Math.random().toString(36).substring(2, 7);
                 if (!emailFormatado) {
                     emailFormatado = `pendente.morador.${uuidFalso}@nucleobase.app`;
@@ -342,61 +326,41 @@ export default function CondoAdm() {
                     generatedSlug = `user-${Math.random().toString(36).substring(2, 10)}`;
                 }
 
-                // 1. Pesquisa se o perfil correspondente já existe na tabela de perfis (Apenas se não for um e-mail temporário)
                 if (!emailFormatado.startsWith("pendente.morador.")) {
-                    const { data: existingProfile, error: searchError } = await supabase
+                    const { data: existingProfile } = await supabase
                         .from("profiles")
                         .select("id")
                         .eq("email_contato", emailFormatado)
                         .maybeSingle();
 
-                    if (searchError) throw searchError;
                     if (existingProfile) {
                         targetUserId = existingProfile.id;
                     }
                 }
 
                 if (!targetUserId) {
-                    // Usuário não encontrado ou e-mail não informado. Cria o Perfil de forma isolada
                     const tempSupabase = createClient(
                         process.env.NEXT_PUBLIC_SUPABASE_URL!,
                         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-                        {
-                            auth: {
-                                persistSession: false,
-                                autoRefreshToken: false
-                            }
-                        }
+                        { auth: { persistSession: false, autoRefreshToken: false } }
                     );
 
                     const tempPassword = "Condo" + Math.random().toString(36).substring(2, 10) + "!";
-
                     const { data: signUpData, error: signUpError } = await tempSupabase.auth.signUp({
                         email: emailFormatado,
                         password: tempPassword,
-                        options: {
-                            data: {
-                                nome_completo: nomeFormatado
-                            }
-                        }
+                        options: { data: { nome_completo: nomeFormatado } }
                     });
 
                     if (signUpError) throw signUpError;
-
-                    if (!signUpData.user) {
-                        throw new Error("Não foi possível registrar as credenciais de acesso do morador.");
-                    }
+                    if (!signUpData.user) throw new Error("Erro ao registrar credenciais.");
 
                     targetUserId = signUpData.user.id;
-
-                    // Ajusta slug final caso possua e-mail para manter padrão seguro de fallback
-                    if (!novoMoradorEmail.trim()) {
-                        // Mantém o slug estruturado de onboarding criado anteriormente
-                    } else {
+                    if (novoMoradorEmail.trim()) {
                         generatedSlug = `user-${targetUserId.substring(0, 8)}`;
                     }
 
-                    const { error: profileError } = await tempSupabase
+                    await tempSupabase
                         .from("profiles")
                         .upsert({
                             id: targetUserId,
@@ -404,22 +368,8 @@ export default function CondoAdm() {
                             email_contato: emailFormatado,
                             slug: generatedSlug
                         });
-
-                    if (profileError) {
-                        const { error: mainProfileError } = await supabase
-                            .from("profiles")
-                            .upsert({
-                                id: targetUserId,
-                                nome_completo: nomeFormatado,
-                                email_contato: emailFormatado,
-                                slug: generatedSlug
-                            });
-
-                        if (mainProfileError) throw mainProfileError;
-                    }
                 }
 
-                // 2. Insere o vínculo do membro na unidade condominial correspondente
                 const { error: insertError } = await supabase
                     .from("condominio_membros")
                     .insert([
@@ -434,7 +384,7 @@ export default function CondoAdm() {
 
                 if (insertError) {
                     if (insertError.code === "23505") {
-                        setFormError("Este morador já está cadastrado nesta unidade do condomínio.");
+                        setFormError("Este morador já está cadastrado nesta unidade.");
                     } else {
                         throw insertError;
                     }
@@ -442,7 +392,7 @@ export default function CondoAdm() {
                     return;
                 }
 
-                setFormSuccess(`Sucesso! ${nomeFormatado} foi registrado e vinculado.`);
+                setFormSuccess(`Sucesso! ${nomeFormatado} foi registrado.`);
                 setNovoMoradorNome("");
                 setNovoMoradorEmail("");
                 setNovoMoradorUnidade("");
@@ -451,14 +401,13 @@ export default function CondoAdm() {
 
             await loadMoradores(condominio.id);
         } catch (err: any) {
-            console.error("Erro detalhado na transação de cadastro de morador:", err);
-            setFormError(err?.message || "Ocorreu um erro ao processar a operação de cadastro. Tente novamente.");
+            console.error("Erro no cadastro:", err);
+            setFormError(err?.message || "Ocorreu um erro ao processar a operação.");
         } finally {
             setActionLoading(false);
         }
     };
 
-    // Remove morador do condomínio
     const handleRemoveMorador = async (membroId: string) => {
         if (!confirm("Deseja realmente revogar o acesso deste condômino?")) return;
 
@@ -615,7 +564,6 @@ export default function CondoAdm() {
 
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-6 md:p-10">
-            {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-6 mb-10">
                 <div className="flex flex-col md:flex-row md:items-center gap-6 w-full justify-between">
                     <div className="flex items-center gap-4">
@@ -623,32 +571,23 @@ export default function CondoAdm() {
                             <Building2 size={24} />
                         </div>
                         <div>
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Painel do Síndico - Controle de cadastro e acesso</span>
-                            </div>
+                            <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Painel do Síndico - Controle de cadastro e acesso</span>
                             <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1">{condominio?.nome}</h1>
                         </div>
                     </div>
 
-                    {/* Botão de Voltar Minimalista Premium */}
                     <button
                         onClick={() => window.history.back()}
                         className="group relative flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 self-start md:self-auto overflow-hidden"
                     >
                         <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
-                        <ArrowLeft
-                            size={12}
-                            className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out"
-                        />
+                        <ArrowLeft size={12} className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out" />
                         <span>Voltar</span>
                     </button>
                 </div>
             </div>
 
-            {/* Grid Responsivo Equalizado */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 max-w-6xl items-start">
-
-                {/* Coluna 1: Formulário de Cadastro / Edição */}
                 <div className="bg-white border border-zinc-150 p-6 md:p-8 rounded-[2.5rem] shadow-sm flex flex-col justify-between h-auto lg:h-[510px]">
                     <div className="space-y-4">
                         <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
@@ -665,9 +604,7 @@ export default function CondoAdm() {
 
                         <form onSubmit={handleSaveForm} className="space-y-3">
                             <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">
-                                    Nome Completo
-                                </label>
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Nome Completo</label>
                                 <input
                                     type="text"
                                     placeholder="Ex: João da Silva"
@@ -679,9 +616,7 @@ export default function CondoAdm() {
                             </div>
 
                             <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">
-                                    E-mail Login {editandoSemEmail ? "(Bloqueado)" : "(Opcional)"}
-                                </label>
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">E-mail Login {editandoSemEmail ? "(Bloqueado)" : "(Opcional)"}</label>
                                 <input
                                     type="text"
                                     placeholder="Ex: john@dominio.com"
@@ -690,11 +625,6 @@ export default function CondoAdm() {
                                     onChange={(e) => setNovoMoradorEmail(e.target.value)}
                                     className={`w-full px-5 py-2 border rounded-2xl outline-none transition-all text-sm font-medium ${editandoSemEmail ? 'bg-zinc-100 border-zinc-200 text-zinc-400 cursor-not-allowed select-none' : 'bg-zinc-50 border-zinc-200 focus:bg-white focus:border-blue-400'}`}
                                 />
-                                {editandoId && (
-                                    <p className="text-[9px] text-zinc-400 ml-1">
-                                        {editandoSemEmail ? "Alteração de campo pendente com o morador." : "Atualização de e-mail pendente."}
-                                    </p>
-                                )}
                             </div>
 
                             <div className="space-y-1">
@@ -709,7 +639,6 @@ export default function CondoAdm() {
                                 />
                             </div>
 
-                            {/* Propriedade: Autorizado acesso APP */}
                             <div className="flex items-center justify-between bg-zinc-50/50 border border-zinc-100 p-2.5 rounded-2xl transition-all">
                                 <div className="flex flex-col">
                                     <span className="text-[11px] font-bold text-zinc-800 uppercase tracking-wide">Acesso APP</span>
@@ -740,7 +669,6 @@ export default function CondoAdm() {
                     </div>
                 </div>
 
-                {/* Coluna 2 e 3: Tabela de Moradores Vinculados */}
                 <div className="lg:col-span-2 bg-white border border-zinc-150 p-6 md:p-8 rounded-[2.5rem] shadow-sm flex flex-col h-auto lg:h-[510px]">
                     <div className="flex items-center justify-between border-b border-zinc-100 pb-4 shrink-0">
                         <div className="flex items-center gap-3">
@@ -755,7 +683,6 @@ export default function CondoAdm() {
                     {moradores.length === 0 ? (
                         <div className="flex-1 flex flex-col items-center justify-center text-center py-12 space-y-2">
                             <p className="text-zinc-400 text-sm font-medium">Nenhum condômino cadastrado ainda.</p>
-                            <p className="text-xs text-zinc-400">Use o painel ao lado para autorizar os primeiros moradores.</p>
                         </div>
                     ) : (
                         <div className="flex-1 overflow-y-auto mt-4 pr-2 scrollbar-thin">
@@ -832,24 +759,13 @@ export default function CondoAdm() {
                 </div>
             </div>
 
-            {/* LINHA DIVISÓRIA CONECTE-SE */}
             <div className="mt-24 flex items-center gap-4 mb-12">
                 <div className="h-px bg-gray-200 flex-1"></div>
                 <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
                 <div className="h-px bg-gray-200 flex-1"></div>
             </div>
 
-            {/* BLOCO INSTAGRAM */}
             <div className="flex flex-col items-center text-center">
-                <div className="max-w-3xl mb-12">
-                    <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
-                        Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
-                    </h4>
-                    <p className="text-gray-500 font-medium text-sm md:text-base">
-                        Dicas de gestão inteligente, novidades do system e conteúdos exclusivos no nosso Instagram.
-                    </p>
-                </div>
-
                 <a
                     href="https://www.instagram.com/nucleobase.app/"
                     target="_blank"
@@ -858,12 +774,10 @@ export default function CondoAdm() {
                 >
                     <div className="relative">
                         <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
-
                         <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
                             <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
                         </div>
                     </div>
-
                     <div className="flex flex-col items-center">
                         <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
                         <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>

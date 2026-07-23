@@ -32,26 +32,22 @@ interface UserMemberData {
 }
 
 export default function CondoDashboard() {
-    // Estados de Autenticação e Carregamento
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [authLoading, setAuthLoading] = useState(false);
 
-    // Estados do Formulário de Login
     const [emailOrSlug, setEmailOrSlug] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [loginError, setLoginError] = useState("");
 
-    // Dados do Vínculo do Morador/Síndico
     const [memberData, setMemberData] = useState<UserMemberData | null>(null);
 
-    // Função centralizada para verificar sessão e carregar permissões de forma robusta
+    // Consulta unificada e flexível: Prioriza síndico mas aceita o vínculo ativo sem travar papéis
     const fetchMemberPermissionsAndSession = async () => {
         try {
             setLoading(true);
 
-            // 1. Obtém a sessão diretamente de forma síncrona do cliente Supabase
             const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
 
             if (sessionError || !currentSession) {
@@ -64,17 +60,16 @@ export default function CondoDashboard() {
             setSession(currentSession);
             const userId = currentSession.user.id;
 
-            // 2. Busca permissão priorizando explicitamente o papel de "sindico" e ordenando pelo mais recente
             const { data, error } = await supabase
                 .from("condominio_membros")
                 .select(`
                     role,
                     unidade,
+                    acesso_app,
                     condominio:condominios ( nome )
                 `)
                 .eq("user_id", userId)
-                .eq("acesso_app", true)
-                .order("role", { ascending: false }) // 'sindico' vem antes de 'morador' alfabeticamente/desc
+                .order("role", { ascending: false }) // 'sindico' vem antes de 'morador'
                 .order("criado_em", { ascending: false })
                 .limit(1);
 
@@ -94,10 +89,8 @@ export default function CondoDashboard() {
     };
 
     useEffect(() => {
-        // Executa imediatamente ao carregar a página
         fetchMemberPermissionsAndSession();
 
-        // Monitora alterações futuras de autenticação
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
             if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
                 await fetchMemberPermissionsAndSession();
@@ -111,14 +104,12 @@ export default function CondoDashboard() {
         return () => subscription.unsubscribe();
     }, []);
 
-    // Login suportando tanto E-mail real quanto Slug (ID do Usuário)
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setAuthLoading(true);
         setLoginError("");
 
         let emailParaAuth = emailOrSlug.trim();
-
         if (!emailParaAuth.includes("@")) {
             emailParaAuth = `${emailParaAuth.toLowerCase()}@nucleobase.app`;
         }
@@ -144,8 +135,6 @@ export default function CondoDashboard() {
         setLoading(true);
         await supabase.auth.signOut();
     };
-
-    // --- RENDERS ---
 
     if (loading) {
         return (
@@ -229,16 +218,10 @@ export default function CondoDashboard() {
                         <p className="text-sm text-zinc-500 leading-relaxed">
                             O e-mail <span className="font-bold text-zinc-800">{session.user.email}</span> está logado na Nucleobase, mas ainda não foi autorizado em nenhum condomínio.
                         </p>
-                        <p className="text-xs text-zinc-400">
-                            Solicite à Administração que associe este ID de usuário ao sistema.
-                        </p>
                     </div>
                     <div className="pt-4 border-t border-zinc-100 flex gap-4">
-                        <a href="/minha-conta" className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-xs transition-colors">
-                            Ir para Finanças Pessoais
-                        </a>
-                        <button onClick={handleLogout} className="px-4 py-3 border border-zinc-200 rounded-xl hover:bg-zinc-50 text-zinc-600 font-bold text-xs transition-colors">
-                            Sair
+                        <button onClick={handleLogout} className="w-full px-4 py-3 border border-zinc-200 rounded-xl hover:bg-zinc-50 text-zinc-600 font-bold text-xs transition-colors">
+                            Sair / Trocar Conta
                         </button>
                     </div>
                 </div>
@@ -293,7 +276,6 @@ export default function CondoDashboard() {
 
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-6 md:p-10">
-            {/* Header do Dashboard */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-6 mb-10">
                 <div>
                     <div className="flex items-center gap-2">
@@ -302,21 +284,16 @@ export default function CondoDashboard() {
                     <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1">{memberData?.condominio?.nome || "Condomínio"}</h1>
                 </div>
 
-                {/* Botão de Voltar Minimalista Premium */}
                 <button
                     onClick={() => window.history.back()}
                     className="group relative flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 self-start md:self-auto overflow-hidden"
                 >
                     <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
-                    <ArrowLeft
-                        size={12}
-                        className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out"
-                    />
+                    <ArrowLeft size={12} className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out" />
                     <span>Voltar</span>
                 </button>
             </div>
 
-            {/* Grid de Módulos (Produtos de Gestão) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl">
                 {modulos.map((modulo, idx) => (
                     <Link
@@ -347,24 +324,13 @@ export default function CondoDashboard() {
                 ))}
             </div>
 
-            {/* LINHA DIVISÓRIA CONECTE-SE */}
             <div className="mt-24 flex items-center gap-4 mb-12">
                 <div className="h-px bg-gray-200 flex-1"></div>
                 <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
                 <div className="h-px bg-gray-200 flex-1"></div>
             </div>
 
-            {/* BLOCO INSTAGRAM */}
             <div className="flex flex-col items-center text-center">
-                <div className="max-w-3xl mb-12">
-                    <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
-                        Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
-                    </h4>
-                    <p className="text-gray-500 font-medium text-sm md:text-base">
-                        Dicas de gestão inteligente, novidades do systema e conteúdos exclusivos no nosso Instagram.
-                    </p>
-                </div>
-
                 <a
                     href="https://www.instagram.com/nucleobase.app/"
                     target="_blank"
@@ -373,12 +339,10 @@ export default function CondoDashboard() {
                 >
                     <div className="relative">
                         <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
-
                         <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
                             <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
                         </div>
                     </div>
-
                     <div className="flex flex-col items-center">
                         <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
                         <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
