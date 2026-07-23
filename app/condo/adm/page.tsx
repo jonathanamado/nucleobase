@@ -16,7 +16,11 @@ import {
     ArrowLeft,
     Instagram,
     KeyRound,
-    Rocket
+    Rocket,
+    LifeBuoy,
+    Mail,
+    X,
+    ArrowRight
 } from "lucide-react";
 
 const supabase = createClient(
@@ -48,6 +52,11 @@ export default function CondoAdm() {
     const [password, setPassword] = useState("");
     const [loginError, setLoginError] = useState("");
 
+    // Modal de Recuperação de Senha ("Esqueceu a senha")
+    const [showForgotModal, setShowForgotModal] = useState(false);
+    const [resetEmail, setResetEmail] = useState("");
+    const [resetLoading, setResetLoading] = useState(false);
+
     // Dados do Condomínio e Vínculo
     const [condominio, setCondominio] = useState<{ id: string; nome: string } | null>(null);
     const [moradores, setMoradores] = useState<Morador[]>([]);
@@ -56,7 +65,7 @@ export default function CondoAdm() {
     const [criandoGestao, setCriandoGestao] = useState(false);
     const [novoCondoNomeInput, setNovoCondoNomeInput] = useState("");
     const [novoCondoCnpjInput, setNovoCondoCnpjInput] = useState("");
-    const [novaUnidadeSindicoInput, setNovaUnidadeSindicoInput] = useState("Administração");
+    const [novaUnidadeSindicoInput, setNovaUnidadeSindicoInput] = useState("Adm");
 
     // Formulário para Adicionar Morador
     const [novoMoradorNome, setNovoMoradorNome] = useState("");
@@ -70,6 +79,14 @@ export default function CondoAdm() {
     const [editandoId, setEditandoId] = useState<string | null>(null);
     const [editandoNome, setEditandoNome] = useState("");
     const [editandoSemEmail, setEditandoSemEmail] = useState(false);
+
+    // Função Auxiliar: Formata nome completo para retornar apenas o primeiro e o último nome
+    const formatarNomePrimeiroEUltimo = (nomeCompleto: string) => {
+        if (!nomeCompleto) return "";
+        const partes = nomeCompleto.trim().split(/\s+/);
+        if (partes.length <= 1) return partes[0] || "";
+        return `${partes[0]} ${partes[partes.length - 1]}`;
+    };
 
     // Verificação robusta unificada: Prioriza síndico, mas aceita vínculo ativo para evitar bloqueio cruzado
     const verifySindicoAndLoadData = async () => {
@@ -89,7 +106,6 @@ export default function CondoAdm() {
             setSession(currentSession);
             const userId = currentSession.user.id;
 
-            // Busca vínculos ordenando por privilégio (sindico primeiro) e acesso liberado
             const { data: membroDataList, error: membroError } = await supabase
                 .from("condominio_membros")
                 .select(`
@@ -99,7 +115,7 @@ export default function CondoAdm() {
                     condominio:condominios ( id, nome )
                 `)
                 .eq("user_id", userId)
-                .order("role", { ascending: false }) // 'sindico' tem precedência sobre 'morador'
+                .order("role", { ascending: false })
                 .order("criado_em", { ascending: false })
                 .limit(1);
 
@@ -199,6 +215,21 @@ export default function CondoAdm() {
         setAuthLoading(false);
     };
 
+    const handleForgotPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setResetLoading(true);
+        const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+            redirectTo: "https://nucleobase.app/reset-password",
+        });
+
+        if (error) alert("Erro: " + error.message);
+        else {
+            alert("Link de recuperação enviado com sucesso!");
+            setShowForgotModal(false);
+        }
+        setResetLoading(false);
+    };
+
     const handleIniciarGestaoPropria = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!session || !session.user) return;
@@ -207,7 +238,7 @@ export default function CondoAdm() {
         try {
             const nomeCondo = novoCondoNomeInput.trim() || "Meu Condomínio";
             const cnpjCondo = novoCondoCnpjInput.trim() || null;
-            const unidadeGestor = novaUnidadeSindicoInput.trim() || "Administração";
+            const unidadeGestor = novaUnidadeSindicoInput.trim().toLowerCase() === "administração" ? "Adm" : (novaUnidadeSindicoInput.trim() || "Adm");
 
             const { data: novoCondo, error: condoError } = await supabase
                 .from("condominios")
@@ -255,7 +286,12 @@ export default function CondoAdm() {
 
         setEditandoSemEmail(semEmail);
         setNovoMoradorEmail(semEmail ? "Cadastro sem e-mail" : emailContato);
-        setNovoMoradorUnidade(morador.unidade);
+
+        let unidadeTratada = morador.unidade;
+        if (unidadeTratada.trim().toLowerCase() === "administração") {
+            unidadeTratada = "Adm";
+        }
+        setNovoMoradorUnidade(unidadeTratada);
         setAutorizadoApp(morador.acesso_app);
     };
 
@@ -280,11 +316,13 @@ export default function CondoAdm() {
         setFormSuccess("");
 
         try {
+            const unidadeFinal = novoMoradorUnidade.trim().toLowerCase() === "administração" ? "Adm" : novoMoradorUnidade.trim();
+
             if (editandoId) {
                 const { error: updateError } = await supabase
                     .from("condominio_membros")
                     .update({
-                        unidade: novoMoradorUnidade.trim(),
+                        unidade: unidadeFinal,
                         acesso_app: autorizadoApp
                     })
                     .eq("id", editandoId);
@@ -304,7 +342,7 @@ export default function CondoAdm() {
                         .eq("id", moradorAtual.user_id);
                 }
 
-                setFormSuccess(`Sucesso! Os dados de ${editandoNome} foram atualizados.`);
+                setFormSuccess(`Sucesso! Os dados de ${formatarNomePrimeiroEUltimo(editandoNome)} foram atualizados.`);
                 cancelarEdicao();
             } else {
                 const nomeFormatado = novoMoradorNome.trim();
@@ -377,7 +415,7 @@ export default function CondoAdm() {
                             condominio_id: condominio.id,
                             user_id: targetUserId,
                             role: "morador",
-                            unidade: novoMoradorUnidade.trim(),
+                            unidade: unidadeFinal,
                             acesso_app: autorizadoApp
                         }
                     ]);
@@ -392,7 +430,7 @@ export default function CondoAdm() {
                     return;
                 }
 
-                setFormSuccess(`Sucesso! ${nomeFormatado} foi registrado.`);
+                setFormSuccess(`Sucesso! ${formatarNomePrimeiroEUltimo(nomeFormatado)} foi registrado.`);
                 setNovoMoradorNome("");
                 setNovoMoradorEmail("");
                 setNovoMoradorUnidade("");
@@ -471,6 +509,16 @@ export default function CondoAdm() {
                             />
                         </div>
 
+                        <div className="flex justify-end pr-1">
+                            <button
+                                type="button"
+                                onClick={() => setShowForgotModal(true)}
+                                className="text-[10px] text-zinc-400 font-bold hover:text-blue-600 transition-colors"
+                            >
+                                Esqueceu a senha?
+                            </button>
+                        </div>
+
                         {loginError && (
                             <p className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 p-3 rounded-xl text-center">
                                 {loginError}
@@ -486,6 +534,51 @@ export default function CondoAdm() {
                         </button>
                     </form>
                 </div>
+
+                {/* MODAL: RECOVERY PASSWORD */}
+                {showForgotModal && (
+                    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
+                            <button
+                                onClick={() => setShowForgotModal(false)}
+                                className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-colors"
+                            >
+                                <X size={20} />
+                            </button>
+
+                            <div className="flex flex-col items-center text-center">
+                                <div className="bg-blue-50 p-4 rounded-2xl text-blue-600 mb-4">
+                                    <LifeBuoy size={32} />
+                                </div>
+                                <h2 className="text-xl font-black text-gray-900 tracking-tight mb-2">Recuperar Acesso</h2>
+                                <p className="text-gray-500 text-xs mb-6">
+                                    Informe seu e-mail cadastrado para receber um link de redefinição de senha.
+                                </p>
+
+                                <form onSubmit={handleForgotPassword} className="w-full space-y-4">
+                                    <div className="relative group text-left">
+                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                                        <input
+                                            type="email"
+                                            required
+                                            placeholder="seu@email.com"
+                                            value={resetEmail}
+                                            onChange={(e) => setResetEmail(e.target.value)}
+                                            className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-blue-100 outline-none text-sm"
+                                        />
+                                    </div>
+                                    <button
+                                        disabled={resetLoading}
+                                        className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-100 text-xs flex items-center justify-center gap-2 disabled:opacity-50"
+                                    >
+                                        {resetLoading ? "Enviando..." : "Enviar Link de Acesso"}
+                                        <ArrowRight size={16} />
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
@@ -532,7 +625,7 @@ export default function CondoAdm() {
                             <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Unidade / Identificação do Gestor</label>
                             <input
                                 type="text"
-                                placeholder="Ex: Administração ou Apto 101"
+                                placeholder="Ex: Adm ou Apto 101"
                                 required
                                 value={novaUnidadeSindicoInput}
                                 onChange={(e) => setNovaUnidadeSindicoInput(e.target.value)}
@@ -567,18 +660,21 @@ export default function CondoAdm() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-6 mb-10">
                 <div className="flex flex-col md:flex-row md:items-center gap-6 w-full justify-between">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20">
+                        <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/25">
                             <Building2 size={24} />
                         </div>
                         <div>
-                            <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Painel do Síndico - Controle de cadastro e acesso</span>
+                            <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">
+                                <span className="md:hidden">Controle de acesso</span>
+                                <span className="hidden md:inline">Painel do Síndico - Controle de cadastro e acesso</span>
+                            </span>
                             <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1">{condominio?.nome}</h1>
                         </div>
                     </div>
 
                     <button
                         onClick={() => window.history.back()}
-                        className="group relative flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 self-start md:self-auto overflow-hidden"
+                        className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 overflow-hidden"
                     >
                         <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
                         <ArrowLeft size={12} className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out" />
@@ -675,8 +771,11 @@ export default function CondoAdm() {
                             <Users className="text-blue-600" size={24} />
                             <h2 className="font-bold text-lg">Moradores Vinculados</h2>
                         </div>
-                        <span className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1 rounded-full">
+                        <span className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1 rounded-full hidden md:inline-block">
                             {moradores.length} Usuário(s)
+                        </span>
+                        <span className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1 rounded-full md:hidden">
+                            {moradores.length}
                         </span>
                     </div>
 
@@ -698,12 +797,19 @@ export default function CondoAdm() {
                                 <tbody className="divide-y divide-zinc-50">
                                     {moradores.map((morador) => {
                                         const isSemEmail = morador.profile?.email_contato?.startsWith("pendente.morador.");
+                                        const nomeExibicaoOriginal = morador.profile?.nome_completo || "Sem Nome";
+                                        const unidadeOriginal = morador.unidade || "";
+
+                                        const nomeExibicaoFinal = unidadeOriginal.trim().toLowerCase() === "administração" ? "Adm" : formatarNomePrimeiroEUltimo(nomeExibicaoOriginal);
+
                                         return (
                                             <tr key={morador.id} className={`group transition-colors ${editandoId === morador.id ? 'bg-indigo-50/30' : ''}`}>
-                                                <td className="py-3 text-sm font-bold text-zinc-900">{morador.unidade}</td>
+                                                <td className="py-3 text-sm font-bold text-zinc-900">
+                                                    {unidadeOriginal.trim().toLowerCase() === "administração" ? "Adm" : unidadeOriginal}
+                                                </td>
                                                 <td className="py-3">
                                                     <div className="text-sm font-bold text-zinc-800 leading-tight">
-                                                        {morador.profile?.nome_completo || "Sem Nome"}
+                                                        {nomeExibicaoFinal}
                                                     </div>
                                                     <div className="mt-1">
                                                         {isSemEmail ? (
