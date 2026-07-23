@@ -153,36 +153,41 @@ export default function AcessoUsuarioPage() {
     e.preventDefault();
     setFirstAccessLoading(true);
 
-    const inputSlug = firstAccessSlug.trim().toLowerCase();
+    const inputSlug = firstAccessSlug.trim(); // Remove espaços mantendo a estrutura original gerada
     const inputEmailReal = firstAccessRealEmail.trim().toLowerCase();
 
     try {
-      // 1. Localiza o usuário correspondente ao slug na tabela profiles para obter o ID
+      // 1. Localiza o usuário correspondente ao slug ignorando case-sensitivity se necessário, ou buscando exato
+      // Dica: Se o banco armazena em minúsculo, use .toLowerCase(), senão remova para busca exata.
       const { data: profileData, error: profileQueryError } = await supabase
         .from('profiles')
-        .select('id')
-        .eq('slug', inputSlug)
+        .select('id, slug')
+        .ilike('slug', inputSlug) // .ilike busca independentemente de maiúsculas/minúsculas
         .maybeSingle();
 
       if (profileQueryError) throw profileQueryError;
 
-      if (profileData && profileData.id) {
-        // 2. Atualiza diretamente o e-mail de contato na tabela profiles conforme solicitado
-        const { error: updateProfileError } = await supabase
-          .from('profiles')
-          .update({ email_contato: inputEmailReal })
-          .eq('id', profileData.id);
-
-        if (updateProfileError) {
-          console.error("Erro ao atualizar profiles:", updateProfileError);
-        }
+      if (!profileData || !profileData.id) {
+        alert("ID de Usuário (slug) não localizado no sistema. Verifique a chave informada.");
+        setFirstAccessLoading(false);
+        return;
       }
 
-      // 3. Executa a requisição para o endpoint de onboarding/ativação
+      // 2. Atualiza diretamente o e-mail de contato na tabela profiles
+      const { error: updateProfileError } = await supabase
+        .from('profiles')
+        .update({ email_contato: inputEmailReal })
+        .eq('id', profileData.id);
+
+      if (updateProfileError) {
+        console.error("Erro ao atualizar profiles:", updateProfileError);
+      }
+
+      // 3. Executa a requisição para o endpoint de onboarding/ativação usando o slug real encontrado no banco
       const response = await fetch("/auth/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug: inputSlug, realEmail: inputEmailReal }),
+        body: JSON.stringify({ slug: profileData.slug, realEmail: inputEmailReal }),
       });
 
       const responseData = await response.json();
