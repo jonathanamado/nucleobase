@@ -15,7 +15,12 @@ import {
     Users,
     MessageSquarePlus,
     ArrowLeft,
-    Instagram
+    Instagram,
+    Building2,
+    LifeBuoy,
+    Mail,
+    X,
+    ArrowRight
 } from "lucide-react";
 
 const supabase = createClient(
@@ -40,6 +45,11 @@ export default function CondoDashboard() {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [loginError, setLoginError] = useState("");
+
+    // Modal de Recuperação de Senha ("Esqueceu a senha")
+    const [showForgotModal, setShowForgotModal] = useState(false);
+    const [resetEmail, setResetEmail] = useState("");
+    const [resetLoading, setResetLoading] = useState(false);
 
     const [memberData, setMemberData] = useState<UserMemberData | null>(null);
 
@@ -131,6 +141,21 @@ export default function CondoDashboard() {
         setAuthLoading(false);
     };
 
+    const handleForgotPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setResetLoading(true);
+        const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+            redirectTo: "https://nucleobase.app/reset-password",
+        });
+
+        if (error) alert("Erro: " + error.message);
+        else {
+            alert("Link de recuperação enviado com sucesso!");
+            setShowForgotModal(false);
+        }
+        setResetLoading(false);
+    };
+
     const handleLogout = async () => {
         setLoading(true);
         await supabase.auth.signOut();
@@ -187,6 +212,16 @@ export default function CondoDashboard() {
                             </div>
                         </div>
 
+                        <div className="flex justify-end pr-1">
+                            <button
+                                type="button"
+                                onClick={() => setShowForgotModal(true)}
+                                className="text-[10px] text-zinc-400 font-bold hover:text-blue-600 transition-colors"
+                            >
+                                Esqueceu a senha?
+                            </button>
+                        </div>
+
                         {loginError && (
                             <p className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 p-3 rounded-xl text-center">
                                 {loginError}
@@ -202,6 +237,51 @@ export default function CondoDashboard() {
                         </button>
                     </form>
                 </div>
+
+                {/* MODAL: RECOVERY PASSWORD */}
+                {showForgotModal && (
+                    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
+                            <button
+                                onClick={() => setShowForgotModal(false)}
+                                className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-colors"
+                            >
+                                <X size={20} />
+                            </button>
+
+                            <div className="flex flex-col items-center text-center">
+                                <div className="bg-blue-50 p-4 rounded-2xl text-blue-600 mb-4">
+                                    <LifeBuoy size={32} />
+                                </div>
+                                <h2 className="text-xl font-black text-gray-900 tracking-tight mb-2">Recuperar Acesso</h2>
+                                <p className="text-gray-500 text-xs mb-6">
+                                    Informe seu e-mail cadastrado para receber um link de redefinição de senha.
+                                </p>
+
+                                <form onSubmit={handleForgotPassword} className="w-full space-y-4">
+                                    <div className="relative group text-left">
+                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                                        <input
+                                            type="email"
+                                            required
+                                            placeholder="seu@email.com"
+                                            value={resetEmail}
+                                            onChange={(e) => setResetEmail(e.target.value)}
+                                            className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-blue-100 outline-none text-sm"
+                                        />
+                                    </div>
+                                    <button
+                                        disabled={resetLoading}
+                                        className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-100 text-xs flex items-center justify-center gap-2 disabled:opacity-50"
+                                    >
+                                        {resetLoading ? "Enviando..." : "Enviar Link de Acesso"}
+                                        <ArrowRight size={16} />
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
@@ -232,42 +312,48 @@ export default function CondoDashboard() {
     const modulos = [
         {
             title: "Prestação de Contas",
-            desc: "Balancetes mensais, gráficos de receitas vs. despesas e relatórios acumulados.",
+            desc: "Balancetes mensais e gráficos de receitas vs. despesas.",
+            shortDesc: "Balancetes e relatórios financeiros.",
             icon: <Wallet className="text-emerald-500" size={24} />,
             badge: "Financeiro",
             path: "/condo/dashboard/prestacao-de-contas"
         },
         {
-            title: "Cadastro de Moradores",
-            desc: "Acesso e controle simplificado da lista de residentes autorizados no condomínio.",
+            title: "Consulta de Moradores",
+            desc: "Controle simplificado da lista de residentes autorizados.",
+            shortDesc: "Gestão de residentes autorizados.",
             icon: <Users className="text-indigo-500" size={24} />,
             badge: "Administrativo",
             path: "/condo/dashboard/cadastro-moradores"
         },
         {
-            title: "Boletos e 2ª Via",
-            desc: "Suporte em Emissão de taxas condominiais ordinárias, fundos de reserva e taxas extras.",
+            title: "Suporte 2ª Via de Boletos",
+            desc: "Emissão de taxas condominiais, fundos de reserva e taxas extras.",
+            shortDesc: "Apoio em emissão e 2ª via de boletos.",
             icon: <FileText className="text-blue-500" size={24} />,
             badge: "Cobranças",
             path: "/condo/dashboard/boletos-segunda-via"
         },
         {
-            title: "Reserva de Espaços",
-            desc: "Agendamento de salão de festas, churrasqueira e espaço gourmet sem conflitos.",
+            title: "Reservas Área Gourmet",
+            desc: "Agendamento de salão de festas, churrasqueira e espaço gourmet.",
+            shortDesc: "Agendamento de áreas comuns.",
             icon: <CalendarDays className="text-purple-500" size={24} />,
             badge: "Operacional",
             path: "/condo/dashboard/reserva-de-espacos"
         },
         {
             title: "Enquetes e Decisões",
-            desc: "Assembleias virtuais, votações rápidas de melhorias e decisões do conselho.",
+            desc: "Assembleias virtuais e votações rápidas de melhorias.",
+            shortDesc: "Assembleias e votações rápidas.",
             icon: <Vote className="text-amber-500" size={24} />,
             badge: "Comunidade",
             path: "/condo/dashboard/enquetes-e-decisoes"
         },
         {
             title: "Ocorrências e Sugestões",
-            desc: "Livro de ocorrência digital para registrar formalmente elogios, críticas ou solicitações de manutenção.",
+            desc: "Livro digital para registrar elogios, críticas ou solicitações.",
+            shortDesc: "Livro de ocorrências digital.",
             icon: <MessageSquarePlus className="text-rose-500" size={24} />,
             badge: "Ouvidoria",
             path: "/condo/dashboard/ocorrencias-e-sugestoes"
@@ -276,48 +362,55 @@ export default function CondoDashboard() {
 
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-6 md:p-10">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-6 mb-10">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-6 mb-4">
                 <div>
                     <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Painel do Condomínio - Funcionalidades da Plataforma</span>
+                        <Building2 className="text-blue-600" size={18} />
+                        <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">
+                            <span className="md:hidden">Painel de Gestão - Nucleo Condo</span>
+                            <span className="hidden md:inline">Painel do Condomínio - Funcionalidades da Plataforma</span>
+                        </span>
                     </div>
-                    <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1">{memberData?.condominio?.nome || "Condomínio"}</h1>
+                    <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1 hidden md:block">{memberData?.condominio?.nome || "Condomínio"}</h1>
                 </div>
-
-                <button
-                    onClick={() => window.history.back()}
-                    className="group relative flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 self-start md:self-auto overflow-hidden"
-                >
-                    <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
-                    <ArrowLeft size={12} className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out" />
-                    <span>Voltar</span>
-                </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl">
+            {/* Mini contexto de boas-vindas após a linha divisória */}
+            <p className="text-xs md:text-sm text-zinc-500 font-medium mb-10">
+                Seja bem-vindo(a) ao <span className="font-bold text-zinc-800">{memberData?.condominio?.nome || "Condomínio"}</span>! Explore abaixo as ferramentas integradas da plataforma.
+            </p>
+
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-4 md:gap-6 max-w-6xl">
                 {modulos.map((modulo, idx) => (
                     <Link
                         key={idx}
                         href={modulo.path}
-                        className="bg-white border border-zinc-150 p-6 md:p-8 rounded-[2rem] shadow-sm hover:shadow-md transition-all group cursor-pointer flex flex-col justify-between"
+                        className="bg-white border border-zinc-150 p-4 md:p-8 rounded-[1.5rem] md:rounded-[2rem] shadow-sm hover:shadow-md transition-all group cursor-pointer flex flex-col justify-between"
                     >
                         <div>
-                            <div className="flex items-center justify-between mb-6">
-                                <div className="p-3 bg-zinc-50 rounded-2xl group-hover:bg-zinc-900/5 transition-colors">
-                                    {modulo.icon}
+                            <div className="flex items-center justify-between mb-3 md:mb-6">
+                                <div className="p-2 md:p-3 bg-zinc-50 rounded-xl md:rounded-2xl group-hover:bg-zinc-900/5 transition-colors">
+                                    {React.cloneElement(modulo.icon, {
+                                        className: `${modulo.icon.props.className} w-5 h-5 md:w-6 md:h-6`
+                                    })}
                                 </div>
-                                <span className="text-[10px] font-black uppercase tracking-wider text-zinc-400 bg-zinc-100 px-2.5 py-1 rounded-full">
-                                    {modulo.badge}
-                                </span>
+                                <div className="w-full flex justify-end md:justify-end">
+                                    <span className="text-[7.5px] md:text-[10px] font-black uppercase tracking-wider text-zinc-400 bg-zinc-100 px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-full text-center truncate max-w-[75px] md:max-w-none">
+                                        {modulo.badge}
+                                    </span>
+                                </div>
                             </div>
-                            <h3 className="font-bold text-lg text-zinc-900 mb-2 group-hover:text-blue-600 transition-colors">
+                            <h3 className="font-bold text-sm md:text-lg text-zinc-900 mb-1 md:mb-2 group-hover:text-blue-600 transition-colors">
                                 {modulo.title}
                             </h3>
-                            <p className="text-sm text-zinc-500 leading-relaxed">
+                            <p className="text-xs md:text-sm text-zinc-500 leading-relaxed block md:hidden">
+                                {modulo.shortDesc}
+                            </p>
+                            <p className="text-xs md:text-sm text-zinc-500 leading-relaxed hidden md:block">
                                 {modulo.desc}
                             </p>
                         </div>
-                        <div className="mt-6 pt-4 border-t border-zinc-100 flex items-center text-xs font-bold text-blue-600">
+                        <div className="mt-4 md:mt-6 pt-3 md:pt-4 border-t border-zinc-100 flex items-center text-[10px] md:text-xs font-bold text-blue-600">
                             Acessar ferramenta →
                         </div>
                     </Link>

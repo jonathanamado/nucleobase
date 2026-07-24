@@ -39,6 +39,14 @@ export default function ListaMoradoresCondomino() {
     const [moradores, setMoradores] = useState<Morador[]>([]);
     const [filtroBusca, setFiltroBusca] = useState("");
 
+    // Função Auxiliar: Formata nome completo para retornar apenas o primeiro e o último nome
+    const formatarNomePrimeiroEUltimo = (nomeCompleto: string) => {
+        if (!nomeCompleto) return "";
+        const partes = nomeCompleto.trim().split(/\s+/);
+        if (partes.length <= 1) return partes[0] || "";
+        return `${partes[0]} ${partes[partes.length - 1]}`;
+    };
+
     const loadDadosCondominio = async (currentSession: any) => {
         try {
             if (!currentSession) {
@@ -197,9 +205,9 @@ export default function ListaMoradoresCondomino() {
 
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-6 md:p-10">
-            <div className="max-w-5xl mx-auto space-y-10">
+            <div className="max-w-5xl mx-auto space-y-8">
 
-                {/* Header Integrado com Botão Voltar Premium */}
+                {/* Header Integrado com Botão Voltar Premium (Retirado no mobile via hidden md:flex) */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-6">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
@@ -213,7 +221,7 @@ export default function ListaMoradoresCondomino() {
 
                     <button
                         onClick={() => window.history.back()}
-                        className="group relative flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 self-start md:self-auto overflow-hidden"
+                        className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 self-start md:self-auto overflow-hidden"
                     >
                         <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
                         <ArrowLeft
@@ -224,8 +232,14 @@ export default function ListaMoradoresCondomino() {
                     </button>
                 </div>
 
-                {/* Seção da Barra de Busca + Totalizador Alinhado */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                {/* Seção Totalizador + Contexto + Barra de Busca reposicionada abaixo */}
+                <div className="space-y-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                        <span className="text-xs text-zinc-500 font-medium">
+                            Consulte abaixo a lista atualizada de condôminos e unidades vinculadas:
+                        </span>
+                    </div>
+
                     <div className="relative w-full max-w-md">
                         <input
                             type="text"
@@ -235,12 +249,6 @@ export default function ListaMoradoresCondomino() {
                             className="w-full h-12 pl-12 pr-6 bg-white border border-zinc-200 rounded-2xl outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-sm font-medium shadow-sm"
                         />
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
-                    </div>
-
-                    <div className="text-left md:text-right">
-                        <span className="text-[11px] font-black text-zinc-400 uppercase tracking-wider">
-                            Total de Membros: <span className="text-sm text-zinc-800 font-black ml-1">{moradoresProcessados.length}</span>
-                        </span>
                     </div>
                 </div>
 
@@ -252,29 +260,41 @@ export default function ListaMoradoresCondomino() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {moradoresProcessados.map((morador) => (
-                            <div
-                                key={morador.id}
-                                className="bg-white border border-zinc-150 p-6 rounded-[2rem] shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
-                            >
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-2.5 py-1 rounded-full">
-                                            Unidade {morador.unidade.replace(/apto/i, "").trim()}
-                                        </span>
-                                    </div>
+                        {moradoresProcessados.map((morador) => {
+                            const roleLower = (morador.role || "").toLowerCase();
+                            const isSindicoOuSubsindico = roleLower === "sindico" || roleLower === "subsindico";
+                            const unidadeLimpa = morador.unidade.replace(/apto/i, "").trim();
 
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-zinc-50 rounded-xl flex items-center justify-center text-zinc-400 shrink-0 border border-zinc-100">
-                                            <UserCircle size={24} />
+                            const badgeTexto = isSindicoOuSubsindico
+                                ? `Unidade ADM - ${unidadeLimpa}`
+                                : `Unidade ${unidadeLimpa}`;
+
+                            return (
+                                <div
+                                    key={morador.id}
+                                    className="bg-white border border-zinc-150 p-6 rounded-[2rem] shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                                >
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-2.5 py-1 rounded-full">
+                                                {badgeTexto}
+                                            </span>
                                         </div>
-                                        <div className="min-w-0">
-                                            <h4 className="font-bold text-zinc-900 truncate">{morador.profile?.nome_completo || "Sem Nome"}</h4>
+
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-zinc-50 rounded-xl flex items-center justify-center text-zinc-400 shrink-0 border border-zinc-100">
+                                                <UserCircle size={24} />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <h4 className="font-bold text-zinc-900 truncate">
+                                                    {formatarNomePrimeiroEUltimo(morador.profile?.nome_completo || "Sem Nome")}
+                                                </h4>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
 

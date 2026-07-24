@@ -665,7 +665,7 @@ export default function CondoAdm() {
                         </div>
                         <div>
                             <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">
-                                <span className="md:hidden">Controle de acesso</span>
+                                <span className="md:hidden">Controle de acessos</span>
                                 <span className="hidden md:inline">Painel do Síndico - Controle de cadastro e acesso</span>
                             </span>
                             <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1">{condominio?.nome}</h1>
@@ -771,12 +771,6 @@ export default function CondoAdm() {
                             <Users className="text-blue-600" size={24} />
                             <h2 className="font-bold text-lg">Moradores Vinculados</h2>
                         </div>
-                        <span className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1 rounded-full hidden md:inline-block">
-                            {moradores.length} Usuário(s)
-                        </span>
-                        <span className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1 rounded-full md:hidden">
-                            {moradores.length}
-                        </span>
                     </div>
 
                     {moradores.length === 0 ? (
@@ -788,10 +782,10 @@ export default function CondoAdm() {
                             <table className="w-full text-left border-collapse">
                                 <thead className="sticky top-0 bg-white z-15">
                                     <tr className="border-b border-zinc-100 bg-white">
-                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider bg-white">Unidade</th>
-                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider bg-white">Nome do Morador</th>
-                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider hidden md:table-cell bg-white">App</th>
-                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider text-right bg-white">Ações</th>
+                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider bg-white align-top">Unidade</th>
+                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider bg-white align-top">Nome do Morador</th>
+                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider hidden md:table-cell bg-white align-top">App</th>
+                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider text-right bg-white align-top">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-zinc-50">
@@ -799,24 +793,24 @@ export default function CondoAdm() {
                                         const isSemEmail = morador.profile?.email_contato?.startsWith("pendente.morador.");
                                         const nomeExibicaoOriginal = morador.profile?.nome_completo || "Sem Nome";
                                         const unidadeOriginal = morador.unidade || "";
+                                        const isAdm = unidadeOriginal.trim().toLowerCase() === "administração" || unidadeOriginal.trim().toLowerCase() === "adm";
 
-                                        const nomeExibicaoFinal = unidadeOriginal.trim().toLowerCase() === "administração" ? "Adm" : formatarNomePrimeiroEUltimo(nomeExibicaoOriginal);
+                                        const nomeExibicaoFinal = isAdm ? formatarNomePrimeiroEUltimo(nomeExibicaoOriginal) : formatarNomePrimeiroEUltimo(nomeExibicaoOriginal);
 
                                         return (
                                             <tr key={morador.id} className={`group transition-colors ${editandoId === morador.id ? 'bg-indigo-50/30' : ''}`}>
-                                                <td className="py-3 text-sm font-bold text-zinc-900">
-                                                    {unidadeOriginal.trim().toLowerCase() === "administração" ? "Adm" : unidadeOriginal}
+                                                <td className="py-3 text-sm font-bold text-zinc-900 align-top">
+                                                    {isAdm ? "Adm" : unidadeOriginal}
                                                 </td>
-                                                <td className="py-3">
+                                                <td className="py-3 align-top">
                                                     <div className="text-sm font-bold text-zinc-800 leading-tight">
                                                         {nomeExibicaoFinal}
                                                     </div>
                                                     <div className="mt-1">
                                                         {isSemEmail ? (
-                                                            <span className="inline-flex items-center gap-1.5 text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200/60 px-2 py-0.5 rounded-md shadow-sm">
-                                                                <KeyRound size={10} className="text-amber-500" />
-                                                                Id: <span className="font-mono bg-amber-100/70 px-1 rounded select-all">{morador.profile?.slug}</span>
-                                                            </span>
+                                                            <div className="text-[9px] text-zinc-400 font-semibold tracking-wide">
+                                                                ID: {morador.profile?.slug}
+                                                            </div>
                                                         ) : (
                                                             <div className="text-[9px] text-zinc-400 font-semibold tracking-wide">
                                                                 {mascararEmail(morador.profile?.email_contato)}
@@ -824,7 +818,7 @@ export default function CondoAdm() {
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="py-3 hidden md:table-cell">
+                                                <td className="py-3 hidden md:table-cell align-top">
                                                     {morador.acesso_app ? (
                                                         <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md">
                                                             <Smartphone size={10} /> Ativo
@@ -835,7 +829,7 @@ export default function CondoAdm() {
                                                         </span>
                                                     )}
                                                 </td>
-                                                <td className="py-3 text-right">
+                                                <td className="py-3 text-right align-top">
                                                     <div className="flex items-center justify-end gap-1">
                                                         <button
                                                             onClick={() => iniciarEdicao(morador)}

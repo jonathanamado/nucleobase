@@ -256,18 +256,6 @@ export default function NucleobaseCondo() {
     return (
         <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
 
-            {/* Botões Prioritários Mobile */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full mb-8 mt-4 md:hidden">
-                <a href="/condo/adm" className="flex items-center justify-between flex-1 bg-gray-900 text-white py-4 px-6 rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest shadow-lg">
-                    <div className="flex items-center gap-2"><Building2 size={15} className="text-blue-500" /> Área do Síndico</div>
-                    <ArrowUpRight size={15} />
-                </a>
-                <a href="/condo/dashboard" onClick={() => trackClick("Acessar Dashboard", "/condo/dashboard")} className="flex items-center justify-between flex-1 bg-blue-600 hover:bg-blue-700 text-white py-4 px-6 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest shadow-lg">
-                    <div className="flex items-center gap-2"><UserPlus size={15} className="text-white" /> Acessar Dashboard</div>
-                    <ArrowUpRight size={15} />
-                </a>
-            </div>
-
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
                 <div>
                     <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
@@ -276,7 +264,7 @@ export default function NucleobaseCondo() {
                     </h1>
                     <h2 className="text-gray-500 text-base md:text-lg font-medium max-w-2xl leading-relaxed mt-0">
                         <span className="md:hidden">Gestão de convivência descomplicada</span>
-                        <span className="hidden md:block">A gestão financeira e de convivência do seu condomínio de forma descomplicada.</span>
+                        <span className="hidden md:block">Gestão financeira e de convivência de forma descomplicada.</span>
                     </h2>
                 </div>
 
@@ -305,19 +293,31 @@ export default function NucleobaseCondo() {
                 </div>
             </div>
 
+            {/* Botões Prioritários Mobile (Movidos para baixo do título, subtítulo e linha divisória) */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full mb-8 mt-4 md:hidden">
+                <a href="/condo/adm" className="flex items-center justify-between flex-1 bg-gray-900 text-white py-4 px-6 rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest shadow-lg">
+                    <div className="flex items-center gap-2"><Building2 size={15} className="text-blue-500" /> Área do Síndico</div>
+                    <ArrowUpRight size={15} />
+                </a>
+                <a href="/condo/dashboard" onClick={() => trackClick("Acessar Dashboard", "/condo/dashboard")} className="flex items-center justify-between flex-1 bg-blue-600 hover:bg-blue-700 text-white py-4 px-6 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest shadow-lg">
+                    <div className="flex items-center gap-2"><UserPlus size={15} className="text-white" /> Acessar Dashboard</div>
+                    <ArrowUpRight size={15} />
+                </a>
+            </div>
+
             <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
-                Manifesto e Visão <div className="h-px bg-gray-300 flex-1"></div>
+                Gestão de acesso APP <div className="h-px bg-gray-300 flex-1"></div>
             </h3>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
                 <div className="lg:col-span-7 text-gray-700 text-lg leading-[1.8] pr-0 lg:pr-10 flex flex-col justify-between">
                     <div>
                         <p className="mb-8 leading-relaxed text-gray-700 hidden md:block">
-                            A Nucleobase nasceu para dar clareza aos fluxos financeiros pessoais, e agora trazemos o mesmo rigor tecnológico para a{" "}
+                            A Nucleobase nasceu para permitir clareza aos fluxos financeiros, e agora trazemos o mesmo rigor tecnológico para a{" "}
                             <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                                 Administração
                             </span>{" "}
-                            do seu condomínio. Sabendo que o principal calcanhar de Aquiles das gestões residenciais é a falta de transparência financeira, nós unimos tecnologia e clareza para simplificar a rotina de síndicos e condôminos.
+                            de condomínios. Sabendo que o principal calcanhar de Aquiles neste segmento é a dificuldade de transparência, unimos tecnologia e clareza para simplificar a rotina de síndicos e condôminos, unificando informações e facilitando decisões.
                         </p>
 
                         <div className="mb-6 md:hidden">
