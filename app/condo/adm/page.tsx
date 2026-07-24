@@ -20,7 +20,9 @@ import {
     LifeBuoy,
     Mail,
     X,
-    ArrowRight
+    ArrowRight,
+    FileSpreadsheet,
+    Plus
 } from "lucide-react";
 
 const supabase = createClient(
@@ -57,6 +59,21 @@ export default function CondoAdm() {
     const [resetEmail, setResetEmail] = useState("");
     const [resetLoading, setResetLoading] = useState(false);
 
+    // Modais de Ações de Síndico (Cadastro de Morador e Prestação de Contas)
+    const [showMoradorModal, setShowMoradorModal] = useState(false);
+    const [showContasModal, setShowContasModal] = useState(false);
+
+    // Estados para Lançamentos de Prestação de Contas
+    const [tipoConta, setTipoConta] = useState<'receita' | 'despesa'>('receita');
+    const [categoriaConta, setCategoriaConta] = useState('Receita Condomínio');
+    const [descricaoConta, setDescricaoConta] = useState('');
+    const [valorPrevistoConta, setValorPrevistoConta] = useState('');
+    const [valorRealizadoConta, setValorRealizadoConta] = useState('');
+    const [dataCompetenciaConta, setDataCompetenciaConta] = useState(new Date().toISOString().slice(0, 7) + '-01');
+    const [statusConta, setStatusConta] = useState<'pendente' | 'pago' | 'recebido'>('recebido');
+    const [contasError, setContasError] = useState('');
+    const [contasSuccess, setContasSuccess] = useState('');
+
     // Dados do Condomínio e Vínculo
     const [condominio, setCondominio] = useState<{ id: string; nome: string } | null>(null);
     const [moradores, setMoradores] = useState<Morador[]>([]);
@@ -88,14 +105,23 @@ export default function CondoAdm() {
         return `${partes[0]} ${partes[partes.length - 1]}`;
     };
 
-    // Verificação robusta unificada: Prioriza síndico, mas aceita vínculo ativo para evitar bloqueio cruzado
-    const verifySindicoAndLoadData = async () => {
+    // Verificação robusta com persistência e fallback para zerar intermitências de sessão
+    const verifySindicoAndLoadData = async (retryCount = 0) => {
         try {
             setLoading(true);
+
+            // Aguarda breve estabilização caso venha de token recém-criado
+            if (retryCount === 0) {
+                await new Promise(res => setTimeout(res, 300));
+            }
 
             const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
 
             if (sessionError || !currentSession) {
+                if (retryCount < 2) {
+                    await new Promise(res => setTimeout(res, 500));
+                    return verifySindicoAndLoadData(retryCount + 1);
+                }
                 setSession(null);
                 setCondominio(null);
                 setMoradores([]);
@@ -147,9 +173,12 @@ export default function CondoAdm() {
     useEffect(() => {
         verifySindicoAndLoadData();
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                await verifySindicoAndLoadData();
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+                if (currentSession) {
+                    setSession(currentSession);
+                    await verifySindicoAndLoadData();
+                }
             } else if (event === 'SIGNED_OUT') {
                 setSession(null);
                 setCondominio(null);
@@ -210,6 +239,7 @@ export default function CondoAdm() {
         }
 
         if (data.session) {
+            setSession(data.session);
             await verifySindicoAndLoadData();
         }
         setAuthLoading(false);
@@ -293,6 +323,7 @@ export default function CondoAdm() {
         }
         setNovoMoradorUnidade(unidadeTratada);
         setAutorizadoApp(morador.acesso_app);
+        setShowMoradorModal(true);
     };
 
     const cancelarEdicao = () => {
@@ -305,6 +336,7 @@ export default function CondoAdm() {
         setAutorizadoApp(true);
         setFormError("");
         setFormSuccess("");
+        setShowMoradorModal(false);
     };
 
     const handleSaveForm = async (e: React.FormEvent) => {
@@ -343,7 +375,9 @@ export default function CondoAdm() {
                 }
 
                 setFormSuccess(`Sucesso! Os dados de ${formatarNomePrimeiroEUltimo(editandoNome)} foram atualizados.`);
-                cancelarEdicao();
+                setTimeout(() => {
+                    cancelarEdicao();
+                }, 1200);
             } else {
                 const nomeFormatado = novoMoradorNome.trim();
                 let emailFormatado = novoMoradorEmail.trim().toLowerCase();
@@ -435,12 +469,60 @@ export default function CondoAdm() {
                 setNovoMoradorEmail("");
                 setNovoMoradorUnidade("");
                 setAutorizadoApp(true);
+                setTimeout(() => {
+                    setShowMoradorModal(false);
+                    setFormSuccess("");
+                }, 1200);
             }
 
             await loadMoradores(condominio.id);
         } catch (err: any) {
             console.error("Erro no cadastro:", err);
             setFormError(err?.message || "Ocorreu um erro ao processar a operação.");
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleSaveContas = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!condominio || !session) return;
+
+        setActionLoading(true);
+        setContasError("");
+        setContasSuccess("");
+
+        try {
+            const { error } = await supabase
+                .from("condominio_contas")
+                .insert([
+                    {
+                        condominio_id: condominio.id,
+                        tipo: tipoConta,
+                        categoria: categoriaConta.trim(),
+                        descricao: descricaoConta.trim(),
+                        valor_previsto: parseFloat(valorPrevistoConta) || 0,
+                        valor_realizado: parseFloat(valorRealizadoConta) || (parseFloat(valorPrevistoConta) || 0),
+                        data_competencia: dataCompetenciaConta,
+                        data_vencimento: null,
+                        status: statusConta,
+                        criado_por: session.user.id
+                    }
+                ]);
+
+            if (error) throw error;
+
+            setContasSuccess("Lançamento financeiro registrado com sucesso!");
+            setDescricaoConta("");
+            setValorPrevistoConta("");
+            setValorRealizadoConta("");
+            setTimeout(() => {
+                setShowContasModal(false);
+                setContasSuccess("");
+            }, 1200);
+        } catch (err: any) {
+            console.error("Erro ao salvar conta:", err);
+            setContasError(err?.message || "Erro ao registrar lançamento financeiro.");
         } finally {
             setActionLoading(false);
         }
@@ -657,10 +739,11 @@ export default function CondoAdm() {
 
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-6 md:p-10">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-6 mb-10">
+            {/* Header com Ícone e Texto centralizados na parte superior */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-5 mb-4">
                 <div className="flex flex-col md:flex-row md:items-center gap-6 w-full justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/25">
+                    <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/25 shrink-0">
                             <Building2 size={24} />
                         </div>
                         <div>
@@ -668,13 +751,13 @@ export default function CondoAdm() {
                                 <span className="md:hidden">Controle de acessos</span>
                                 <span className="hidden md:inline">Painel do Síndico - Controle de cadastro e acesso</span>
                             </span>
-                            <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1">{condominio?.nome}</h1>
+                            <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5">{condominio?.nome}</h1>
                         </div>
                     </div>
 
                     <button
                         onClick={() => window.history.back()}
-                        className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 overflow-hidden"
+                        className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 overflow-hidden shrink-0"
                     >
                         <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
                         <ArrowLeft size={12} className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out" />
@@ -683,105 +766,85 @@ export default function CondoAdm() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 max-w-6xl items-start">
-                <div className="bg-white border border-zinc-150 p-6 md:p-8 rounded-[2.5rem] shadow-sm flex flex-col justify-between h-auto lg:h-[510px]">
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
-                            <div className="flex items-center gap-3">
-                                {editandoId ? <Pencil className="text-indigo-600 animate-pulse" size={24} /> : <UserPlus className="text-blue-600" size={24} />}
-                                <h2 className="font-bold text-lg">{editandoId ? "Editar" : "Cadastro Morador"}</h2>
+            {/* Contexto Inicial da Página abaixo da linha divisória */}
+            <p className="text-xs md:text-sm text-zinc-500 font-medium mb-8">
+                Painel administrativo de controle de condomínio. Gerencie abaixo os moradores vinculados, conceda acessos e registre lançamentos contábeis.
+            </p>
+
+            <div className="max-w-6xl mx-auto space-y-8">
+                {/* Botões de Ação Rápida para Abrir os Popups */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button
+                        onClick={() => {
+                            setEditandoId(null);
+                            setNovoMoradorNome("");
+                            setNovoMoradorEmail("");
+                            setNovoMoradorUnidade("");
+                            setAutorizadoApp(true);
+                            setFormError("");
+                            setFormSuccess("");
+                            setShowMoradorModal(true);
+                        }}
+                        className="bg-white border border-zinc-200 hover:border-blue-400 p-6 rounded-[2rem] shadow-sm flex items-center justify-between group transition-all"
+                    >
+                        <div className="flex items-center gap-4 text-left">
+                            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                <UserPlus size={22} />
                             </div>
-                            {editandoId && (
-                                <button onClick={cancelarEdicao} className="text-zinc-400 hover:text-zinc-600 flex items-center gap-1 text-[10px] font-black uppercase tracking-wider">
-                                    <XCircle size={14} /> Cancelar
-                                </button>
-                            )}
+                            <div>
+                                <h3 className="font-bold text-base text-zinc-800">Cadastro de Morador</h3>
+                                <p className="text-xs text-zinc-400 mt-0.5">Adicionar novo condômino e liberar acesso ao app</p>
+                            </div>
                         </div>
+                        <div className="w-8 h-8 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all">
+                            <Plus size={16} />
+                        </div>
+                    </button>
 
-                        <form onSubmit={handleSaveForm} className="space-y-3">
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Nome Completo</label>
-                                <input
-                                    type="text"
-                                    placeholder="Ex: João da Silva"
-                                    required
-                                    value={novoMoradorNome}
-                                    onChange={(e) => setNovoMoradorNome(e.target.value)}
-                                    className="w-full px-5 py-2 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
-                                />
+                    <button
+                        onClick={() => {
+                            setContasError("");
+                            setContasSuccess("");
+                            setShowContasModal(true);
+                        }}
+                        className="bg-white border border-zinc-200 hover:border-emerald-400 p-6 rounded-[2rem] shadow-sm flex items-center justify-between group transition-all"
+                    >
+                        <div className="flex items-center gap-4 text-left">
+                            <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all">
+                                <FileSpreadsheet size={22} />
                             </div>
-
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">E-mail Login {editandoSemEmail ? "(Bloqueado)" : "(Opcional)"}</label>
-                                <input
-                                    type="text"
-                                    placeholder="Ex: john@dominio.com"
-                                    value={novoMoradorEmail}
-                                    disabled={editandoSemEmail}
-                                    onChange={(e) => setNovoMoradorEmail(e.target.value)}
-                                    className={`w-full px-5 py-2 border rounded-2xl outline-none transition-all text-sm font-medium ${editandoSemEmail ? 'bg-zinc-100 border-zinc-200 text-zinc-400 cursor-not-allowed select-none' : 'bg-zinc-50 border-zinc-200 focus:bg-white focus:border-blue-400'}`}
-                                />
+                            <div>
+                                <h3 className="font-bold text-base text-zinc-800">Prestação de Contas</h3>
+                                <p className="text-xs text-zinc-400 mt-0.5">Registrar novos lançamentos financeiros na tabela</p>
                             </div>
-
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Unidade</label>
-                                <input
-                                    type="text"
-                                    placeholder="Ex: Apto 102"
-                                    required
-                                    value={novoMoradorUnidade}
-                                    onChange={(e) => setNovoMoradorUnidade(e.target.value)}
-                                    className="w-full px-5 py-2 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
-                                />
-                            </div>
-
-                            <div className="flex items-center justify-between bg-zinc-50/50 border border-zinc-100 p-2.5 rounded-2xl transition-all">
-                                <div className="flex flex-col">
-                                    <span className="text-[11px] font-bold text-zinc-800 uppercase tracking-wide">Acesso APP</span>
-                                    <span className="text-[9px] text-zinc-400 font-medium">Permissão digital do perfil</span>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => setAutorizadoApp(!autorizadoApp)}
-                                    className={`w-11 h-6 flex items-center rounded-full p-1 transition-all duration-300 outline-none ${autorizadoApp ? 'bg-blue-600 justify-end' : 'bg-zinc-200 justify-start'}`}
-                                >
-                                    <div className="bg-white w-4 h-4 rounded-full shadow-md transition-all"></div>
-                                </button>
-                            </div>
-
-                            {formError && <p className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 p-2 rounded-xl">{formError}</p>}
-                            {formSuccess && <p className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-2 rounded-xl flex items-center gap-2"><CheckCircle2 size={16} /> {formSuccess}</p>}
-                        </form>
-                    </div>
-
-                    <div className="pt-3 lg:pt-0">
-                        <button
-                            onClick={handleSaveForm}
-                            disabled={actionLoading}
-                            className={`w-full py-3 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 disabled:bg-zinc-300 text-white ${editandoId ? 'bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-600/10' : 'bg-blue-600 hover:bg-blue-700'}`}
-                        >
-                            {actionLoading ? "Processando..." : editandoId ? "Salvar Alterações" : "Autorizar Acesso"}
-                        </button>
-                    </div>
+                        </div>
+                        <div className="w-8 h-8 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-all">
+                            <Plus size={16} />
+                        </div>
+                    </button>
                 </div>
 
-                <div className="lg:col-span-2 bg-white border border-zinc-150 p-6 md:p-8 rounded-[2.5rem] shadow-sm flex flex-col h-auto lg:h-[510px]">
-                    <div className="flex items-center justify-between border-b border-zinc-100 pb-4 shrink-0">
+                {/* Bloco de Moradores Vinculados com Cabeçalho Centralizado */}
+                <div className="bg-white border border-zinc-200 p-6 md:p-8 rounded-[2.5rem] shadow-sm">
+                    <div className="flex items-center justify-between border-b border-zinc-100 pb-4 mb-4">
                         <div className="flex items-center gap-3">
                             <Users className="text-blue-600" size={24} />
-                            <h2 className="font-bold text-lg">Moradores Vinculados</h2>
+                            <h2 className="font-bold text-lg text-zinc-900">Cadastro</h2>
                         </div>
+                        <span className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1 rounded-full">
+                            {moradores.length} Registros
+                        </span>
                     </div>
 
                     {moradores.length === 0 ? (
-                        <div className="flex-1 flex flex-col items-center justify-center text-center py-12 space-y-2">
+                        <div className="text-center py-12 space-y-2">
                             <p className="text-zinc-400 text-sm font-medium">Nenhum condômino cadastrado ainda.</p>
                         </div>
                     ) : (
-                        <div className="flex-1 overflow-y-auto mt-4 pr-2 scrollbar-thin">
+                        <div className="overflow-x-auto max-h-[400px] scrollbar-thin">
                             <table className="w-full text-left border-collapse">
                                 <thead className="sticky top-0 bg-white z-15">
-                                    <tr className="border-b border-zinc-100 bg-white">
+                                    <tr className="border-b border-zinc-100">
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider bg-white align-top">Unidade</th>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider bg-white align-top">Nome do Morador</th>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider hidden md:table-cell bg-white align-top">App</th>
@@ -794,8 +857,7 @@ export default function CondoAdm() {
                                         const nomeExibicaoOriginal = morador.profile?.nome_completo || "Sem Nome";
                                         const unidadeOriginal = morador.unidade || "";
                                         const isAdm = unidadeOriginal.trim().toLowerCase() === "administração" || unidadeOriginal.trim().toLowerCase() === "adm";
-
-                                        const nomeExibicaoFinal = isAdm ? formatarNomePrimeiroEUltimo(nomeExibicaoOriginal) : formatarNomePrimeiroEUltimo(nomeExibicaoOriginal);
+                                        const nomeExibicaoFinal = formatarNomePrimeiroEUltimo(nomeExibicaoOriginal);
 
                                         return (
                                             <tr key={morador.id} className={`group transition-colors ${editandoId === morador.id ? 'bg-indigo-50/30' : ''}`}>
@@ -834,7 +896,7 @@ export default function CondoAdm() {
                                                         <button
                                                             onClick={() => iniciarEdicao(morador)}
                                                             disabled={actionLoading}
-                                                            className={`p-2 rounded-xl transition-all ${editandoId === morador.id ? 'text-indigo-600 bg-indigo-50' : 'text-zinc-400 hover:text-blue-600 hover:bg-blue-50'}`}
+                                                            className="p-2 text-zinc-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
                                                             title="Editar Cadastro"
                                                         >
                                                             <Pencil size={15} />
@@ -859,30 +921,226 @@ export default function CondoAdm() {
                 </div>
             </div>
 
-            <div className="mt-24 flex items-center gap-4 mb-12">
-                <div className="h-px bg-gray-200 flex-1"></div>
-                <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
-                <div className="h-px bg-gray-200 flex-1"></div>
-            </div>
+            {/* POPUP / MODAL: CADASTRO / EDIÇÃO DE MORADOR */}
+            {showMoradorModal && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
+                        <button
+                            onClick={cancelarEdicao}
+                            className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-colors"
+                        >
+                            <X size={20} />
+                        </button>
 
-            <div className="flex flex-col items-center text-center">
-                <a
-                    href="https://www.instagram.com/nucleobase.app/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group relative flex flex-col items-center gap-6"
-                >
-                    <div className="relative">
-                        <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
-                        <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
-                            <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+                        <div className="flex items-center gap-3 border-b border-zinc-100 pb-4 mb-5">
+                            {editandoId ? <Pencil className="text-indigo-600" size={24} /> : <UserPlus className="text-blue-600" size={24} />}
+                            <h2 className="font-bold text-lg">{editandoId ? "Editar Morador" : "Cadastro de Morador"}</h2>
                         </div>
+
+                        <form onSubmit={handleSaveForm} className="space-y-4">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Nome Completo</label>
+                                <input
+                                    type="text"
+                                    placeholder="Ex: João da Silva"
+                                    required
+                                    value={novoMoradorNome}
+                                    onChange={(e) => setNovoMoradorNome(e.target.value)}
+                                    className="w-full px-5 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
+                                />
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">E-mail Login {editandoSemEmail ? "(Bloqueado)" : "(Opcional)"}</label>
+                                <input
+                                    type="text"
+                                    placeholder="Ex: john@dominio.com"
+                                    value={novoMoradorEmail}
+                                    disabled={editandoSemEmail}
+                                    onChange={(e) => setNovoMoradorEmail(e.target.value)}
+                                    className={`w-full px-5 py-3 border rounded-2xl outline-none transition-all text-sm font-medium ${editandoSemEmail ? 'bg-zinc-100 border-zinc-200 text-zinc-400 cursor-not-allowed select-none' : 'bg-zinc-50 border-zinc-200 focus:bg-white focus:border-blue-400'}`}
+                                />
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Unidade</label>
+                                <input
+                                    type="text"
+                                    placeholder="Ex: Apto 102"
+                                    required
+                                    value={novoMoradorUnidade}
+                                    onChange={(e) => setNovoMoradorUnidade(e.target.value)}
+                                    className="w-full px-5 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between bg-zinc-50 border border-zinc-200 p-3.5 rounded-2xl">
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-bold text-zinc-800 uppercase tracking-wide">Acesso APP</span>
+                                    <span className="text-[10px] text-zinc-400 font-medium">Permissão digital do perfil</span>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setAutorizadoApp(!autorizadoApp)}
+                                    className={`w-11 h-6 flex items-center rounded-full p-1 transition-all duration-300 outline-none ${autorizadoApp ? 'bg-blue-600 justify-end' : 'bg-zinc-300 justify-start'}`}
+                                >
+                                    <div className="bg-white w-4 h-4 rounded-full shadow-md transition-all"></div>
+                                </button>
+                            </div>
+
+                            {formError && <p className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 p-3 rounded-xl">{formError}</p>}
+                            {formSuccess && <p className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-3 rounded-xl flex items-center gap-2"><CheckCircle2 size={16} /> {formSuccess}</p>}
+
+                            <button
+                                type="submit"
+                                disabled={actionLoading}
+                                className={`w-full py-3.5 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 text-white ${editandoId ? 'bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-600/10' : 'bg-blue-600 hover:bg-blue-700'}`}
+                            >
+                                {actionLoading ? "Processando..." : editandoId ? "Salvar Alterações" : "Autorizar Acesso"}
+                            </button>
+                        </form>
                     </div>
-                    <div className="flex flex-col items-center">
-                        <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
-                        <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
+                </div>
+            )}
+
+            {/* POPUP / MODAL: LANÇAMENTO DE PRESTAÇÃO DE CONTAS */}
+            {showContasModal && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
+                        <button
+                            onClick={() => setShowContasModal(false)}
+                            className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-colors"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <div className="flex items-center gap-3 border-b border-zinc-100 pb-4 mb-5">
+                            <FileSpreadsheet className="text-emerald-600" size={24} />
+                            <h2 className="font-bold text-lg">Novo Lançamento Contábil</h2>
+                        </div>
+
+                        <form onSubmit={handleSaveContas} className="space-y-4">
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setTipoConta('receita')}
+                                    className={`py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all border ${tipoConta === 'receita' ? 'bg-emerald-500 text-white border-emerald-500 shadow-md shadow-emerald-500/20' : 'bg-zinc-50 text-zinc-500 border-zinc-200'}`}
+                                >
+                                    Receita
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setTipoConta('despesa')}
+                                    className={`py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all border ${tipoConta === 'despesa' ? 'bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-500/20' : 'bg-zinc-50 text-zinc-500 border-zinc-200'}`}
+                                >
+                                    Despesa
+                                </button>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Categoria</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={categoriaConta}
+                                    onChange={(e) => setCategoriaConta(e.target.value)}
+                                    className="w-full px-5 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
+                                />
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Descrição</label>
+                                <input
+                                    type="text"
+                                    placeholder="Ex: Pagamento Condomínio"
+                                    required
+                                    value={descricaoConta}
+                                    onChange={(e) => setDescricaoConta(e.target.value)}
+                                    className="w-full px-5 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Valor Previsto (R$)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="0.00"
+                                        required
+                                        value={valorPrevistoConta}
+                                        onChange={(e) => setValorPrevistoConta(e.target.value)}
+                                        className="w-full px-5 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Valor Realizado (R$)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="0.00"
+                                        required
+                                        value={valorRealizadoConta}
+                                        onChange={(e) => setValorRealizadoConta(e.target.value)}
+                                        className="w-full px-5 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Mês de Competência</label>
+                                <input
+                                    type="date"
+                                    required
+                                    value={dataCompetenciaConta}
+                                    onChange={(e) => setDataCompetenciaConta(e.target.value)}
+                                    className="w-full px-5 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
+                                />
+                            </div>
+
+                            {contasError && <p className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 p-3 rounded-xl">{contasError}</p>}
+                            {contasSuccess && <p className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-3 rounded-xl flex items-center gap-2"><CheckCircle2 size={16} /> {contasSuccess}</p>}
+
+                            <button
+                                type="submit"
+                                disabled={actionLoading}
+                                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-600/10 flex items-center justify-center gap-2"
+                            >
+                                {actionLoading ? "Registrando..." : "Salvar Lançamento"}
+                            </button>
+                        </form>
                     </div>
-                </a>
+                </div>
+            )}
+
+            {/* Rodapé / Conecte-se */}
+            <div className="mt-20">
+                <div className="flex items-center gap-4 mb-6">
+                    <div className="h-px bg-gray-200 flex-1"></div>
+                    <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
+                    <div className="h-px bg-gray-200 flex-1"></div>
+                </div>
+
+                <div className="flex flex-col items-center text-center pb-6">
+                    <a
+                        href="https://www.instagram.com/nucleobase.app/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group relative flex flex-col items-center gap-4"
+                    >
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+                            <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[1.8rem] md:rounded-[2rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+                                <Instagram className="w-8 h-8 md:w-10 md:h-10" strokeWidth={1.5} />
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col items-center">
+                            <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+                            <div className="h-1 w-0 bg-pink-500 mt-1.5 group-hover:w-full transition-all duration-500 rounded-full"></div>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     );
