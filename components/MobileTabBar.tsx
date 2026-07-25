@@ -1,8 +1,8 @@
-// Substitua o conteúdo completo de app/components/MobileTabBar.tsx (ou onde estiver salvo) por este:
+// Substitua o conteúdo completo de app/components/MobileTabBar.tsx por este:
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, Share2, User, Home, X, Rocket, Power, Dna, Settings, Key, UserPlus, PlayCircle, LogIn, KeyRound, Eye, EyeOff, Info, Fingerprint, Building2 } from "lucide-react";
+import { Search, User, Home, X, Rocket, Power, Dna, Settings, Key, UserPlus, PlayCircle, KeyRound, Eye, EyeOff, Info, Fingerprint, Building2 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -12,7 +12,6 @@ export function MobileTabBar() {
   const menuRef = useRef<HTMLDivElement>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isSharing, setIsSharing] = useState(false);
   const [userProfile, setUserProfile] = useState<{ nome: string; avatar: string | null }>({
     nome: "",
     avatar: null,
@@ -40,7 +39,6 @@ export function MobileTabBar() {
   }, [isMenuOpen]);
 
   useEffect(() => {
-    setIsSharing(false);
     setIsSearchOpen(false);
   }, [pathname]);
 
@@ -108,29 +106,7 @@ export function MobileTabBar() {
   const handleProfileClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsSearchOpen(false);
-    setIsSharing(false);
     setIsMenuOpen(!isMenuOpen);
-  };
-
-  const handleShare = async () => {
-    setIsMenuOpen(false);
-    setIsSearchOpen(false);
-    setIsSharing(true);
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "Nucleobase",
-          text: "Confira este conteúdo na Nucleobase:",
-          url: window.location.href,
-        });
-      } catch (err) {
-        console.log("Erro ao compartilhar", err);
-        setIsSharing(false);
-      }
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert("Link copiado para a área de transferência!");
-    }
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -152,8 +128,11 @@ export function MobileTabBar() {
     </button>
   );
 
-  const isProfileActive = isMenuOpen || (showPassModal && !isSearchOpen && !isSharing) ||
-    (!isSharing && !isSearchOpen && !isMenuOpen &&
+  // Verificando se o pathname pertence ao módulo do condomínio (incluindo todas as subpáginas listadas)
+  const isCondoActive = !isSearchOpen && !isMenuOpen && (pathname === "/condo" || pathname?.startsWith("/condo/"));
+
+  const isProfileActive = isMenuOpen || (showPassModal && !isSearchOpen) ||
+    (!isSearchOpen && !isMenuOpen &&
       (pathname === "/minha-conta" || pathname === "/configuracoes" || pathname === "/cadastro" || pathname === "/acesso-usuario" || pathname === "/demonstracao" || pathname === "/sobre"));
 
   return (
@@ -257,25 +236,20 @@ export function MobileTabBar() {
       {/* Tab Bar Principal */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 h-[60px] z-[100] flex items-center justify-between shadow-[0_-1px_10px_rgba(0,0,0,0.02)] pb-safe-bottom">
 
-        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); setIsSharing(false); router.push("/"); }} className={`p-2 transition-colors ${!isSharing && !isSearchOpen && !isMenuOpen && pathname === "/" ? "text-blue-600" : "text-gray-400"}`}>
-          <Home size={22} strokeWidth={!isSharing && !isSearchOpen && !isMenuOpen && pathname === "/" ? 2.5 : 2} />
+        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); router.push("/"); }} className={`p-2 transition-colors ${!isSearchOpen && !isMenuOpen && pathname === "/" ? "text-blue-600" : "text-gray-400"}`}>
+          <Home size={22} strokeWidth={!isSearchOpen && !isMenuOpen && pathname === "/" ? 2.5 : 2} />
         </button>
 
-        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); setIsSharing(false); router.push("/lancamentos"); }} className={`p-2 transition-colors ${!isSharing && !isSearchOpen && !isMenuOpen && pathname === "/lancamentos" ? "text-orange-500" : "text-gray-400"}`}>
-          <Rocket size={22} strokeWidth={!isSharing && !isSearchOpen && !isMenuOpen && pathname === "/lancamentos" ? 2.5 : 2} />
+        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); router.push("/lancamentos"); }} className={`p-2 transition-colors ${!isSearchOpen && !isMenuOpen && pathname === "/lancamentos" ? "text-orange-500" : "text-gray-400"}`}>
+          <Rocket size={22} strokeWidth={!isSearchOpen && !isMenuOpen && pathname === "/lancamentos" ? 2.5 : 2} />
         </button>
 
-        {/* INCLUSÃO: Administração Condo (Ícone de Prédio centralizado entre Foguete e Lupa) */}
-        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); setIsSharing(false); router.push("/condo"); }} className={`p-2 transition-colors ${!isSharing && !isSearchOpen && !isMenuOpen && pathname === "/condo" ? "text-blue-600" : "text-gray-400"}`}>
-          <Building2 size={22} strokeWidth={!isSharing && !isSearchOpen && !isMenuOpen && pathname === "/condo" ? 2.5 : 2} />
+        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); router.push("/condo"); }} className={`p-2 transition-colors ${isCondoActive ? "text-blue-600" : "text-gray-400"}`}>
+          <Building2 size={22} strokeWidth={isCondoActive ? 2.5 : 2} />
         </button>
 
-        <button onClick={() => { setIsSharing(false); setIsMenuOpen(false); setIsSearchOpen(true); }} className={`p-2 transition-colors ${(isSearchOpen || pathname === "/busca") && !isMenuOpen ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}>
+        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(true); }} className={`p-2 transition-colors ${(isSearchOpen || pathname === "/busca") && !isMenuOpen ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}>
           <Search size={22} strokeWidth={(isSearchOpen || pathname === "/busca") && !isMenuOpen ? 2.5 : 2} />
-        </button>
-
-        <button onClick={() => { handleShare(); }} className={`p-2 transition-colors ${isSharing && !isMenuOpen ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}>
-          <Share2 size={22} strokeWidth={isSharing && !isMenuOpen ? 2.5 : 2} />
         </button>
 
         <button onClick={handleProfileClick} className={`w-9 h-9 rounded-full border transition-all overflow-hidden flex items-center justify-center relative ${isProfileActive ? "border-blue-600 ring-2 ring-blue-600/20 shadow-[0_0_10px_rgba(37,99,235,0.1)]" : "border-gray-100 bg-gray-50"}`}>
