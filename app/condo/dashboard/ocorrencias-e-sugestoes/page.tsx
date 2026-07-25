@@ -208,7 +208,6 @@ export default function OcorrenciasSugestoesPage() {
         mensagem += `*Status:* ${statusFormatado}\n`;
         mensagem += `*Data:* ${new Date(itemEncontrado.criado_em).toLocaleDateString('pt-BR')}`;
 
-        // Utiliza a API nativa do WhatsApp (wa.me) sem número pré-definido para abrir diretamente o seletor de contatos do aplicativo/dispositivo do próprio usuário
         const urlWhatsApp = `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
 
         window.open(urlWhatsApp, '_blank');
@@ -300,7 +299,7 @@ export default function OcorrenciasSugestoesPage() {
                         Livro digital integrado para registro transparente de ocorrências operacionais e envio de sugestões para a administração.
                     </p>
 
-                    {/* Ações / Botões de Abertura de Popups (Mobile: mesma largura dos cards e quebra de linha após "Nova" / "Enviar"; Desktop: largura do texto na lateral direita) */}
+                    {/* Ações / Botões de Abertura de Popups */}
                     <div className="grid grid-cols-2 md:flex md:flex-row items-center gap-3 w-full md:w-auto shrink-0">
                         <button
                             onClick={() => { setShowModalOcorrencia(true); setFormError(''); setFormSuccess(''); }}
@@ -349,7 +348,7 @@ export default function OcorrenciasSugestoesPage() {
                                     <h3 className="font-bold text-sm md:text-base text-zinc-800 truncate">Ocorrências Registradas</h3>
                                 </div>
 
-                                <div className="flex flex-wrap items-center gap-2">
+                                <div className="flex items-center justify-end md:justify-start gap-2 w-full sm:w-auto">
                                     {/* Filtro Opcional de Status */}
                                     <div className="flex items-center gap-1 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-xl">
                                         <Filter size={12} className="text-zinc-400" />
@@ -365,7 +364,7 @@ export default function OcorrenciasSugestoesPage() {
                                         </select>
                                     </div>
 
-                                    <span className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1.5 rounded-xl shrink-0">
+                                    <span className="hidden md:inline-block text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1.5 rounded-xl shrink-0">
                                         {formatarTextoQuantidade(ocorrenciasFiltradas.length)}
                                     </span>
                                 </div>
@@ -419,7 +418,7 @@ export default function OcorrenciasSugestoesPage() {
                                     <h3 className="font-bold text-sm md:text-base text-zinc-800 truncate">Sugestões Enviadas</h3>
                                 </div>
 
-                                <div className="flex flex-wrap items-center gap-2">
+                                <div className="flex items-center justify-end md:justify-start gap-2 w-full sm:w-auto">
                                     {/* Filtro Opcional de Status */}
                                     <div className="flex items-center gap-1 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-xl">
                                         <Filter size={12} className="text-zinc-400" />
@@ -435,7 +434,7 @@ export default function OcorrenciasSugestoesPage() {
                                         </select>
                                     </div>
 
-                                    <span className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1.5 rounded-xl shrink-0">
+                                    <span className="hidden md:inline-block text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1.5 rounded-xl shrink-0">
                                         {formatarTextoQuantidade(sugestoesFiltradas.length)}
                                     </span>
                                 </div>

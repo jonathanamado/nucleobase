@@ -60,6 +60,15 @@ export default function AnaliseOcorrenciasAdmPage() {
 
     const [feedbackMessage, setFeedbackMessage] = useState("");
 
+    // Função auxiliar para retornar apenas o primeiro e o último nome
+    const formatarNomePrimeiroEUltimo = (nomeCompleto?: string) => {
+        if (!nomeCompleto) return "";
+        const partes = nomeCompleto.trim().split(/\s+/);
+        if (partes.length === 0) return "";
+        if (partes.length === 1) return partes[0];
+        return `${partes[0]} ${partes[partes.length - 1]}`;
+    };
+
     const verifyAccessAndLoadData = async () => {
         try {
             setLoading(true);
@@ -304,7 +313,7 @@ export default function AnaliseOcorrenciasAdmPage() {
                                     <h3 className="font-bold text-sm md:text-base text-zinc-800 truncate">Ocorrências do Condomínio</h3>
                                 </div>
 
-                                <div className="flex flex-wrap items-center gap-2">
+                                <div className="flex items-center justify-end md:justify-start gap-2 w-full sm:w-auto">
                                     <div className="flex items-center gap-1 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-xl">
                                         <Filter size={12} className="text-zinc-400" />
                                         <select
@@ -319,7 +328,7 @@ export default function AnaliseOcorrenciasAdmPage() {
                                         </select>
                                     </div>
 
-                                    <span className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1.5 rounded-xl shrink-0">
+                                    <span className="hidden md:inline-block text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1.5 rounded-xl shrink-0">
                                         {formatarTextoQuantidade(ocorrenciasFiltradas.length)}
                                     </span>
                                 </div>
@@ -344,7 +353,7 @@ export default function AnaliseOcorrenciasAdmPage() {
                                                         disabled={actionLoading}
                                                         onChange={(e) => handleAtualizarStatus(item.id, e.target.value as any)}
                                                         className={`text-[9px] font-black uppercase px-3 py-1.5 rounded-xl outline-none cursor-pointer transition shadow-sm border ${item.status === 'resolvido'
-                                                            ? 'bg-emerald-550 text-white bg-emerald-600 border-emerald-600' :
+                                                            ? 'bg-emerald-600 text-white border-emerald-600' :
                                                             item.status === 'em_andamento'
                                                                 ? 'bg-amber-500 text-white border-amber-500' :
                                                                 'bg-rose-500 text-white border-rose-500'
@@ -361,8 +370,11 @@ export default function AnaliseOcorrenciasAdmPage() {
 
                                             {(item.solicitante || item.unidade) && (
                                                 <div className="flex flex-wrap gap-3 text-[10px] text-zinc-400 pt-1 border-t border-zinc-200/60">
-                                                    {item.solicitante && <span>Solicitante: <strong className="text-zinc-700">{item.solicitante}</strong></span>}
-                                                    {item.unidade && <span>Unidade: <strong className="text-zinc-700">{item.unidade}</strong></span>}
+                                                    <span>
+                                                        Solicitante: <strong className="text-zinc-700">
+                                                            {formatarNomePrimeiroEUltimo(item.solicitante)}{item.unidade ? ` - ${item.unidade}` : ""}
+                                                        </strong>
+                                                    </span>
                                                 </div>
                                             )}
 
@@ -387,7 +399,7 @@ export default function AnaliseOcorrenciasAdmPage() {
                                     <h3 className="font-bold text-sm md:text-base text-zinc-800 truncate">Sugestões Recebidas</h3>
                                 </div>
 
-                                <div className="flex flex-wrap items-center gap-2">
+                                <div className="flex items-center justify-end md:justify-start gap-2 w-full sm:w-auto">
                                     <div className="flex items-center gap-1 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-xl">
                                         <Filter size={12} className="text-zinc-400" />
                                         <select
@@ -402,7 +414,7 @@ export default function AnaliseOcorrenciasAdmPage() {
                                         </select>
                                     </div>
 
-                                    <span className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1.5 rounded-xl shrink-0">
+                                    <span className="hidden md:inline-block text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1.5 rounded-xl shrink-0">
                                         {formatarTextoQuantidade(sugestoesFiltradas.length)}
                                     </span>
                                 </div>
@@ -444,8 +456,11 @@ export default function AnaliseOcorrenciasAdmPage() {
 
                                             {(item.solicitante || item.unidade) && (
                                                 <div className="flex flex-wrap gap-3 text-[10px] text-zinc-400 pt-1 border-t border-zinc-200/60">
-                                                    {item.solicitante && <span>Solicitante: <strong className="text-zinc-700">{item.solicitante}</strong></span>}
-                                                    {item.unidade && <span>Unidade: <strong className="text-zinc-700">{item.unidade}</strong></span>}
+                                                    <span>
+                                                        Solicitante: <strong className="text-zinc-700">
+                                                            {formatarNomePrimeiroEUltimo(item.solicitante)}{item.unidade ? ` - ${item.unidade}` : ""}
+                                                        </strong>
+                                                    </span>
                                                 </div>
                                             )}
 

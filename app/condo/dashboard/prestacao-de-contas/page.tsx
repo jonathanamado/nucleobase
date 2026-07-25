@@ -59,6 +59,24 @@ export default function PrestacaoContasPage() {
     const [formError, setFormError] = useState('');
     const [formSuccess, setFormSuccess] = useState('');
 
+    // Função para formatar o período no formato desejado (Mobile: Jul/26, Desktop: padrão ou conforme selecionado)
+    const formatarPeriodoExibicao = (valorPeriodo: string) => {
+        if (valorPeriodo === 'acumulado') return 'Acumulado';
+        if (!valorPeriodo) return '';
+        const [ano, mes] = valorPeriodo.split('-');
+        if (!ano || !mes) return valorPeriodo;
+
+        const mesesAbreviados: { [key: string]: string } = {
+            '01': 'Jan', '02': 'Fev', '03': 'Mar', '04': 'Abr',
+            '05': 'Mai', '06': 'Jun', '07': 'Jul', '08': 'Ago',
+            '09': 'Set', '10': 'Out', '11': 'Nov', '12': 'Dez'
+        };
+
+        const nomeMes = mesesAbreviados[mes] || mes;
+        const anoDoisDigitos = ano.slice(-2);
+        return `${nomeMes}/${anoDoisDigitos}`;
+    };
+
     const verifyCondoAndLoadData = async () => {
         try {
             setLoading(true);
@@ -284,14 +302,23 @@ export default function PrestacaoContasPage() {
                 {/* Barra de Filtro de Período centralizada no mobile e alinhada à direita no desktop, com largura correspondente exatamente a dois cards do grid no mobile */}
                 <div className="flex justify-center md:justify-end mb-5">
                     <div className="w-full md:w-auto flex items-center justify-between md:justify-start gap-2 bg-white border border-zinc-200 px-3.5 py-1.5 rounded-full shadow-sm">
-                        <div className="flex items-center gap-2 overflow-hidden">
-                            <Filter size={14} className="text-zinc-400 shrink-0" />
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase whitespace-nowrap">Período:</span>
+                        <div className="flex items-center gap-2 overflow-hidden relative">
+                            <Filter size={14} className="text-zinc-800 shrink-0" />
+                            <span className="text-[10px] font-bold text-zinc-800 uppercase whitespace-nowrap">Filtro:</span>
+
+                            {/* Visualização amigável reduzida em 1 linha apenas no Mobile (Jul/26) */}
+                            <span className="md:hidden text-xs font-bold text-zinc-800 whitespace-nowrap cursor-pointer">
+                                {formatarPeriodoExibicao(filtroPeriodo)}
+                            </span>
+
                             <input
                                 type="month"
                                 value={filtroPeriodo === 'acumulado' ? '' : filtroPeriodo}
                                 onChange={(e) => setFiltroPeriodo(e.target.value || mesVigentePadrao)}
-                                className="text-xs font-bold text-zinc-800 bg-transparent outline-none cursor-pointer"
+                                className={`text-xs font-bold text-zinc-800 bg-transparent outline-none cursor-pointer ${
+                                    /* No mobile, o input fica absolutamente invisível cobrindo o texto amigável para acionar o seletor nativo ao toque sem quebrar a linha */
+                                    'absolute inset-0 opacity-0 md:opacity-100 md:static'
+                                    }`}
                                 title="Filtrar por Mês"
                             />
                         </div>
@@ -299,7 +326,7 @@ export default function PrestacaoContasPage() {
                             onClick={() => setFiltroPeriodo('acumulado')}
                             className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full transition-all shrink-0 ${filtroPeriodo === 'acumulado' ? 'bg-blue-600 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}
                         >
-                            Acumulado
+                            Visão Acumulado
                         </button>
                     </div>
                 </div>
