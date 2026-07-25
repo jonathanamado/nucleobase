@@ -1,6 +1,7 @@
 // app/condo/dashboard/adm/page.tsx
 "use client";
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import {
     Users,
@@ -22,7 +23,8 @@ import {
     X,
     ArrowRight,
     FileSpreadsheet,
-    Plus
+    Plus,
+    Edit3
 } from "lucide-react";
 
 const supabase = createClient(
@@ -66,7 +68,7 @@ export default function CondoAdm() {
     // Estados para Lançamentos de Prestação de Contas
     const [tipoConta, setTipoConta] = useState<'receita' | 'despesa'>('receita');
     const [categoriaConta, setCategoriaConta] = useState('Receita Condomínio');
-    const [descricaoConta, setDescricaoConta] = useState('');
+    const [descricaoConta, setDescricaoConta] = useState('Pagamento Condomínio');
     const [valorPrevistoConta, setValorPrevistoConta] = useState('');
     const [valorRealizadoConta, setValorRealizadoConta] = useState('');
     const [dataCompetenciaConta, setDataCompetenciaConta] = useState(new Date().toISOString().slice(0, 7) + '-01');
@@ -105,12 +107,23 @@ export default function CondoAdm() {
         return `${partes[0]} ${partes[partes.length - 1]}`;
     };
 
+    // Atualiza categoria e descrição padrão ao alterar o tipo de conta (Receita vs Despesa)
+    const handleTipoContaChange = (novoTipo: 'receita' | 'despesa') => {
+        setTipoConta(novoTipo);
+        if (novoTipo === 'receita') {
+            setCategoriaConta('Receita Condomínio');
+            setDescricaoConta('Pagamento Condomínio');
+        } else {
+            setCategoriaConta('Despesa Condomínio');
+            setDescricaoConta('Manutenção Geral');
+        }
+    };
+
     // Verificação robusta com persistência e fallback para zerar intermitências de sessão
     const verifySindicoAndLoadData = async (retryCount = 0) => {
         try {
             setLoading(true);
 
-            // Aguarda breve estabilização caso venha de token recém-criado
             if (retryCount === 0) {
                 await new Promise(res => setTimeout(res, 300));
             }
@@ -505,7 +518,7 @@ export default function CondoAdm() {
                         valor_realizado: parseFloat(valorRealizadoConta) || (parseFloat(valorPrevistoConta) || 0),
                         data_competencia: dataCompetenciaConta,
                         data_vencimento: null,
-                        status: statusConta,
+                        status: tipoConta === 'receita' ? 'recebido' : 'pago',
                         criado_por: session.user.id
                     }
                 ]);
@@ -513,7 +526,6 @@ export default function CondoAdm() {
             if (error) throw error;
 
             setContasSuccess("Lançamento financeiro registrado com sucesso!");
-            setDescricaoConta("");
             setValorPrevistoConta("");
             setValorRealizadoConta("");
             setTimeout(() => {
@@ -738,193 +750,224 @@ export default function CondoAdm() {
     }
 
     return (
-        <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-6 md:p-10">
-            {/* Header com Ícone e Texto centralizados na parte superior */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-5 mb-4">
-                <div className="flex flex-col md:flex-row md:items-center gap-6 w-full justify-between">
-                    <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/25 shrink-0">
-                            <Building2 size={24} />
+        <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-4 md:p-10 flex flex-col justify-between">
+            <div>
+                {/* Header com Ícone e Texto centralizados na parte superior */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-5 mb-4">
+                    <div className="flex flex-col md:flex-row md:items-center gap-6 w-full justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="w-auto h-auto bg-blue-600 text-white p-3 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/25 shrink-0 self-stretch">
+                                <Building2 size={24} />
+                            </div>
+                            <div>
+                                <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">
+                                    <span className="md:hidden">Controle de acessos</span>
+                                    <span className="hidden md:inline">Painel do Síndico - Controle de cadastro e acesso</span>
+                                </span>
+                                <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5">{condominio?.nome}</h1>
+                            </div>
                         </div>
-                        <div>
-                            <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">
-                                <span className="md:hidden">Controle de acessos</span>
-                                <span className="hidden md:inline">Painel do Síndico - Controle de cadastro e acesso</span>
+
+                        <button
+                            onClick={() => window.history.back()}
+                            className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 overflow-hidden shrink-0"
+                        >
+                            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
+                            <ArrowLeft size={12} className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out" />
+                            <span>Voltar</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Contexto Inicial da Página abaixo da linha divisória */}
+                <p className="text-xs md:text-sm text-zinc-500 font-medium mb-6">
+                    Painel administrativo de controle de condomínio. Gerencie abaixo os moradores vinculados, conceda acessos e registre lançamentos contábeis.
+                </p>
+
+                <div className="w-full max-w-none space-y-6">
+                    {/* Botões de Ação Rápida (Grade 2 colunas mobile, 4 colunas desktop) - sem setas nos cards de edição e análise */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 justify-start">
+                        <button
+                            onClick={() => {
+                                setEditandoId(null);
+                                setNovoMoradorNome("");
+                                setNovoMoradorEmail("");
+                                setNovoMoradorUnidade("");
+                                setAutorizadoApp(true);
+                                setFormError("");
+                                setFormSuccess("");
+                                setShowMoradorModal(true);
+                            }}
+                            className="bg-white border border-zinc-200 hover:border-blue-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left"
+                        >
+                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shrink-0">
+                                    <UserPlus className="w-4 h-4 md:w-5 md:h-5" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Cadastro de Morador</h3>
+                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Acesso novo condômino</p>
+                                </div>
+                            </div>
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                setContasError("");
+                                setContasSuccess("");
+                                setShowContasModal(true);
+                            }}
+                            className="bg-white border border-zinc-200 hover:border-emerald-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left"
+                        >
+                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all shrink-0">
+                                    <FileSpreadsheet className="w-4 h-4 md:w-5 md:h-5" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Prestação de Contas</h3>
+                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Lançamentos financeiros</p>
+                                </div>
+                            </div>
+                        </button>
+
+                        <Link
+                            href="/condo/adm/edicao_lancamentos"
+                            className="bg-white border border-zinc-200 hover:border-indigo-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left"
+                        >
+                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all shrink-0">
+                                    <Edit3 className="w-4 h-4 md:w-5 md:h-5" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Edição de Contas</h3>
+                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Ajuste de Lançamentos</p>
+                                </div>
+                            </div>
+                        </Link>
+
+                        <Link
+                            href="/condo/adm/analise_ocorrencias"
+                            className="bg-white border border-zinc-200 hover:border-amber-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left"
+                        >
+                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-all shrink-0">
+                                    <ShieldAlert className="w-4 h-4 md:w-5 md:h-5" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Análise de Ocorrências</h3>
+                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Ações em chamados</p>
+                                </div>
+                            </div>
+                        </Link>
+                    </div>
+
+                    {/* Contexto rápido explicando a tabela a seguir */}
+                    <p className="text-xs text-zinc-400 font-medium px-1">
+                        Abaixo encontra-se a relação atualizada de todos os cadastros e moradores vinculados ao condomínio.
+                    </p>
+
+                    {/* Bloco de Moradores Vinculados alinhado à esquerda */}
+                    <div className="bg-white border border-zinc-200 p-6 md:p-8 rounded-[2.5rem] shadow-sm text-left mb-8">
+                        <div className="flex items-center justify-between border-b border-zinc-100 pb-4 mb-4">
+                            <div className="flex items-center gap-3">
+                                <Users className="text-blue-600" size={24} />
+                                <h2 className="font-bold text-lg text-zinc-900">Cadastro</h2>
+                            </div>
+                            <span className="hidden md:inline-block text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1 rounded-full">
+                                {moradores.length} Registros
                             </span>
-                            <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5">{condominio?.nome}</h1>
                         </div>
-                    </div>
 
-                    <button
-                        onClick={() => window.history.back()}
-                        className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 overflow-hidden shrink-0"
-                    >
-                        <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
-                        <ArrowLeft size={12} className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out" />
-                        <span>Voltar</span>
-                    </button>
-                </div>
-            </div>
-
-            {/* Contexto Inicial da Página abaixo da linha divisória */}
-            <p className="text-xs md:text-sm text-zinc-500 font-medium mb-8">
-                Painel administrativo de controle de condomínio. Gerencie abaixo os moradores vinculados, conceda acessos e registre lançamentos contábeis.
-            </p>
-
-            <div className="max-w-6xl mx-auto space-y-8">
-                {/* Botões de Ação Rápida para Abrir os Popups */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <button
-                        onClick={() => {
-                            setEditandoId(null);
-                            setNovoMoradorNome("");
-                            setNovoMoradorEmail("");
-                            setNovoMoradorUnidade("");
-                            setAutorizadoApp(true);
-                            setFormError("");
-                            setFormSuccess("");
-                            setShowMoradorModal(true);
-                        }}
-                        className="bg-white border border-zinc-200 hover:border-blue-400 p-6 rounded-[2rem] shadow-sm flex items-center justify-between group transition-all"
-                    >
-                        <div className="flex items-center gap-4 text-left">
-                            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
-                                <UserPlus size={22} />
+                        {moradores.length === 0 ? (
+                            <div className="text-center py-12 space-y-2">
+                                <p className="text-zinc-400 text-sm font-medium">Nenhum condômino cadastrado ainda.</p>
                             </div>
-                            <div>
-                                <h3 className="font-bold text-base text-zinc-800">Cadastro de Morador</h3>
-                                <p className="text-xs text-zinc-400 mt-0.5">Adicionar novo condômino e liberar acesso ao app</p>
-                            </div>
-                        </div>
-                        <div className="w-8 h-8 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all">
-                            <Plus size={16} />
-                        </div>
-                    </button>
+                        ) : (
+                            <div className="overflow-x-hidden max-h-[300px]">
+                                <table className="w-full text-left border-collapse table-fixed">
+                                    <thead className="sticky top-0 bg-white z-15">
+                                        <tr className="border-b border-zinc-100">
+                                            <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider bg-white align-top w-[18%] pr-2">Apto</th>
+                                            <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider bg-white align-top w-[57%] pl-3">Nome</th>
+                                            <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider hidden md:table-cell bg-white align-top w-[15%]">App</th>
+                                            <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider text-right bg-white align-top w-[25%] pr-1">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-zinc-50">
+                                        {moradores.map((morador) => {
+                                            const isSemEmail = morador.profile?.email_contato?.startsWith("pendente.morador.");
+                                            const nomeExibicaoOriginal = morador.profile?.nome_completo || "Sem Nome";
+                                            const unidadeOriginal = morador.unidade || "";
+                                            const isAdm = unidadeOriginal.trim().toLowerCase() === "administração" || unidadeOriginal.trim().toLowerCase() === "adm";
+                                            const nomeExibicaoFinal = formatarNomePrimeiroEUltimo(nomeExibicaoOriginal);
 
-                    <button
-                        onClick={() => {
-                            setContasError("");
-                            setContasSuccess("");
-                            setShowContasModal(true);
-                        }}
-                        className="bg-white border border-zinc-200 hover:border-emerald-400 p-6 rounded-[2rem] shadow-sm flex items-center justify-between group transition-all"
-                    >
-                        <div className="flex items-center gap-4 text-left">
-                            <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all">
-                                <FileSpreadsheet size={22} />
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-base text-zinc-800">Prestação de Contas</h3>
-                                <p className="text-xs text-zinc-400 mt-0.5">Registrar novos lançamentos financeiros na tabela</p>
-                            </div>
-                        </div>
-                        <div className="w-8 h-8 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-all">
-                            <Plus size={16} />
-                        </div>
-                    </button>
-                </div>
-
-                {/* Bloco de Moradores Vinculados com Cabeçalho Centralizado */}
-                <div className="bg-white border border-zinc-200 p-6 md:p-8 rounded-[2.5rem] shadow-sm">
-                    <div className="flex items-center justify-between border-b border-zinc-100 pb-4 mb-4">
-                        <div className="flex items-center gap-3">
-                            <Users className="text-blue-600" size={24} />
-                            <h2 className="font-bold text-lg text-zinc-900">Cadastro</h2>
-                        </div>
-                        <span className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1 rounded-full">
-                            {moradores.length} Registros
-                        </span>
-                    </div>
-
-                    {moradores.length === 0 ? (
-                        <div className="text-center py-12 space-y-2">
-                            <p className="text-zinc-400 text-sm font-medium">Nenhum condômino cadastrado ainda.</p>
-                        </div>
-                    ) : (
-                        <div className="overflow-x-auto max-h-[400px] scrollbar-thin">
-                            <table className="w-full text-left border-collapse">
-                                <thead className="sticky top-0 bg-white z-15">
-                                    <tr className="border-b border-zinc-100">
-                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider bg-white align-top">Unidade</th>
-                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider bg-white align-top">Nome do Morador</th>
-                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider hidden md:table-cell bg-white align-top">App</th>
-                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider text-right bg-white align-top">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-zinc-50">
-                                    {moradores.map((morador) => {
-                                        const isSemEmail = morador.profile?.email_contato?.startsWith("pendente.morador.");
-                                        const nomeExibicaoOriginal = morador.profile?.nome_completo || "Sem Nome";
-                                        const unidadeOriginal = morador.unidade || "";
-                                        const isAdm = unidadeOriginal.trim().toLowerCase() === "administração" || unidadeOriginal.trim().toLowerCase() === "adm";
-                                        const nomeExibicaoFinal = formatarNomePrimeiroEUltimo(nomeExibicaoOriginal);
-
-                                        return (
-                                            <tr key={morador.id} className={`group transition-colors ${editandoId === morador.id ? 'bg-indigo-50/30' : ''}`}>
-                                                <td className="py-3 text-sm font-bold text-zinc-900 align-top">
-                                                    {isAdm ? "Adm" : unidadeOriginal}
-                                                </td>
-                                                <td className="py-3 align-top">
-                                                    <div className="text-sm font-bold text-zinc-800 leading-tight">
-                                                        {nomeExibicaoFinal}
-                                                    </div>
-                                                    <div className="mt-1">
-                                                        {isSemEmail ? (
-                                                            <div className="text-[9px] text-zinc-400 font-semibold tracking-wide">
-                                                                ID: {morador.profile?.slug}
-                                                            </div>
+                                            return (
+                                                <tr key={morador.id} className={`group transition-colors ${editandoId === morador.id ? 'bg-indigo-50/30' : ''}`}>
+                                                    <td className="py-3 text-sm font-bold text-zinc-900 align-top truncate pr-2">
+                                                        {isAdm ? "Adm" : unidadeOriginal}
+                                                    </td>
+                                                    <td className="py-3 align-top truncate pl-3 pr-2">
+                                                        <div className="text-sm font-bold text-zinc-800 leading-tight truncate">
+                                                            {nomeExibicaoFinal}
+                                                        </div>
+                                                        <div className="mt-1 truncate">
+                                                            {isSemEmail ? (
+                                                                <div className="text-[9px] text-zinc-400 font-semibold tracking-wide truncate">
+                                                                    ID: {morador.profile?.slug}
+                                                                </div>
+                                                            ) : (
+                                                                <div className="text-[9px] text-zinc-400 font-semibold tracking-wide truncate">
+                                                                    {mascararEmail(morador.profile?.email_contato)}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-3 hidden md:table-cell align-top">
+                                                        {morador.acesso_app ? (
+                                                            <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md">
+                                                                <Smartphone size={10} /> Ativo
+                                                            </span>
                                                         ) : (
-                                                            <div className="text-[9px] text-zinc-400 font-semibold tracking-wide">
-                                                                {mascararEmail(morador.profile?.email_contato)}
-                                                            </div>
+                                                            <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase bg-zinc-100 text-zinc-400 px-2 py-0.5 rounded-md">
+                                                                <Smartphone size={10} className="opacity-50" /> Inativo
+                                                            </span>
                                                         )}
-                                                    </div>
-                                                </td>
-                                                <td className="py-3 hidden md:table-cell align-top">
-                                                    {morador.acesso_app ? (
-                                                        <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md">
-                                                            <Smartphone size={10} /> Ativo
-                                                        </span>
-                                                    ) : (
-                                                        <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase bg-zinc-100 text-zinc-400 px-2 py-0.5 rounded-md">
-                                                            <Smartphone size={10} className="opacity-50" /> Inativo
-                                                        </span>
-                                                    )}
-                                                </td>
-                                                <td className="py-3 text-right align-top">
-                                                    <div className="flex items-center justify-end gap-1">
-                                                        <button
-                                                            onClick={() => iniciarEdicao(morador)}
-                                                            disabled={actionLoading}
-                                                            className="p-2 text-zinc-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
-                                                            title="Editar Cadastro"
-                                                        >
-                                                            <Pencil size={15} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleRemoveMorador(morador.id)}
-                                                            disabled={actionLoading}
-                                                            className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-                                                            title="Revogar Acesso"
-                                                        >
-                                                            <Trash2 size={15} />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+                                                    </td>
+                                                    <td className="py-3 text-right align-top pr-0">
+                                                        <div className="flex items-center justify-end gap-0.5">
+                                                            <button
+                                                                onClick={() => iniciarEdicao(morador)}
+                                                                disabled={actionLoading}
+                                                                className="p-2 text-zinc-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                                                                title="Editar Cadastro"
+                                                            >
+                                                                <Pencil size={15} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleRemoveMorador(morador.id)}
+                                                                disabled={actionLoading}
+                                                                className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                                title="Revogar Acesso"
+                                                            >
+                                                                <Trash2 size={15} />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
             {/* POPUP / MODAL: CADASTRO / EDIÇÃO DE MORADOR */}
             {showMoradorModal && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-6 md:p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200 my-auto">
                         <button
                             onClick={cancelarEdicao}
                             className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-colors"
@@ -932,12 +975,12 @@ export default function CondoAdm() {
                             <X size={20} />
                         </button>
 
-                        <div className="flex items-center gap-3 border-b border-zinc-100 pb-4 mb-5">
-                            {editandoId ? <Pencil className="text-indigo-600" size={24} /> : <UserPlus className="text-blue-600" size={24} />}
-                            <h2 className="font-bold text-lg">{editandoId ? "Editar Morador" : "Cadastro de Morador"}</h2>
+                        <div className="flex items-center gap-3 border-b border-zinc-100 pb-3 mb-4">
+                            {editandoId ? <Pencil className="text-indigo-600" size={20} /> : <UserPlus className="text-blue-600" size={20} />}
+                            <h2 className="font-bold text-base">{editandoId ? "Editar Morador" : "Cadastro de Morador"}</h2>
                         </div>
 
-                        <form onSubmit={handleSaveForm} className="space-y-4">
+                        <form onSubmit={handleSaveForm} className="space-y-3">
                             <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Nome Completo</label>
                                 <input
@@ -946,7 +989,7 @@ export default function CondoAdm() {
                                     required
                                     value={novoMoradorNome}
                                     onChange={(e) => setNovoMoradorNome(e.target.value)}
-                                    className="w-full px-5 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
+                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium"
                                 />
                             </div>
 
@@ -958,7 +1001,7 @@ export default function CondoAdm() {
                                     value={novoMoradorEmail}
                                     disabled={editandoSemEmail}
                                     onChange={(e) => setNovoMoradorEmail(e.target.value)}
-                                    className={`w-full px-5 py-3 border rounded-2xl outline-none transition-all text-sm font-medium ${editandoSemEmail ? 'bg-zinc-100 border-zinc-200 text-zinc-400 cursor-not-allowed select-none' : 'bg-zinc-50 border-zinc-200 focus:bg-white focus:border-blue-400'}`}
+                                    className={`w-full px-4 py-2.5 border rounded-xl outline-none transition-all text-xs font-medium ${editandoSemEmail ? 'bg-zinc-100 border-zinc-200 text-zinc-400 cursor-not-allowed select-none' : 'bg-zinc-50 border-zinc-200 focus:bg-white focus:border-blue-400'}`}
                                 />
                             </div>
 
@@ -970,11 +1013,11 @@ export default function CondoAdm() {
                                     required
                                     value={novoMoradorUnidade}
                                     onChange={(e) => setNovoMoradorUnidade(e.target.value)}
-                                    className="w-full px-5 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
+                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium"
                                 />
                             </div>
 
-                            <div className="flex items-center justify-between bg-zinc-50 border border-zinc-200 p-3.5 rounded-2xl">
+                            <div className="flex items-center justify-between bg-zinc-50 border border-zinc-200 p-3 rounded-xl">
                                 <div className="flex flex-col">
                                     <span className="text-xs font-bold text-zinc-800 uppercase tracking-wide">Acesso APP</span>
                                     <span className="text-[10px] text-zinc-400 font-medium">Permissão digital do perfil</span>
@@ -988,13 +1031,13 @@ export default function CondoAdm() {
                                 </button>
                             </div>
 
-                            {formError && <p className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 p-3 rounded-xl">{formError}</p>}
-                            {formSuccess && <p className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-3 rounded-xl flex items-center gap-2"><CheckCircle2 size={16} /> {formSuccess}</p>}
+                            {formError && <p className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 p-2.5 rounded-xl">{formError}</p>}
+                            {formSuccess && <p className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-2.5 rounded-xl flex items-center gap-2"><CheckCircle2 size={14} /> {formSuccess}</p>}
 
                             <button
                                 type="submit"
                                 disabled={actionLoading}
-                                className={`w-full py-3.5 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 text-white ${editandoId ? 'bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-600/10' : 'bg-blue-600 hover:bg-blue-700'}`}
+                                className={`w-full py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 text-white ${editandoId ? 'bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/10' : 'bg-blue-600 hover:bg-blue-700'}`}
                             >
                                 {actionLoading ? "Processando..." : editandoId ? "Salvar Alterações" : "Autorizar Acesso"}
                             </button>
@@ -1003,66 +1046,66 @@ export default function CondoAdm() {
                 </div>
             )}
 
-            {/* POPUP / MODAL: LANÇAMENTO DE PRESTAÇÃO DE CONTAS */}
+            {/* POPUP / MODAL: LANÇAMENTO DE PRESTAÇÃO DE CONTAS (Fontes, paddings e alturas ajustadas levemente para mobile) */}
             {showContasModal && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-3 md:p-4 overflow-y-auto">
+                    <div className="bg-white w-full max-w-md rounded-[2.2rem] md:rounded-[2.5rem] shadow-2xl p-4 md:p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200 my-auto">
                         <button
                             onClick={() => setShowContasModal(false)}
-                            className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-colors"
+                            className="absolute right-5 top-5 md:right-6 md:top-6 text-gray-400 hover:text-gray-900 transition-colors"
                         >
                             <X size={20} />
                         </button>
 
-                        <div className="flex items-center gap-3 border-b border-zinc-100 pb-4 mb-5">
-                            <FileSpreadsheet className="text-emerald-600" size={24} />
-                            <h2 className="font-bold text-lg">Novo Lançamento Contábil</h2>
+                        <div className="flex items-center gap-2.5 border-b border-zinc-100 pb-2 md:pb-3 mb-2.5 md:mb-4">
+                            <FileSpreadsheet className="text-emerald-600" size={18} />
+                            <h2 className="font-bold text-sm md:text-base">Novo Lançamento</h2>
                         </div>
 
-                        <form onSubmit={handleSaveContas} className="space-y-4">
-                            <div className="grid grid-cols-2 gap-3">
+                        <form onSubmit={handleSaveContas} className="space-y-2 md:space-y-3">
+                            <div className="grid grid-cols-2 gap-2.5">
                                 <button
                                     type="button"
-                                    onClick={() => setTipoConta('receita')}
-                                    className={`py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all border ${tipoConta === 'receita' ? 'bg-emerald-500 text-white border-emerald-500 shadow-md shadow-emerald-500/20' : 'bg-zinc-50 text-zinc-500 border-zinc-200'}`}
+                                    onClick={() => handleTipoContaChange('receita')}
+                                    className={`py-2 md:py-2.5 rounded-xl text-[11px] md:text-xs font-black uppercase tracking-wider transition-all border ${tipoConta === 'receita' ? 'bg-emerald-500 text-white border-emerald-500 shadow-md shadow-emerald-500/20' : 'bg-zinc-50 text-zinc-500 border-zinc-200'}`}
                                 >
                                     Receita
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setTipoConta('despesa')}
-                                    className={`py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all border ${tipoConta === 'despesa' ? 'bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-500/20' : 'bg-zinc-50 text-zinc-500 border-zinc-200'}`}
+                                    onClick={() => handleTipoContaChange('despesa')}
+                                    className={`py-2 md:py-2.5 rounded-xl text-[11px] md:text-xs font-black uppercase tracking-wider transition-all border ${tipoConta === 'despesa' ? 'bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-500/20' : 'bg-zinc-50 text-zinc-500 border-zinc-200'}`}
                                 >
                                     Despesa
                                 </button>
                             </div>
 
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Categoria</label>
+                            <div className="space-y-0.5 md:space-y-1">
+                                <label className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Categoria</label>
                                 <input
                                     type="text"
                                     required
                                     value={categoriaConta}
                                     onChange={(e) => setCategoriaConta(e.target.value)}
-                                    className="w-full px-5 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
+                                    className="w-full px-3.5 py-2 md:px-4 md:py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium"
                                 />
                             </div>
 
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Descrição</label>
+                            <div className="space-y-0.5 md:space-y-1">
+                                <label className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Descrição</label>
                                 <input
                                     type="text"
                                     placeholder="Ex: Pagamento Condomínio"
                                     required
                                     value={descricaoConta}
                                     onChange={(e) => setDescricaoConta(e.target.value)}
-                                    className="w-full px-5 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
+                                    className="w-full px-3.5 py-2 md:px-4 md:py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium"
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Valor Previsto (R$)</label>
+                            <div className="grid grid-cols-2 gap-2.5">
+                                <div className="space-y-0.5 md:space-y-1">
+                                    <label className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Planejado (R$)</label>
                                     <input
                                         type="number"
                                         step="0.01"
@@ -1070,11 +1113,11 @@ export default function CondoAdm() {
                                         required
                                         value={valorPrevistoConta}
                                         onChange={(e) => setValorPrevistoConta(e.target.value)}
-                                        className="w-full px-5 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
+                                        className="w-full px-3.5 py-2 md:px-4 md:py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium"
                                     />
                                 </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Valor Realizado (R$)</label>
+                                <div className="space-y-0.5 md:space-y-1">
+                                    <label className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Realizado (R$)</label>
                                     <input
                                         type="number"
                                         step="0.01"
@@ -1082,29 +1125,29 @@ export default function CondoAdm() {
                                         required
                                         value={valorRealizadoConta}
                                         onChange={(e) => setValorRealizadoConta(e.target.value)}
-                                        className="w-full px-5 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
+                                        className="w-full px-3.5 py-2 md:px-4 md:py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium"
                                     />
                                 </div>
                             </div>
 
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Mês de Competência</label>
+                            <div className="space-y-0.5 md:space-y-1">
+                                <label className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Mês de Competência</label>
                                 <input
                                     type="date"
                                     required
                                     value={dataCompetenciaConta}
                                     onChange={(e) => setDataCompetenciaConta(e.target.value)}
-                                    className="w-full px-5 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
+                                    className="w-full px-3.5 py-2 md:px-4 md:py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium"
                                 />
                             </div>
 
-                            {contasError && <p className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 p-3 rounded-xl">{contasError}</p>}
-                            {contasSuccess && <p className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-3 rounded-xl flex items-center gap-2"><CheckCircle2 size={16} /> {contasSuccess}</p>}
+                            {contasError && <p className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 p-2 rounded-xl">{contasError}</p>}
+                            {contasSuccess && <p className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-2 rounded-xl flex items-center gap-2"><CheckCircle2 size={14} /> {contasSuccess}</p>}
 
                             <button
                                 type="submit"
                                 disabled={actionLoading}
-                                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-600/10 flex items-center justify-center gap-2"
+                                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 md:py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-emerald-600/10 flex items-center justify-center gap-2"
                             >
                                 {actionLoading ? "Registrando..." : "Salvar Lançamento"}
                             </button>
@@ -1114,7 +1157,7 @@ export default function CondoAdm() {
             )}
 
             {/* Rodapé / Conecte-se */}
-            <div className="mt-20">
+            <div className="mt-12">
                 <div className="flex items-center gap-4 mb-6">
                     <div className="h-px bg-gray-200 flex-1"></div>
                     <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>

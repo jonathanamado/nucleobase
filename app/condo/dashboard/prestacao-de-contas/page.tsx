@@ -249,23 +249,27 @@ export default function PrestacaoContasPage() {
             {/* Header */}
             <div>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-5 mb-4">
-                    <div className="flex flex-col md:flex-row md:items-center gap-6 w-full justify-between">
-                        <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20 shrink-0">
+                    <div className="flex items-center gap-4 w-full justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-sm shrink-0">
                                 <Building2 size={24} />
                             </div>
                             <div>
-                                <h1 className="text-xl md:text-3xl font-black tracking-tight">Prestação de contas</h1>
-                                <h2 className="text-blue-600 text-base md:text-xl font-bold mt-0.5">{condominio?.nome || "Condomínio"}</h2>
+                                <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Prestação de contas</span>
+                                <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1 text-zinc-900">{condominio?.nome || "Condomínio"}</h1>
                             </div>
                         </div>
 
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => window.history.back()}
-                                className="group relative hidden md:flex items-center justify-center gap-1.5 h-9 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-sm"
+                                className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 self-start md:self-auto overflow-hidden"
                             >
-                                <ArrowLeft size={12} />
+                                <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
+                                <ArrowLeft
+                                    size={12}
+                                    className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out"
+                                />
                                 <span>Voltar</span>
                             </button>
                         </div>
@@ -277,21 +281,23 @@ export default function PrestacaoContasPage() {
                     Acompanhe abaixo o balanço financeiro da taxa base (receita), e das contas (despesas/rateio):
                 </p>
 
-                {/* Barra de Filtro de Período centralizada no mobile e alinhada à direita no desktop */}
+                {/* Barra de Filtro de Período centralizada no mobile e alinhada à direita no desktop, com largura correspondente exatamente a dois cards do grid no mobile */}
                 <div className="flex justify-center md:justify-end mb-5">
-                    <div className="flex items-center gap-2 bg-white border border-zinc-200 px-3.5 py-1.5 rounded-full shadow-sm">
-                        <Filter size={14} className="text-zinc-400" />
-                        <span className="text-[10px] font-bold text-zinc-400 uppercase">Período:</span>
-                        <input
-                            type="month"
-                            value={filtroPeriodo === 'acumulado' ? '' : filtroPeriodo}
-                            onChange={(e) => setFiltroPeriodo(e.target.value || mesVigentePadrao)}
-                            className="text-xs font-bold text-zinc-800 bg-transparent outline-none cursor-pointer"
-                            title="Filtrar por Mês"
-                        />
+                    <div className="w-full md:w-auto flex items-center justify-between md:justify-start gap-2 bg-white border border-zinc-200 px-3.5 py-1.5 rounded-full shadow-sm">
+                        <div className="flex items-center gap-2 overflow-hidden">
+                            <Filter size={14} className="text-zinc-400 shrink-0" />
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase whitespace-nowrap">Período:</span>
+                            <input
+                                type="month"
+                                value={filtroPeriodo === 'acumulado' ? '' : filtroPeriodo}
+                                onChange={(e) => setFiltroPeriodo(e.target.value || mesVigentePadrao)}
+                                className="text-xs font-bold text-zinc-800 bg-transparent outline-none cursor-pointer"
+                                title="Filtrar por Mês"
+                            />
+                        </div>
                         <button
                             onClick={() => setFiltroPeriodo('acumulado')}
-                            className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full transition-all ${filtroPeriodo === 'acumulado' ? 'bg-blue-600 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}
+                            className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full transition-all shrink-0 ${filtroPeriodo === 'acumulado' ? 'bg-blue-600 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}
                         >
                             Acumulado
                         </button>
@@ -303,36 +309,36 @@ export default function PrestacaoContasPage() {
                     <div className="bg-white border border-zinc-200 p-4 md:p-5 rounded-3xl shadow-sm flex flex-col justify-between">
                         <div className="flex items-center justify-between">
                             <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Receitas</span>
-                            <div className="w-7 h-7 md:w-8 md:h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
+                            <div className="w-7 h-7 md:w-8 md:h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
                                 <TrendingUp size={14} />
                             </div>
                         </div>
-                        <div className="mt-3 md:mt-4">
-                            <h3 className="text-base md:text-xl font-black text-emerald-600">R$ {totalRealizadoReceitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+                        <div className="mt-3 md:mt-4 whitespace-nowrap overflow-hidden">
+                            <h3 className="text-xs sm:text-base md:text-xl font-black text-emerald-600 truncate">R$ {totalRealizadoReceitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
                         </div>
                     </div>
 
                     <div className="bg-white border border-zinc-200 p-4 md:p-5 rounded-3xl shadow-sm flex flex-col justify-between">
                         <div className="flex items-center justify-between">
                             <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Despesas</span>
-                            <div className="w-7 h-7 md:w-8 md:h-8 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center">
+                            <div className="w-7 h-7 md:w-8 md:h-8 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center shrink-0">
                                 <TrendingDown size={14} />
                             </div>
                         </div>
-                        <div className="mt-3 md:mt-4">
-                            <h3 className="text-base md:text-xl font-black text-rose-600">R$ {totalRealizadoDespesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+                        <div className="mt-3 md:mt-4 whitespace-nowrap overflow-hidden">
+                            <h3 className="text-xs sm:text-base md:text-xl font-black text-rose-600 truncate">R$ {totalRealizadoDespesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
                         </div>
                     </div>
 
                     <div className="bg-white border border-zinc-200 p-4 md:p-5 rounded-3xl shadow-sm flex flex-col justify-between">
                         <div className="flex items-center justify-between">
                             <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Saldo Líquido</span>
-                            <div className={`w-7 h-7 md:w-8 md:h-8 rounded-xl flex items-center justify-center ${saldoLiquido >= 0 ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-600'}`}>
+                            <div className={`w-7 h-7 md:w-8 md:h-8 rounded-xl flex items-center justify-center shrink-0 ${saldoLiquido >= 0 ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-600'}`}>
                                 <DollarSign size={14} />
                             </div>
                         </div>
-                        <div className="mt-3 md:mt-4">
-                            <h3 className={`text-base md:text-xl font-black ${saldoLiquido >= 0 ? 'text-zinc-900' : 'text-amber-600'}`}>
+                        <div className="mt-3 md:mt-4 whitespace-nowrap overflow-hidden">
+                            <h3 className={`text-xs sm:text-base md:text-xl font-black truncate ${saldoLiquido >= 0 ? 'text-zinc-900' : 'text-amber-600'}`}>
                                 R$ {saldoLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </h3>
                         </div>
@@ -342,10 +348,10 @@ export default function PrestacaoContasPage() {
                         <div className="absolute top-0 right-0 w-24 h-24 bg-blue-600/20 rounded-full blur-2xl"></div>
                         <div className="flex items-center justify-between relative z-10">
                             <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Registros</span>
-                            <BarChart3 size={16} className="text-blue-400" />
+                            <BarChart3 size={16} className="text-blue-400 shrink-0" />
                         </div>
-                        <div className="mt-3 md:mt-4 relative z-10">
-                            <h3 className="text-xs md:text-sm font-bold text-blue-400">{contasFiltradas.length} Lançamento(s)</h3>
+                        <div className="mt-3 md:mt-4 relative z-10 whitespace-nowrap overflow-hidden">
+                            <h3 className="text-xs md:text-sm font-bold text-blue-400 truncate">{contasFiltradas.length} Lançamento(s)</h3>
                         </div>
                     </div>
                 </div>
@@ -419,7 +425,7 @@ export default function PrestacaoContasPage() {
                         </span>
                     </div>
 
-                    <div className="space-y-6 max-w-4xl mx-auto py-2">
+                    <div className="space-y-6 w-full py-2">
                         <div className="space-y-2">
                             <div className="flex justify-between items-center text-xs font-bold whitespace-nowrap gap-4">
                                 <span className="flex items-center gap-1.5 text-emerald-600 uppercase tracking-wider overflow-hidden text-ellipsis">

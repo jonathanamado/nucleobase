@@ -1,4 +1,4 @@
-// app/condo/dashboard/ocorrencias-e-sugestoes/page.tsx
+// app/condo/adm/analise_ocorrencias/page.tsx
 "use client";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -8,14 +8,14 @@ import {
     Loader2,
     Instagram,
     ShieldAlert,
-    Plus,
     X,
     AlertCircle,
     Lightbulb,
     CheckCircle2,
     MessageCircle,
     Filter,
-    Send
+    Send,
+    ArrowLeft
 } from "lucide-react";
 
 const supabase = createClient(
@@ -43,24 +43,12 @@ interface ItemOcorrenciaSugestao {
     criado_em: string;
 }
 
-export default function OcorrenciasSugestoesPage() {
+export default function AnaliseOcorrenciasAdmPage() {
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
     const [memberData, setMemberData] = useState<UserMemberData | null>(null);
     const [itens, setItens] = useState<ItemOcorrenciaSugestao[]>([]);
-
-    // Estados dos Popups de Cadastro
-    const [showModalOcorrencia, setShowModalOcorrencia] = useState(false);
-    const [showModalSugestao, setShowModalSugestao] = useState(false);
-
-    // Campos do Formulário Compartilhados / Comuns
-    const [tituloInput, setTituloInput] = useState("");
-    const [descricaoInput, setDescricaoInput] = useState("");
-    const [solicitanteInput, setSolicitanteInput] = useState("");
-    const [unidadeInput, setUnidadeInput] = useState("");
-    const [formError, setFormError] = useState("");
-    const [formSuccess, setFormSuccess] = useState("");
 
     // Estados de Filtro por Card ('todos' | 'pendente' | 'em_andamento' | 'resolvido')
     const [filtroOcorrencia, setFiltroOcorrencia] = useState<string>('todos');
@@ -69,6 +57,8 @@ export default function OcorrenciasSugestoesPage() {
     // Estado do Popup de Envio para o WhatsApp
     const [showModalWhatsApp, setShowModalWhatsApp] = useState(false);
     const [whatsappItemIdSelecionado, setWhatsappItemIdSelecionado] = useState("");
+
+    const [feedbackMessage, setFeedbackMessage] = useState("");
 
     const verifyAccessAndLoadData = async () => {
         try {
@@ -111,7 +101,7 @@ export default function OcorrenciasSugestoesPage() {
                 setItens([]);
             }
         } catch (e) {
-            console.error("Erro ao verificar acesso:", e);
+            console.error("Erro ao verificar acesso administrativo:", e);
             setMemberData(null);
             setItens([]);
         } finally {
@@ -148,43 +138,30 @@ export default function OcorrenciasSugestoesPage() {
         return () => subscription.unsubscribe();
     }, []);
 
-    const handleSaveItem = async (e: React.FormEvent, tipoItem: 'ocorrencia' | 'sugestao') => {
-        e.preventDefault();
-        if (!memberData || !session) return;
+    // Função para o síndico alterar o status de um item diretamente na lista suspensa do card
+    const handleAtualizarStatus = async (id: string, novoStatus: 'pendente' | 'em_andamento' | 'resolvido') => {
+        if (!memberData) return;
 
         setActionLoading(true);
-        setFormError('');
-        setFormSuccess('');
+        setFeedbackMessage("");
 
         try {
             const { error } = await supabase
                 .from("condominio_ocorrencias")
-                .insert([
-                    {
-                        condominio_id: memberData.condominio_id,
-                        tipo: tipoItem,
-                        titulo: tituloInput.trim(),
-                        descricao: descricaoInput.trim(),
-                        solicitante: solicitanteInput.trim() || null,
-                        unidade: unidadeInput.trim() || null,
-                        status: 'pendente',
-                        criado_por: session.user.id
-                    }
-                ]);
+                .update({ status: novoStatus })
+                .eq("id", id);
 
             if (error) throw error;
 
-            setFormSuccess(tipoItem === 'ocorrencia' ? "Ocorrência registrada com sucesso!" : "Sugestão enviada com sucesso!");
-            setTituloInput('');
-            setDescricaoInput('');
-            setSolicitanteInput('');
-            setUnidadeInput('');
-            setShowModalOcorrencia(false);
-            setShowModalSugestao(false);
+            setFeedbackMessage(`Status atualizado para "${novoStatus.replace('_', ' ')}" com sucesso!`);
             await loadOcorrenciasSugestoes(memberData.condominio_id);
+
+            setTimeout(() => {
+                setFeedbackMessage("");
+            }, 3000);
         } catch (err: any) {
-            console.error("Erro ao salvar registro:", err);
-            setFormError(err?.message || "Erro ao registrar. Verifique se a tabela 'condominio_ocorrencias' existe no banco.");
+            console.error("Erro ao atualizar status:", err);
+            alert("Erro ao atualizar status: " + (err?.message || "Erro desconhecido"));
         } finally {
             setActionLoading(false);
         }
@@ -200,7 +177,7 @@ export default function OcorrenciasSugestoesPage() {
         const tipoFormatado = itemEncontrado.tipo === 'ocorrencia' ? 'Ocorrência' : 'Sugestão';
         const statusFormatado = itemEncontrado.status.toUpperCase();
 
-        let mensagem = `*${tipoFormatado} - ${memberData?.condominio?.nome || 'Condomínio'}*\n\n`;
+        let mensagem = `*${tipoFormatado} (Adm) - ${memberData?.condominio?.nome || 'Condomínio'}*\n\n`;
         mensagem += `*Título:* ${itemEncontrado.titulo}\n`;
         mensagem += `*Descrição:* ${itemEncontrado.descricao}\n`;
         if (itemEncontrado.solicitante) mensagem += `*Solicitante:* ${itemEncontrado.solicitante}\n`;
@@ -208,7 +185,6 @@ export default function OcorrenciasSugestoesPage() {
         mensagem += `*Status:* ${statusFormatado}\n`;
         mensagem += `*Data:* ${new Date(itemEncontrado.criado_em).toLocaleDateString('pt-BR')}`;
 
-        // Utiliza a API nativa do WhatsApp (wa.me) sem número pré-definido para abrir diretamente o seletor de contatos do aplicativo/dispositivo do próprio usuário
         const urlWhatsApp = `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
 
         window.open(urlWhatsApp, '_blank');
@@ -238,7 +214,7 @@ export default function OcorrenciasSugestoesPage() {
         return (
             <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
                 <Loader2 className="animate-spin text-blue-600 mb-4" size={32} />
-                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Carregando livro digital...</p>
+                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Carregando painel do síndico...</p>
             </div>
         );
     }
@@ -248,9 +224,9 @@ export default function OcorrenciasSugestoesPage() {
             <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
                 <div className="w-full max-w-sm bg-white border border-zinc-200 p-8 rounded-[2.5rem] text-center space-y-4 shadow-sm">
                     <h1 className="text-xl font-black text-zinc-900">Acesso restrito</h1>
-                    <p className="text-sm text-zinc-500">Faça login na plataforma para visualizar o módulo de ocorrências.</p>
-                    <Link href="/condo/dashboard" className="inline-block bg-zinc-900 hover:bg-black text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
-                        Ir para Login
+                    <p className="text-sm text-zinc-500">Faça login com sua conta administrativa para gerenciar as ocorrências.</p>
+                    <Link href="/condo/dashboard/adm" className="inline-block bg-zinc-900 hover:bg-black text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
+                        Ir para Login Administrativo
                     </Link>
                 </div>
             </div>
@@ -266,10 +242,10 @@ export default function OcorrenciasSugestoesPage() {
                     </div>
                     <h1 className="text-xl font-black text-zinc-900">Sem vínculo ativo</h1>
                     <p className="text-sm text-zinc-500">
-                        Seu perfil não possui acesso liberado neste condomínio no momento.
+                        Seu perfil não possui privilégios administrativos ativos neste condomínio.
                     </p>
-                    <Link href="/condo/dashboard" className="inline-block bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors mt-2">
-                        Voltar ao Início
+                    <Link href="/condo/dashboard/adm" className="inline-block bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors mt-2">
+                        Voltar ao Painel
                     </Link>
                 </div>
             </div>
@@ -283,56 +259,35 @@ export default function OcorrenciasSugestoesPage() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-5 mb-6">
                     <div className="flex flex-col md:flex-row md:items-center gap-6 w-full justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-sm shrink-0">
+                            <div className="w-auto h-auto bg-blue-600 text-white p-3 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/25 shrink-0 self-stretch">
                                 <Building2 size={24} />
                             </div>
                             <div>
-                                <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Ocorrências e sugestões</span>
-                                <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1 text-zinc-900">{memberData?.condominio?.nome || "Condomínio"}</h1>
+                                <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Painel do Síndico</span>
+                                <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5 text-zinc-900">Solicitações</h1>
                             </div>
                         </div>
+
+                        <Link
+                            href="/condo/dashboard/adm"
+                            className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 overflow-hidden shrink-0"
+                        >
+                            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
+                            <ArrowLeft size={12} className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out" />
+                            <span>Voltar ao Painel</span>
+                        </Link>
                     </div>
                 </div>
 
-                {/* Subtítulo / Contexto e Botões à direita no Desktop */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <p className="text-xs md:text-sm text-zinc-500 font-medium">
-                        Livro digital integrado para registro transparente de ocorrências operacionais e envio de sugestões para a administração.
+                        Gerencie e altere o status dos chamados enviados pelos moradores utilizando o seletor rápido no topo de cada card.
                     </p>
-
-                    {/* Ações / Botões de Abertura de Popups (Mobile: mesma largura dos cards e quebra de linha após "Nova" / "Enviar"; Desktop: largura do texto na lateral direita) */}
-                    <div className="grid grid-cols-2 md:flex md:flex-row items-center gap-3 w-full md:w-auto shrink-0">
-                        <button
-                            onClick={() => { setShowModalOcorrencia(true); setFormError(''); setFormSuccess(''); }}
-                            className="relative group overflow-hidden bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white p-3.5 md:px-5 md:py-3 rounded-2xl text-[10px] md:text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all duration-300 shadow-lg shadow-rose-600/20 active:scale-95 border border-rose-500/30 text-center leading-tight"
-                        >
-                            <div className="absolute inset-0 w-full h-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                                <Plus size={14} />
-                            </div>
-                            <span className="tracking-wider">
-                                Nova<br />ocorrência
-                            </span>
-                        </button>
-
-                        <button
-                            onClick={() => { setShowModalSugestao(true); setFormError(''); setFormSuccess(''); }}
-                            className="relative group overflow-hidden bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white p-3.5 md:px-5 md:py-3 rounded-2xl text-[10px] md:text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all duration-300 shadow-lg shadow-indigo-600/20 active:scale-95 border border-indigo-500/30 text-center leading-tight"
-                        >
-                            <div className="absolute inset-0 w-full h-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                                <Plus size={14} />
-                            </div>
-                            <span className="tracking-wider">
-                                Enviar<br />sugestão
-                            </span>
-                        </button>
-                    </div>
                 </div>
 
-                {formSuccess && (
+                {feedbackMessage && (
                     <div className="mb-6 bg-emerald-50 border border-emerald-100 text-emerald-700 p-4 rounded-2xl text-xs font-bold flex items-center gap-2">
-                        <CheckCircle2 size={16} /> {formSuccess}
+                        <CheckCircle2 size={16} /> {feedbackMessage}
                     </div>
                 )}
 
@@ -346,11 +301,10 @@ export default function OcorrenciasSugestoesPage() {
                                     <div className="w-8 h-8 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center shrink-0">
                                         <AlertCircle size={18} />
                                     </div>
-                                    <h3 className="font-bold text-sm md:text-base text-zinc-800 truncate">Ocorrências Registradas</h3>
+                                    <h3 className="font-bold text-sm md:text-base text-zinc-800 truncate">Ocorrências do Condomínio</h3>
                                 </div>
 
                                 <div className="flex flex-wrap items-center gap-2">
-                                    {/* Filtro Opcional de Status */}
                                     <div className="flex items-center gap-1 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-xl">
                                         <Filter size={12} className="text-zinc-400" />
                                         <select
@@ -377,18 +331,32 @@ export default function OcorrenciasSugestoesPage() {
                                     <p className="text-zinc-400 text-xs font-medium">Nenhuma ocorrência encontrada com o filtro selecionado.</p>
                                 </div>
                             ) : (
-                                <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                                <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
                                     {ocorrenciasFiltradas.map((item) => (
-                                        <div key={item.id} className="p-4 bg-zinc-50 border border-zinc-100 rounded-2xl space-y-2">
-                                            <div className="flex justify-between items-start">
-                                                <h4 className="font-bold text-xs text-zinc-900">{item.titulo}</h4>
-                                                <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full ${item.status === 'resolvido' ? 'bg-emerald-50 text-emerald-600' :
-                                                    item.status === 'em_andamento' ? 'bg-amber-50 text-amber-600' :
-                                                        'bg-rose-50 text-rose-600'
-                                                    }`}>
-                                                    {item.status.replace('_', ' ')}
-                                                </span>
+                                        <div key={item.id} className="p-4 bg-zinc-50 border border-zinc-100 rounded-2xl space-y-3">
+                                            <div className="flex justify-between items-start gap-3">
+                                                <h4 className="font-bold text-xs text-zinc-900 pt-1">{item.titulo}</h4>
+
+                                                {/* Seletor de status limpo na parte superior direita de cada card */}
+                                                <div className="flex items-center gap-1.5 shrink-0">
+                                                    <select
+                                                        value={item.status}
+                                                        disabled={actionLoading}
+                                                        onChange={(e) => handleAtualizarStatus(item.id, e.target.value as any)}
+                                                        className={`text-[9px] font-black uppercase px-3 py-1.5 rounded-xl outline-none cursor-pointer transition shadow-sm border ${item.status === 'resolvido'
+                                                            ? 'bg-emerald-550 text-white bg-emerald-600 border-emerald-600' :
+                                                            item.status === 'em_andamento'
+                                                                ? 'bg-amber-500 text-white border-amber-500' :
+                                                                'bg-rose-500 text-white border-rose-500'
+                                                            }`}
+                                                    >
+                                                        <option value="pendente" className="bg-white text-zinc-900">Pendente</option>
+                                                        <option value="em_andamento" className="bg-white text-zinc-900">Em andamento</option>
+                                                        <option value="resolvido" className="bg-white text-zinc-900">Resolvido</option>
+                                                    </select>
+                                                </div>
                                             </div>
+
                                             <p className="text-xs text-zinc-500 leading-relaxed">{item.descricao}</p>
 
                                             {(item.solicitante || item.unidade) && (
@@ -398,8 +366,8 @@ export default function OcorrenciasSugestoesPage() {
                                                 </div>
                                             )}
 
-                                            <div className="text-[9px] text-zinc-400 pt-0.5">
-                                                {new Date(item.criado_em).toLocaleDateString('pt-BR')}
+                                            <div className="text-[9px] text-zinc-400 pt-2 border-t border-zinc-200/60">
+                                                Criado em: {new Date(item.criado_em).toLocaleDateString('pt-BR')}
                                             </div>
                                         </div>
                                     ))}
@@ -416,11 +384,10 @@ export default function OcorrenciasSugestoesPage() {
                                     <div className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">
                                         <Lightbulb size={18} />
                                     </div>
-                                    <h3 className="font-bold text-sm md:text-base text-zinc-800 truncate">Sugestões Enviadas</h3>
+                                    <h3 className="font-bold text-sm md:text-base text-zinc-800 truncate">Sugestões Recebidas</h3>
                                 </div>
 
                                 <div className="flex flex-wrap items-center gap-2">
-                                    {/* Filtro Opcional de Status */}
                                     <div className="flex items-center gap-1 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-xl">
                                         <Filter size={12} className="text-zinc-400" />
                                         <select
@@ -447,18 +414,32 @@ export default function OcorrenciasSugestoesPage() {
                                     <p className="text-zinc-400 text-xs font-medium">Nenhuma sugestão encontrada com o filtro selecionado.</p>
                                 </div>
                             ) : (
-                                <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                                <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
                                     {sugestoesFiltradas.map((item) => (
-                                        <div key={item.id} className="p-4 bg-zinc-50 border border-zinc-100 rounded-2xl space-y-2">
-                                            <div className="flex justify-between items-start">
-                                                <h4 className="font-bold text-xs text-zinc-900">{item.titulo}</h4>
-                                                <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full ${item.status === 'resolvido' ? 'bg-emerald-50 text-emerald-600' :
-                                                    item.status === 'em_andamento' ? 'bg-amber-50 text-amber-600' :
-                                                        'bg-indigo-50 text-indigo-600'
-                                                    }`}>
-                                                    {item.status.replace('_', ' ')}
-                                                </span>
+                                        <div key={item.id} className="p-4 bg-zinc-50 border border-zinc-100 rounded-2xl space-y-3">
+                                            <div className="flex justify-between items-start gap-3">
+                                                <h4 className="font-bold text-xs text-zinc-900 pt-1">{item.titulo}</h4>
+
+                                                {/* Seletor de status limpo na parte superior direita de cada card */}
+                                                <div className="flex items-center gap-1.5 shrink-0">
+                                                    <select
+                                                        value={item.status}
+                                                        disabled={actionLoading}
+                                                        onChange={(e) => handleAtualizarStatus(item.id, e.target.value as any)}
+                                                        className={`text-[9px] font-black uppercase px-3 py-1.5 rounded-xl outline-none cursor-pointer transition shadow-sm border ${item.status === 'resolvido'
+                                                            ? 'bg-emerald-600 text-white border-emerald-600' :
+                                                            item.status === 'em_andamento'
+                                                                ? 'bg-amber-500 text-white border-amber-500' :
+                                                                'bg-indigo-600 text-white border-indigo-600'
+                                                            }`}
+                                                    >
+                                                        <option value="pendente" className="bg-white text-zinc-900">Pendente</option>
+                                                        <option value="em_andamento" className="bg-white text-zinc-900">Em andamento</option>
+                                                        <option value="resolvido" className="bg-white text-zinc-900">Resolvido</option>
+                                                    </select>
+                                                </div>
                                             </div>
+
                                             <p className="text-xs text-zinc-500 leading-relaxed">{item.descricao}</p>
 
                                             {(item.solicitante || item.unidade) && (
@@ -468,8 +449,8 @@ export default function OcorrenciasSugestoesPage() {
                                                 </div>
                                             )}
 
-                                            <div className="text-[9px] text-zinc-400 pt-0.5">
-                                                {new Date(item.criado_em).toLocaleDateString('pt-BR')}
+                                            <div className="text-[9px] text-zinc-400 pt-2 border-t border-zinc-200/60">
+                                                Criado em: {new Date(item.criado_em).toLocaleDateString('pt-BR')}
                                             </div>
                                         </div>
                                     ))}
@@ -479,16 +460,12 @@ export default function OcorrenciasSugestoesPage() {
                     </div>
                 </div>
 
-                {/* Bloco do Botão Enviar WhatsApp ao final da página com contexto explicativo ajustado */}
+                {/* Bloco do Botão Enviar WhatsApp */}
                 <div className="bg-white border border-zinc-200 rounded-[2rem] p-6 md:p-8 shadow-sm mb-12 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="space-y-1 text-center md:text-left">
-                        <h3 className="font-bold text-base text-zinc-900">
-                            <span className="md:hidden">Encaminhar via WhatsApp</span>
-                            <span className="hidden md:inline">Encaminhar Registro via WhatsApp</span>
-                        </h3>
+                        <h3 className="font-bold text-base text-zinc-900">Encaminhar Registro via WhatsApp</h3>
                         <p className="text-xs text-zinc-500 max-w-xl leading-relaxed">
-                            <span className="md:hidden">Selecione a opção desejada e envie via whatsapp</span>
-                            <span className="hidden md:inline">Selecione qualquer ocorrência ou sugestão registrada no livro digital e compartilhe os detalhes instantaneamente com a administração, portaria ou grupos de apoio do condomínio.</span>
+                            Selecione qualquer ocorrência ou sugestão para compartilhar o status atualizado com a equipe ou prestadores.
                         </p>
                     </div>
                     <button
@@ -504,185 +481,7 @@ export default function OcorrenciasSugestoesPage() {
                 </div>
             </div>
 
-            {/* POPUP: NOVA OCORRÊNCIA */}
-            {showModalOcorrencia && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden border border-zinc-100 animate-in zoom-in-95 duration-200">
-                        <button
-                            onClick={() => setShowModalOcorrencia(false)}
-                            className="absolute right-6 top-6 text-zinc-400 hover:text-zinc-900 transition-colors"
-                        >
-                            <X size={20} />
-                        </button>
-
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center">
-                                    <AlertCircle size={20} />
-                                </div>
-                                <div>
-                                    <h2 className="text-lg font-black text-zinc-900 tracking-tight">Nova Ocorrência</h2>
-                                    <p className="text-xs text-zinc-500">Reporte problemas ou incidentes operacionais.</p>
-                                </div>
-                            </div>
-
-                            <form onSubmit={(e) => handleSaveItem(e, 'ocorrencia')} className="space-y-3.5 pt-2">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Título do Ocorrido</label>
-                                    <input
-                                        type="text"
-                                        required
-                                        placeholder="Ex: Lâmpada queimada no corredor"
-                                        value={tituloInput}
-                                        onChange={(e) => setTituloInput(e.target.value)}
-                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-rose-400 text-xs font-medium"
-                                    />
-                                </div>
-
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Descrição Detalhada</label>
-                                    <textarea
-                                        required
-                                        rows={3}
-                                        placeholder="Descreva o local e detalhes do ocorrido..."
-                                        value={descricaoInput}
-                                        onChange={(e) => setDescricaoInput(e.target.value)}
-                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-rose-400 text-xs font-medium resize-none"
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Solicitante</label>
-                                        <input
-                                            type="text"
-                                            placeholder="Nome (opcional)"
-                                            value={solicitanteInput}
-                                            onChange={(e) => setSolicitanteInput(e.target.value)}
-                                            className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-rose-400 text-xs font-medium"
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Unidade</label>
-                                        <input
-                                            type="text"
-                                            placeholder="Ex: Apto 101"
-                                            value={unidadeInput}
-                                            onChange={(e) => setUnidadeInput(e.target.value)}
-                                            className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-rose-400 text-xs font-medium"
-                                        />
-                                    </div>
-                                </div>
-
-                                {formError && (
-                                    <p className="text-xs font-bold text-red-600 bg-red-50 p-3 rounded-xl text-center">
-                                        {formError}
-                                    </p>
-                                )}
-
-                                <button
-                                    type="submit"
-                                    disabled={actionLoading}
-                                    className="w-full bg-rose-600 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-700 transition shadow-md shadow-rose-100 disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
-                                >
-                                    {actionLoading ? "Registrando..." : "Confirmar Ocorrência"}
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* POPUP: NOVA SUGESTÃO */}
-            {showModalSugestao && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden border border-zinc-100 animate-in zoom-in-95 duration-200">
-                        <button
-                            onClick={() => setShowModalSugestao(false)}
-                            className="absolute right-6 top-6 text-zinc-400 hover:text-zinc-900 transition-colors"
-                        >
-                            <X size={20} />
-                        </button>
-
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center">
-                                    <Lightbulb size={20} />
-                                </div>
-                                <div>
-                                    <h2 className="text-lg font-black text-zinc-900 tracking-tight">Enviar Sugestão</h2>
-                                    <p className="text-xs text-zinc-500">Compartilhe ideias de melhorias para o condomínio.</p>
-                                </div>
-                            </div>
-
-                            <form onSubmit={(e) => handleSaveItem(e, 'sugestao')} className="space-y-3.5 pt-2">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Título da Sugestão</label>
-                                    <input
-                                        type="text"
-                                        required
-                                        placeholder="Ex: Instalação de bicicletário"
-                                        value={tituloInput}
-                                        onChange={(e) => setTituloInput(e.target.value)}
-                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-medium"
-                                    />
-                                </div>
-
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Detalhes da Sugestão</label>
-                                    <textarea
-                                        required
-                                        rows={3}
-                                        placeholder="Explique os benefícios e detalhes da sua sugestão..."
-                                        value={descricaoInput}
-                                        onChange={(e) => setDescricaoInput(e.target.value)}
-                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-medium resize-none"
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Solicitante</label>
-                                        <input
-                                            type="text"
-                                            placeholder="Nome (opcional)"
-                                            value={solicitanteInput}
-                                            onChange={(e) => setSolicitanteInput(e.target.value)}
-                                            className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-medium"
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Unidade</label>
-                                        <input
-                                            type="text"
-                                            placeholder="Ex: Apto 101"
-                                            value={unidadeInput}
-                                            onChange={(e) => setUnidadeInput(e.target.value)}
-                                            className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-medium"
-                                        />
-                                    </div>
-                                </div>
-
-                                {formError && (
-                                    <p className="text-xs font-bold text-red-600 bg-red-50 p-3 rounded-xl text-center">
-                                        {formError}
-                                    </p>
-                                )}
-
-                                <button
-                                    type="submit"
-                                    disabled={actionLoading}
-                                    className="w-full bg-indigo-600 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 transition shadow-md shadow-indigo-100 disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
-                                >
-                                    {actionLoading ? "Enviando..." : "Enviar Sugestão"}
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* POPUP: ENVIAR VIA WHATSAPP (SELEÇÃO DE ITEM PARA ABRIR LISTA DE CONTATOS DO DISPOSITIVO) */}
+            {/* POPUP: ENVIAR VIA WHATSAPP */}
             {showModalWhatsApp && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden border border-zinc-100 animate-in zoom-in-95 duration-200">
@@ -700,13 +499,13 @@ export default function OcorrenciasSugestoesPage() {
                                 </div>
                                 <div>
                                     <h2 className="text-lg font-black text-zinc-900 tracking-tight">Enviar via WhatsApp</h2>
-                                    <p className="text-xs text-zinc-500">Selecione o registro e escolha o contato na sua agenda.</p>
+                                    <p className="text-xs text-zinc-500">Selecione o registro para compartilhar.</p>
                                 </div>
                             </div>
 
                             <form onSubmit={handleEnviarWhatsApp} className="space-y-4 pt-2">
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Selecionar Ocorrência / Sugestão</label>
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Selecionar Item</label>
                                     <select
                                         required
                                         value={whatsappItemIdSelecionado}
@@ -723,7 +522,7 @@ export default function OcorrenciasSugestoesPage() {
                                 </div>
 
                                 <p className="text-[11px] text-zinc-500 bg-zinc-50 p-3.5 rounded-2xl border border-zinc-100 leading-relaxed">
-                                    Ao confirmar, o aplicativo do WhatsApp será aberto para você selecionar diretamente o destinatário da sua própria lista de contatos.
+                                    O WhatsApp será aberto para você escolher o contato diretamente na sua agenda.
                                 </p>
 
                                 <button

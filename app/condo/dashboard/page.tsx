@@ -323,7 +323,7 @@ export default function CondoDashboard() {
             desc: "Controle simplificado da lista de residentes autorizados.",
             shortDesc: "Gestão de residentes autorizados.",
             icon: <Users className="text-indigo-500" size={24} />,
-            badge: "Administrativo",
+            badge: "Adm",
             path: "/condo/dashboard/cadastro-moradores"
         },
         {
@@ -363,15 +363,14 @@ export default function CondoDashboard() {
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-6 md:p-10">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-6 mb-4">
-                <div>
-                    <div className="flex items-center gap-2">
-                        <Building2 className="text-blue-600" size={18} />
-                        <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">
-                            <span className="md:hidden">Painel de Gestão - Nucleo Condo</span>
-                            <span className="hidden md:inline">Painel do Condomínio - Funcionalidades da Plataforma</span>
-                        </span>
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-sm shrink-0">
+                        <Building2 size={24} />
                     </div>
-                    <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1 hidden md:block">{memberData?.condominio?.nome || "Condomínio"}</h1>
+                    <div>
+                        <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Painel APP</span>
+                        <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1 text-zinc-900">Nucleo Condo</h1>
+                    </div>
                 </div>
             </div>
 
@@ -385,11 +384,11 @@ export default function CondoDashboard() {
                     <Link
                         key={idx}
                         href={modulo.path}
-                        className="bg-white border border-zinc-150 p-4 md:p-8 rounded-[1.5rem] md:rounded-[2rem] shadow-sm hover:shadow-md transition-all group cursor-pointer flex flex-col justify-between"
+                        className="bg-white border border-zinc-150 p-3 md:p-8 rounded-[1.5rem] md:rounded-[2rem] shadow-sm hover:shadow-md transition-all group cursor-pointer flex flex-col justify-between"
                     >
                         <div>
                             <div className="flex items-center justify-between mb-3 md:mb-6">
-                                <div className="p-2 md:p-3 bg-zinc-50 rounded-xl md:rounded-2xl group-hover:bg-zinc-900/5 transition-colors">
+                                <div className="p-1.5 md:p-3 bg-zinc-50 rounded-xl md:rounded-2xl group-hover:bg-zinc-900/5 transition-colors">
                                     {React.cloneElement(modulo.icon, {
                                         className: `${modulo.icon.props.className} w-5 h-5 md:w-6 md:h-6`
                                     })}
