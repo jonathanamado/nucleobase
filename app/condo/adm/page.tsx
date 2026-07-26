@@ -759,7 +759,7 @@ export default function CondoAdm() {
                             <div>
                                 <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">
                                     <span className="md:hidden">Controle de acessos</span>
-                                    <span className="hidden md:inline">Painel do Síndico - Controle de cadastro e acesso</span>
+                                    <span className="hidden md:inline">Painel de Gestão - Controles internos  </span>
                                 </span>
                                 <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5">{condominio?.nome}</h1>
                             </div>
@@ -851,7 +851,7 @@ export default function CondoAdm() {
                                     <ShieldAlert className="w-4 h-4 md:w-5 md:h-5" />
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Análise Ocorrências</h3>
+                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Análise de Ocorrências</h3>
                                     <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Ações em chamados</p>
                                 </div>
                             </div>

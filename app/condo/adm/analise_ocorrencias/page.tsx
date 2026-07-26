@@ -180,7 +180,7 @@ export default function AnaliseOcorrenciasAdmPage() {
         }
     };
 
-    // Função de Moderação: Excluir ocorrência ou sugestão
+    // Função de Moderação: Excluir ocorrência ou sugestão com tratamento de políticas RLS do Supabase
     const handleExcluirItem = async (id: string) => {
         if (!confirm("Deseja realmente excluir este registro? Esta ação não poderá ser desfeita.")) return;
         if (!memberData) return;
@@ -189,12 +189,18 @@ export default function AnaliseOcorrenciasAdmPage() {
         setFeedbackMessage("");
 
         try {
-            const { error } = await supabase
+            const { data, error } = await supabase
                 .from("condominio_ocorrencias")
                 .delete()
-                .eq("id", id);
+                .eq("id", id)
+                .select();
 
             if (error) throw error;
+
+            if (!data || data.length === 0) {
+                alert("A exclusão foi bloqueada pelas políticas de segurança (RLS) do banco de dados para este registro. Verifique as permissões da tabela condominio_ocorrencias.");
+                return;
+            }
 
             setFeedbackMessage("Registro excluído com sucesso!");
             await loadOcorrenciasSugestoes(memberData.condominio_id);
@@ -308,8 +314,8 @@ export default function AnaliseOcorrenciasAdmPage() {
                                 <Building2 size={24} />
                             </div>
                             <div>
-                                <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Painel do Síndico</span>
-                                <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5 text-zinc-900">Solicitações</h1>
+                                <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Análise Ocorrências</span>
+                                <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5 text-zinc-900">Apoio interno</h1>
                             </div>
                         </div>
 
@@ -326,7 +332,7 @@ export default function AnaliseOcorrenciasAdmPage() {
 
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <p className="text-xs md:text-sm text-zinc-500 font-medium">
-                        Gerencie o status, realize devolutivas via WhatsApp ou modere os chamados enviados pelos moradores.
+                        Gerencie o status, realize devolutivas e modere os chamados enviados pelos moradores.
                     </p>
                 </div>
 
@@ -379,27 +385,25 @@ export default function AnaliseOcorrenciasAdmPage() {
                                 <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
                                     {ocorrenciasFiltradas.map((item) => (
                                         <div key={item.id} className="p-4 bg-zinc-50 border border-zinc-100 rounded-2xl space-y-3">
-                                            <div className="flex justify-between items-start gap-3">
-                                                <h4 className="font-bold text-xs text-zinc-900 pt-1">{item.titulo}</h4>
+                                            {/* Linha Superior: Status e Botões de Ação na Lateral Direita */}
+                                            <div className="flex items-center justify-between gap-2">
+                                                <select
+                                                    value={item.status}
+                                                    disabled={actionLoading}
+                                                    onChange={(e) => handleAtualizarStatus(item.id, e.target.value as any)}
+                                                    className={`text-[9px] font-black uppercase px-3 py-1.5 rounded-xl outline-none cursor-pointer transition shadow-sm border ${item.status === 'resolvido'
+                                                        ? 'bg-emerald-600 text-white border-emerald-600' :
+                                                        item.status === 'em_andamento'
+                                                            ? 'bg-amber-500 text-white border-amber-500' :
+                                                            'bg-rose-500 text-white border-rose-500'
+                                                        }`}
+                                                >
+                                                    <option value="pendente" className="bg-white text-zinc-900">Pendente</option>
+                                                    <option value="em_andamento" className="bg-white text-zinc-900">Em andamento</option>
+                                                    <option value="resolvido" className="bg-white text-zinc-900">Resolvido</option>
+                                                </select>
 
-                                                {/* Seletor de status e botões de ação (Devolutiva e Exclusão) */}
-                                                <div className="flex items-center gap-2 shrink-0">
-                                                    <select
-                                                        value={item.status}
-                                                        disabled={actionLoading}
-                                                        onChange={(e) => handleAtualizarStatus(item.id, e.target.value as any)}
-                                                        className={`text-[9px] font-black uppercase px-3 py-1.5 rounded-xl outline-none cursor-pointer transition shadow-sm border ${item.status === 'resolvido'
-                                                            ? 'bg-emerald-600 text-white border-emerald-600' :
-                                                            item.status === 'em_andamento'
-                                                                ? 'bg-amber-500 text-white border-amber-500' :
-                                                                'bg-rose-500 text-white border-rose-500'
-                                                            }`}
-                                                    >
-                                                        <option value="pendente" className="bg-white text-zinc-900">Pendente</option>
-                                                        <option value="em_andamento" className="bg-white text-zinc-900">Em andamento</option>
-                                                        <option value="resolvido" className="bg-white text-zinc-900">Resolvido</option>
-                                                    </select>
-
+                                                <div className="flex items-center gap-1.5 shrink-0">
                                                     <button
                                                         onClick={() => abrirModalDevolutiva(item)}
                                                         className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all"
@@ -419,6 +423,9 @@ export default function AnaliseOcorrenciasAdmPage() {
                                                 </div>
                                             </div>
 
+                                            {/* Informações na Linha Abaixo */}
+                                            <h4 className="font-bold text-xs text-zinc-900 pt-1">{item.titulo}</h4>
+
                                             <p className="text-xs text-zinc-500 leading-relaxed">{item.descricao}</p>
 
                                             {(item.solicitante || item.unidade) && (
@@ -431,8 +438,8 @@ export default function AnaliseOcorrenciasAdmPage() {
                                                 </div>
                                             )}
 
-                                            <div className="text-[9px] text-zinc-400 pt-2 border-t border-zinc-200/60">
-                                                Data solicitação: {new Date(item.criado_em).toLocaleDateString('pt-BR')}
+                                            <div className="text-[10px] text-zinc-400 pt-2 border-t border-zinc-200/60">
+                                                Data solicitação: <strong className="text-zinc-700">{new Date(item.criado_em).toLocaleDateString('pt-BR')}</strong>
                                             </div>
                                         </div>
                                     ))}
@@ -482,27 +489,25 @@ export default function AnaliseOcorrenciasAdmPage() {
                                 <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
                                     {sugestoesFiltradas.map((item) => (
                                         <div key={item.id} className="p-4 bg-zinc-50 border border-zinc-100 rounded-2xl space-y-3">
-                                            <div className="flex justify-between items-start gap-3">
-                                                <h4 className="font-bold text-xs text-zinc-900 pt-1">{item.titulo}</h4>
+                                            {/* Linha Superior: Status e Botões de Ação na Lateral Direita */}
+                                            <div className="flex items-center justify-between gap-2">
+                                                <select
+                                                    value={item.status}
+                                                    disabled={actionLoading}
+                                                    onChange={(e) => handleAtualizarStatus(item.id, e.target.value as any)}
+                                                    className={`text-[9px] font-black uppercase px-3 py-1.5 rounded-xl outline-none cursor-pointer transition shadow-sm border ${item.status === 'resolvido'
+                                                        ? 'bg-emerald-600 text-white border-emerald-600' :
+                                                        item.status === 'em_andamento'
+                                                            ? 'bg-amber-500 text-white border-amber-500' :
+                                                            'bg-indigo-600 text-white border-indigo-600'
+                                                        }`}
+                                                >
+                                                    <option value="pendente" className="bg-white text-zinc-900">Pendente</option>
+                                                    <option value="em_andamento" className="bg-white text-zinc-900">Em andamento</option>
+                                                    <option value="resolvido" className="bg-white text-zinc-900">Resolvido</option>
+                                                </select>
 
-                                                {/* Seletor de status e botões de ação (Devolutiva e Exclusão) */}
-                                                <div className="flex items-center gap-2 shrink-0">
-                                                    <select
-                                                        value={item.status}
-                                                        disabled={actionLoading}
-                                                        onChange={(e) => handleAtualizarStatus(item.id, e.target.value as any)}
-                                                        className={`text-[9px] font-black uppercase px-3 py-1.5 rounded-xl outline-none cursor-pointer transition shadow-sm border ${item.status === 'resolvido'
-                                                            ? 'bg-emerald-600 text-white border-emerald-600' :
-                                                            item.status === 'em_andamento'
-                                                                ? 'bg-amber-500 text-white border-amber-500' :
-                                                                'bg-indigo-600 text-white border-indigo-600'
-                                                            }`}
-                                                    >
-                                                        <option value="pendente" className="bg-white text-zinc-900">Pendente</option>
-                                                        <option value="em_andamento" className="bg-white text-zinc-900">Em andamento</option>
-                                                        <option value="resolvido" className="bg-white text-zinc-900">Resolvido</option>
-                                                    </select>
-
+                                                <div className="flex items-center gap-1.5 shrink-0">
                                                     <button
                                                         onClick={() => abrirModalDevolutiva(item)}
                                                         className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all"
@@ -522,6 +527,9 @@ export default function AnaliseOcorrenciasAdmPage() {
                                                 </div>
                                             </div>
 
+                                            {/* Informações na Linha Abaixo */}
+                                            <h4 className="font-bold text-xs text-zinc-900 pt-1">{item.titulo}</h4>
+
                                             <p className="text-xs text-zinc-500 leading-relaxed">{item.descricao}</p>
 
                                             {(item.solicitante || item.unidade) && (
@@ -534,8 +542,8 @@ export default function AnaliseOcorrenciasAdmPage() {
                                                 </div>
                                             )}
 
-                                            <div className="text-[9px] text-zinc-400 pt-2 border-t border-zinc-200/60">
-                                                Data solicitação: {new Date(item.criado_em).toLocaleDateString('pt-BR')}
+                                            <div className="text-[10px] text-zinc-400 pt-2 border-t border-zinc-200/60">
+                                                Data solicitação: <strong className="text-zinc-700">{new Date(item.criado_em).toLocaleDateString('pt-BR')}</strong>
                                             </div>
                                         </div>
                                     ))}

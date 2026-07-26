@@ -15,8 +15,7 @@ import {
     CheckCircle2,
     AlertCircle,
     Edit3,
-    X,
-    Filter
+    X
 } from "lucide-react";
 
 const supabase = createClient(
@@ -41,7 +40,6 @@ export default function GestaoAtivosPage() {
     const [actionLoading, setActionLoading] = useState(false);
     const [condominio, setCondominio] = useState<{ id: string; nome: string } | null>(null);
     const [ativos, setAtivos] = useState<AtivoItem[]>([]);
-    const [filtroCategoria, setFiltroCategoria] = useState<string>('todas');
 
     // Estados de Modal / Cadastro / Edição
     const [showModal, setShowModal] = useState(false);
@@ -202,11 +200,6 @@ export default function GestaoAtivosPage() {
         setActionLoading(false);
     };
 
-    const ativosFiltrados = ativos.filter(a => {
-        if (filtroCategoria === 'todas') return true;
-        return a.categoria.toLowerCase() === filtroCategoria.toLowerCase();
-    });
-
     if (loading) {
         return (
             <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
@@ -233,7 +226,7 @@ export default function GestaoAtivosPage() {
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-6 md:p-10 flex flex-col justify-between">
             <div>
-                {/* Header com botões de navegação e botão Voltar para a página anterior */}
+                {/* Header com o título e botão Voltar */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-5 mb-4">
                     <div className="flex flex-col md:flex-row md:items-center gap-6 w-full justify-between">
                         <div className="flex items-center gap-4">
@@ -242,58 +235,39 @@ export default function GestaoAtivosPage() {
                             </div>
                             <div>
                                 <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest">Gestão de Ativos</span>
-                                <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5 text-zinc-900">Controle de Bens</h1>
+                                <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5 text-zinc-900">Controle Bens</h1>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            <button
-                                onClick={abrirNovoCadastro}
-                                className="group relative flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-indigo-600/10 active:scale-95 shrink-0 cursor-pointer"
-                            >
-                                <Plus size={12} />
-                                <span>Novo Ativo</span>
-                            </button>
-
-                            <button
-                                onClick={() => router.back()}
-                                className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 overflow-hidden shrink-0 cursor-pointer"
-                            >
-                                <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
-                                <ArrowLeft size={12} className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out" />
-                                <span>Voltar</span>
-                            </button>
-                        </div>
+                        <button
+                            onClick={() => router.back()}
+                            className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 overflow-hidden shrink-0 cursor-pointer"
+                        >
+                            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
+                            <ArrowLeft size={12} className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out" />
+                            <span>Voltar</span>
+                        </button>
                     </div>
                 </div>
 
-                {/* Filtros e Quantidade */}
+                {/* Descrição e Botão Novo Ativo alinhado à lateral direita */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <p className="text-xs md:text-sm text-zinc-500 font-medium">
                         Cadastre e gerencie o patrimônio e os bens permanentes pertencentes ao condomínio.
                     </p>
 
-                    <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1 bg-white border border-zinc-200 px-3 py-2 rounded-xl shadow-sm">
-                            <Filter size={14} className="text-zinc-400" />
-                            <select
-                                value={filtroCategoria}
-                                onChange={(e) => setFiltroCategoria(e.target.value)}
-                                className="bg-transparent text-xs font-bold uppercase tracking-wider text-zinc-700 outline-none cursor-pointer"
-                            >
-                                <option value="todas">Todas as Categorias</option>
-                                <option value="Equipamento">Equipamento</option>
-                                <option value="Mobiliário">Mobiliário</option>
-                                <option value="Eletrodoméstico">Eletrodoméstico</option>
-                                <option value="Outros">Outros</option>
-                            </select>
-                        </div>
-                    </div>
+                    <button
+                        onClick={abrirNovoCadastro}
+                        className="group relative flex items-center justify-center gap-1.5 h-9 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-indigo-600/10 active:scale-95 shrink-0 cursor-pointer self-end sm:self-auto"
+                    >
+                        <Plus size={12} />
+                        <span>Novo Ativo</span>
+                    </button>
                 </div>
 
                 {/* Tabela de Ativos com visual totalmente padronizado */}
                 <div className="bg-white border border-zinc-200 rounded-[2.5rem] p-6 shadow-sm mb-12">
-                    {ativosFiltrados.length === 0 ? (
+                    {ativos.length === 0 ? (
                         <div className="text-center py-12 space-y-2">
                             <AlertCircle className="mx-auto text-zinc-300" size={36} />
                             <p className="text-zinc-400 text-sm font-medium">Nenhum bem patrimonial cadastrado.</p>
@@ -312,7 +286,7 @@ export default function GestaoAtivosPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-zinc-50">
-                                    {ativosFiltrados.map((item) => (
+                                    {ativos.map((item) => (
                                         <tr key={item.id} className="hover:bg-zinc-50/50 transition-colors">
                                             <td className="py-3.5 pr-3 text-xs font-bold text-zinc-800">
                                                 {item.nome}
@@ -333,14 +307,14 @@ export default function GestaoAtivosPage() {
                                                 <div className="flex items-center justify-end gap-1">
                                                     <button
                                                         onClick={() => abrirEdicao(item)}
-                                                        className="p-2 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                                                        className="p-2 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all cursor-pointer"
                                                         title="Editar Ativo"
                                                     >
                                                         <Edit3 size={15} />
                                                     </button>
                                                     <button
                                                         onClick={() => handleExcluir(item.id)}
-                                                        className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                        className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
                                                         title="Excluir Ativo"
                                                     >
                                                         <Trash2 size={15} />
@@ -362,7 +336,7 @@ export default function GestaoAtivosPage() {
                     <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-6 md:p-8 relative border border-zinc-100 animate-in zoom-in-95 duration-200 my-auto">
                         <button
                             onClick={() => setShowModal(false)}
-                            className="absolute right-6 top-6 text-zinc-400 hover:text-zinc-900 transition-colors"
+                            className="absolute right-6 top-6 text-zinc-400 hover:text-zinc-900 transition-colors cursor-pointer"
                         >
                             <X size={20} />
                         </button>
@@ -442,7 +416,7 @@ export default function GestaoAtivosPage() {
                             <button
                                 type="submit"
                                 disabled={actionLoading}
-                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-indigo-600/10 flex items-center justify-center gap-2"
+                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-indigo-600/10 flex items-center justify-center gap-2 cursor-pointer"
                             >
                                 {actionLoading ? "Salvando..." : itemEditando ? "Salvar Alterações" : "Cadastrar Ativo"}
                             </button>
