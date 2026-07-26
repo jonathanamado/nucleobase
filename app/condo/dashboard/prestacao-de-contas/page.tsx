@@ -296,7 +296,7 @@ export default function PrestacaoContasPage() {
 
                 {/* Contexto Inicial da Tela logo após a linha divisória */}
                 <p className="text-xs md:text-sm text-zinc-500 font-medium mb-4">
-                    Acompanhe abaixo o balanço financeiro da taxa base (receita), e das contas (despesas/rateio):
+                    Acompanhe o balanço financeiro de Receitas (taxa-base) e Despesas (rateio contas):
                 </p>
 
                 {/* Barra de Filtro de Período centralizada no mobile e alinhada à direita no desktop, com largura correspondente exatamente a dois cards do grid no mobile */}
@@ -374,7 +374,7 @@ export default function PrestacaoContasPage() {
                     <div className="bg-zinc-900 text-white p-4 md:p-5 rounded-3xl shadow-md flex flex-col justify-between relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-blue-600/20 rounded-full blur-2xl"></div>
                         <div className="flex items-center justify-between relative z-10">
-                            <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Registros</span>
+                            <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Registros financeiros</span>
                             <BarChart3 size={16} className="text-blue-400 shrink-0" />
                         </div>
                         <div className="mt-3 md:mt-4 relative z-10 whitespace-nowrap overflow-hidden">
@@ -388,7 +388,7 @@ export default function PrestacaoContasPage() {
                     <div className="flex items-center justify-between pb-4 border-b border-zinc-100 mb-4">
                         <div className="flex items-center gap-2">
                             <FileSpreadsheet className="text-blue-600" size={20} />
-                            <h3 className="font-bold text-base text-zinc-800">Demonstrativo Analítico</h3>
+                            <h3 className="font-bold text-base text-zinc-800">Demonstrativo</h3>
                         </div>
                         <span className="hidden md:inline-block text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1 rounded-full">
                             {contasFiltradas.length} Registro(s)

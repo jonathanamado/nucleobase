@@ -197,7 +197,7 @@ export default function EdicaoLancamentosPage() {
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-6 md:p-10 flex flex-col justify-between">
             <div>
-                {/* Header com botões de navegação e botão Voltar funcional */}
+                {/* Header seguindo o mesmo padrão estrutural da página de Cadastro de Moradores */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-5 mb-4">
                     <div className="flex flex-col md:flex-row md:items-center gap-6 w-full justify-between">
                         <div className="flex items-center gap-4">
@@ -209,15 +209,6 @@ export default function EdicaoLancamentosPage() {
                                 <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5 text-zinc-900">Editar Registros</h1>
                             </div>
                         </div>
-
-                        <button
-                            onClick={() => window.history.back()}
-                            className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 overflow-hidden shrink-0 cursor-pointer"
-                        >
-                            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
-                            <ArrowLeft size={12} className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out" />
-                            <span>Voltar</span>
-                        </button>
                     </div>
                 </div>
 
@@ -243,8 +234,8 @@ export default function EdicaoLancamentosPage() {
                     </div>
                 </div>
 
-                {/* Tabela de Lançamentos com coluna de Ações Fixa à Direita */}
-                <div className="bg-white border border-zinc-200 rounded-[2.5rem] p-6 shadow-sm mb-12">
+                {/* Tabela de Lançamentos */}
+                <div className="bg-white border border-zinc-200 rounded-[2rem] p-6 shadow-sm mb-12">
                     {lancamentosFiltrados.length === 0 ? (
                         <div className="text-center py-12 space-y-2">
                             <AlertCircle className="mx-auto text-zinc-300" size={36} />
@@ -253,18 +244,18 @@ export default function EdicaoLancamentosPage() {
                     ) : (
                         <div className="overflow-x-auto max-h-[450px]">
                             <table className="w-full text-left border-collapse whitespace-nowrap">
-                                <thead className="sticky top-0 bg-white z-20 border-b border-zinc-100">
+                                <thead className="sticky top-0 bg-white z-10 border-b border-zinc-100">
                                     <tr>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Tipo</th>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Categoria</th>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Competência</th>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Realizado</th>
-                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider text-right sticky right-0 bg-white z-30 shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.05)] pr-4">Ações</th>
+                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider text-right">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-zinc-50">
                                     {lancamentosFiltrados.map((item) => (
-                                        <tr key={item.id} className="hover:bg-zinc-50/50 transition-colors group">
+                                        <tr key={item.id} className="hover:bg-zinc-50/50 transition-colors">
                                             <td className="py-3.5 pr-3 text-xs font-bold text-zinc-800">
                                                 {item.tipo === 'receita' ? 'Receita' : 'Despesa'}
                                             </td>
@@ -277,7 +268,7 @@ export default function EdicaoLancamentosPage() {
                                             <td className="py-3.5 pr-3 text-xs font-bold text-zinc-800">
                                                 R$ {Number(item.valor_realizado || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                             </td>
-                                            <td className="py-3.5 text-right sticky right-0 bg-white group-hover:bg-zinc-50 transition-colors z-10 shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.05)] pr-4">
+                                            <td className="py-3.5 text-right">
                                                 <div className="flex items-center justify-end gap-1">
                                                     <button
                                                         onClick={() => abrirEdicao(item)}

@@ -13,17 +13,14 @@ import {
     CheckCircle2,
     Smartphone,
     Pencil,
-    XCircle,
     ArrowLeft,
     Instagram,
-    KeyRound,
-    Rocket,
     LifeBuoy,
     Mail,
     X,
     ArrowRight,
     FileSpreadsheet,
-    Plus,
+    Package,
     Edit3
 } from "lucide-react";
 
@@ -733,7 +730,7 @@ export default function CondoAdm() {
                                 disabled={criandoGestao}
                                 className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-blue-600/10 transition-all"
                             >
-                                {criandoGestao ? <Loader2 className="animate-spin" size={16} /> : <Rocket size={16} />}
+                                {criandoGestao ? <Loader2 className="animate-spin" size={16} /> : <Building2 size={16} />}
                                 {criandoGestao ? "Configurando Gestão..." : "Iniciar Gestão na Nucleobase"}
                             </button>
                         </div>
@@ -781,11 +778,11 @@ export default function CondoAdm() {
 
                 {/* Contexto Inicial da Página abaixo da linha divisória */}
                 <p className="text-xs md:text-sm text-zinc-500 font-medium mb-6">
-                    Painel administrativo de controle de condomínio. Gerencie abaixo os moradores vinculados, conceda acessos e registre lançamentos contábeis.
+                    Painel para gerenciamento de acessos de moradores, registros de lançamentos contábeis e controle de ocorrências e sugestões.
                 </p>
 
                 <div className="w-full max-w-none space-y-6">
-                    {/* Botões de Ação Rápida (Grade 2 colunas mobile, 4 colunas desktop) - sem setas nos cards de edição e análise */}
+                    {/* Botões de Ação Rápida (Grade 2 colunas mobile, 4 colunas desktop) */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 justify-start">
                         <button
                             onClick={() => {
@@ -831,16 +828,16 @@ export default function CondoAdm() {
                         </button>
 
                         <Link
-                            href="/condo/adm/edicao_lancamentos"
+                            href="/condo/adm/gestao_ativos"
                             className="bg-white border border-zinc-200 hover:border-indigo-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left"
                         >
                             <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
                                 <div className="w-8 h-8 md:w-10 md:h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all shrink-0">
-                                    <Edit3 className="w-4 h-4 md:w-5 md:h-5" />
+                                    <Package className="w-4 h-4 md:w-5 md:h-5" />
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Edição de Contas</h3>
-                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Ajuste de Lançamentos</p>
+                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Controle de bens</h3>
+                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Gestão de ativos</p>
                                 </div>
                             </div>
                         </Link>
@@ -1046,7 +1043,7 @@ export default function CondoAdm() {
                 </div>
             )}
 
-            {/* POPUP / MODAL: LANÇAMENTO DE PRESTAÇÃO DE CONTAS (Fontes, paddings e alturas ajustadas levemente para mobile) */}
+            {/* POPUP / MODAL: LANÇAMENTO DE PRESTAÇÃO DE CONTAS */}
             {showContasModal && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-3 md:p-4 overflow-y-auto">
                     <div className="bg-white w-full max-w-md rounded-[2.2rem] md:rounded-[2.5rem] shadow-2xl p-4 md:p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200 my-auto">
@@ -1151,6 +1148,14 @@ export default function CondoAdm() {
                             >
                                 {actionLoading ? "Registrando..." : "Salvar Lançamento"}
                             </button>
+
+                            <Link
+                                href="/condo/adm/edicao_lancamentos"
+                                onClick={() => setShowContasModal(false)}
+                                className="w-full bg-zinc-900 hover:bg-black text-white py-2.5 md:py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-zinc-900/10 flex items-center justify-center gap-2"
+                            >
+                                <Edit3 size={14} /> Editar lançamentos
+                            </Link>
                         </form>
                     </div>
                 </div>
