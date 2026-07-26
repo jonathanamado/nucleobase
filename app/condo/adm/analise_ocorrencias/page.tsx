@@ -2,6 +2,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import {
     Building2,
@@ -15,7 +16,8 @@ import {
     MessageCircle,
     Filter,
     Send,
-    ArrowLeft
+    ArrowLeft,
+    Trash2
 } from "lucide-react";
 
 const supabase = createClient(
@@ -44,6 +46,7 @@ interface ItemOcorrenciaSugestao {
 }
 
 export default function AnaliseOcorrenciasAdmPage() {
+    const router = useRouter();
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
@@ -54,9 +57,10 @@ export default function AnaliseOcorrenciasAdmPage() {
     const [filtroOcorrencia, setFiltroOcorrencia] = useState<string>('todos');
     const [filtroSugestao, setFiltroSugestao] = useState<string>('todos');
 
-    // Estado do Popup de Envio para o WhatsApp
+    // Estado do Popup de Envio de Devolutiva via WhatsApp para um item específico
     const [showModalWhatsApp, setShowModalWhatsApp] = useState(false);
-    const [whatsappItemIdSelecionado, setWhatsappItemIdSelecionado] = useState("");
+    const [whatsappItemSelecionado, setWhatsappItemSelecionado] = useState<ItemOcorrenciaSugestao | null>(null);
+    const [mensagemDevolutiva, setMensagemDevolutiva] = useState("");
 
     const [feedbackMessage, setFeedbackMessage] = useState("");
 
@@ -176,29 +180,61 @@ export default function AnaliseOcorrenciasAdmPage() {
         }
     };
 
-    const handleEnviarWhatsApp = (e: React.FormEvent) => {
+    // Função de Moderação: Excluir ocorrência ou sugestão
+    const handleExcluirItem = async (id: string) => {
+        if (!confirm("Deseja realmente excluir este registro? Esta ação não poderá ser desfeita.")) return;
+        if (!memberData) return;
+
+        setActionLoading(true);
+        setFeedbackMessage("");
+
+        try {
+            const { error } = await supabase
+                .from("condominio_ocorrencias")
+                .delete()
+                .eq("id", id);
+
+            if (error) throw error;
+
+            setFeedbackMessage("Registro excluído com sucesso!");
+            await loadOcorrenciasSugestoes(memberData.condominio_id);
+
+            setTimeout(() => {
+                setFeedbackMessage("");
+            }, 3000);
+        } catch (err: any) {
+            console.error("Erro ao excluir item:", err);
+            alert("Erro ao excluir item: " + (err?.message || "Erro desconhecido"));
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    // Função para abrir o popup de devolutiva para um item específico
+    const abrirModalDevolutiva = (item: ItemOcorrenciaSugestao) => {
+        setWhatsappItemSelecionado(item);
+        setMensagemDevolutiva(`Olá! Passando para dar uma devolutiva sobre a sua ${item.tipo === 'ocorrencia' ? 'ocorrência' : 'sugestão'} "${item.titulo}": `);
+        setShowModalWhatsApp(true);
+    };
+
+    const handleEnviarDevolutivaWhatsApp = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!whatsappItemIdSelecionado) return;
+        if (!whatsappItemSelecionado) return;
 
-        const itemEncontrado = itens.find(i => i.id === whatsappItemIdSelecionado);
-        if (!itemEncontrado) return;
+        const tipoFormatado = whatsappItemSelecionado.tipo === 'ocorrencia' ? 'Ocorrência' : 'Sugestão';
+        const statusFormatado = whatsappItemSelecionado.status.toUpperCase();
 
-        const tipoFormatado = itemEncontrado.tipo === 'ocorrencia' ? 'Ocorrência' : 'Sugestão';
-        const statusFormatado = itemEncontrado.status.toUpperCase();
-
-        let mensagem = `*${tipoFormatado} (Adm) - ${memberData?.condominio?.nome || 'Condomínio'}*\n\n`;
-        mensagem += `*Título:* ${itemEncontrado.titulo}\n`;
-        mensagem += `*Descrição:* ${itemEncontrado.descricao}\n`;
-        if (itemEncontrado.solicitante) mensagem += `*Solicitante:* ${itemEncontrado.solicitante}\n`;
-        if (itemEncontrado.unidade) mensagem += `*Unidade:* ${itemEncontrado.unidade}\n`;
-        mensagem += `*Status:* ${statusFormatado}\n`;
-        mensagem += `*Data:* ${new Date(itemEncontrado.criado_em).toLocaleDateString('pt-BR')}`;
+        let mensagem = `*Devolutiva Adm - ${memberData?.condominio?.nome || 'Condomínio'}*\n\n`;
+        mensagem += `*${tipoFormatado}:* ${whatsappItemSelecionado.titulo}\n`;
+        mensagem += `*Status Atual:* ${statusFormatado}\n\n`;
+        mensagem += `*Mensagem da Administração:*\n${mensagemDevolutiva.trim()}`;
 
         const urlWhatsApp = `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
 
         window.open(urlWhatsApp, '_blank');
         setShowModalWhatsApp(false);
-        setWhatsappItemIdSelecionado("");
+        setWhatsappItemSelecionado(null);
+        setMensagemDevolutiva("");
     };
 
     const ocorrenciasFiltradas = itens.filter(i => {
@@ -277,20 +313,20 @@ export default function AnaliseOcorrenciasAdmPage() {
                             </div>
                         </div>
 
-                        <Link
-                            href="/condo/dashboard/adm"
-                            className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 overflow-hidden shrink-0"
+                        <button
+                            onClick={() => router.back()}
+                            className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 overflow-hidden shrink-0 cursor-pointer"
                         >
                             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
                             <ArrowLeft size={12} className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out" />
-                            <span>Voltar ao Painel</span>
-                        </Link>
+                            <span>Voltar</span>
+                        </button>
                     </div>
                 </div>
 
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <p className="text-xs md:text-sm text-zinc-500 font-medium">
-                        Gerencie e altere o status dos chamados enviados pelos moradores utilizando o seletor rápido no topo de cada card.
+                        Gerencie o status, realize devolutivas via WhatsApp ou modere os chamados enviados pelos moradores.
                     </p>
                 </div>
 
@@ -346,8 +382,8 @@ export default function AnaliseOcorrenciasAdmPage() {
                                             <div className="flex justify-between items-start gap-3">
                                                 <h4 className="font-bold text-xs text-zinc-900 pt-1">{item.titulo}</h4>
 
-                                                {/* Seletor de status limpo na parte superior direita de cada card */}
-                                                <div className="flex items-center gap-1.5 shrink-0">
+                                                {/* Seletor de status e botões de ação (Devolutiva e Exclusão) */}
+                                                <div className="flex items-center gap-2 shrink-0">
                                                     <select
                                                         value={item.status}
                                                         disabled={actionLoading}
@@ -363,6 +399,23 @@ export default function AnaliseOcorrenciasAdmPage() {
                                                         <option value="em_andamento" className="bg-white text-zinc-900">Em andamento</option>
                                                         <option value="resolvido" className="bg-white text-zinc-900">Resolvido</option>
                                                     </select>
+
+                                                    <button
+                                                        onClick={() => abrirModalDevolutiva(item)}
+                                                        className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all"
+                                                        title="Enviar Devolutiva via WhatsApp"
+                                                    >
+                                                        <MessageCircle size={15} />
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => handleExcluirItem(item.id)}
+                                                        disabled={actionLoading}
+                                                        className="p-1.5 bg-zinc-100 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                        title="Excluir Registro"
+                                                    >
+                                                        <Trash2 size={15} />
+                                                    </button>
                                                 </div>
                                             </div>
 
@@ -379,7 +432,7 @@ export default function AnaliseOcorrenciasAdmPage() {
                                             )}
 
                                             <div className="text-[9px] text-zinc-400 pt-2 border-t border-zinc-200/60">
-                                                Criado em: {new Date(item.criado_em).toLocaleDateString('pt-BR')}
+                                                Data solicitação: {new Date(item.criado_em).toLocaleDateString('pt-BR')}
                                             </div>
                                         </div>
                                     ))}
@@ -432,8 +485,8 @@ export default function AnaliseOcorrenciasAdmPage() {
                                             <div className="flex justify-between items-start gap-3">
                                                 <h4 className="font-bold text-xs text-zinc-900 pt-1">{item.titulo}</h4>
 
-                                                {/* Seletor de status limpo na parte superior direita de cada card */}
-                                                <div className="flex items-center gap-1.5 shrink-0">
+                                                {/* Seletor de status e botões de ação (Devolutiva e Exclusão) */}
+                                                <div className="flex items-center gap-2 shrink-0">
                                                     <select
                                                         value={item.status}
                                                         disabled={actionLoading}
@@ -449,6 +502,23 @@ export default function AnaliseOcorrenciasAdmPage() {
                                                         <option value="em_andamento" className="bg-white text-zinc-900">Em andamento</option>
                                                         <option value="resolvido" className="bg-white text-zinc-900">Resolvido</option>
                                                     </select>
+
+                                                    <button
+                                                        onClick={() => abrirModalDevolutiva(item)}
+                                                        className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all"
+                                                        title="Enviar Devolutiva via WhatsApp"
+                                                    >
+                                                        <MessageCircle size={15} />
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => handleExcluirItem(item.id)}
+                                                        disabled={actionLoading}
+                                                        className="p-1.5 bg-zinc-100 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                        title="Excluir Registro"
+                                                    >
+                                                        <Trash2 size={15} />
+                                                    </button>
                                                 </div>
                                             </div>
 
@@ -465,7 +535,7 @@ export default function AnaliseOcorrenciasAdmPage() {
                                             )}
 
                                             <div className="text-[9px] text-zinc-400 pt-2 border-t border-zinc-200/60">
-                                                Criado em: {new Date(item.criado_em).toLocaleDateString('pt-BR')}
+                                                Data solicitação: {new Date(item.criado_em).toLocaleDateString('pt-BR')}
                                             </div>
                                         </div>
                                     ))}
@@ -474,30 +544,10 @@ export default function AnaliseOcorrenciasAdmPage() {
                         </div>
                     </div>
                 </div>
-
-                {/* Bloco do Botão Enviar WhatsApp */}
-                <div className="bg-white border border-zinc-200 rounded-[2rem] p-6 md:p-8 shadow-sm mb-12 flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="space-y-1 text-center md:text-left">
-                        <h3 className="font-bold text-base text-zinc-900">Encaminhar Registro via WhatsApp</h3>
-                        <p className="text-xs text-zinc-500 max-w-xl leading-relaxed">
-                            Selecione qualquer ocorrência ou sugestão para compartilhar o status atualizado com a equipe ou prestadores.
-                        </p>
-                    </div>
-                    <button
-                        onClick={() => setShowModalWhatsApp(true)}
-                        className="relative group overflow-hidden bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all duration-300 shadow-lg shadow-emerald-600/20 active:scale-95 border border-emerald-500/30 shrink-0 w-full md:w-auto"
-                    >
-                        <div className="absolute inset-0 w-full h-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-                            <MessageCircle size={18} />
-                        </div>
-                        <span>Enviar via WhatsApp</span>
-                    </button>
-                </div>
             </div>
 
-            {/* POPUP: ENVIAR VIA WHATSAPP */}
-            {showModalWhatsApp && (
+            {/* POPUP: ENVIAR DEVOLUTIVA VIA WHATSAPP */}
+            {showModalWhatsApp && whatsappItemSelecionado && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden border border-zinc-100 animate-in zoom-in-95 duration-200">
                         <button
@@ -513,39 +563,28 @@ export default function AnaliseOcorrenciasAdmPage() {
                                     <MessageCircle size={20} />
                                 </div>
                                 <div>
-                                    <h2 className="text-lg font-black text-zinc-900 tracking-tight">Enviar via WhatsApp</h2>
-                                    <p className="text-xs text-zinc-500">Selecione o registro para compartilhar.</p>
+                                    <h2 className="text-lg font-black text-zinc-900 tracking-tight">Encaminhar Devolutiva</h2>
+                                    <p className="text-xs text-zinc-500">Enviar resposta via WhatsApp ao solicitante.</p>
                                 </div>
                             </div>
 
-                            <form onSubmit={handleEnviarWhatsApp} className="space-y-4 pt-2">
+                            <form onSubmit={handleEnviarDevolutivaWhatsApp} className="space-y-4 pt-2">
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Selecionar Item</label>
-                                    <select
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Mensagem de Devolutiva</label>
+                                    <textarea
+                                        rows={4}
                                         required
-                                        value={whatsappItemIdSelecionado}
-                                        onChange={(e) => setWhatsappItemIdSelecionado(e.target.value)}
-                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-500 text-xs font-medium cursor-pointer"
-                                    >
-                                        <option value="">-- Escolha um item da lista --</option>
-                                        {itens.map((item) => (
-                                            <option key={item.id} value={item.id}>
-                                                [{item.tipo === 'ocorrencia' ? 'Ocorrência' : 'Sugestão'}] {item.titulo} ({item.status})
-                                            </option>
-                                        ))}
-                                    </select>
+                                        value={mensagemDevolutiva}
+                                        onChange={(e) => setMensagemDevolutiva(e.target.value)}
+                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-500 text-xs font-medium resize-none"
+                                    />
                                 </div>
-
-                                <p className="text-[11px] text-zinc-500 bg-zinc-50 p-3.5 rounded-2xl border border-zinc-100 leading-relaxed">
-                                    O WhatsApp será aberto para você escolher o contato diretamente na sua agenda.
-                                </p>
 
                                 <button
                                     type="submit"
-                                    disabled={!whatsappItemIdSelecionado}
-                                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition shadow-md shadow-emerald-100 disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
+                                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition shadow-md shadow-emerald-100 flex items-center justify-center gap-2 mt-2"
                                 >
-                                    <Send size={14} /> Selecionar Contato no WhatsApp
+                                    <Send size={14} /> Enviar Mensagem no WhatsApp
                                 </button>
                             </form>
                         </div>
