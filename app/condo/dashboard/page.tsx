@@ -25,7 +25,14 @@ import {
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+        auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true,
+        }
+    }
 );
 
 interface UserMemberData {
@@ -56,8 +63,6 @@ export default function CondoDashboard() {
     // Consulta unificada e flexível: Prioriza síndico mas aceita o vínculo ativo sem travar papéis
     const fetchMemberPermissionsAndSession = async () => {
         try {
-            setLoading(true);
-
             const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
 
             if (sessionError || !currentSession) {
@@ -99,11 +104,22 @@ export default function CondoDashboard() {
     };
 
     useEffect(() => {
-        fetchMemberPermissionsAndSession();
+        let isMounted = true;
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                await fetchMemberPermissionsAndSession();
+        const initAuth = async () => {
+            if (isMounted) await fetchMemberPermissionsAndSession();
+        };
+
+        initAuth();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+            if (!isMounted) return;
+
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+                if (currentSession) {
+                    setSession(currentSession);
+                    await fetchMemberPermissionsAndSession();
+                }
             } else if (event === 'SIGNED_OUT') {
                 setSession(null);
                 setMemberData(null);
@@ -111,7 +127,10 @@ export default function CondoDashboard() {
             }
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            isMounted = false;
+            subscription.unsubscribe();
+        };
     }, []);
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -136,6 +155,7 @@ export default function CondoDashboard() {
         }
 
         if (data.session) {
+            setSession(data.session);
             await fetchMemberPermissionsAndSession();
         }
         setAuthLoading(false);

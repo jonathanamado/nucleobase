@@ -22,7 +22,8 @@ const supabase = createClient(
         auth: {
             persistSession: true,
             autoRefreshToken: true,
-            detectSessionInUrl: false,
+            detectSessionInUrl: true,
+            storage: typeof window !== "undefined" ? window.localStorage : undefined,
         },
     }
 );
@@ -71,7 +72,7 @@ export default function BoletosSegundaViaPage() {
     // Verificação robusta de sessão padronizada com o modelo de moradores
     const loadDadosCondominio = async (currentSession: any) => {
         try {
-            if (!currentSession) {
+            if (!currentSession || !currentSession.user) {
                 if (isMountedRef.current) {
                     setSession(null);
                     setMemberData(null);
@@ -131,13 +132,7 @@ export default function BoletosSegundaViaPage() {
 
         const initAuth = async () => {
             try {
-                // Força a recuperação síncrona/cache local e tenta refresh se necessário para evitar perda de sessão ao abrir nova aba/janela do WhatsApp
-                let { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-
-                if (!currentSession) {
-                    const { data: refreshData } = await supabase.auth.refreshSession();
-                    currentSession = refreshData.session;
-                }
+                const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
 
                 if (sessionError && !currentSession) throw sessionError;
 
@@ -156,15 +151,16 @@ export default function BoletosSegundaViaPage() {
         initAuth();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-            if (isMountedRef.current) {
-                // Evita limpar a sessão prematuramente em eventos de foco/visibility do navegador
-                if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+            if (!isMountedRef.current) return;
+
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+                if (currentSession) {
                     await loadDadosCondominio(currentSession);
-                } else if (event === 'SIGNED_OUT') {
-                    setSession(null);
-                    setMemberData(null);
-                    setLoading(false);
                 }
+            } else if (event === 'SIGNED_OUT') {
+                setSession(null);
+                setMemberData(null);
+                setLoading(false);
             }
         });
 
@@ -175,7 +171,7 @@ export default function BoletosSegundaViaPage() {
     }, []);
 
     const handleSolicitarWhatsApp = (e: React.MouseEvent) => {
-        e.preventDefault(); // Previne qualquer comportamento padrão de propagação de eventos
+        e.preventDefault();
 
         const mesAlvo = modoPersonalizado ? `${mesEscolhidoCustom} de ${anoEscolhidoCustom}` : mesSelecionado;
         if (!mesAlvo) return;
@@ -186,7 +182,6 @@ export default function BoletosSegundaViaPage() {
         mensagem += `Aguardo orientações. Obrigado(a)!`;
 
         const urlWhatsApp = `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
-        // Utiliza location.href ou abre via link programático para evitar race-condition no foco da janela do browser com o client Supabase
         const newWindow = window.open(urlWhatsApp, '_blank');
         if (newWindow) newWindow.opener = null;
     };
@@ -240,16 +235,13 @@ export default function BoletosSegundaViaPage() {
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-6 md:p-10 flex flex-col justify-between">
             <div className="max-w-4xl mx-auto w-full space-y-6">
-                {/* Header Integrado com o Padrão do Modelo */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-6">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
                             <FileText size={24} />
                         </div>
                         <div>
-                            {/* Linha 1: Título no modelo azul */}
                             <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Boletos (2ª via)</span>
-                            {/* Linha 2: Nome do Condomínio na cor preta */}
                             <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1 text-zinc-900">
                                 {memberData?.condominio?.nome || "Meu Condomínio"}
                             </h1>
@@ -269,16 +261,13 @@ export default function BoletosSegundaViaPage() {
                     </button>
                 </div>
 
-                {/* Subtítulo descritivo */}
                 <div>
                     <p className="text-xs md:text-sm text-zinc-500 font-medium">
                         Selecione o mês em que precisa da reemissão do boleto para solicitar a 2ª via diretamente à administração.
                     </p>
                 </div>
 
-                {/* Layout Moderno e Minimalista para os Meses */}
                 <div className="bg-white border border-zinc-200 rounded-[2.5rem] p-6 md:p-8 shadow-sm space-y-6">
-                    {/* Linha de Cabeçalho do Card: Contexto Inicial e Botão "Outro Mês" na lateral direita */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-100">
                         <div className="space-y-0.5">
                             <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Período de Referência</span>
@@ -299,7 +288,6 @@ export default function BoletosSegundaViaPage() {
                         </div>
                     </div>
 
-                    {/* Seleção Personalizada Fixa (Tipo Calendário) caso modoPersonalizado seja true */}
                     {modoPersonalizado ? (
                         <div className="bg-zinc-50/80 border border-zinc-200 rounded-3xl p-6 space-y-4 animate-in fade-in duration-200">
                             <div className="space-y-1">
@@ -336,7 +324,6 @@ export default function BoletosSegundaViaPage() {
                             </div>
                         </div>
                     ) : (
-                        /* Grid de Meses Recentes: 2 colunas no mobile e 3 no desktop */
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                             {ultimosSeisMeses.map((mes) => {
                                 const selecionado = mesSelecionado === mes;
@@ -363,7 +350,6 @@ export default function BoletosSegundaViaPage() {
                         </div>
                     )}
 
-                    {/* Rodapé do Card de Seleção e Ação do WhatsApp */}
                     <div className="pt-6 border-t border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                         <div className="text-xs text-zinc-500 text-center sm:text-left">
                             {modoPersonalizado ? (
@@ -378,21 +364,19 @@ export default function BoletosSegundaViaPage() {
                         <button
                             onClick={handleSolicitarWhatsApp}
                             disabled={modoPersonalizado ? false : !mesSelecionado}
-                            className="w-full sm:w-auto px-6 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-100 cursor-pointer active:scale-95"
+                            className="w-full sm:w-auto px-6 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-100 cursor-pointer active:scale-95 disabled:opacity-50"
                         >
                             <Send size={14} /> Solicitar via WhatsApp
                         </button>
                     </div>
                 </div>
 
-                {/* LINHA DIVISÓRIA CONECTE-SE */}
                 <div className="mt-24 flex items-center gap-4 mb-12">
                     <div className="h-px bg-gray-200 flex-1"></div>
                     <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
                     <div className="h-px bg-gray-200 flex-1"></div>
                 </div>
 
-                {/* BLOCO INSTAGRAM */}
                 <div className="flex flex-col items-center text-center pb-6">
                     <div className="max-w-3xl mb-12">
                         <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">

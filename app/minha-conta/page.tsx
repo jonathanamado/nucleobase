@@ -1,3 +1,4 @@
+// app/minha-conta/page.tsx
 "use client";
 
 import React, { useEffect, useState, useMemo, useRef } from "react";
@@ -220,7 +221,6 @@ export default function MinhaContaPage() {
         diasCadastro: diasDeUso
       });
     } else {
-      // Caso não haja registros ainda carregar o tempo de casa
       setStats(prev => ({ ...prev, diasCadastro: diasDeUso, tempoCasa: userData?.criado_em ? new Date(userData.criado_em).toLocaleDateString('pt-BR') : "" }));
     }
   }
@@ -251,12 +251,11 @@ export default function MinhaContaPage() {
           setAvatarUrl(profile.avatar_url || null);
         }
 
-        // --- BUSCA INFORMAÇÕES DE CONDOMÍNIO DO SÍNDICO ---
+        // --- BUSCA INFORMAÇÕES DE CONDOMÍNIO DO USUÁRIO (SEM FILTRAR SÓ SÍNDICO) ---
         const { data: membro } = await supabase
           .from("condominio_membros")
           .select("unidade, condominio:condominios(id, nome, cnpj)")
           .eq("user_id", user.id)
-          .eq("role", "sindico")
           .maybeSingle();
 
         if (membro) {
@@ -303,7 +302,7 @@ export default function MinhaContaPage() {
           let currentCondoId = condoId;
 
           if (!currentCondoId) {
-            // Se o síndico não tem condomínio vinculado ainda, cria um novo
+            // Se o usuário não tem condomínio vinculado ainda, cria um novo
             const { data: novoCondo, error: condoInsertError } = await supabase
               .from("condominios")
               .insert([{ nome: condoNome.trim(), cnpj: condoCnpj.trim() }])
@@ -339,13 +338,12 @@ export default function MinhaContaPage() {
 
             if (condoUpdateError) throw condoUpdateError;
 
-            // Atualiza também a unidade correspondente do síndico
+            // Atualiza também a unidade correspondente do usuário
             const { error: membroUpdateError } = await supabase
               .from("condominio_membros")
               .update({ unidade: unidadeSindico.trim() || "Administração" })
               .eq("user_id", user.id)
-              .eq("condominio_id", currentCondoId)
-              .eq("role", "sindico");
+              .eq("condominio_id", currentCondoId);
 
             if (membroUpdateError) throw membroUpdateError;
           }
@@ -627,7 +625,7 @@ export default function MinhaContaPage() {
                   </div>
                   <p className="text-lg font-black text-gray-900">{stats.percGastosVariaveis}%</p>
                 </div>
-                <InsightPopover id="eficiencia" title="Variáveis" colorClass="text-rose-400" content={`Atualmente, seus Gastos Variáveis representam ${stats.percGastosVariaveis}% das suas despesas totais. Este é o grupo onde você tem maior poder de decisão imediata. Pequenos ajustes aqui são o caminho mais rápido para aumentar sua capacidade de investimento.`} align="right" />
+                <InsightPopover id="eficiencia" title="Variáveis" colorClass="text-rose-400" content={`Atualmente, seus Gastos Variáveis representam ${stats.percGastosVariaveis}% das suas despesas totais. Este é o grupo onde você tem maior poder de decisão imediata. Pequenos ajustes here são o caminho mais rápido para aumentar sua capacidade de investimento.`} align="right" />
               </div>
 
               <div className="flex items-center gap-4 relative"
@@ -742,7 +740,7 @@ export default function MinhaContaPage() {
         </section>
       </div>
 
-      {/* --- NOVO BLOCO: ACESSO EMPRESARIAL (CONDOMÍNIO) --- */}
+      {/* --- BLOCO: ACESSO EMPRESARIAL (CONDOMÍNIO) --- */}
       <div className="mt-8">
         <section className="bg-blue-50/10 rounded-[2.5rem] p-6 md:p-10 border border-blue-100/30">
           <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-blue-600/70 mb-8 flex items-center gap-4">
@@ -770,12 +768,12 @@ export default function MinhaContaPage() {
                 placeholder="00.000.000/0000-00"
                 value={condoCnpj}
                 className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none transition-all focus:border-blue-300"
-                onChange={(e) => handleChange(setCondoCnpj, e.target.value)}
+                onChange={(e) => handleChange(condoCnpj, e.target.value)}
               />
             </div>
             <div className="space-y-3">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                Unidade / Identificação do Síndico
+                Unidade / Identificação
               </label>
               <input
                 type="text"
@@ -787,7 +785,7 @@ export default function MinhaContaPage() {
             </div>
           </div>
           <p className="text-[10px] text-zinc-400 italic font-medium">
-            * Ao salvar estas informações, o seu perfil estará automaticamente habilitado como Síndico Administrador do respectivo condomínio.
+            * Ao salvar estas informações, o seu perfil estará associado diretamente ao respectivo condomínio e unidade.
           </p>
         </section>
       </div>

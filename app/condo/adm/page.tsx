@@ -1,4 +1,4 @@
-// app/condo/dashboard/adm/page.tsx
+// app/condo/adm/page.tsx
 "use client";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -21,12 +21,21 @@ import {
     ArrowRight,
     FileSpreadsheet,
     Package,
-    Edit3
+    Edit3,
+    Lock,
+    KeyRound
 } from "lucide-react";
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+        auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true,
+        }
+    }
 );
 
 interface Morador {
@@ -58,7 +67,7 @@ export default function CondoAdm() {
     const [resetEmail, setResetEmail] = useState("");
     const [resetLoading, setResetLoading] = useState(false);
 
-    // Modais de Ações de Síndico (Cadastro de Morador e Prestação de Contas)
+    // Modais de Ações de Síndico
     const [showMoradorModal, setShowMoradorModal] = useState(false);
     const [showContasModal, setShowContasModal] = useState(false);
 
@@ -69,7 +78,6 @@ export default function CondoAdm() {
     const [valorPrevistoConta, setValorPrevistoConta] = useState('');
     const [valorRealizadoConta, setValorRealizadoConta] = useState('');
     const [dataCompetenciaConta, setDataCompetenciaConta] = useState(new Date().toISOString().slice(0, 7) + '-01');
-    const [statusConta, setStatusConta] = useState<'pendente' | 'pago' | 'recebido'>('recebido');
     const [contasError, setContasError] = useState('');
     const [contasSuccess, setContasSuccess] = useState('');
 
@@ -77,11 +85,8 @@ export default function CondoAdm() {
     const [condominio, setCondominio] = useState<{ id: string; nome: string } | null>(null);
     const [moradores, setMoradores] = useState<Morador[]>([]);
 
-    // Estados para criação automática de gestão pelo próprio usuário autenticado
-    const [criandoGestao, setCriandoGestao] = useState(false);
-    const [novoCondoNomeInput, setNovoCondoNomeInput] = useState("");
-    const [novoCondoCnpjInput, setNovoCondoCnpjInput] = useState("");
-    const [novaUnidadeSindicoInput, setNovaUnidadeSindicoInput] = useState("Adm");
+    // Controle de acesso negado específico
+    const [isApenasMorador, setIsApenasMorador] = useState(false);
 
     // Formulário para Adicionar Morador
     const [novoMoradorNome, setNovoMoradorNome] = useState("");
@@ -96,7 +101,10 @@ export default function CondoAdm() {
     const [editandoNome, setEditandoNome] = useState("");
     const [editandoSemEmail, setEditandoSemEmail] = useState(false);
 
-    // Função Auxiliar: Formata nome completo para retornar apenas o primeiro e o último nome
+    // Estado para Feedback de Reset de Senha pelo Síndico
+    const [resetPasswordSuccess, setResetPasswordSuccess] = useState("");
+    const [resetPasswordError, setResetPasswordError] = useState("");
+
     const formatarNomePrimeiroEUltimo = (nomeCompleto: string) => {
         if (!nomeCompleto) return "";
         const partes = nomeCompleto.trim().split(/\s+/);
@@ -104,7 +112,6 @@ export default function CondoAdm() {
         return `${partes[0]} ${partes[partes.length - 1]}`;
     };
 
-    // Atualiza categoria e descrição padrão ao alterar o tipo de conta (Receita vs Despesa)
     const handleTipoContaChange = (novoTipo: 'receita' | 'despesa') => {
         setTipoConta(novoTipo);
         if (novoTipo === 'receita') {
@@ -116,24 +123,12 @@ export default function CondoAdm() {
         }
     };
 
-    // Verificação robusta com persistência e fallback para zerar intermitências de sessão
-    const verifySindicoAndLoadData = async (retryCount = 0) => {
+    const verifySindicoAndLoadData = async (currentSession: any) => {
         try {
-            setLoading(true);
-
-            if (retryCount === 0) {
-                await new Promise(res => setTimeout(res, 300));
-            }
-
-            const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-
-            if (sessionError || !currentSession) {
-                if (retryCount < 2) {
-                    await new Promise(res => setTimeout(res, 500));
-                    return verifySindicoAndLoadData(retryCount + 1);
-                }
+            if (!currentSession || !currentSession.user) {
                 setSession(null);
                 setCondominio(null);
+                setIsApenasMorador(false);
                 setMoradores([]);
                 setLoading(false);
                 return;
@@ -142,38 +137,46 @@ export default function CondoAdm() {
             setSession(currentSession);
             const userId = currentSession.user.id;
 
+            // Busca os vínculos do usuário na tabela de membros
             const { data: membroDataList, error: membroError } = await supabase
                 .from("condominio_membros")
-                .select(`
-                    condominio_id,
-                    role,
-                    acesso_app,
-                    condominio:condominios ( id, nome )
-                `)
-                .eq("user_id", userId)
-                .order("role", { ascending: false })
-                .order("criado_em", { ascending: false })
-                .limit(1);
+                .select("condominio_id, role, unidade, acesso_app")
+                .eq("user_id", userId);
 
-            if (membroError) throw membroError;
-
-            if (membroDataList && membroDataList.length > 0) {
-                const membroData = membroDataList[0];
-                if (membroData.condominio) {
-                    const condoInfo = Array.isArray(membroData.condominio)
-                        ? membroData.condominio[0]
-                        : membroData.condominio;
-
-                    setCondominio(condoInfo);
-                    await loadMoradores(membroData.condominio_id);
-                } else {
-                    setCondominio(null);
-                }
-            } else {
+            if (membroError || !membroDataList || membroDataList.length === 0) {
                 setCondominio(null);
+                setIsApenasMorador(false);
+                setLoading(false);
+                return;
+            }
+
+            // Identifica se o usuário possui papel administrativo ('sindico') ou se atua na unidade 106 / gestora conhecida
+            const vinculoAdm = membroDataList.find(
+                (m: any) => m.role === 'sindico' || m.unidade === '106' || m.unidade.toLowerCase() === 'adm'
+            );
+
+            if (!vinculoAdm) {
+                setIsApenasMorador(true);
+                setCondominio(null);
+                setLoading(false);
+                return;
+            }
+
+            setIsApenasMorador(false);
+            const { data: condoData, error: condoError } = await supabase
+                .from("condominios")
+                .select("id, nome")
+                .eq("id", vinculoAdm.condominio_id)
+                .maybeSingle();
+
+            if (condoError || !condoData) {
+                setCondominio(null);
+            } else {
+                setCondominio(condoData);
+                await loadMoradores(condoData.id);
             }
         } catch (e: any) {
-            console.error("Erro ao verificar credenciais administrativas:", e);
+            console.warn("Exceção tratada em verifySindicoAndLoadData:", e?.message || e);
             setCondominio(null);
         } finally {
             setLoading(false);
@@ -181,23 +184,44 @@ export default function CondoAdm() {
     };
 
     useEffect(() => {
-        verifySindicoAndLoadData();
+        let isMounted = true;
+
+        const initAuth = async () => {
+            const { data: { session: currentSession } } = await supabase.auth.getSession();
+            if (isMounted) {
+                if (currentSession) {
+                    await verifySindicoAndLoadData(currentSession);
+                } else {
+                    setSession(null);
+                    setCondominio(null);
+                    setIsApenasMorador(false);
+                    setLoading(false);
+                }
+            }
+        };
+
+        initAuth();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+            if (!isMounted) return;
+
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
                 if (currentSession) {
-                    setSession(currentSession);
-                    await verifySindicoAndLoadData();
+                    await verifySindicoAndLoadData(currentSession);
                 }
             } else if (event === 'SIGNED_OUT') {
                 setSession(null);
                 setCondominio(null);
+                setIsApenasMorador(false);
                 setMoradores([]);
                 setLoading(false);
             }
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            isMounted = false;
+            subscription.unsubscribe();
+        };
     }, []);
 
     const mascararEmail = (email: string) => {
@@ -232,27 +256,46 @@ export default function CondoAdm() {
         setAuthLoading(true);
         setLoginError("");
 
-        let emailParaAuth = emailOrSlug.trim();
-        if (!emailParaAuth.includes("@")) {
-            emailParaAuth = `${emailParaAuth.toLowerCase()}@nucleobase.app`;
-        }
+        const inputAcesso = emailOrSlug.trim().toLowerCase();
+        const isEmail = inputAcesso.includes("@");
 
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email: emailParaAuth,
-            password
-        });
+        try {
+            let emailParaLogin = "";
+            if (isEmail) {
+                emailParaLogin = inputAcesso;
+            } else {
+                // Busca o e-mail correspondente ao slug na tabela profiles
+                const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('email_contato')
+                    .eq('slug', inputAcesso)
+                    .maybeSingle();
 
-        if (error) {
-            setLoginError("Acesso negado. Credenciais incorretas.");
+                if (profileError || !profile || !profile.email_contato) {
+                    setLoginError("ID de Síndico ou E-mail não localizado.");
+                    setAuthLoading(false);
+                    return;
+                }
+                emailParaLogin = profile.email_contato;
+            }
+
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: emailParaLogin,
+                password
+            });
+
+            if (error || !data.session) {
+                setLoginError("Acesso negado. Credenciais incorretas.");
+                setAuthLoading(false);
+                return;
+            }
+
+            await verifySindicoAndLoadData(data.session);
+        } catch (err) {
+            setLoginError("Ocorreu um erro inesperado ao entrar.");
+        } finally {
             setAuthLoading(false);
-            return;
         }
-
-        if (data.session) {
-            setSession(data.session);
-            await verifySindicoAndLoadData();
-        }
-        setAuthLoading(false);
     };
 
     const handleForgotPassword = async (e: React.FormEvent) => {
@@ -270,53 +313,11 @@ export default function CondoAdm() {
         setResetLoading(false);
     };
 
-    const handleIniciarGestaoPropria = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!session || !session.user) return;
-
-        setCriandoGestao(true);
-        try {
-            const nomeCondo = novoCondoNomeInput.trim() || "Meu Condomínio";
-            const cnpjCondo = novoCondoCnpjInput.trim() || null;
-            const unidadeGestor = novaUnidadeSindicoInput.trim().toLowerCase() === "administração" ? "Adm" : (novaUnidadeSindicoInput.trim() || "Adm");
-
-            const { data: novoCondo, error: condoError } = await supabase
-                .from("condominios")
-                .insert([{ nome: nomeCondo, cnpj: cnpjCondo }])
-                .select("id, nome")
-                .single();
-
-            if (condoError) throw condoError;
-
-            if (novoCondo) {
-                const { error: membroError } = await supabase
-                    .from("condominio_membros")
-                    .insert([
-                        {
-                            condominio_id: novoCondo.id,
-                            user_id: session.user.id,
-                            role: "sindico",
-                            unidade: unidadeGestor,
-                            acesso_app: true
-                        }
-                    ]);
-
-                if (membroError) throw membroError;
-
-                setCondominio({ id: novoCondo.id, nome: novoCondo.nome });
-                await loadMoradores(novoCondo.id);
-            }
-        } catch (err: any) {
-            console.error("Erro ao iniciar gestão própria:", err);
-            alert("Não foi possível iniciar sua gestão: " + (err?.message || "Erro desconhecido"));
-        } finally {
-            setCriandoGestao(false);
-        }
-    };
-
     const iniciarEdicao = (morador: Morador) => {
         setFormError("");
         setFormSuccess("");
+        setResetPasswordSuccess("");
+        setResetPasswordError("");
         setEditandoId(morador.id);
         setEditandoNome(morador.profile?.nome_completo || "Condômino");
         setNovoMoradorNome(morador.profile?.nome_completo || "");
@@ -346,7 +347,27 @@ export default function CondoAdm() {
         setAutorizadoApp(true);
         setFormError("");
         setFormSuccess("");
+        setResetPasswordSuccess("");
+        setResetPasswordError("");
         setShowMoradorModal(false);
+    };
+
+    const handleResetPasswordByAdmin = () => {
+        if (!editandoId) return;
+        const moradorAtual = moradores.find(m => m.id === editandoId);
+        if (!moradorAtual) return;
+
+        const nomeMorador = moradorAtual.profile?.nome_completo || "Morador";
+        const unidadeMorador = moradorAtual.unidade || "Unidade";
+        const nomeCondominio = condominio?.nome || "Condomínio";
+
+        // Monta a mensagem para o WhatsApp do suporte da Nucleobase
+        const mensagem = `Olá! Gostaria de solicitar a redefinição de senha para o padrão original para o morador ${nomeMorador} (Unidade: ${unidadeMorador}), do condomínio ${nomeCondominio}.`;
+        const whatsappUrl = `https://wa.link/qbxg9f?text=${encodeURIComponent(mensagem)}`;
+
+        // Abre o link do WhatsApp em uma nova aba
+        window.open(whatsappUrl, '_blank');
+        setResetPasswordSuccess("Solicitação de redefinição encaminhada via WhatsApp!");
     };
 
     const handleSaveForm = async (e: React.FormEvent) => {
@@ -384,7 +405,7 @@ export default function CondoAdm() {
                         .eq("id", moradorAtual.user_id);
                 }
 
-                setFormSuccess(`Sucesso! Os dados de ${formatarNomePrimeiroEUltimo(editandoNome)} foram atualizados.`);
+                setFormSuccess(`Sucesso! Os dados de ${formatarNomePrimeiroEUltimo(novoMoradorNome)} foram atualizados.`);
                 setTimeout(() => {
                     cancelarEdicao();
                 }, 1200);
@@ -427,7 +448,9 @@ export default function CondoAdm() {
                         { auth: { persistSession: false, autoRefreshToken: false } }
                     );
 
-                    const tempPassword = "Condo" + Math.random().toString(36).substring(2, 10) + "!";
+                    // SENHA PADRÃO FIXA PARA O PRIMEIRO ACESSO
+                    const tempPassword = "Condo123!";
+
                     const { data: signUpData, error: signUpError } = await tempSupabase.auth.signUp({
                         email: emailFormatado,
                         password: tempPassword,
@@ -435,7 +458,7 @@ export default function CondoAdm() {
                     });
 
                     if (signUpError) throw signUpError;
-                    if (!signUpData.user) throw new Error("Erro ao registrar credenciais.");
+                    if (!signUpData.user) throw new Error("Erro ao registrar credenciais de acesso.");
 
                     targetUserId = signUpData.user.id;
                     if (novoMoradorEmail.trim()) {
@@ -448,15 +471,18 @@ export default function CondoAdm() {
                             id: targetUserId,
                             nome_completo: nomeFormatado,
                             email_contato: emailFormatado,
-                            slug: generatedSlug
+                            slug: generatedSlug,
+                            plan_type: 'free'
                         });
                 }
 
+                // Vincula o usuário ao condomínio na tabela condominio_membros
                 const { error: insertError } = await supabase
                     .from("condominio_membros")
                     .insert([
                         {
                             condominio_id: condominio.id,
+                            condominio_nome: condominio.nome, // <--- Adicionado aqui para preenchimento automático
                             user_id: targetUserId,
                             role: "morador",
                             unidade: unidadeFinal,
@@ -474,7 +500,7 @@ export default function CondoAdm() {
                     return;
                 }
 
-                setFormSuccess(`Sucesso! ${formatarNomePrimeiroEUltimo(nomeFormatado)} foi registrado.`);
+                setFormSuccess(`Sucesso! ${formatarNomePrimeiroEUltimo(nomeFormatado)} foi registrado (ID: ${generatedSlug}).`);
                 setNovoMoradorNome("");
                 setNovoMoradorEmail("");
                 setNovoMoradorUnidade("");
@@ -482,7 +508,7 @@ export default function CondoAdm() {
                 setTimeout(() => {
                     setShowMoradorModal(false);
                     setFormSuccess("");
-                }, 1200);
+                }, 1500);
             }
 
             await loadMoradores(condominio.id);
@@ -674,71 +700,32 @@ export default function CondoAdm() {
         );
     }
 
-    if (session && !condominio) {
+    if (session && isApenasMorador) {
         return (
             <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
-                <div className="w-full max-w-lg bg-white border border-zinc-200 p-8 md:p-10 rounded-[2.5rem] shadow-sm text-center space-y-6">
-                    <div className="mx-auto w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
-                        <Building2 size={32} />
+                <div className="w-full max-w-md bg-white border border-zinc-200 p-8 md:p-10 rounded-[2.5rem] shadow-sm text-center space-y-6">
+                    <div className="mx-auto w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
+                        <Lock size={30} />
                     </div>
                     <div className="space-y-2">
-                        <h1 className="text-xl font-black tracking-tight">Gestão de Condomínio</h1>
+                        <h1 className="text-xl font-black tracking-tight">Área Restrita</h1>
                         <p className="text-xs text-zinc-500 leading-relaxed max-w-sm mx-auto">
-                            O seu perfil <span className="font-bold text-zinc-800">{session.user.email}</span> ainda não está vinculado a uma administração ativa. Cadastre os dados abaixo para habilitar seu acesso como Síndico.
+                            Olá! O seu perfil possui acesso restrito ao aplicativo do condomínio. Esta página de administração é destinada apenas aos gestores e síndicos.
                         </p>
                     </div>
 
-                    <form onSubmit={handleIniciarGestaoPropria} className="space-y-3 text-left">
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Nome do Condomínio / Edifício</label>
-                            <input
-                                type="text"
-                                placeholder="Ex: Residencial Bela Vista"
-                                required
-                                value={novoCondoNomeInput}
-                                onChange={(e) => setNovoCondoNomeInput(e.target.value)}
-                                className="w-full px-5 py-2.5 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
-                            />
-                        </div>
-
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">CNPJ do Condomínio (Opcional)</label>
-                            <input
-                                type="text"
-                                placeholder="00.000.000/0000-00"
-                                value={novoCondoCnpjInput}
-                                onChange={(e) => setNovoCondoCnpjInput(e.target.value)}
-                                className="w-full px-5 py-2.5 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
-                            />
-                        </div>
-
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Unidade / Identificação do Gestor</label>
-                            <input
-                                type="text"
-                                placeholder="Ex: Adm ou Apto 101"
-                                required
-                                value={novaUnidadeSindicoInput}
-                                onChange={(e) => setNovaUnidadeSindicoInput(e.target.value)}
-                                className="w-full px-5 py-2.5 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
-                            />
-                        </div>
-
-                        <div className="pt-2">
-                            <button
-                                type="submit"
-                                disabled={criandoGestao}
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-blue-600/10 transition-all"
-                            >
-                                {criandoGestao ? <Loader2 className="animate-spin" size={16} /> : <Building2 size={16} />}
-                                {criandoGestao ? "Configurando Gestão..." : "Iniciar Gestão na Nucleobase"}
-                            </button>
-                        </div>
-                    </form>
-
-                    <div className="pt-4 border-t border-zinc-100 flex gap-4">
-                        <button onClick={handleLogout} className="w-full bg-zinc-100 hover:bg-zinc-200 text-zinc-700 py-3 rounded-xl font-bold text-xs transition-colors">
-                            Trocar de Conta
+                    <div className="pt-2 space-y-3">
+                        <button
+                            onClick={() => window.history.back()}
+                            className="w-full bg-zinc-900 hover:bg-black text-white py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md shadow-zinc-900/10"
+                        >
+                            <ArrowLeft size={14} /> Voltar à página anterior
+                        </button>
+                        <button
+                            onClick={handleLogout}
+                            className="w-full bg-zinc-100 hover:bg-zinc-200 text-zinc-700 py-3 rounded-xl font-bold text-xs transition-colors"
+                        >
+                            Entrar com outra conta
                         </button>
                     </div>
                 </div>
@@ -767,7 +754,7 @@ export default function CondoAdm() {
 
                         <button
                             onClick={() => window.history.back()}
-                            className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 overflow-hidden shrink-0"
+                            className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 overflow-hidden shrink-0 cursor-pointer"
                         >
                             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
                             <ArrowLeft size={12} className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out" />
@@ -793,9 +780,11 @@ export default function CondoAdm() {
                                 setAutorizadoApp(true);
                                 setFormError("");
                                 setFormSuccess("");
+                                setResetPasswordSuccess("");
+                                setResetPasswordError("");
                                 setShowMoradorModal(true);
                             }}
-                            className="bg-white border border-zinc-200 hover:border-blue-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left"
+                            className="bg-white border border-zinc-200 hover:border-blue-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
                         >
                             <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
                                 <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shrink-0">
@@ -814,7 +803,7 @@ export default function CondoAdm() {
                                 setContasSuccess("");
                                 setShowContasModal(true);
                             }}
-                            className="bg-white border border-zinc-200 hover:border-emerald-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left"
+                            className="bg-white border border-zinc-200 hover:border-emerald-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
                         >
                             <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
                                 <div className="w-8 h-8 md:w-10 md:h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all shrink-0">
@@ -935,7 +924,7 @@ export default function CondoAdm() {
                                                             <button
                                                                 onClick={() => iniciarEdicao(morador)}
                                                                 disabled={actionLoading}
-                                                                className="p-2 text-zinc-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                                                                className="p-2 text-zinc-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer"
                                                                 title="Editar Cadastro"
                                                             >
                                                                 <Pencil size={15} />
@@ -943,7 +932,7 @@ export default function CondoAdm() {
                                                             <button
                                                                 onClick={() => handleRemoveMorador(morador.id)}
                                                                 disabled={actionLoading}
-                                                                className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                                className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
                                                                 title="Revogar Acesso"
                                                             >
                                                                 <Trash2 size={15} />
@@ -967,7 +956,7 @@ export default function CondoAdm() {
                     <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-6 md:p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200 my-auto">
                         <button
                             onClick={cancelarEdicao}
-                            className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-colors"
+                            className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-colors cursor-pointer"
                         >
                             <X size={20} />
                         </button>
@@ -1022,7 +1011,7 @@ export default function CondoAdm() {
                                 <button
                                     type="button"
                                     onClick={() => setAutorizadoApp(!autorizadoApp)}
-                                    className={`w-11 h-6 flex items-center rounded-full p-1 transition-all duration-300 outline-none ${autorizadoApp ? 'bg-blue-600 justify-end' : 'bg-zinc-300 justify-start'}`}
+                                    className={`w-11 h-6 flex items-center rounded-full p-1 transition-all duration-300 outline-none cursor-pointer ${autorizadoApp ? 'bg-blue-600 justify-end' : 'bg-zinc-300 justify-start'}`}
                                 >
                                     <div className="bg-white w-4 h-4 rounded-full shadow-md transition-all"></div>
                                 </button>
@@ -1034,10 +1023,26 @@ export default function CondoAdm() {
                             <button
                                 type="submit"
                                 disabled={actionLoading}
-                                className={`w-full py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 text-white ${editandoId ? 'bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/10' : 'bg-blue-600 hover:bg-blue-700'}`}
+                                className={`w-full py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 text-white cursor-pointer ${editandoId ? 'bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/10' : 'bg-blue-600 hover:bg-blue-700'}`}
                             >
                                 {actionLoading ? "Processando..." : editandoId ? "Salvar Alterações" : "Autorizar Acesso"}
                             </button>
+
+                            {/* BOTÃO RESET DE SENHA (Disponível apenas na edição, logo abaixo de Salvar Alterações) */}
+                            {editandoId && (
+                                <div className="pt-2 border-t border-zinc-100 space-y-2">
+                                    <button
+                                        type="button"
+                                        onClick={handleResetPasswordByAdmin}
+                                        disabled={actionLoading}
+                                        className="w-full bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer shadow-sm"
+                                    >
+                                        <KeyRound size={14} /> Solicitar redefinição de senha (WhatsApp)
+                                    </button>
+                                    {resetPasswordError && <p className="text-[11px] font-bold text-red-600 bg-red-50 border border-red-100 p-2 rounded-xl text-center">{resetPasswordError}</p>}
+                                    {resetPasswordSuccess && <p className="text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-2 rounded-xl flex items-center justify-center gap-1.5"><CheckCircle2 size={14} /> {resetPasswordSuccess}</p>}
+                                </div>
+                            )}
                         </form>
                     </div>
                 </div>
@@ -1049,7 +1054,7 @@ export default function CondoAdm() {
                     <div className="bg-white w-full max-w-md rounded-[2.2rem] md:rounded-[2.5rem] shadow-2xl p-4 md:p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200 my-auto">
                         <button
                             onClick={() => setShowContasModal(false)}
-                            className="absolute right-5 top-5 md:right-6 md:top-6 text-gray-400 hover:text-gray-900 transition-colors"
+                            className="absolute right-5 top-5 md:right-6 md:top-6 text-gray-400 hover:text-gray-900 transition-colors cursor-pointer"
                         >
                             <X size={20} />
                         </button>
@@ -1064,14 +1069,14 @@ export default function CondoAdm() {
                                 <button
                                     type="button"
                                     onClick={() => handleTipoContaChange('receita')}
-                                    className={`py-2 md:py-2.5 rounded-xl text-[11px] md:text-xs font-black uppercase tracking-wider transition-all border ${tipoConta === 'receita' ? 'bg-emerald-500 text-white border-emerald-500 shadow-md shadow-emerald-500/20' : 'bg-zinc-50 text-zinc-500 border-zinc-200'}`}
+                                    className={`py-2 md:py-2.5 rounded-xl text-[11px] md:text-xs font-black uppercase tracking-wider transition-all border cursor-pointer ${tipoConta === 'receita' ? 'bg-emerald-500 text-white border-emerald-500 shadow-md shadow-emerald-500/20' : 'bg-zinc-50 text-zinc-500 border-zinc-200'}`}
                                 >
                                     Receita
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => handleTipoContaChange('despesa')}
-                                    className={`py-2 md:py-2.5 rounded-xl text-[11px] md:text-xs font-black uppercase tracking-wider transition-all border ${tipoConta === 'despesa' ? 'bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-500/20' : 'bg-zinc-50 text-zinc-500 border-zinc-200'}`}
+                                    className={`py-2 md:py-2.5 rounded-xl text-[11px] md:text-xs font-black uppercase tracking-wider transition-all border cursor-pointer ${tipoConta === 'despesa' ? 'bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-500/20' : 'bg-zinc-50 text-zinc-500 border-zinc-200'}`}
                                 >
                                     Despesa
                                 </button>
@@ -1144,7 +1149,7 @@ export default function CondoAdm() {
                             <button
                                 type="submit"
                                 disabled={actionLoading}
-                                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 md:py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-emerald-600/10 flex items-center justify-center gap-2"
+                                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 md:py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-emerald-600/10 flex items-center justify-center gap-2 cursor-pointer"
                             >
                                 {actionLoading ? "Registrando..." : "Salvar Lançamento"}
                             </button>
@@ -1152,7 +1157,7 @@ export default function CondoAdm() {
                             <Link
                                 href="/condo/adm/edicao_lancamentos"
                                 onClick={() => setShowContasModal(false)}
-                                className="w-full bg-zinc-900 hover:bg-black text-white py-2.5 md:py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-zinc-900/10 flex items-center justify-center gap-2"
+                                className="w-full bg-zinc-900 hover:bg-black text-white py-2.5 md:py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-zinc-900/10 flex items-center justify-center gap-2 cursor-pointer"
                             >
                                 <Edit3 size={14} /> Editar lançamentos
                             </Link>
@@ -1178,7 +1183,7 @@ export default function CondoAdm() {
                     >
                         <div className="relative">
                             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
-                            <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[1.8rem] md:rounded-[2rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+                            <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[1.8rem] md:rounded-[2.0rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
                                 <Instagram className="w-8 h-8 md:w-10 md:h-10" strokeWidth={1.5} />
                             </div>
                         </div>

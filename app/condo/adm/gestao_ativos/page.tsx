@@ -1,11 +1,10 @@
-// app/condo/dashboard/adm/gestao_ativos/page.tsx
+// app/condo/adm/gestao_ativos/page.tsx
 "use client";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import {
-    Building2,
     Loader2,
     ArrowLeft,
     Instagram,
@@ -20,7 +19,14 @@ import {
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+        auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true,
+        }
+    }
 );
 
 interface AtivoItem {
@@ -71,28 +77,45 @@ export default function GestaoAtivosPage() {
             setSession(currentSession);
             const userId = currentSession.user.id;
 
+            // Busca segura dos vínculos de membro do usuário
             const { data: membroDataList, error: membroError } = await supabase
                 .from("condominio_membros")
-                .select(`
-                    condominio_id,
-                    condominio:condominios ( id, nome )
-                `)
-                .eq("user_id", userId)
-                .order("role", { ascending: false })
-                .limit(1);
+                .select("condominio_id, role, unidade")
+                .eq("user_id", userId);
 
-            if (membroError) throw membroError;
-
-            if (membroDataList && membroDataList.length > 0 && membroDataList[0].condominio) {
-                const condoInfo = Array.isArray(membroDataList[0].condominio)
-                    ? membroDataList[0].condominio[0]
-                    : membroDataList[0].condominio;
-
-                setCondominio(condoInfo);
-                await loadAtivos(membroDataList[0].condominio_id);
+            if (membroError || !membroDataList || membroDataList.length === 0) {
+                setCondominio(null);
+                setLoading(false);
+                return;
             }
-        } catch (e) {
-            console.error("Erro ao carregar dados:", e);
+
+            // Valida se o usuário possui permissão administrativa (síndico, unidade 106 ou Adm)
+            const vinculoAdm = membroDataList.find(
+                (m: any) => m.role === 'sindico' || m.unidade === '106' || m.unidade.toLowerCase() === 'adm'
+            );
+
+            if (!vinculoAdm) {
+                setCondominio(null);
+                setLoading(false);
+                return;
+            }
+
+            // Busca separadamente os dados do condomínio para evitar falhas de JOIN implícito
+            const { data: condoData, error: condoError } = await supabase
+                .from("condominios")
+                .select("id, nome")
+                .eq("id", vinculoAdm.condominio_id)
+                .maybeSingle();
+
+            if (condoError || !condoData) {
+                setCondominio(null);
+            } else {
+                setCondominio(condoData);
+                await loadAtivos(condoData.id);
+            }
+        } catch (e: any) {
+            console.warn("Exceção tratada em verifyAndLoad:", e?.message || e);
+            setCondominio(null);
         } finally {
             setLoading(false);
         }
@@ -215,7 +238,7 @@ export default function GestaoAtivosPage() {
                 <div className="w-full max-w-sm bg-white border border-zinc-200 p-8 rounded-[2.5rem] text-center space-y-4 shadow-sm">
                     <h1 className="text-xl font-black text-zinc-900">Acesso restrito</h1>
                     <p className="text-sm text-zinc-500">Faça login como síndico para acessar esta página.</p>
-                    <Link href="/condo/dashboard/adm" className="inline-block bg-zinc-900 text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider">
+                    <Link href="/condo/adm" className="inline-block bg-zinc-900 text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider">
                         Voltar ao Painel
                     </Link>
                 </div>
@@ -226,7 +249,6 @@ export default function GestaoAtivosPage() {
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-6 md:p-10 flex flex-col justify-between">
             <div>
-                {/* Header com o título e botão Voltar */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-5 mb-4">
                     <div className="flex flex-col md:flex-row md:items-center gap-6 w-full justify-between">
                         <div className="flex items-center gap-4">
@@ -250,7 +272,6 @@ export default function GestaoAtivosPage() {
                     </div>
                 </div>
 
-                {/* Descrição e Botão Novo Ativo alinhado à lateral direita */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <p className="text-xs md:text-sm text-zinc-500 font-medium">
                         Cadastre e gerencie o patrimônio e os bens permanentes pertencentes ao condomínio.
@@ -265,7 +286,6 @@ export default function GestaoAtivosPage() {
                     </button>
                 </div>
 
-                {/* Tabela de Ativos com visual totalmente padronizado */}
                 <div className="bg-white border border-zinc-200 rounded-[2.5rem] p-6 shadow-sm mb-12">
                     {ativos.length === 0 ? (
                         <div className="text-center py-12 space-y-2">
@@ -330,7 +350,6 @@ export default function GestaoAtivosPage() {
                 </div>
             </div>
 
-            {/* MODAL DE CADASTRO / EDIÇÃO DE ATIVO */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
                     <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-6 md:p-8 relative border border-zinc-100 animate-in zoom-in-95 duration-200 my-auto">
@@ -425,7 +444,6 @@ export default function GestaoAtivosPage() {
                 </div>
             )}
 
-            {/* Rodapé */}
             <div>
                 <div className="flex items-center gap-4 mb-6">
                     <div className="h-px bg-gray-200 flex-1"></div>

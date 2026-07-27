@@ -1,6 +1,6 @@
 // app/condo/dashboard/ocorrencias-e-sugestoes/page.tsx
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import {
@@ -15,12 +15,21 @@ import {
     CheckCircle2,
     MessageCircle,
     Filter,
-    Send
+    Send,
+    ArrowLeft
 } from "lucide-react";
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+        auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true,
+            storage: typeof window !== "undefined" ? window.localStorage : undefined,
+        },
+    }
 );
 
 interface UserMemberData {
@@ -28,7 +37,7 @@ interface UserMemberData {
     condominio_id: string;
     condominio: {
         nome: string;
-    };
+    } | null;
 }
 
 interface ItemOcorrenciaSugestao {
@@ -70,21 +79,35 @@ export default function OcorrenciasSugestoesPage() {
     const [showModalWhatsApp, setShowModalWhatsApp] = useState(false);
     const [whatsappItemIdSelecionado, setWhatsappItemIdSelecionado] = useState("");
 
-    const verifyAccessAndLoadData = async () => {
+    const isMountedRef = useRef(true);
+
+    const loadOcorrenciasSugestoes = async (condoId: string) => {
+        const { data, error } = await supabase
+            .from("condominio_ocorrencias")
+            .select("*")
+            .eq("condominio_id", condoId)
+            .order("criado_em", { ascending: false });
+
+        if (!error && data && isMountedRef.current) {
+            setItens(data as ItemOcorrenciaSugestao[]);
+        }
+    };
+
+    const verifyAccessAndLoadData = async (currentSession: any) => {
         try {
-            setLoading(true);
-
-            const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-
-            if (sessionError || !currentSession) {
-                setSession(null);
-                setMemberData(null);
-                setItens([]);
-                setLoading(false);
+            if (!currentSession || !currentSession.user) {
+                if (isMountedRef.current) {
+                    setSession(null);
+                    setMemberData(null);
+                    setItens([]);
+                    setLoading(false);
+                }
                 return;
             }
 
-            setSession(currentSession);
+            if (isMountedRef.current) {
+                setSession(currentSession);
+            }
             const userId = currentSession.user.id;
 
             const { data, error } = await supabase
@@ -101,42 +124,68 @@ export default function OcorrenciasSugestoesPage() {
                 .order("criado_em", { ascending: false })
                 .limit(1);
 
-            if (error) throw error;
+            if (error) {
+                const errorMsg = error.message || JSON.stringify(error);
+                if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
+                    console.error("Erro na consulta Supabase:", errorMsg);
+                }
+            }
 
-            if (data && data.length > 0 && data[0].condominio) {
-                setMemberData(data[0] as unknown as UserMemberData);
-                await loadOcorrenciasSugestoes(data[0].condominio_id);
-            } else {
+            if (isMountedRef.current) {
+                if (data && data.length > 0 && data[0].condominio) {
+                    setMemberData(data[0] as unknown as UserMemberData);
+                    await loadOcorrenciasSugestoes(data[0].condominio_id);
+                } else {
+                    setMemberData(null);
+                    setItens([]);
+                }
+            }
+        } catch (e: any) {
+            const errString = e?.message || JSON.stringify(e);
+            if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
+                console.error("Erro ao verificar acesso:", errString);
+            }
+            if (isMountedRef.current) {
                 setMemberData(null);
                 setItens([]);
             }
-        } catch (e) {
-            console.error("Erro ao verificar acesso:", e);
-            setMemberData(null);
-            setItens([]);
         } finally {
-            setLoading(false);
-        }
-    };
-
-    const loadOcorrenciasSugestoes = async (condoId: string) => {
-        const { data, error } = await supabase
-            .from("condominio_ocorrencias")
-            .select("*")
-            .eq("condominio_id", condoId)
-            .order("criado_em", { ascending: false });
-
-        if (!error && data) {
-            setItens(data as ItemOcorrenciaSugestao[]);
+            if (isMountedRef.current) {
+                setLoading(false);
+            }
         }
     };
 
     useEffect(() => {
-        verifyAccessAndLoadData();
+        isMountedRef.current = true;
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                await verifyAccessAndLoadData();
+        const initAuth = async () => {
+            try {
+                const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+
+                if (sessionError && !currentSession) throw sessionError;
+
+                if (isMountedRef.current) {
+                    await verifyAccessAndLoadData(currentSession);
+                }
+            } catch (err: any) {
+                const errString = err?.message || JSON.stringify(err);
+                if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
+                    console.error("Erro ao recuperar sessão inicial:", errString);
+                }
+                if (isMountedRef.current) setLoading(false);
+            }
+        };
+
+        initAuth();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+            if (!isMountedRef.current) return;
+
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+                if (currentSession) {
+                    await verifyAccessAndLoadData(currentSession);
+                }
             } else if (event === 'SIGNED_OUT') {
                 setSession(null);
                 setMemberData(null);
@@ -145,7 +194,10 @@ export default function OcorrenciasSugestoesPage() {
             }
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            isMountedRef.current = false;
+            subscription.unsubscribe();
+        };
     }, []);
 
     const handleSaveItem = async (e: React.FormEvent, tipoItem: 'ocorrencia' | 'sugestao') => {
@@ -211,7 +263,9 @@ export default function OcorrenciasSugestoesPage() {
 
         const urlWhatsApp = `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
 
-        window.open(urlWhatsApp, '_blank');
+        const newWindow = window.open(urlWhatsApp, '_blank');
+        if (newWindow) newWindow.opener = null;
+
         setShowModalWhatsApp(false);
         setWhatsappItemIdSelecionado("");
     };
@@ -291,6 +345,19 @@ export default function OcorrenciasSugestoesPage() {
                                 <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1 text-zinc-900">{memberData?.condominio?.nome || "Condomínio"}</h1>
                             </div>
                         </div>
+
+                        {/* Botão Voltar integrado à direita no desktop */}
+                        <button
+                            onClick={() => window.history.back()}
+                            className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 self-start md:self-auto overflow-hidden cursor-pointer shrink-0"
+                        >
+                            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
+                            <ArrowLeft
+                                size={12}
+                                className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out"
+                            />
+                            <span>Voltar</span>
+                        </button>
                     </div>
                 </div>
 
@@ -383,8 +450,8 @@ export default function OcorrenciasSugestoesPage() {
                                             <div className="flex justify-between items-start">
                                                 <h4 className="font-bold text-xs text-zinc-900">{item.titulo}</h4>
                                                 <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full ${item.status === 'resolvido' ? 'bg-emerald-50 text-emerald-600' :
-                                                    item.status === 'em_andamento' ? 'bg-amber-50 text-amber-600' :
-                                                        'bg-rose-50 text-rose-600'
+                                                        item.status === 'em_andamento' ? 'bg-amber-50 text-amber-600' :
+                                                            'bg-rose-50 text-rose-600'
                                                     }`}>
                                                     {item.status.replace('_', ' ')}
                                                 </span>
@@ -457,8 +524,8 @@ export default function OcorrenciasSugestoesPage() {
                                             <div className="flex justify-between items-start">
                                                 <h4 className="font-bold text-xs text-zinc-900">{item.titulo}</h4>
                                                 <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full ${item.status === 'resolvido' ? 'bg-emerald-50 text-emerald-600' :
-                                                    item.status === 'em_andamento' ? 'bg-amber-50 text-amber-600' :
-                                                        'bg-indigo-50 text-indigo-600'
+                                                        item.status === 'em_andamento' ? 'bg-amber-50 text-amber-600' :
+                                                            'bg-indigo-50 text-indigo-600'
                                                     }`}>
                                                     {item.status.replace('_', ' ')}
                                                 </span>
@@ -487,7 +554,7 @@ export default function OcorrenciasSugestoesPage() {
                     </div>
                 </div>
 
-                {/* Bloco do Botão Enviar WhatsApp ao final da página com contexto explicativo ajustado */}
+                {/* Bloco do Botão Enviar WhatsApp ao final da página */}
                 <div className="bg-white border border-zinc-200 rounded-[2rem] p-6 md:p-8 shadow-sm mb-12 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="space-y-1 text-center md:text-left">
                         <h3 className="font-bold text-base text-zinc-900">
@@ -690,7 +757,7 @@ export default function OcorrenciasSugestoesPage() {
                 </div>
             )}
 
-            {/* POPUP: ENVIAR VIA WHATSAPP (SELEÇÃO DE ITEM PARA ABRIR LISTA DE CONTATOS DO DISPOSITIVO) */}
+            {/* POPUP: ENVIAR VIA WHATSAPP */}
             {showModalWhatsApp && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden border border-zinc-100 animate-in zoom-in-95 duration-200">

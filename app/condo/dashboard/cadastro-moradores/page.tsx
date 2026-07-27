@@ -1,6 +1,6 @@
 // app/condo/dashboard/cadastro-moradores/page.tsx
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import {
@@ -16,7 +16,15 @@ import {
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+        auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true,
+            storage: typeof window !== "undefined" ? window.localStorage : undefined,
+        },
+    }
 );
 
 interface Morador {
@@ -39,6 +47,8 @@ export default function ListaMoradoresCondomino() {
     const [moradores, setMoradores] = useState<Morador[]>([]);
     const [filtroBusca, setFiltroBusca] = useState("");
 
+    const isMountedRef = useRef(true);
+
     // Função Auxiliar: Formata nome completo para retornar apenas o primeiro e o último nome
     const formatarNomePrimeiroEUltimo = (nomeCompleto: string) => {
         if (!nomeCompleto) return "";
@@ -49,14 +59,18 @@ export default function ListaMoradoresCondomino() {
 
     const loadDadosCondominio = async (currentSession: any) => {
         try {
-            if (!currentSession) {
-                setSession(null);
-                setMoradores([]);
-                setLoading(false);
+            if (!currentSession || !currentSession.user) {
+                if (isMountedRef.current) {
+                    setSession(null);
+                    setMoradores([]);
+                    setLoading(false);
+                }
                 return;
             }
 
-            setSession(currentSession);
+            if (isMountedRef.current) {
+                setSession(currentSession);
+            }
             const userId = currentSession.user.id;
 
             // 1. Identifica o condomínio do usuário com tratamento unificado e flexível
@@ -68,7 +82,12 @@ export default function ListaMoradoresCondomino() {
                 .order("criado_em", { ascending: false })
                 .limit(1);
 
-            if (membroError) throw membroError;
+            if (membroError) {
+                const errorMsg = membroError.message || JSON.stringify(membroError);
+                if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
+                    console.error("Erro na consulta Supabase (membros):", errorMsg);
+                }
+            }
 
             if (membroData && membroData.length > 0) {
                 const registro = membroData[0];
@@ -78,7 +97,9 @@ export default function ListaMoradoresCondomino() {
                     ? condoRelacionamento[0]?.nome
                     : (condoRelacionamento as any)?.nome;
 
-                setCondominioNome(nomeCondo || "Meu Condomínio");
+                if (isMountedRef.current) {
+                    setCondominioNome(nomeCondo || "Meu Condomínio");
+                }
 
                 // 2. Carrega membros do mesmo condomínio
                 const { data: lista, error: listaError } = await supabase
@@ -91,65 +112,86 @@ export default function ListaMoradoresCondomino() {
                     `)
                     .eq("condominio_id", registro.condominio_id);
 
-                if (listaError) throw listaError;
+                if (listaError) {
+                    const errorMsg = listaError.message || JSON.stringify(listaError);
+                    if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
+                        console.error("Erro na consulta Supabase (lista moradores):", errorMsg);
+                    }
+                }
 
-                if (lista) {
-                    setMoradores(lista as unknown as Morador[]);
+                if (isMountedRef.current) {
+                    if (lista) {
+                        setMoradores(lista as unknown as Morador[]);
+                    } else {
+                        setMoradores([]);
+                    }
                 }
             } else {
-                setMoradores([]);
+                if (isMountedRef.current) {
+                    setMoradores([]);
+                }
             }
         } catch (e: any) {
-            const erroFormatado = {
-                mensagem: e?.message || "Erro desconhecido na requisição",
-                detalhes: e?.details || null,
-                codigo: e?.code || null,
-                original: String(e)
-            };
-            console.error("Erro completo ao carregar dados dos condôminos:", erroFormatado);
-            setMoradores([]);
+            const errString = e?.message || JSON.stringify(e);
+            if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
+                console.error("Erro completo ao carregar dados dos condôminos:", errString);
+            }
+            if (isMountedRef.current) {
+                setMoradores([]);
+            }
         } finally {
-            setLoading(false);
+            if (isMountedRef.current) {
+                setLoading(false);
+            }
         }
     };
 
     useEffect(() => {
-        let isMounted = true;
+        isMountedRef.current = true;
 
         const initAuth = async () => {
             try {
-                const { data: { session: initialSession } } = await supabase.auth.getSession();
-                if (isMounted) {
+                const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
+
+                if (sessionError && !initialSession) throw sessionError;
+
+                if (isMountedRef.current) {
                     await loadDadosCondominio(initialSession);
                 }
-            } catch (err) {
-                console.error("Erro ao recuperar sessão inicial:", err);
-                if (isMounted) setLoading(false);
+            } catch (err: any) {
+                const errString = err?.message || JSON.stringify(err);
+                if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
+                    console.error("Erro ao recuperar sessão inicial:", errString);
+                }
+                if (isMountedRef.current) setLoading(false);
             }
         };
 
         initAuth();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-            if (isMounted) {
-                if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+            if (!isMountedRef.current) return;
+
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+                if (currentSession) {
                     await loadDadosCondominio(currentSession);
-                } else if (event === 'SIGNED_OUT') {
-                    setSession(null);
-                    setMoradores([]);
-                    setLoading(false);
                 }
+            } else if (event === 'SIGNED_OUT') {
+                setSession(null);
+                setMoradores([]);
+                setLoading(false);
             }
         });
 
         return () => {
-            isMounted = false;
+            isMountedRef.current = false;
             subscription.unsubscribe();
         };
     }, []);
 
     // Função utilitária para limpar e padronizar o número da unidade para ordenação precisa
     const extrairNumeroUnidade = (unidadeStr: string) => {
+        if (!unidadeStr) return "";
         const limpo = unidadeStr.replace(/apto/i, "").trim();
         const numero = parseInt(limpo, 10);
         return isNaN(numero) ? limpo : numero;
@@ -192,10 +234,10 @@ export default function ListaMoradoresCondomino() {
     if (!session) {
         return (
             <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
-                <div className="w-full max-w-sm bg-white border border-zinc-200 p-8 rounded-[2.5rem] text-center space-y-4">
-                    <h1 className="text-xl font-black">Acesso restrito</h1>
+                <div className="w-full max-w-sm bg-white border border-zinc-200 p-8 rounded-[2.5rem] text-center space-y-4 shadow-sm">
+                    <h1 className="text-xl font-black text-zinc-900">Acesso restrito</h1>
                     <p className="text-sm text-zinc-500">Faça login na plataforma para visualizar a lista de moradores.</p>
-                    <Link href="/condo/dashboard" className="inline-block bg-zinc-900 text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider">
+                    <Link href="/condo/dashboard" className="inline-block bg-zinc-900 hover:bg-black text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
                         Ir para Login
                     </Link>
                 </div>
@@ -204,10 +246,10 @@ export default function ListaMoradoresCondomino() {
     }
 
     return (
-        <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-6 md:p-10">
-            <div className="max-w-5xl mx-auto space-y-8">
+        <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-6 md:p-10 flex flex-col justify-between">
+            <div className="max-w-5xl mx-auto w-full space-y-8">
 
-                {/* Header Integrado com Botão Voltar Premium (Retirado no mobile via hidden md:flex) */}
+                {/* Header Integrado com Botão Voltar Premium */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-6">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
@@ -215,13 +257,13 @@ export default function ListaMoradoresCondomino() {
                         </div>
                         <div>
                             <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Residentes Autorizados</span>
-                            <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1">{condominioNome}</h1>
+                            <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1 text-zinc-900">{condominioNome}</h1>
                         </div>
                     </div>
 
                     <button
                         onClick={() => window.history.back()}
-                        className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 self-start md:self-auto overflow-hidden"
+                        className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 self-start md:self-auto overflow-hidden cursor-pointer shrink-0"
                     >
                         <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
                         <ArrowLeft
@@ -254,7 +296,7 @@ export default function ListaMoradoresCondomino() {
 
                 {/* Grade de Vizinhos Ajustada (2 por linha) */}
                 {moradoresProcessados.length === 0 ? (
-                    <div className="bg-white border border-zinc-200 p-12 rounded-[2.5rem] text-center space-y-2">
+                    <div className="bg-white border border-zinc-200 p-12 rounded-[2.5rem] text-center space-y-2 shadow-sm">
                         <p className="text-zinc-400 font-bold text-sm">Nenhum morador encontrado</p>
                         <p className="text-xs text-zinc-400">Verifique os termos digitados ou contate a administração se houver inconsistências.</p>
                     </div>
@@ -263,7 +305,7 @@ export default function ListaMoradoresCondomino() {
                         {moradoresProcessados.map((morador) => {
                             const roleLower = (morador.role || "").toLowerCase();
                             const isSindicoOuSubsindico = roleLower === "sindico" || roleLower === "subsindico";
-                            const unidadeLimpa = morador.unidade.replace(/apto/i, "").trim();
+                            const unidadeLimpa = morador.unidade ? morador.unidade.replace(/apto/i, "").trim() : "";
 
                             const badgeTexto = isSindicoOuSubsindico
                                 ? `Unidade ADM - ${unidadeLimpa}`
@@ -272,7 +314,7 @@ export default function ListaMoradoresCondomino() {
                             return (
                                 <div
                                     key={morador.id}
-                                    className="bg-white border border-zinc-150 p-6 rounded-[2rem] shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                                    className="bg-white border border-zinc-200 p-6 rounded-[2rem] shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
                                 >
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between">
@@ -306,7 +348,7 @@ export default function ListaMoradoresCondomino() {
                 </div>
 
                 {/* BLOCO INSTAGRAM */}
-                <div className="flex flex-col items-center text-center">
+                <div className="flex flex-col items-center text-center pb-6">
                     <div className="max-w-3xl mb-12">
                         <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
                             Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>

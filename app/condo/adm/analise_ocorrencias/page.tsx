@@ -22,12 +22,20 @@ import {
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+        auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true,
+        }
+    }
 );
 
 interface UserMemberData {
     role: string;
     condominio_id: string;
+    unidade: string;
     condominio: {
         nome: string;
     };
@@ -73,13 +81,9 @@ export default function AnaliseOcorrenciasAdmPage() {
         return `${partes[0]} ${partes[partes.length - 1]}`;
     };
 
-    const verifyAccessAndLoadData = async () => {
+    const verifyAccessAndLoadData = async (currentSession: any) => {
         try {
-            setLoading(true);
-
-            const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-
-            if (sessionError || !currentSession) {
+            if (!currentSession || !currentSession.user) {
                 setSession(null);
                 setMemberData(null);
                 setItens([]);
@@ -90,29 +94,52 @@ export default function AnaliseOcorrenciasAdmPage() {
             setSession(currentSession);
             const userId = currentSession.user.id;
 
-            const { data, error } = await supabase
+            // Busca segura de vínculos do usuário
+            const { data: membroDataList, error: membroError } = await supabase
                 .from("condominio_membros")
-                .select(`
-                    role,
-                    condominio_id,
-                    acesso_app,
-                    condominio:condominios ( nome )
-                `)
-                .eq("user_id", userId)
-                .eq("acesso_app", true)
-                .order("role", { ascending: false })
-                .order("criado_em", { ascending: false })
-                .limit(1);
+                .select("condominio_id, role, unidade, acesso_app")
+                .eq("user_id", userId);
 
-            if (error) throw error;
-
-            if (data && data.length > 0 && data[0].condominio) {
-                setMemberData(data[0] as unknown as UserMemberData);
-                await loadOcorrenciasSugestoes(data[0].condominio_id);
-            } else {
+            if (membroError || !membroDataList || membroDataList.length === 0) {
                 setMemberData(null);
                 setItens([]);
+                setLoading(false);
+                return;
             }
+
+            // Permite acesso se for síndico, unidade 106 ou Adm
+            const vinculoAdm = membroDataList.find(
+                (m: any) => m.role === 'sindico' || m.unidade === '106' || m.unidade.toLowerCase() === 'adm'
+            );
+
+            if (!vinculoAdm) {
+                setMemberData(null);
+                setItens([]);
+                setLoading(false);
+                return;
+            }
+
+            // Busca separadamente os dados do condomínio
+            const { data: condoData, error: condoError } = await supabase
+                .from("condominios")
+                .select("nome")
+                .eq("id", vinculoAdm.condominio_id)
+                .maybeSingle();
+
+            if (condoError) {
+                console.warn("Aviso ao buscar condomínio:", condoError);
+            }
+
+            setMemberData({
+                role: vinculoAdm.role,
+                condominio_id: vinculoAdm.condominio_id,
+                unidade: vinculoAdm.unidade,
+                condominio: {
+                    nome: condoData?.nome || "Condomínio"
+                }
+            });
+
+            await loadOcorrenciasSugestoes(vinculoAdm.condominio_id);
         } catch (e) {
             console.error("Erro ao verificar acesso administrativo:", e);
             setMemberData(null);
@@ -135,11 +162,31 @@ export default function AnaliseOcorrenciasAdmPage() {
     };
 
     useEffect(() => {
-        verifyAccessAndLoadData();
+        let isMounted = true;
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                await verifyAccessAndLoadData();
+        const initAuth = async () => {
+            const { data: { session: currentSession } } = await supabase.auth.getSession();
+            if (isMounted) {
+                if (currentSession) {
+                    await verifyAccessAndLoadData(currentSession);
+                } else {
+                    setSession(null);
+                    setMemberData(null);
+                    setItens([]);
+                    setLoading(false);
+                }
+            }
+        };
+
+        initAuth();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+            if (!isMounted) return;
+
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+                if (currentSession) {
+                    await verifyAccessAndLoadData(currentSession);
+                }
             } else if (event === 'SIGNED_OUT') {
                 setSession(null);
                 setMemberData(null);
@@ -148,7 +195,10 @@ export default function AnaliseOcorrenciasAdmPage() {
             }
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            isMounted = false;
+            subscription.unsubscribe();
+        };
     }, []);
 
     // Função para o síndico alterar o status de um item diretamente na lista suspensa do card
@@ -198,7 +248,7 @@ export default function AnaliseOcorrenciasAdmPage() {
             if (error) throw error;
 
             if (!data || data.length === 0) {
-                alert("A exclusão foi bloqueada pelas políticas de segurança (RLS) do banco de dados para este registro. Verifique as permissões da tabela condominio_ocorrencias.");
+                alert("A exclusão foi bloqueada pelas políticas de segurança (RLS) do banco de dados para este registro.");
                 return;
             }
 
@@ -276,7 +326,7 @@ export default function AnaliseOcorrenciasAdmPage() {
                 <div className="w-full max-w-sm bg-white border border-zinc-200 p-8 rounded-[2.5rem] text-center space-y-4 shadow-sm">
                     <h1 className="text-xl font-black text-zinc-900">Acesso restrito</h1>
                     <p className="text-sm text-zinc-500">Faça login com sua conta administrativa para gerenciar as ocorrências.</p>
-                    <Link href="/condo/dashboard/adm" className="inline-block bg-zinc-900 hover:bg-black text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
+                    <Link href="/condo/adm" className="inline-block bg-zinc-900 hover:bg-black text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
                         Ir para Login Administrativo
                     </Link>
                 </div>
@@ -295,7 +345,7 @@ export default function AnaliseOcorrenciasAdmPage() {
                     <p className="text-sm text-zinc-500">
                         Seu perfil não possui privilégios administrativos ativos neste condomínio.
                     </p>
-                    <Link href="/condo/dashboard/adm" className="inline-block bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors mt-2">
+                    <Link href="/condo/adm" className="inline-block bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors mt-2">
                         Voltar ao Painel
                     </Link>
                 </div>
@@ -305,7 +355,6 @@ export default function AnaliseOcorrenciasAdmPage() {
 
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 pt-6 px-4 md:px-10 flex flex-col justify-between overflow-x-hidden">
-            {/* Header */}
             <div>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-5 mb-6">
                     <div className="flex flex-col md:flex-row md:items-center gap-6 w-full justify-between">
@@ -342,9 +391,7 @@ export default function AnaliseOcorrenciasAdmPage() {
                     </div>
                 )}
 
-                {/* Grid Vertical: Ocorrências e Sugestões dispostas uma abaixo da outra */}
                 <div className="flex flex-col gap-6 mb-12">
-                    {/* Bloco de Ocorrências */}
                     <div className="bg-white border border-zinc-200 rounded-[2rem] p-4 md:p-6 shadow-sm flex flex-col justify-between max-w-full">
                         <div>
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-zinc-100 mb-4 gap-3">
@@ -385,7 +432,6 @@ export default function AnaliseOcorrenciasAdmPage() {
                                 <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
                                     {ocorrenciasFiltradas.map((item) => (
                                         <div key={item.id} className="p-3.5 md:p-4 bg-zinc-50 border border-zinc-100 rounded-2xl space-y-3 overflow-hidden">
-                                            {/* Linha Superior: Status e Botões de Ação na Lateral Direita */}
                                             <div className="flex items-center justify-between gap-2">
                                                 <select
                                                     value={item.status}
@@ -423,7 +469,6 @@ export default function AnaliseOcorrenciasAdmPage() {
                                                 </div>
                                             </div>
 
-                                            {/* Informações na Linha Abaixo */}
                                             <h4 className="font-bold text-xs text-zinc-900 pt-1 break-words">{item.titulo}</h4>
 
                                             <p className="text-xs text-zinc-500 leading-relaxed break-words">{item.descricao}</p>
@@ -446,7 +491,6 @@ export default function AnaliseOcorrenciasAdmPage() {
                         </div>
                     </div>
 
-                    {/* Bloco de Sugestões */}
                     <div className="bg-white border border-zinc-200 rounded-[2rem] p-4 md:p-6 shadow-sm flex flex-col justify-between max-w-full">
                         <div>
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-zinc-100 mb-4 gap-3">
@@ -487,7 +531,6 @@ export default function AnaliseOcorrenciasAdmPage() {
                                 <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
                                     {sugestoesFiltradas.map((item) => (
                                         <div key={item.id} className="p-3.5 md:p-4 bg-zinc-50 border border-zinc-100 rounded-2xl space-y-3 overflow-hidden">
-                                            {/* Linha Superior: Status e Botões de Ação na Lateral Direita */}
                                             <div className="flex items-center justify-between gap-2">
                                                 <select
                                                     value={item.status}
@@ -525,7 +568,6 @@ export default function AnaliseOcorrenciasAdmPage() {
                                                 </div>
                                             </div>
 
-                                            {/* Informações na Linha Abaixo */}
                                             <h4 className="font-bold text-xs text-zinc-900 pt-1 break-words">{item.titulo}</h4>
 
                                             <p className="text-xs text-zinc-500 leading-relaxed break-words">{item.descricao}</p>
@@ -550,7 +592,6 @@ export default function AnaliseOcorrenciasAdmPage() {
                 </div>
             </div>
 
-            {/* POPUP: ENVIAR DEVOLUTIVA VIA WHATSAPP */}
             {showModalWhatsApp && whatsappItemSelecionado && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden border border-zinc-100 animate-in zoom-in-95 duration-200">
@@ -596,7 +637,6 @@ export default function AnaliseOcorrenciasAdmPage() {
                 </div>
             )}
 
-            {/* Rodapé / Conecte-se */}
             <div>
                 <div className="flex items-center gap-4 mb-6">
                     <div className="h-px bg-gray-200 flex-1"></div>

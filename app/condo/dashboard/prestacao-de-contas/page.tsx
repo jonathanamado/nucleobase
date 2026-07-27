@@ -1,6 +1,6 @@
 // app/condo/dashboard/prestacao-de-contas/page.tsx
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import {
@@ -19,7 +19,15 @@ import {
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+        auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true,
+            storage: typeof window !== "undefined" ? window.localStorage : undefined,
+        },
+    }
 );
 
 interface ContaCondominio {
@@ -59,6 +67,8 @@ export default function PrestacaoContasPage() {
     const [formError, setFormError] = useState('');
     const [formSuccess, setFormSuccess] = useState('');
 
+    const isMountedRef = useRef(true);
+
     // Função para formatar o período no formato desejado (Mobile: Jul/26, Desktop: padrão ou conforme selecionado)
     const formatarPeriodoExibicao = (valorPeriodo: string) => {
         if (valorPeriodo === 'acumulado') return 'Acumulado';
@@ -77,21 +87,33 @@ export default function PrestacaoContasPage() {
         return `${nomeMes}/${anoDoisDigitos}`;
     };
 
-    const verifyCondoAndLoadData = async () => {
+    const loadContas = async (condoId: string) => {
+        const { data, error } = await supabase
+            .from("condominio_contas")
+            .select("*")
+            .eq("condominio_id", condoId)
+            .order("data_competencia", { ascending: false });
+
+        if (!error && data && isMountedRef.current) {
+            setContas(data as ContaCondominio[]);
+        }
+    };
+
+    const verifyCondoAndLoadData = async (currentSession: any) => {
         try {
-            setLoading(true);
-
-            const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-
-            if (sessionError || !currentSession) {
-                setSession(null);
-                setCondominio(null);
-                setContas([]);
-                setLoading(false);
+            if (!currentSession || !currentSession.user) {
+                if (isMountedRef.current) {
+                    setSession(null);
+                    setCondominio(null);
+                    setContas([]);
+                    setLoading(false);
+                }
                 return;
             }
 
-            setSession(currentSession);
+            if (isMountedRef.current) {
+                setSession(currentSession);
+            }
             const userId = currentSession.user.id;
 
             const { data, error } = await supabase
@@ -108,37 +130,70 @@ export default function PrestacaoContasPage() {
                 .order("criado_em", { ascending: false })
                 .limit(1);
 
-            if (error) throw error;
+            if (error) {
+                const errorMsg = error.message || JSON.stringify(error);
+                if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
+                    console.error("Erro na consulta Supabase:", errorMsg);
+                }
+            }
 
-            if (data && data.length > 0 && data[0].condominio) {
-                // @ts-ignore
-                setCondominio(data[0].condominio);
-                // @ts-ignore
-                await loadContas(data[0].condominio_id);
-            } else {
+            if (isMountedRef.current) {
+                if (data && data.length > 0 && data[0].condominio) {
+                    // @ts-ignore
+                    setCondominio(data[0].condominio);
+                    // @ts-ignore
+                    await loadContas(data[0].condominio_id);
+                } else {
+                    setCondominio(null);
+                    setContas([]);
+                }
+            }
+        } catch (e: any) {
+            const errString = e?.message || JSON.stringify(e);
+            if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
+                console.error("Erro ao carregar dados do condomínio:", errString);
+            }
+            if (isMountedRef.current) {
                 setCondominio(null);
                 setContas([]);
             }
-        } catch (e: any) {
-            console.error("Erro ao carregar dados do condomínio:", {
-                message: e?.message,
-                details: e?.details,
-                code: e?.code,
-                error: e
-            });
-            setCondominio(null);
-            setContas([]);
         } finally {
-            setLoading(false);
+            if (isMountedRef.current) {
+                setLoading(false);
+            }
         }
     };
 
     useEffect(() => {
-        verifyCondoAndLoadData();
+        isMountedRef.current = true;
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                await verifyCondoAndLoadData();
+        const initAuth = async () => {
+            try {
+                const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+
+                if (sessionError && !currentSession) throw sessionError;
+
+                if (isMountedRef.current) {
+                    await verifyCondoAndLoadData(currentSession);
+                }
+            } catch (err: any) {
+                const errString = err?.message || JSON.stringify(err);
+                if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
+                    console.error("Erro ao recuperar sessão inicial:", errString);
+                }
+                if (isMountedRef.current) setLoading(false);
+            }
+        };
+
+        initAuth();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+            if (!isMountedRef.current) return;
+
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+                if (currentSession) {
+                    await verifyCondoAndLoadData(currentSession);
+                }
             } else if (event === 'SIGNED_OUT') {
                 setSession(null);
                 setCondominio(null);
@@ -147,20 +202,11 @@ export default function PrestacaoContasPage() {
             }
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            isMountedRef.current = false;
+            subscription.unsubscribe();
+        };
     }, []);
-
-    const loadContas = async (condoId: string) => {
-        const { data, error } = await supabase
-            .from("condominio_contas")
-            .select("*")
-            .eq("condominio_id", condoId)
-            .order("data_competencia", { ascending: false });
-
-        if (!error && data) {
-            setContas(data as ContaCondominio[]);
-        }
-    };
 
     const handleSaveConta = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -281,7 +327,7 @@ export default function PrestacaoContasPage() {
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => window.history.back()}
-                                className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 self-start md:self-auto overflow-hidden"
+                                className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 self-start md:self-auto overflow-hidden cursor-pointer shrink-0"
                             >
                                 <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
                                 <ArrowLeft
@@ -296,7 +342,7 @@ export default function PrestacaoContasPage() {
 
                 {/* Contexto Inicial da Tela logo após a linha divisória */}
                 <p className="text-xs md:text-sm text-zinc-500 font-medium mb-4">
-                    Acompanhe o balanço financeiro de Receitas (taxa-base) e Despesas (rateio contas):
+
                 </p>
 
                 {/* Barra de Filtro de Período centralizada no mobile e alinhada à direita no desktop, com largura correspondente exatamente a dois cards do grid no mobile */}
@@ -324,7 +370,7 @@ export default function PrestacaoContasPage() {
                         </div>
                         <button
                             onClick={() => setFiltroPeriodo('acumulado')}
-                            className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full transition-all shrink-0 ${filtroPeriodo === 'acumulado' ? 'bg-blue-600 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}
+                            className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full transition-all shrink-0 cursor-pointer ${filtroPeriodo === 'acumulado' ? 'bg-blue-600 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}
                         >
                             Visão Acumulado
                         </button>

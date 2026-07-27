@@ -148,21 +148,19 @@ export default function AcessoUsuarioPage() {
     setResetLoading(false);
   };
 
-  // Processa a validação do primeiro acesso do morador vinculando o e-mail definitivo e atualizando a tabela profiles
+  // Processa a validação do primeiro acesso do morador focando no reconhecimento da chave e definição de senha
   const handleFirstAccessSetup = async (e: React.FormEvent) => {
     e.preventDefault();
     setFirstAccessLoading(true);
 
-    const inputSlug = firstAccessSlug.trim(); // Remove espaços mantendo a estrutura original gerada
-    const inputEmailReal = firstAccessRealEmail.trim().toLowerCase();
+    const inputSlug = firstAccessSlug.trim().toLowerCase();
 
     try {
-      // 1. Localiza o usuário correspondente ao slug ignorando case-sensitivity se necessário, ou buscando exato
-      // Dica: Se o banco armazena em minúsculo, use .toLowerCase(), senão remova para busca exata.
+      // 1. Localiza o usuário correspondente ao slug na tabela profiles
       const { data: profileData, error: profileQueryError } = await supabase
         .from('profiles')
-        .select('id, slug')
-        .ilike('slug', inputSlug) // .ilike busca independentemente de maiúsculas/minúsculas
+        .select('id, slug, email_contato')
+        .ilike('slug', inputSlug)
         .maybeSingle();
 
       if (profileQueryError) throw profileQueryError;
@@ -173,49 +171,19 @@ export default function AcessoUsuarioPage() {
         return;
       }
 
-      // 2. Atualiza diretamente o e-mail de contato na tabela profiles
-      const { error: updateProfileError } = await supabase
-        .from('profiles')
-        .update({ email_contato: inputEmailReal })
-        .eq('id', profileData.id);
+      // 2. Confirmação para o usuário de que a conta foi localizada e instruções de login
+      alert(
+        `Conta localizada com sucesso!\n\n` +
+        `Para acessar pela primeira vez, utilize o seu ID (${profileData.slug}) ou o e-mail provisório na tela de login e a senha temporária fornecida pelo síndico.\n\n` +
+        `Após entrar, recomendamos alterar sua senha nas configurações.`
+      );
 
-      if (updateProfileError) {
-        console.error("Erro ao atualizar profiles:", updateProfileError);
-      }
-
-      // 3. Executa a requisição para o endpoint de onboarding/ativação usando o slug real encontrado no banco
-      const response = await fetch("/auth/onboarding", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug: profileData.slug, realEmail: inputEmailReal }),
-      });
-
-      const responseData = await response.json();
-
-      if (!response.ok) {
-        const errorMessage = responseData.error || "Falha na ativação.";
-
-        if (errorMessage.toLowerCase().includes("já está sendo utilizado") || errorMessage.toLowerCase().includes("already registered")) {
-          alert("Este e-mail já está cadastrado na plataforma. Por favor, solicite ao Síndico que permita o acesso no seu cadastro já existente ou utilize outro endereço de e-mail.");
-        } else {
-          alert(errorMessage);
-        }
-        return;
-      }
-
-      // SUCESSO: A API retornou o magicLink gerado administrativamente
-      if (responseData.success && responseData.magicLink) {
-        alert("Conta ativada com sucesso! Redirecionando para o sistema...");
-        window.location.href = responseData.magicLink;
-      } else {
-        alert("Conta ativada com sucesso! Você já pode realizar o login.");
-        setShowFirstAccessModal(false);
-      }
-
+      // Preenche o campo de login automaticamente com o slug para facilitar
+      setSlug(profileData.slug);
+      setShowFirstAccessModal(false);
       setFirstAccessSlug("");
-      setFirstAccessRealEmail("");
     } catch (err: any) {
-      console.error("Erro no Onboarding:", err);
+      console.error("Erro no primeiro acesso:", err);
       alert(err?.message || "Houve uma falha interna ao processar sua solicitação.");
     } finally {
       setFirstAccessLoading(false);
@@ -606,7 +574,7 @@ export default function AcessoUsuarioPage() {
               </div>
               <h2 className="text-xl font-black text-gray-900 tracking-tight mb-2">Primeiro Acesso</h2>
               <p className="text-gray-500 text-xs mb-6">
-                Insira a chave/slug gerada pelo síndico e vincule seu e-mail pessoal para ativar o acesso ao app.
+                Insira a chave/slug gerada pelo síndico para validar seu cadastro e realizar o login com sua senha temporária.
               </p>
 
               <form onSubmit={handleFirstAccessSetup} className="w-full space-y-3">
@@ -622,23 +590,11 @@ export default function AcessoUsuarioPage() {
                   />
                 </div>
 
-                <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
-                  <input
-                    type="email"
-                    required
-                    placeholder="Seu e-mail pessoal definitivo"
-                    value={firstAccessRealEmail}
-                    onChange={(e) => setFirstAccessRealEmail(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-100 outline-none text-xs font-medium"
-                  />
-                </div>
-
                 <button
                   disabled={firstAccessLoading}
                   className="w-full bg-zinc-900 text-white py-3.5 rounded-xl font-bold hover:bg-black transition shadow-lg text-xs flex items-center justify-center gap-2 disabled:opacity-50 mt-2 uppercase tracking-widest text-[10px]"
                 >
-                  {firstAccessLoading ? "Validando Chave..." : "Ativar minha Conta"}
+                  {firstAccessLoading ? "Verificando Chave..." : "Validar e Acessar"}
                   <ArrowRight size={14} />
                 </button>
               </form>
