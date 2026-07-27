@@ -1,6 +1,6 @@
 // app/condo/dashboard/boletos-segunda-via/page.tsx
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import {
@@ -17,14 +17,21 @@ import {
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+        auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: false,
+        },
+    }
 );
 
 interface UserMemberData {
     role: string;
     condominio: {
         nome: string;
-    };
+    } | null;
 }
 
 export default function BoletosSegundaViaPage() {
@@ -37,7 +44,19 @@ export default function BoletosSegundaViaPage() {
 
     // Estado para controlar se o usuário selecionou a opção de personalizar
     const [modoPersonalizado, setModoPersonalizado] = useState(false);
-    const [mesCustomizadoInput, setMesCustomizadoInput] = useState("");
+
+    // Estados para seleção fixa tipo calendário (Mês e Ano)
+    const [mesEscolhidoCustom, setMesEscolhidoCustom] = useState<string>("Janeiro");
+    const [anoEscolhidoCustom, setAnoEscolhidoCustom] = useState<string>("2026");
+
+    const isMountedRef = useRef(true);
+
+    const mesesDisponiveis = [
+        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    ];
+
+    const anosDisponiveis = ["2024", "2025", "2026", "2027"];
 
     // Últimos 6 meses no formato "Mês Abreviado/Ano" (Ex: Fev/26 até Jul/26)
     const ultimosSeisMeses = [
@@ -53,13 +72,17 @@ export default function BoletosSegundaViaPage() {
     const loadDadosCondominio = async (currentSession: any) => {
         try {
             if (!currentSession) {
-                setSession(null);
-                setMemberData(null);
-                setLoading(false);
+                if (isMountedRef.current) {
+                    setSession(null);
+                    setMemberData(null);
+                    setLoading(false);
+                }
                 return;
             }
 
-            setSession(currentSession);
+            if (isMountedRef.current) {
+                setSession(currentSession);
+            }
             const userId = currentSession.user.id;
 
             const { data, error } = await supabase
@@ -74,40 +97,67 @@ export default function BoletosSegundaViaPage() {
                 .order("criado_em", { ascending: false })
                 .limit(1);
 
-            if (error) throw error;
+            if (error) {
+                const errorMsg = error.message || JSON.stringify(error);
+                if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
+                    console.error("Erro na consulta Supabase:", errorMsg);
+                }
+            }
 
-            if (data && data.length > 0) {
-                setMemberData(data[0] as unknown as UserMemberData);
-            } else {
+            if (isMountedRef.current) {
+                if (data && data.length > 0) {
+                    setMemberData(data[0] as unknown as UserMemberData);
+                } else {
+                    setMemberData(null);
+                }
+            }
+        } catch (e: any) {
+            const errString = e?.message || JSON.stringify(e);
+            if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
+                console.error("Erro ao verificar acesso:", errString);
+            }
+            if (isMountedRef.current) {
                 setMemberData(null);
             }
-        } catch (e) {
-            console.error("Erro ao verificar acesso:", e);
-            setMemberData(null);
         } finally {
-            setLoading(false);
+            if (isMountedRef.current) {
+                setLoading(false);
+            }
         }
     };
 
     useEffect(() => {
-        let isMounted = true;
+        isMountedRef.current = true;
 
         const initAuth = async () => {
             try {
-                const { data: { session: initialSession } } = await supabase.auth.getSession();
-                if (isMounted) {
-                    await loadDadosCondominio(initialSession);
+                // Força a recuperação síncrona/cache local e tenta refresh se necessário para evitar perda de sessão ao abrir nova aba/janela do WhatsApp
+                let { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+
+                if (!currentSession) {
+                    const { data: refreshData } = await supabase.auth.refreshSession();
+                    currentSession = refreshData.session;
                 }
-            } catch (err) {
-                console.error("Erro ao recuperar sessão inicial:", err);
-                if (isMounted) setLoading(false);
+
+                if (sessionError && !currentSession) throw sessionError;
+
+                if (isMountedRef.current) {
+                    await loadDadosCondominio(currentSession);
+                }
+            } catch (err: any) {
+                const errString = err?.message || JSON.stringify(err);
+                if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
+                    console.error("Erro ao recuperar sessão inicial:", errString);
+                }
+                if (isMountedRef.current) setLoading(false);
             }
         };
 
         initAuth();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-            if (isMounted) {
+            if (isMountedRef.current) {
+                // Evita limpar a sessão prematuramente em eventos de foco/visibility do navegador
                 if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
                     await loadDadosCondominio(currentSession);
                 } else if (event === 'SIGNED_OUT') {
@@ -119,13 +169,15 @@ export default function BoletosSegundaViaPage() {
         });
 
         return () => {
-            isMounted = false;
+            isMountedRef.current = false;
             subscription.unsubscribe();
         };
     }, []);
 
-    const handleSolicitarWhatsApp = () => {
-        const mesAlvo = modoPersonalizado ? mesCustomizadoInput.trim() : mesSelecionado;
+    const handleSolicitarWhatsApp = (e: React.MouseEvent) => {
+        e.preventDefault(); // Previne qualquer comportamento padrão de propagação de eventos
+
+        const mesAlvo = modoPersonalizado ? `${mesEscolhidoCustom} de ${anoEscolhidoCustom}` : mesSelecionado;
         if (!mesAlvo) return;
 
         const nomeCondominio = memberData?.condominio?.nome || "Condomínio";
@@ -134,7 +186,9 @@ export default function BoletosSegundaViaPage() {
         mensagem += `Aguardo orientações. Obrigado(a)!`;
 
         const urlWhatsApp = `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
-        window.open(urlWhatsApp, '_blank');
+        // Utiliza location.href ou abre via link programático para evitar race-condition no foco da janela do browser com o client Supabase
+        const newWindow = window.open(urlWhatsApp, '_blank');
+        if (newWindow) newWindow.opener = null;
     };
 
     // --- RENDERS DE AUTENTICAÇÃO ---
@@ -185,7 +239,7 @@ export default function BoletosSegundaViaPage() {
 
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-6 md:p-10 flex flex-col justify-between">
-            <div className="max-w-4xl mx-auto w-full space-y-8">
+            <div className="max-w-4xl mx-auto w-full space-y-6">
                 {/* Header Integrado com o Padrão do Modelo */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-6">
                     <div className="flex items-center gap-4">
@@ -194,7 +248,7 @@ export default function BoletosSegundaViaPage() {
                         </div>
                         <div>
                             {/* Linha 1: Título no modelo azul */}
-                            <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Boletos - Apoio emissão 2ª via</span>
+                            <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Boletos (2ª via)</span>
                             {/* Linha 2: Nome do Condomínio na cor preta */}
                             <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1 text-zinc-900">
                                 {memberData?.condominio?.nome || "Meu Condomínio"}
@@ -215,81 +269,105 @@ export default function BoletosSegundaViaPage() {
                     </button>
                 </div>
 
-                {/* Subtítulo descritivo e Botão "Outro mês" na linha abaixo, alinhado à direita */}
-                <div className="space-y-3">
+                {/* Subtítulo descritivo */}
+                <div>
                     <p className="text-xs md:text-sm text-zinc-500 font-medium">
-                        Selecione abaixo o mês em que precisa da reemissão do boleto (por atraso ou perda) para solicitar o documento diretamente à administração.
+                        Selecione o mês em que precisa da reemissão do boleto para solicitar a 2ª via diretamente à administração.
                     </p>
-
-                    <div className="flex justify-end">
-                        <button
-                            onClick={() => setModoPersonalizado(true)}
-                            className={`px-4 py-2.5 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${modoPersonalizado
-                                    ? "bg-blue-50 border-blue-500 text-blue-900 shadow-sm"
-                                    : "bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50"
-                                }`}
-                        >
-                            <Edit3 size={15} className={modoPersonalizado ? "text-blue-600" : "text-zinc-400"} />
-                            <span>Outro Mês</span>
-                        </button>
-                    </div>
-
-                    {/* Campo de input exibido se o usuário clicar em "Outro Mês" */}
-                    {modoPersonalizado && (
-                        <div className="bg-white border border-zinc-200 rounded-[2rem] p-5 shadow-sm space-y-2 animate-in fade-in duration-200">
-                            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Digite o mês e ano desejado</label>
-                            <input
-                                type="text"
-                                placeholder="Ex: Dezembro de 2025 ou 11/2025"
-                                value={mesCustomizadoInput}
-                                onChange={(e) => setMesCustomizadoInput(e.target.value)}
-                                className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 text-xs font-medium"
-                            />
-                        </div>
-                    )}
                 </div>
 
                 {/* Layout Moderno e Minimalista para os Meses */}
                 <div className="bg-white border border-zinc-200 rounded-[2.5rem] p-6 md:p-8 shadow-sm space-y-6">
-                    {/* Grid ajustado: 2 colunas no mobile (grid-cols-2) e 3 colunas no desktop (md:grid-cols-3) */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {ultimosSeisMeses.map((mes) => {
-                            const selecionado = !modoPersonalizado && mesSelecionado === mes;
-                            return (
-                                <button
-                                    key={mes}
-                                    onClick={() => {
-                                        setModoPersonalizado(false);
-                                        setMesSelecionado(mes);
-                                    }}
-                                    className={`p-3.5 md:p-4 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center items-center justify-between cursor-pointer text-center md:text-left ${selecionado
-                                            ? "bg-blue-50/80 border-blue-500 text-blue-900 shadow-sm ring-1 ring-blue-500/20"
-                                            : "bg-zinc-50/60 border-zinc-200/80 text-zinc-700 hover:bg-zinc-100 hover:border-zinc-300"
-                                        }`}
-                                >
-                                    {/* Versão Mobile: ícone em cima, texto em baixo centralizados. Versão Desktop: lado a lado */}
-                                    <div className="flex flex-col md:flex-row md:items-center items-center gap-2 md:gap-3 min-w-0 w-full">
-                                        <div className={`w-8 h-8 md:w-9 md:h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${selecionado ? "bg-blue-600 text-white" : "bg-white text-zinc-400 border border-zinc-200"
-                                            }`}>
-                                            <Calendar size={15} />
-                                        </div>
-                                        <span className="text-[11px] md:text-xs font-bold uppercase tracking-wider truncate w-full text-center md:text-left">{mes}</span>
-                                    </div>
-                                    {selecionado && <CheckCircle2 size={16} className="text-blue-600 shrink-0 hidden md:block ml-2" />}
-                                </button>
-                            );
-                        })}
+                    {/* Linha de Cabeçalho do Card: Contexto Inicial e Botão "Outro Mês" na lateral direita */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-100">
+                        <div className="space-y-0.5">
+                            <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Período de Referência</span>
+                            <h3 className="text-xs md:text-sm font-black text-zinc-800">Selecione um mês abaixo ou personalize o pedido</h3>
+                        </div>
+
+                        <div className="flex justify-end shrink-0">
+                            <button
+                                onClick={() => setModoPersonalizado(!modoPersonalizado)}
+                                className={`px-4 py-2.5 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${modoPersonalizado
+                                        ? "bg-blue-50 border-blue-500 text-blue-900 shadow-sm"
+                                        : "bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                                    }`}
+                            >
+                                <Edit3 size={15} className={modoPersonalizado ? "text-blue-600" : "text-zinc-400"} />
+                                <span>{modoPersonalizado ? "Usar Recentes" : "Outro Mês"}</span>
+                            </button>
+                        </div>
                     </div>
+
+                    {/* Seleção Personalizada Fixa (Tipo Calendário) caso modoPersonalizado seja true */}
+                    {modoPersonalizado ? (
+                        <div className="bg-zinc-50/80 border border-zinc-200 rounded-3xl p-6 space-y-4 animate-in fade-in duration-200">
+                            <div className="space-y-1">
+                                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Seleção de Mês e Ano (Calendário)</span>
+                                <p className="text-xs text-zinc-500 font-medium ml-1">Escolha abaixo o mês e o ano correspondente ao boleto desejado.</p>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1">Mês</label>
+                                    <select
+                                        value={mesEscolhidoCustom}
+                                        onChange={(e) => setMesEscolhidoCustom(e.target.value)}
+                                        className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-xl outline-none focus:border-blue-500 text-xs font-bold uppercase tracking-wider cursor-pointer shadow-sm"
+                                    >
+                                        {mesesDisponiveis.map((m) => (
+                                            <option key={m} value={m}>{m}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1">Ano</label>
+                                    <select
+                                        value={anoEscolhidoCustom}
+                                        onChange={(e) => setAnoEscolhidoCustom(e.target.value)}
+                                        className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-xl outline-none focus:border-blue-500 text-xs font-bold uppercase tracking-wider cursor-pointer shadow-sm"
+                                    >
+                                        {anosDisponiveis.map((a) => (
+                                            <option key={a} value={a}>{a}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        /* Grid de Meses Recentes: 2 colunas no mobile e 3 no desktop */
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {ultimosSeisMeses.map((mes) => {
+                                const selecionado = mesSelecionado === mes;
+                                return (
+                                    <button
+                                        key={mes}
+                                        onClick={() => setMesSelecionado(mes)}
+                                        className={`p-3.5 md:p-4 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center items-center justify-between cursor-pointer text-center md:text-left ${selecionado
+                                                ? "bg-blue-50/80 border-blue-500 text-blue-900 shadow-sm ring-1 ring-blue-500/20"
+                                                : "bg-zinc-50/60 border-zinc-200/80 text-zinc-700 hover:bg-zinc-100 hover:border-zinc-300"
+                                            }`}
+                                    >
+                                        <div className="flex flex-col md:flex-row md:items-center items-center gap-2 md:gap-3 min-w-0 w-full">
+                                            <div className={`w-8 h-8 md:w-9 md:h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${selecionado ? "bg-blue-600 text-white" : "bg-white text-zinc-400 border border-zinc-200"
+                                                }`}>
+                                                <Calendar size={15} />
+                                            </div>
+                                            <span className="text-[11px] md:text-xs font-bold uppercase tracking-wider truncate w-full text-center md:text-left">{mes}</span>
+                                        </div>
+                                        {selecionado && <CheckCircle2 size={16} className="text-blue-600 shrink-0 hidden md:block ml-2" />}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
 
                     {/* Rodapé do Card de Seleção e Ação do WhatsApp */}
                     <div className="pt-6 border-t border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                         <div className="text-xs text-zinc-500 text-center sm:text-left">
                             {modoPersonalizado ? (
-                                mesCustomizadoInput.trim() ? (
-                                    <span>Mês personalizado: <strong className="text-zinc-900">{mesCustomizadoInput}</strong></span>
-                                ) : (
-                                    <span className="text-amber-600 font-medium">Digite o mês desejado na opção acima.</span>
-                                )
+                                <span>Mês personalizado: <strong className="text-zinc-900">{mesEscolhidoCustom} de {anoEscolhidoCustom}</strong></span>
                             ) : mesSelecionado ? (
                                 <span>Mês selecionado: <strong className="text-zinc-900">{mesSelecionado}</strong></span>
                             ) : (
@@ -299,11 +377,8 @@ export default function BoletosSegundaViaPage() {
 
                         <button
                             onClick={handleSolicitarWhatsApp}
-                            disabled={modoPersonalizado ? !mesCustomizadoInput.trim() : !mesSelecionado}
-                            className={`w-full sm:w-auto px-6 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-2 ${(modoPersonalizado ? mesCustomizadoInput.trim() : mesSelecionado)
-                                    ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-100 cursor-pointer active:scale-95"
-                                    : "bg-zinc-100 text-zinc-400 cursor-not-allowed border border-zinc-200"
-                                }`}
+                            disabled={modoPersonalizado ? false : !mesSelecionado}
+                            className="w-full sm:w-auto px-6 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-100 cursor-pointer active:scale-95"
                         >
                             <Send size={14} /> Solicitar via WhatsApp
                         </button>

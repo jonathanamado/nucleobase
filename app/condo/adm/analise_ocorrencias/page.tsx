@@ -304,7 +304,7 @@ export default function AnaliseOcorrenciasAdmPage() {
     }
 
     return (
-        <div className="min-h-screen bg-zinc-50/50 text-zinc-900 pt-6 px-6 md:px-10 flex flex-col justify-between">
+        <div className="min-h-screen bg-zinc-50/50 text-zinc-900 pt-6 px-4 md:px-10 flex flex-col justify-between overflow-x-hidden">
             {/* Header */}
             <div>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-5 mb-6">
@@ -345,7 +345,7 @@ export default function AnaliseOcorrenciasAdmPage() {
                 {/* Grid Vertical: Ocorrências e Sugestões dispostas uma abaixo da outra */}
                 <div className="flex flex-col gap-6 mb-12">
                     {/* Bloco de Ocorrências */}
-                    <div className="bg-white border border-zinc-200 rounded-[2rem] p-6 shadow-sm flex flex-col justify-between">
+                    <div className="bg-white border border-zinc-200 rounded-[2rem] p-4 md:p-6 shadow-sm flex flex-col justify-between max-w-full">
                         <div>
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-zinc-100 mb-4 gap-3">
                                 <div className="flex items-center gap-2 overflow-hidden">
@@ -355,7 +355,7 @@ export default function AnaliseOcorrenciasAdmPage() {
                                     <h3 className="font-bold text-sm md:text-base text-zinc-800 truncate">Ocorrências do Condomínio</h3>
                                 </div>
 
-                                <div className="flex items-center justify-end md:justify-start gap-2 w-full sm:w-auto">
+                                <div className="flex items-center justify-between md:justify-start gap-2 w-full sm:w-auto">
                                     <div className="flex items-center gap-1 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-xl">
                                         <Filter size={12} className="text-zinc-400" />
                                         <select
@@ -384,14 +384,14 @@ export default function AnaliseOcorrenciasAdmPage() {
                             ) : (
                                 <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
                                     {ocorrenciasFiltradas.map((item) => (
-                                        <div key={item.id} className="p-4 bg-zinc-50 border border-zinc-100 rounded-2xl space-y-3">
+                                        <div key={item.id} className="p-3.5 md:p-4 bg-zinc-50 border border-zinc-100 rounded-2xl space-y-3 overflow-hidden">
                                             {/* Linha Superior: Status e Botões de Ação na Lateral Direita */}
                                             <div className="flex items-center justify-between gap-2">
                                                 <select
                                                     value={item.status}
                                                     disabled={actionLoading}
                                                     onChange={(e) => handleAtualizarStatus(item.id, e.target.value as any)}
-                                                    className={`text-[9px] font-black uppercase px-3 py-1.5 rounded-xl outline-none cursor-pointer transition shadow-sm border ${item.status === 'resolvido'
+                                                    className={`text-[9px] font-black uppercase px-2.5 py-1.5 rounded-xl outline-none cursor-pointer transition shadow-sm border ${item.status === 'resolvido'
                                                         ? 'bg-emerald-600 text-white border-emerald-600' :
                                                         item.status === 'em_andamento'
                                                             ? 'bg-amber-500 text-white border-amber-500' :
@@ -406,7 +406,7 @@ export default function AnaliseOcorrenciasAdmPage() {
                                                 <div className="flex items-center gap-1.5 shrink-0">
                                                     <button
                                                         onClick={() => abrirModalDevolutiva(item)}
-                                                        className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all"
+                                                        className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all cursor-pointer"
                                                         title="Enviar Devolutiva via WhatsApp"
                                                     >
                                                         <MessageCircle size={15} />
@@ -415,7 +415,7 @@ export default function AnaliseOcorrenciasAdmPage() {
                                                     <button
                                                         onClick={() => handleExcluirItem(item.id)}
                                                         disabled={actionLoading}
-                                                        className="p-1.5 bg-zinc-100 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                        className="p-1.5 bg-zinc-100 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
                                                         title="Excluir Registro"
                                                     >
                                                         <Trash2 size={15} />
@@ -424,22 +424,20 @@ export default function AnaliseOcorrenciasAdmPage() {
                                             </div>
 
                                             {/* Informações na Linha Abaixo */}
-                                            <h4 className="font-bold text-xs text-zinc-900 pt-1">{item.titulo}</h4>
+                                            <h4 className="font-bold text-xs text-zinc-900 pt-1 break-words">{item.titulo}</h4>
 
-                                            <p className="text-xs text-zinc-500 leading-relaxed">{item.descricao}</p>
+                                            <p className="text-xs text-zinc-500 leading-relaxed break-words">{item.descricao}</p>
 
                                             {(item.solicitante || item.unidade) && (
-                                                <div className="flex flex-wrap gap-3 text-[10px] text-zinc-400 pt-1 border-t border-zinc-200/60">
-                                                    <span>
-                                                        Solicitante: <strong className="text-zinc-700">
-                                                            {formatarNomePrimeiroEUltimo(item.solicitante)}{item.unidade ? ` - ${item.unidade}` : ""}
-                                                        </strong>
+                                                <div className="flex flex-wrap gap-1 text-[10px] text-zinc-400 pt-1 border-t border-zinc-200/60">
+                                                    <span className="break-words">
+                                                        <strong className="text-zinc-900 font-bold">Solicitante:</strong> <span className="font-normal text-zinc-700">{formatarNomePrimeiroEUltimo(item.solicitante)}{item.unidade ? ` - ${item.unidade}` : ""}</span>
                                                     </span>
                                                 </div>
                                             )}
 
                                             <div className="text-[10px] text-zinc-400 pt-2 border-t border-zinc-200/60">
-                                                Data solicitação: <strong className="text-zinc-700">{new Date(item.criado_em).toLocaleDateString('pt-BR')}</strong>
+                                                <strong className="text-zinc-900 font-bold">Data solicitação:</strong> <span className="font-normal text-zinc-700">{new Date(item.criado_em).toLocaleDateString('pt-BR')}</span>
                                             </div>
                                         </div>
                                     ))}
@@ -449,7 +447,7 @@ export default function AnaliseOcorrenciasAdmPage() {
                     </div>
 
                     {/* Bloco de Sugestões */}
-                    <div className="bg-white border border-zinc-200 rounded-[2rem] p-6 shadow-sm flex flex-col justify-between">
+                    <div className="bg-white border border-zinc-200 rounded-[2rem] p-4 md:p-6 shadow-sm flex flex-col justify-between max-w-full">
                         <div>
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-zinc-100 mb-4 gap-3">
                                 <div className="flex items-center gap-2 overflow-hidden">
@@ -459,7 +457,7 @@ export default function AnaliseOcorrenciasAdmPage() {
                                     <h3 className="font-bold text-sm md:text-base text-zinc-800 truncate">Sugestões Recebidas</h3>
                                 </div>
 
-                                <div className="flex items-center justify-end md:justify-start gap-2 w-full sm:w-auto">
+                                <div className="flex items-center justify-between md:justify-start gap-2 w-full sm:w-auto">
                                     <div className="flex items-center gap-1 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-xl">
                                         <Filter size={12} className="text-zinc-400" />
                                         <select
@@ -488,14 +486,14 @@ export default function AnaliseOcorrenciasAdmPage() {
                             ) : (
                                 <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
                                     {sugestoesFiltradas.map((item) => (
-                                        <div key={item.id} className="p-4 bg-zinc-50 border border-zinc-100 rounded-2xl space-y-3">
+                                        <div key={item.id} className="p-3.5 md:p-4 bg-zinc-50 border border-zinc-100 rounded-2xl space-y-3 overflow-hidden">
                                             {/* Linha Superior: Status e Botões de Ação na Lateral Direita */}
                                             <div className="flex items-center justify-between gap-2">
                                                 <select
                                                     value={item.status}
                                                     disabled={actionLoading}
                                                     onChange={(e) => handleAtualizarStatus(item.id, e.target.value as any)}
-                                                    className={`text-[9px] font-black uppercase px-3 py-1.5 rounded-xl outline-none cursor-pointer transition shadow-sm border ${item.status === 'resolvido'
+                                                    className={`text-[9px] font-black uppercase px-2.5 py-1.5 rounded-xl outline-none cursor-pointer transition shadow-sm border ${item.status === 'resolvido'
                                                         ? 'bg-emerald-600 text-white border-emerald-600' :
                                                         item.status === 'em_andamento'
                                                             ? 'bg-amber-500 text-white border-amber-500' :
@@ -510,7 +508,7 @@ export default function AnaliseOcorrenciasAdmPage() {
                                                 <div className="flex items-center gap-1.5 shrink-0">
                                                     <button
                                                         onClick={() => abrirModalDevolutiva(item)}
-                                                        className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all"
+                                                        className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all cursor-pointer"
                                                         title="Enviar Devolutiva via WhatsApp"
                                                     >
                                                         <MessageCircle size={15} />
@@ -519,7 +517,7 @@ export default function AnaliseOcorrenciasAdmPage() {
                                                     <button
                                                         onClick={() => handleExcluirItem(item.id)}
                                                         disabled={actionLoading}
-                                                        className="p-1.5 bg-zinc-100 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                        className="p-1.5 bg-zinc-100 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
                                                         title="Excluir Registro"
                                                     >
                                                         <Trash2 size={15} />
@@ -528,22 +526,20 @@ export default function AnaliseOcorrenciasAdmPage() {
                                             </div>
 
                                             {/* Informações na Linha Abaixo */}
-                                            <h4 className="font-bold text-xs text-zinc-900 pt-1">{item.titulo}</h4>
+                                            <h4 className="font-bold text-xs text-zinc-900 pt-1 break-words">{item.titulo}</h4>
 
-                                            <p className="text-xs text-zinc-500 leading-relaxed">{item.descricao}</p>
+                                            <p className="text-xs text-zinc-500 leading-relaxed break-words">{item.descricao}</p>
 
                                             {(item.solicitante || item.unidade) && (
-                                                <div className="flex flex-wrap gap-3 text-[10px] text-zinc-400 pt-1 border-t border-zinc-200/60">
-                                                    <span>
-                                                        Solicitante: <strong className="text-zinc-700">
-                                                            {formatarNomePrimeiroEUltimo(item.solicitante)}{item.unidade ? ` - ${item.unidade}` : ""}
-                                                        </strong>
+                                                <div className="flex flex-wrap gap-1 text-[10px] text-zinc-400 pt-1 border-t border-zinc-200/60">
+                                                    <span className="break-words">
+                                                        <strong className="text-zinc-900 font-bold">Solicitante:</strong> <span className="font-normal text-zinc-700">{formatarNomePrimeiroEUltimo(item.solicitante)}{item.unidade ? ` - ${item.unidade}` : ""}</span>
                                                     </span>
                                                 </div>
                                             )}
 
                                             <div className="text-[10px] text-zinc-400 pt-2 border-t border-zinc-200/60">
-                                                Data solicitação: <strong className="text-zinc-700">{new Date(item.criado_em).toLocaleDateString('pt-BR')}</strong>
+                                                <strong className="text-zinc-900 font-bold">Data solicitação:</strong> <span className="font-normal text-zinc-700">{new Date(item.criado_em).toLocaleDateString('pt-BR')}</span>
                                             </div>
                                         </div>
                                     ))}
@@ -560,7 +556,7 @@ export default function AnaliseOcorrenciasAdmPage() {
                     <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden border border-zinc-100 animate-in zoom-in-95 duration-200">
                         <button
                             onClick={() => setShowModalWhatsApp(false)}
-                            className="absolute right-6 top-6 text-zinc-400 hover:text-zinc-900 transition-colors"
+                            className="absolute right-6 top-6 text-zinc-400 hover:text-zinc-900 transition-colors cursor-pointer"
                         >
                             <X size={20} />
                         </button>
@@ -590,7 +586,7 @@ export default function AnaliseOcorrenciasAdmPage() {
 
                                 <button
                                     type="submit"
-                                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition shadow-md shadow-emerald-100 flex items-center justify-center gap-2 mt-2"
+                                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition shadow-md shadow-emerald-100 flex items-center justify-center gap-2 mt-2 cursor-pointer"
                                 >
                                     <Send size={14} /> Enviar Mensagem no WhatsApp
                                 </button>

@@ -203,10 +203,11 @@ export default function OcorrenciasSugestoesPage() {
         let mensagem = `*${tipoFormatado} - ${memberData?.condominio?.nome || 'Condomínio'}*\n\n`;
         mensagem += `*Título:* ${itemEncontrado.titulo}\n`;
         mensagem += `*Descrição:* ${itemEncontrado.descricao}\n`;
-        if (itemEncontrado.solicitante) mensagem += `*Solicitante:* ${itemEncontrado.solicitante}\n`;
-        if (itemEncontrado.unidade) mensagem += `*Unidade:* ${itemEncontrado.unidade}\n`;
+        if (itemEncontrado.solicitante || itemEncontrado.unidade) {
+            mensagem += `*Solicitante:* ${itemEncontrado.solicitante || "Não informado"}${itemEncontrado.unidade ? ` - ${itemEncontrado.unidade}` : ''}\n`;
+        }
         mensagem += `*Status:* ${statusFormatado}\n`;
-        mensagem += `*Data:* ${new Date(itemEncontrado.criado_em).toLocaleDateString('pt-BR')}`;
+        mensagem += `*Data solicitação:* ${new Date(itemEncontrado.criado_em).toLocaleDateString('pt-BR')}`;
 
         const urlWhatsApp = `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
 
@@ -286,7 +287,7 @@ export default function OcorrenciasSugestoesPage() {
                                 <Building2 size={24} />
                             </div>
                             <div>
-                                <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Ocorrências e sugestões</span>
+                                <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Administração</span>
                                 <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1 text-zinc-900">{memberData?.condominio?.nome || "Condomínio"}</h1>
                             </div>
                         </div>
@@ -303,7 +304,7 @@ export default function OcorrenciasSugestoesPage() {
                     <div className="grid grid-cols-2 md:flex md:flex-row items-center gap-3 w-full md:w-auto shrink-0">
                         <button
                             onClick={() => { setShowModalOcorrencia(true); setFormError(''); setFormSuccess(''); }}
-                            className="relative group overflow-hidden bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white p-3.5 md:px-5 md:py-3 rounded-2xl text-[10px] md:text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all duration-300 shadow-lg shadow-rose-600/20 active:scale-95 border border-rose-500/30 text-center leading-tight"
+                            className="relative group overflow-hidden bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white p-3.5 md:px-5 md:py-3 rounded-2xl text-[10px] md:text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all duration-300 shadow-lg shadow-rose-600/20 active:scale-95 border border-rose-500/30 text-center leading-tight cursor-pointer"
                         >
                             <div className="absolute inset-0 w-full h-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
                             <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
@@ -316,7 +317,7 @@ export default function OcorrenciasSugestoesPage() {
 
                         <button
                             onClick={() => { setShowModalSugestao(true); setFormError(''); setFormSuccess(''); }}
-                            className="relative group overflow-hidden bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white p-3.5 md:px-5 md:py-3 rounded-2xl text-[10px] md:text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all duration-300 shadow-lg shadow-indigo-600/20 active:scale-95 border border-indigo-500/30 text-center leading-tight"
+                            className="relative group overflow-hidden bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white p-3.5 md:px-5 md:py-3 rounded-2xl text-[10px] md:text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all duration-300 shadow-lg shadow-indigo-600/20 active:scale-95 border border-indigo-500/30 text-center leading-tight cursor-pointer"
                         >
                             <div className="absolute inset-0 w-full h-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
                             <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
@@ -391,14 +392,18 @@ export default function OcorrenciasSugestoesPage() {
                                             <p className="text-xs text-zinc-500 leading-relaxed">{item.descricao}</p>
 
                                             {(item.solicitante || item.unidade) && (
-                                                <div className="flex flex-wrap gap-3 text-[10px] text-zinc-400 pt-1 border-t border-zinc-200/60">
-                                                    {item.solicitante && <span>Solicitante: <strong className="text-zinc-700">{item.solicitante}</strong></span>}
-                                                    {item.unidade && <span>Unidade: <strong className="text-zinc-700">{item.unidade}</strong></span>}
+                                                <div className="text-[10px] text-zinc-400 pt-1 border-t border-zinc-200/60">
+                                                    <span className="font-bold text-zinc-700">Solicitante:</span>{" "}
+                                                    <span className="text-zinc-600">
+                                                        {item.solicitante || "Não informado"}
+                                                        {item.unidade ? ` - ${item.unidade}` : ""}
+                                                    </span>
                                                 </div>
                                             )}
 
-                                            <div className="text-[9px] text-zinc-400 pt-0.5">
-                                                {new Date(item.criado_em).toLocaleDateString('pt-BR')}
+                                            <div className="text-[10px] text-zinc-400 pt-0.5">
+                                                <span className="font-bold text-zinc-700">Data solicitação:</span>{" "}
+                                                <span className="text-zinc-600">{new Date(item.criado_em).toLocaleDateString('pt-BR')}</span>
                                             </div>
                                         </div>
                                     ))}
@@ -461,14 +466,18 @@ export default function OcorrenciasSugestoesPage() {
                                             <p className="text-xs text-zinc-500 leading-relaxed">{item.descricao}</p>
 
                                             {(item.solicitante || item.unidade) && (
-                                                <div className="flex flex-wrap gap-3 text-[10px] text-zinc-400 pt-1 border-t border-zinc-200/60">
-                                                    {item.solicitante && <span>Solicitante: <strong className="text-zinc-700">{item.solicitante}</strong></span>}
-                                                    {item.unidade && <span>Unidade: <strong className="text-zinc-700">{item.unidade}</strong></span>}
+                                                <div className="text-[10px] text-zinc-400 pt-1 border-t border-zinc-200/60">
+                                                    <span className="font-bold text-zinc-700">Solicitante:</span>{" "}
+                                                    <span className="text-zinc-600">
+                                                        {item.solicitante || "Não informado"}
+                                                        {item.unidade ? ` - ${item.unidade}` : ""}
+                                                    </span>
                                                 </div>
                                             )}
 
-                                            <div className="text-[9px] text-zinc-400 pt-0.5">
-                                                {new Date(item.criado_em).toLocaleDateString('pt-BR')}
+                                            <div className="text-[10px] text-zinc-400 pt-0.5">
+                                                <span className="font-bold text-zinc-700">Data solicitação:</span>{" "}
+                                                <span className="text-zinc-600">{new Date(item.criado_em).toLocaleDateString('pt-BR')}</span>
                                             </div>
                                         </div>
                                     ))}
@@ -492,7 +501,7 @@ export default function OcorrenciasSugestoesPage() {
                     </div>
                     <button
                         onClick={() => setShowModalWhatsApp(true)}
-                        className="relative group overflow-hidden bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all duration-300 shadow-lg shadow-emerald-600/20 active:scale-95 border border-emerald-500/30 shrink-0 w-full md:w-auto"
+                        className="relative group overflow-hidden bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all duration-300 shadow-lg shadow-emerald-600/20 active:scale-95 border border-emerald-500/30 shrink-0 w-full md:w-auto cursor-pointer"
                     >
                         <div className="absolute inset-0 w-full h-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
                         <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
@@ -509,7 +518,7 @@ export default function OcorrenciasSugestoesPage() {
                     <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden border border-zinc-100 animate-in zoom-in-95 duration-200">
                         <button
                             onClick={() => setShowModalOcorrencia(false)}
-                            className="absolute right-6 top-6 text-zinc-400 hover:text-zinc-900 transition-colors"
+                            className="absolute right-6 top-6 text-zinc-400 hover:text-zinc-900 transition-colors cursor-pointer"
                         >
                             <X size={20} />
                         </button>
@@ -582,7 +591,7 @@ export default function OcorrenciasSugestoesPage() {
                                 <button
                                     type="submit"
                                     disabled={actionLoading}
-                                    className="w-full bg-rose-600 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-700 transition shadow-md shadow-rose-100 disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
+                                    className="w-full bg-rose-600 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-700 transition shadow-md shadow-rose-100 disabled:opacity-50 flex items-center justify-center gap-2 mt-2 cursor-pointer"
                                 >
                                     {actionLoading ? "Registrando..." : "Confirmar Ocorrência"}
                                 </button>
@@ -598,7 +607,7 @@ export default function OcorrenciasSugestoesPage() {
                     <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden border border-zinc-100 animate-in zoom-in-95 duration-200">
                         <button
                             onClick={() => setShowModalSugestao(false)}
-                            className="absolute right-6 top-6 text-zinc-400 hover:text-zinc-900 transition-colors"
+                            className="absolute right-6 top-6 text-zinc-400 hover:text-zinc-900 transition-colors cursor-pointer"
                         >
                             <X size={20} />
                         </button>
@@ -671,7 +680,7 @@ export default function OcorrenciasSugestoesPage() {
                                 <button
                                     type="submit"
                                     disabled={actionLoading}
-                                    className="w-full bg-indigo-600 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 transition shadow-md shadow-indigo-100 disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
+                                    className="w-full bg-indigo-600 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 transition shadow-md shadow-indigo-100 disabled:opacity-50 flex items-center justify-center gap-2 mt-2 cursor-pointer"
                                 >
                                     {actionLoading ? "Enviando..." : "Enviar Sugestão"}
                                 </button>
@@ -687,7 +696,7 @@ export default function OcorrenciasSugestoesPage() {
                     <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden border border-zinc-100 animate-in zoom-in-95 duration-200">
                         <button
                             onClick={() => setShowModalWhatsApp(false)}
-                            className="absolute right-6 top-6 text-zinc-400 hover:text-zinc-900 transition-colors"
+                            className="absolute right-6 top-6 text-zinc-400 hover:text-zinc-900 transition-colors cursor-pointer"
                         >
                             <X size={20} />
                         </button>
@@ -728,7 +737,7 @@ export default function OcorrenciasSugestoesPage() {
                                 <button
                                     type="submit"
                                     disabled={!whatsappItemIdSelecionado}
-                                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition shadow-md shadow-emerald-100 disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
+                                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition shadow-md shadow-emerald-100 disabled:opacity-50 flex items-center justify-center gap-2 mt-2 cursor-pointer"
                                 >
                                     <Send size={14} /> Selecionar Contato no WhatsApp
                                 </button>
