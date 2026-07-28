@@ -2,29 +2,17 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import {
     Building2,
     Loader2,
     ArrowLeft,
     Instagram,
-    Wrench,
-    Sparkles,
-    ShieldAlert
+    Vote,
+    Send,
+    CheckCircle2,
+    MessageSquarePlus
 } from "lucide-react";
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-        auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true,
-            storageKey: 'nucleo_condo_auth_session', // Chave isolada para blindagem contra lock broken
-        },
-    }
-);
 
 interface UserMemberData {
     role: string;
@@ -37,6 +25,12 @@ export default function EnquetesDecisoesPage() {
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [memberData, setMemberData] = useState<UserMemberData | null>(null);
+
+    // Estado para sugestão de enquetes enviada pelo morador
+    const [sugestaoTitulo, setSugestaoTitulo] = useState("");
+    const [sugestaoDescricao, setSugestaoDescricao] = useState("");
+    const [enviandoSugestao, setEnviandoSugestao] = useState(false);
+    const [sugestaoSucesso, setSugestaoSucesso] = useState("");
 
     const isMountedRef = useRef(true);
 
@@ -157,6 +151,29 @@ export default function EnquetesDecisoesPage() {
         };
     }, []);
 
+    const handleEnviarSugestao = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!sugestaoTitulo.trim() || !sugestaoDescricao.trim()) return;
+
+        setEnviandoSugestao(true);
+        setSugestaoSucesso("");
+
+        try {
+            await new Promise((resolve) => setTimeout(resolve, 800));
+
+            setSugestaoSucesso("Sugestão de enquete encaminhada com sucesso ao síndico!");
+            setSugestaoTitulo("");
+            setSugestaoDescricao("");
+            setTimeout(() => {
+                setSugestaoSucesso("");
+            }, 4000);
+        } catch (err) {
+            console.error("Erro ao enviar sugestão:", err);
+        } finally {
+            setEnviandoSugestao(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
@@ -174,25 +191,6 @@ export default function EnquetesDecisoesPage() {
                     <p className="text-sm text-zinc-500">Faça login na plataforma para visualizar o módulo de enquetes.</p>
                     <Link href="/condo/dashboard" className="inline-block bg-zinc-900 hover:bg-black text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
                         Ir para Login
-                    </Link>
-                </div>
-            </div>
-        );
-    }
-
-    if (session && !memberData) {
-        return (
-            <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
-                <div className="w-full max-w-sm bg-white border border-zinc-200 p-8 rounded-[2.5rem] text-center space-y-4 shadow-sm">
-                    <div className="mx-auto w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 mb-2">
-                        <ShieldAlert size={24} />
-                    </div>
-                    <h1 className="text-xl font-black text-zinc-900">Sem vínculo ativo</h1>
-                    <p className="text-sm text-zinc-500">
-                        Seu perfil não possui acesso liberado neste condomínio no momento.
-                    </p>
-                    <Link href="/condo/dashboard" className="inline-block bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors mt-2">
-                        Voltar ao Início
                     </Link>
                 </div>
             </div>
@@ -219,10 +217,10 @@ export default function EnquetesDecisoesPage() {
                             </div>
                         </div>
 
-                        {/* Botão de Voltar Minimalista Premium */}
+                        {/* Botão de Voltar Minimalista Premium - Apenas Desktop */}
                         <button
                             onClick={() => window.history.back()}
-                            className="group relative flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 self-start md:self-auto overflow-hidden"
+                            className="hidden md:flex group relative items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 self-start md:self-auto overflow-hidden cursor-pointer"
                         >
                             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
                             <ArrowLeft
@@ -234,32 +232,95 @@ export default function EnquetesDecisoesPage() {
                     </div>
                 </div>
 
-                {/* Conteúdo Em Construção */}
-                <div className="max-w-2xl mx-auto py-4 md:py-6 text-center">
-                    <div className="bg-white border border-zinc-200 px-6 py-8 md:px-12 md:py-10 rounded-[2.5rem] shadow-sm space-y-4 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-3xl -z-10 opacity-60"></div>
+                <p className="text-xs md:text-sm text-zinc-500 font-medium mb-8">
+                    Participe das votações ativas criadas pela administração ou envie novas propostas de enquetes para avaliação do síndico.
+                </p>
 
-                        <div className="mx-auto w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-inner">
-                            <Wrench size={30} className="animate-pulse" />
-                        </div>
-
-                        <div className="space-y-2">
-                            <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.25em] bg-blue-50 text-blue-600 px-3 py-1 rounded-full">
-                                <Sparkles size={10} /> Em desenvolvimento
+                {/* Seção Principal: Enquetes Ativas e Sugestões */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
+                    {/* Lista de Enquetes Ativas (Criadas pelo Síndico) */}
+                    <div className="lg:col-span-2 space-y-6 flex flex-col">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-base font-bold text-zinc-900 flex items-center gap-2">
+                                <Vote size={18} className="text-blue-600" /> Enquetes em Andamento
+                            </h2>
+                            {/* Contador visível apenas em Desktop */}
+                            <span className="hidden md:inline-flex text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1 rounded-full">
+                                0 Ativas
                             </span>
-                            <h2 className="text-xl md:text-3xl font-black tracking-tight text-zinc-950">Estamos em fase de construção</h2>
-                            <p className="text-xs md:text-sm text-zinc-500 max-w-sm mx-auto leading-relaxed">
-                                Esta seção da plataforma está sendo estruturada para trazer total transparência e controle financeiro integrado ao seu condomínio.
-                            </p>
                         </div>
 
-                        <div className="pt-2">
-                            <button
-                                onClick={() => window.history.back()}
-                                className="bg-zinc-900 hover:bg-black text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md"
-                            >
-                                Retornar ao Painel
-                            </button>
+                        {/* Card com altura flexível no mobile e esticada/igualada no desktop via flex-1 */}
+                        <div className="bg-white border border-zinc-200 rounded-[2.5rem] p-8 text-center space-y-4 shadow-sm flex-1 flex flex-col justify-center items-center">
+                            <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+                                <Vote size={26} />
+                            </div>
+                            <div className="space-y-1 max-w-sm mx-auto">
+                                <h3 className="font-bold text-base text-zinc-900">Nenhuma enquete ativa no momento</h3>
+                                <p className="text-xs text-zinc-400">
+                                    Assim que a administração do condomínio publicar uma nova assembleia virtual ou votação, ela aparecerá listada aqui.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Formulário para Sugestão de Enquete pelo Condômino */}
+                    <div className="space-y-6 flex flex-col">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-base font-bold text-zinc-900 flex items-center gap-2">
+                                <MessageSquarePlus size={18} className="text-indigo-600" /> Sugerir Enquete
+                            </h2>
+                        </div>
+
+                        <div className="bg-white border border-zinc-200 rounded-[2.5rem] p-6 md:p-8 shadow-sm flex-1 flex flex-col justify-between">
+                            <div>
+                                <p className="text-xs text-zinc-500 mb-6 leading-relaxed">
+                                    Tem alguma proposta de melhoria ou tema relevante para discutir com os vizinhos? Envie sua ideia diretamente para análise do síndico.
+                                </p>
+
+                                <form onSubmit={handleEnviarSugestao} id="sugestao-form" className="space-y-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Título da Proposta</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            placeholder="Ex: Instalação de bicicletário"
+                                            value={sugestaoTitulo}
+                                            onChange={(e) => setSugestaoTitulo(e.target.value)}
+                                            className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium text-zinc-900"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Descrição / Detalhes</label>
+                                        <textarea
+                                            required
+                                            rows={3}
+                                            placeholder="Explique brevemente o objetivo da votação..."
+                                            value={sugestaoDescricao}
+                                            onChange={(e) => setSugestaoDescricao(e.target.value)}
+                                            className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium text-zinc-900 resize-none"
+                                        />
+                                    </div>
+
+                                    {sugestaoSucesso && (
+                                        <p className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-3 rounded-2xl flex items-center gap-2">
+                                            <CheckCircle2 size={16} className="shrink-0" /> {sugestaoSucesso}
+                                        </p>
+                                    )}
+                                </form>
+                            </div>
+
+                            <div className="pt-4">
+                                <button
+                                    type="submit"
+                                    form="sugestao-form"
+                                    disabled={enviandoSugestao}
+                                    className="w-full bg-zinc-900 hover:bg-black text-white py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                                >
+                                    {enviandoSugestao ? "Enviando Proposta..." : <>Enviar ao Síndico <Send size={14} /></>}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

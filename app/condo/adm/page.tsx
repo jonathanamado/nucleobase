@@ -41,7 +41,6 @@ const supabase = createClient(
             persistSession: true,
             autoRefreshToken: true,
             detectSessionInUrl: true,
-            storageKey: 'nucleo_condo_auth_session', // Chave dedicada para isolar locks de sessão
         }
     }
 );
@@ -725,10 +724,20 @@ export default function CondoAdm() {
     const handleLogout = async () => {
         setLoading(true);
         try {
+            // Remove a chave dedicada do condomínio
             localStorage.removeItem('nucleo_condo_auth_session');
+            // Remove também os padrões do Supabase para garantir limpeza total
+            localStorage.removeItem('sb-' + process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split('.')[0] + '-auth-token');
             window.dispatchEvent(new Event("storage"));
-        } catch (e) { }
+        } catch (e) {
+            console.error("Erro ao limpar storages:", e);
+        }
         await supabase.auth.signOut();
+        setSession(null);
+        setCondominio(null);
+        setIsApenasMorador(false);
+        setMoradores([]);
+        setLoading(false);
     };
 
     if (loading) {

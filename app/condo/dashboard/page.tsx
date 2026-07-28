@@ -2,7 +2,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import {
     FileText,
     CalendarDays,
@@ -26,19 +26,6 @@ import {
     CheckCircle2,
     Instagram
 } from "lucide-react";
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-        auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true,
-            storageKey: 'nucleo_condo_auth_session', // Chave dedicada para isolar locks de sessão
-        }
-    }
-);
 
 interface UserMemberData {
     role: string;
@@ -232,7 +219,6 @@ export default function CondoDashboard() {
             }
 
             if (data.session) {
-                // Notifica imediatamente o Header global sobre a nova sessão no storage customizado
                 window.dispatchEvent(new Event("storage"));
                 await fetchMemberPermissionsAndSession(data.session);
             }
