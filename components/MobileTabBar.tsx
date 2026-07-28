@@ -1,10 +1,22 @@
-// Substitua o conteúdo completo de app/components/MobileTabBar.tsx por este:
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { Search, User, Home, X, Rocket, Power, Dna, Settings, Key, UserPlus, PlayCircle, KeyRound, Eye, EyeOff, Info, Fingerprint, Building2 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    }
+  }
+);
 
 export function MobileTabBar() {
   const router = useRouter();
