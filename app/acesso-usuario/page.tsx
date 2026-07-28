@@ -171,21 +171,30 @@ export default function AcessoUsuarioPage() {
         return;
       }
 
-      // 2. Confirmação para o usuário de que a conta foi localizada e instruções de login
-      alert(
-        `Conta localizada com sucesso!\n\n` +
-        `Para acessar pela primeira vez, utilize o seu ID (${profileData.slug}) ou o e-mail provisório na tela de login e a senha temporária fornecida pelo síndico.\n\n` +
-        `Após entrar, recomendamos alterar sua senha nas configurações.`
-      );
+      // 2. Tenta realizar login automático com a senha padrão temporária ("Condo123!") utilizada no cadastro do síndico
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: profileData.email_contato,
+        password: "Condo123!"
+      });
 
-      // Preenche o campo de login automaticamente com o slug para facilitar
-      setSlug(profileData.slug);
-      setShowFirstAccessModal(false);
-      setFirstAccessSlug("");
+      if (authError || !authData.session) {
+        alert(
+          `Conta localizada com sucesso!\n\n` +
+          `Para acessar pela primeira vez, utilize o seu ID (${profileData.slug}) na tela de login e a senha temporária fornecida.\n\n` +
+          `Após entrar, recomendamos alterar sua senha nas configurações.`
+        );
+        setSlug(profileData.slug);
+        setShowFirstAccessModal(false);
+        setFirstAccessSlug("");
+        setFirstAccessLoading(false);
+        return;
+      }
+
+      // 3. Se autenticado com sucesso pelo fluxo de primeiro acesso, redireciona para /configuracoes
+      window.location.href = "/configuracoes";
     } catch (err: any) {
       console.error("Erro no primeiro acesso:", err);
       alert(err?.message || "Houve uma falha interna ao processar sua solicitação.");
-    } finally {
       setFirstAccessLoading(false);
     }
   };

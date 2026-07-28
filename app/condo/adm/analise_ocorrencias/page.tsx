@@ -1,6 +1,6 @@
 // app/condo/adm/analise_ocorrencias/page.tsx
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
@@ -28,6 +28,7 @@ const supabase = createClient(
             persistSession: true,
             autoRefreshToken: true,
             detectSessionInUrl: true,
+            storageKey: 'nucleo_condo_auth_session',
         }
     }
 );
@@ -72,6 +73,8 @@ export default function AnaliseOcorrenciasAdmPage() {
 
     const [feedbackMessage, setFeedbackMessage] = useState("");
 
+    const isMountedRef = useRef(true);
+
     // Função auxiliar para retornar apenas o primeiro e o último nome
     const formatarNomePrimeiroEUltimo = (nomeCompleto?: string) => {
         if (!nomeCompleto) return "";
@@ -81,29 +84,69 @@ export default function AnaliseOcorrenciasAdmPage() {
         return `${partes[0]} ${partes[partes.length - 1]}`;
     };
 
-    const verifyAccessAndLoadData = async (currentSession: any) => {
+    const loadOcorrenciasSugestoes = async (condoId: string) => {
+        const { data, error } = await supabase
+            .from("condominio_ocorrencias")
+            .select("*")
+            .eq("condominio_id", condoId)
+            .order("criado_em", { ascending: false });
+
+        if (!error && data && isMountedRef.current) {
+            setItens(data as ItemOcorrenciaSugestao[]);
+        }
+    };
+
+    const verifyAccessAndLoadData = async (currentSession: any, retries = 2) => {
         try {
             if (!currentSession || !currentSession.user) {
-                setSession(null);
-                setMemberData(null);
-                setItens([]);
-                setLoading(false);
+                if (isMountedRef.current) {
+                    setSession(null);
+                    setMemberData(null);
+                    setItens([]);
+                    setLoading(false);
+                }
                 return;
             }
 
-            setSession(currentSession);
+            if (isMountedRef.current) {
+                setSession(currentSession);
+            }
             const userId = currentSession.user.id;
 
-            // Busca segura de vínculos do usuário
-            const { data: membroDataList, error: membroError } = await supabase
-                .from("condominio_membros")
-                .select("condominio_id, role, unidade, acesso_app")
-                .eq("user_id", userId);
+            let membroDataList = null;
+            let membroError = null;
 
-            if (membroError || !membroDataList || membroDataList.length === 0) {
-                setMemberData(null);
-                setItens([]);
-                setLoading(false);
+            for (let i = 0; i <= retries; i++) {
+                const res = await supabase
+                    .from("condominio_membros")
+                    .select("condominio_id, role, unidade, acesso_app, condominio_nome")
+                    .eq("user_id", userId);
+
+                membroDataList = res.data;
+                membroError = res.error;
+
+                if (membroError) {
+                    const errorMsg = membroError.message || JSON.stringify(membroError);
+                    if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
+                        console.error("Erro na consulta Supabase (membros):", errorMsg);
+                    }
+                }
+
+                if (membroDataList && membroDataList.length > 0) {
+                    break;
+                }
+
+                if (i < retries) {
+                    await new Promise((resolve) => setTimeout(resolve, 300));
+                }
+            }
+
+            if (!membroDataList || membroDataList.length === 0) {
+                if (isMountedRef.current) {
+                    setMemberData(null);
+                    setItens([]);
+                    setLoading(false);
+                }
                 return;
             }
 
@@ -113,75 +156,78 @@ export default function AnaliseOcorrenciasAdmPage() {
             );
 
             if (!vinculoAdm) {
-                setMemberData(null);
-                setItens([]);
-                setLoading(false);
+                if (isMountedRef.current) {
+                    setMemberData(null);
+                    setItens([]);
+                    setLoading(false);
+                }
                 return;
             }
 
-            // Busca separadamente os dados do condomínio
-            const { data: condoData, error: condoError } = await supabase
+            // Busca separadamente os dados do condomínio para evitar falhas
+            let nomeCondominioOficial = vinculoAdm.condominio_nome || "Condomínio";
+            const { data: condoData } = await supabase
                 .from("condominios")
                 .select("nome")
                 .eq("id", vinculoAdm.condominio_id)
                 .maybeSingle();
 
-            if (condoError) {
-                console.warn("Aviso ao buscar condomínio:", condoError);
+            if (condoData && condoData.nome) {
+                nomeCondominioOficial = condoData.nome;
             }
 
-            setMemberData({
-                role: vinculoAdm.role,
-                condominio_id: vinculoAdm.condominio_id,
-                unidade: vinculoAdm.unidade,
-                condominio: {
-                    nome: condoData?.nome || "Condomínio"
-                }
-            });
+            if (isMountedRef.current) {
+                setMemberData({
+                    role: vinculoAdm.role,
+                    condominio_id: vinculoAdm.condominio_id,
+                    unidade: vinculoAdm.unidade,
+                    condominio: {
+                        nome: nomeCondominioOficial
+                    }
+                });
+            }
 
             await loadOcorrenciasSugestoes(vinculoAdm.condominio_id);
-        } catch (e) {
-            console.error("Erro ao verificar acesso administrativo:", e);
-            setMemberData(null);
-            setItens([]);
+        } catch (e: any) {
+            const errString = e?.message || JSON.stringify(e);
+            if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
+                console.error("Erro ao verificar acesso administrativo:", errString);
+            }
+            if (isMountedRef.current) {
+                setMemberData(null);
+                setItens([]);
+            }
         } finally {
-            setLoading(false);
-        }
-    };
-
-    const loadOcorrenciasSugestoes = async (condoId: string) => {
-        const { data, error } = await supabase
-            .from("condominio_ocorrencias")
-            .select("*")
-            .eq("condominio_id", condoId)
-            .order("criado_em", { ascending: false });
-
-        if (!error && data) {
-            setItens(data as ItemOcorrenciaSugestao[]);
+            if (isMountedRef.current) {
+                setLoading(false);
+            }
         }
     };
 
     useEffect(() => {
-        let isMounted = true;
+        isMountedRef.current = true;
 
         const initAuth = async () => {
-            const { data: { session: currentSession } } = await supabase.auth.getSession();
-            if (isMounted) {
-                if (currentSession) {
+            try {
+                const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+                if (sessionError && !currentSession) throw sessionError;
+
+                if (isMountedRef.current) {
                     await verifyAccessAndLoadData(currentSession);
-                } else {
-                    setSession(null);
-                    setMemberData(null);
-                    setItens([]);
-                    setLoading(false);
                 }
+            } catch (err: any) {
+                const errString = err?.message || JSON.stringify(err);
+                if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
+                    console.error("Erro ao recuperar sessão inicial:", errString);
+                }
+                if (isMountedRef.current) setLoading(false);
             }
         };
 
         initAuth();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-            if (!isMounted) return;
+            if (!isMountedRef.current) return;
 
             if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
                 if (currentSession) {
@@ -196,7 +242,7 @@ export default function AnaliseOcorrenciasAdmPage() {
         });
 
         return () => {
-            isMounted = false;
+            isMountedRef.current = false;
             subscription.unsubscribe();
         };
     }, []);

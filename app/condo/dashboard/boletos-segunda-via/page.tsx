@@ -23,7 +23,7 @@ const supabase = createClient(
             persistSession: true,
             autoRefreshToken: true,
             detectSessionInUrl: true,
-            storage: typeof window !== "undefined" ? window.localStorage : undefined,
+            storageKey: 'nucleo_condo_auth_session', // Chave isolada para blindagem contra lock broken
         },
     }
 );
@@ -69,8 +69,8 @@ export default function BoletosSegundaViaPage() {
         "Jul/26"
     ];
 
-    // Verificação robusta de sessão padronizada com o modelo de moradores
-    const loadDadosCondominio = async (currentSession: any) => {
+    // Verificação robusta de sessão padronizada com o modelo de moradores e retentativa contra race conditions
+    const loadDadosCondominio = async (currentSession: any, retries = 2) => {
         try {
             if (!currentSession || !currentSession.user) {
                 if (isMountedRef.current) {
@@ -86,22 +86,38 @@ export default function BoletosSegundaViaPage() {
             }
             const userId = currentSession.user.id;
 
-            const { data, error } = await supabase
-                .from("condominio_membros")
-                .select(`
-                    role,
-                    acesso_app,
-                    condominio:condominios ( nome )
-                `)
-                .eq("user_id", userId)
-                .order("role", { ascending: false })
-                .order("criado_em", { ascending: false })
-                .limit(1);
+            let data = null;
+            let error = null;
 
-            if (error) {
-                const errorMsg = error.message || JSON.stringify(error);
-                if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
-                    console.error("Erro na consulta Supabase:", errorMsg);
+            for (let i = 0; i <= retries; i++) {
+                const res = await supabase
+                    .from("condominio_membros")
+                    .select(`
+                        role,
+                        acesso_app,
+                        condominio:condominios ( nome )
+                    `)
+                    .eq("user_id", userId)
+                    .order("role", { ascending: false })
+                    .order("criado_em", { ascending: false })
+                    .limit(1);
+
+                data = res.data;
+                error = res.error;
+
+                if (error) {
+                    const errorMsg = error.message || JSON.stringify(error);
+                    if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
+                        console.error("Erro na consulta Supabase:", errorMsg);
+                    }
+                }
+
+                if (data && data.length > 0) {
+                    break;
+                }
+
+                if (i < retries) {
+                    await new Promise((resolve) => setTimeout(resolve, 300));
                 }
             }
 

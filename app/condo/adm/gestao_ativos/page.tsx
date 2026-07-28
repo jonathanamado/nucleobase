@@ -1,6 +1,6 @@
 // app/condo/adm/gestao_ativos/page.tsx
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
@@ -25,6 +25,7 @@ const supabase = createClient(
             persistSession: true,
             autoRefreshToken: true,
             detectSessionInUrl: true,
+            storageKey: 'nucleo_condo_auth_session',
         }
     }
 );
@@ -35,7 +36,7 @@ interface AtivoItem {
     nome: string;
     categoria: string;
     quantidade: number;
-    valor_aquisicao: number;
+    valor_aquisicao: number | string;
     data_aquisicao: string;
 }
 
@@ -61,65 +62,7 @@ export default function GestaoAtivosPage() {
     const [msgSucesso, setMsgSucesso] = useState("");
     const [msgErro, setMsgErro] = useState("");
 
-    const verifyAndLoad = async () => {
-        try {
-            setLoading(true);
-            const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-
-            if (sessionError || !currentSession) {
-                setSession(null);
-                setCondominio(null);
-                setAtivos([]);
-                setLoading(false);
-                return;
-            }
-
-            setSession(currentSession);
-            const userId = currentSession.user.id;
-
-            // Busca segura dos vínculos de membro do usuário
-            const { data: membroDataList, error: membroError } = await supabase
-                .from("condominio_membros")
-                .select("condominio_id, role, unidade")
-                .eq("user_id", userId);
-
-            if (membroError || !membroDataList || membroDataList.length === 0) {
-                setCondominio(null);
-                setLoading(false);
-                return;
-            }
-
-            // Valida se o usuário possui permissão administrativa (síndico, unidade 106 ou Adm)
-            const vinculoAdm = membroDataList.find(
-                (m: any) => m.role === 'sindico' || m.unidade === '106' || m.unidade.toLowerCase() === 'adm'
-            );
-
-            if (!vinculoAdm) {
-                setCondominio(null);
-                setLoading(false);
-                return;
-            }
-
-            // Busca separadamente os dados do condomínio para evitar falhas de JOIN implícito
-            const { data: condoData, error: condoError } = await supabase
-                .from("condominios")
-                .select("id, nome")
-                .eq("id", vinculoAdm.condominio_id)
-                .maybeSingle();
-
-            if (condoError || !condoData) {
-                setCondominio(null);
-            } else {
-                setCondominio(condoData);
-                await loadAtivos(condoData.id);
-            }
-        } catch (e: any) {
-            console.warn("Exceção tratada em verifyAndLoad:", e?.message || e);
-            setCondominio(null);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const isMountedRef = useRef(true);
 
     const loadAtivos = async (condoId: string) => {
         const { data, error } = await supabase
@@ -128,13 +71,151 @@ export default function GestaoAtivosPage() {
             .eq("condominio_id", condoId)
             .order("data_aquisicao", { ascending: false });
 
-        if (!error && data) {
+        if (!error && data && isMountedRef.current) {
             setAtivos(data as AtivoItem[]);
         }
     };
 
+    const verifySindicoAndLoadData = async (currentSession: any, retries = 2) => {
+        try {
+            if (!currentSession || !currentSession.user) {
+                if (isMountedRef.current) {
+                    setSession(null);
+                    setCondominio(null);
+                    setAtivos([]);
+                    setLoading(false);
+                }
+                return;
+            }
+
+            if (isMountedRef.current) {
+                setSession(currentSession);
+            }
+            const userId = currentSession.user.id;
+
+            let membroDataList = null;
+            let membroError = null;
+
+            for (let i = 0; i <= retries; i++) {
+                const res = await supabase
+                    .from("condominio_membros")
+                    .select("condominio_id, role, unidade, acesso_app, condominio_nome")
+                    .eq("user_id", userId);
+
+                membroDataList = res.data;
+                membroError = res.error;
+
+                if (membroError) {
+                    const errorMsg = membroError.message || JSON.stringify(membroError);
+                    if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
+                        console.error("Erro na consulta Supabase (membros):", errorMsg);
+                    }
+                }
+
+                if (membroDataList && membroDataList.length > 0) {
+                    break;
+                }
+
+                if (i < retries) {
+                    await new Promise((resolve) => setTimeout(resolve, 300));
+                }
+            }
+
+            if (!membroDataList || membroDataList.length === 0) {
+                if (isMountedRef.current) {
+                    setCondominio(null);
+                    setLoading(false);
+                }
+                return;
+            }
+
+            const vinculoAdm = membroDataList.find(
+                (m: any) => m.role === 'sindico'
+            );
+
+            if (!vinculoAdm) {
+                if (isMountedRef.current) {
+                    setCondominio(null);
+                    setLoading(false);
+                }
+                return;
+            }
+
+            let nomeCondominioOficial = vinculoAdm.condominio_nome || "Condomínio";
+            const { data: condoDataReal } = await supabase
+                .from("condominios")
+                .select("nome")
+                .eq("id", vinculoAdm.condominio_id)
+                .maybeSingle();
+
+            if (condoDataReal && condoDataReal.nome) {
+                nomeCondominioOficial = condoDataReal.nome;
+            }
+
+            if (isMountedRef.current) {
+                setCondominio({
+                    id: vinculoAdm.condominio_id,
+                    nome: nomeCondominioOficial
+                });
+            }
+
+            await loadAtivos(vinculoAdm.condominio_id);
+        } catch (e: any) {
+            const errString = e?.message || JSON.stringify(e);
+            if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
+                console.warn("Exceção tratada em verifySindicoAndLoadData:", errString);
+            }
+            if (isMountedRef.current) {
+                setCondominio(null);
+            }
+        } finally {
+            if (isMountedRef.current) {
+                setLoading(false);
+            }
+        }
+    };
+
     useEffect(() => {
-        verifyAndLoad();
+        isMountedRef.current = true;
+
+        const initAuth = async () => {
+            try {
+                const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+                if (sessionError && !currentSession) throw sessionError;
+
+                if (isMountedRef.current) {
+                    await verifySindicoAndLoadData(currentSession);
+                }
+            } catch (err: any) {
+                const errString = err?.message || JSON.stringify(err);
+                if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
+                    console.error("Erro ao recuperar sessão inicial do síndico:", errString);
+                }
+                if (isMountedRef.current) setLoading(false);
+            }
+        };
+
+        initAuth();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+            if (!isMountedRef.current) return;
+
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+                if (currentSession) {
+                    await verifySindicoAndLoadData(currentSession);
+                }
+            } else if (event === 'SIGNED_OUT') {
+                setSession(null);
+                setCondominio(null);
+                setAtivos([]);
+                setLoading(false);
+            }
+        });
+
+        return () => {
+            isMountedRef.current = false;
+            subscription.unsubscribe();
+        };
     }, []);
 
     const abrirNovoCadastro = () => {
@@ -154,7 +235,7 @@ export default function GestaoAtivosPage() {
         setNomeInput(item.nome);
         setCategoriaInput(item.categoria);
         setQuantidadeInput(item.quantidade.toString());
-        setValorInput(item.valor_aquisicao.toString());
+        setValorInput(item.valor_aquisicao ? item.valor_aquisicao.toString() : "");
         setDataAquisicaoInput(item.data_aquisicao ? item.data_aquisicao.split('T')[0] : new Date().toISOString().split('T')[0]);
         setMsgSucesso("");
         setMsgErro("");
@@ -170,12 +251,16 @@ export default function GestaoAtivosPage() {
         setMsgSucesso("");
 
         try {
+            // Normaliza o valor monetário substituindo vírgula por ponto para evitar erros de parse
+            const valorTratado = valorInput.replace(',', '.');
+            const valorNumerico = parseFloat(valorTratado);
+
             const payload = {
                 condominio_id: condominio.id,
                 nome: nomeInput.trim(),
                 categoria: categoriaInput.trim(),
-                quantidade: parseInt(quantidadeInput) || 1,
-                valor_aquisicao: parseFloat(valorInput) || 0,
+                quantidade: parseInt(quantidadeInput, 10) || 1,
+                valor_aquisicao: isNaN(valorNumerico) ? 0 : valorNumerico,
                 data_aquisicao: dataAquisicaoInput
             };
 
@@ -407,8 +492,7 @@ export default function GestaoAtivosPage() {
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Valor Unitário (R$)</label>
                                     <input
-                                        type="number"
-                                        step="0.01"
+                                        type="text"
                                         placeholder="0.00"
                                         required
                                         value={valorInput}

@@ -1,15 +1,15 @@
 // app/minha-conta/page.tsx
 "use client";
 
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import {
   Save, MapPin, UserCircle, Camera, GraduationCap, Briefcase,
   Baby, CalendarDays, Activity, MousePointerClick,
-  KeyRound, Instagram, X, Eye, EyeOff,
+  KeyRound, Instagram, X,
   Target, Share2, Wallet, Zap, Rocket, LayoutDashboard, Info,
-  ShieldCheck, PieChart, Award, ChartPie, Building2, FileCheck2
+  PieChart, Award, ChartPie, Building2, FileCheck2, CheckCircle2
 } from "lucide-react";
 
 const supabase = createClient(
@@ -38,7 +38,7 @@ export default function MinhaContaPage() {
   const [objetivoPlataforma, setObjetivoPlataforma] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
-  // --- NOVO ESTADO: ACESSO EMPRESARIAL (CONDOMÍNIO) ---
+  // --- ACESSO EMPRESARIAL (CONDOMÍNIO) ---
   const [condoId, setCondoId] = useState<string | null>(null);
   const [condoNome, setCondoNome] = useState("");
   const [condoCnpj, setCondoCnpj] = useState("");
@@ -48,6 +48,7 @@ export default function MinhaContaPage() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [showPassModal, setShowPassModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -132,7 +133,6 @@ export default function MinhaContaPage() {
     diasCadastro: ""
   });
 
-  // Função para calcular dias de cadastro
   const calcularDiasCadastro = (dataCriacao: string) => {
     const inicio = new Date(dataCriacao);
     const hoje = new Date();
@@ -251,7 +251,6 @@ export default function MinhaContaPage() {
           setAvatarUrl(profile.avatar_url || null);
         }
 
-        // --- BUSCA INFORMAÇÕES DE CONDOMÍNIO DO USUÁRIO (SEM FILTRAR SÓ SÍNDICO) ---
         const { data: membro } = await supabase
           .from("condominio_membros")
           .select("unidade, condominio:condominios(id, nome, cnpj)")
@@ -279,7 +278,9 @@ export default function MinhaContaPage() {
 
   const handleUpdate = async () => {
     setUpdating(true);
+    setSuccessMessage("");
     const { data: { user } } = await supabase.auth.getUser();
+
     if (user) {
       // 1. Atualiza dados padrão do perfil
       const { error: profileError } = await supabase.from("profiles").upsert({
@@ -296,16 +297,17 @@ export default function MinhaContaPage() {
         return;
       }
 
-      // 2. Lógica de atualização/cadastro empresarial do condomínio
+      // 2. Lógica de atualização/cadastro empresarial do condomínio com retorno em "condominio_nome"
       if (condoNome.trim()) {
         try {
           let currentCondoId = condoId;
+          const nomeEdificioLimpo = condoNome.trim();
 
           if (!currentCondoId) {
-            // Se o usuário não tem condomínio vinculado ainda, cria um novo
+            // Cria um novo condomínio
             const { data: novoCondo, error: condoInsertError } = await supabase
               .from("condominios")
-              .insert([{ nome: condoNome.trim(), cnpj: condoCnpj.trim() }])
+              .insert([{ nome: nomeEdificioLimpo, cnpj: condoCnpj.trim() }])
               .select("id")
               .single();
 
@@ -315,7 +317,7 @@ export default function MinhaContaPage() {
               currentCondoId = novoCondo.id;
               setCondoId(novoCondo.id);
 
-              // Cria o vínculo como síndico na tabela condominio_membros
+              // Cria o vínculo como síndico na tabela condominio_membros preenchendo o condominio_nome
               const { error: membroInsertError } = await supabase
                 .from("condominio_membros")
                 .insert([
@@ -323,25 +325,29 @@ export default function MinhaContaPage() {
                     condominio_id: novoCondo.id,
                     user_id: user.id,
                     role: "sindico",
-                    unidade: unidadeSindico.trim() || "Administração"
+                    unidade: unidadeSindico.trim() || "Administração",
+                    condominio_nome: nomeEdificioLimpo
                   }
                 ]);
 
               if (membroInsertError) throw membroInsertError;
             }
           } else {
-            // Se já possui condomínio vinculado, apenas atualiza as informações do mesmo
+            // Atualiza os dados do condomínio existente
             const { error: condoUpdateError } = await supabase
               .from("condominios")
-              .update({ nome: condoNome.trim(), cnpj: condoCnpj.trim() })
+              .update({ nome: nomeEdificioLimpo, cnpj: condoCnpj.trim() })
               .eq("id", currentCondoId);
 
             if (condoUpdateError) throw condoUpdateError;
 
-            // Atualiza também a unidade correspondente do usuário
+            // Atualiza a unidade e o campo condominio_nome do vínculo do membro
             const { error: membroUpdateError } = await supabase
               .from("condominio_membros")
-              .update({ unidade: unidadeSindico.trim() || "Administração" })
+              .update({
+                unidade: unidadeSindico.trim() || "Administração",
+                condominio_nome: nomeEdificioLimpo
+              })
               .eq("user_id", user.id)
               .eq("condominio_id", currentCondoId);
 
@@ -354,8 +360,16 @@ export default function MinhaContaPage() {
         }
       }
 
-      alert("Dados salvos com sucesso!");
       setIsDirty(false);
+      setSuccessMessage("Dados salvos com sucesso!");
+
+      // Reinicia a tela para o topo suavemente
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Oculta a mensagem de sucesso após 4 segundos
+      setTimeout(() => {
+        setSuccessMessage("");
+      }, 4000);
     }
     setUpdating(false);
   };
@@ -394,6 +408,14 @@ export default function MinhaContaPage() {
 
   return (
     <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
+
+      {/* MENSAGEM DE SUCESSO AO SALVAR */}
+      {successMessage && (
+        <div className="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-800 px-6 py-4 rounded-2xl flex items-center gap-3 shadow-sm animate-in fade-in duration-300">
+          <CheckCircle2 size={20} className="text-emerald-600 shrink-0" />
+          <span className="text-xs font-bold uppercase tracking-wide">{successMessage}</span>
+        </div>
+      )}
 
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
@@ -768,7 +790,7 @@ export default function MinhaContaPage() {
                 placeholder="00.000.000/0000-00"
                 value={condoCnpj}
                 className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none transition-all focus:border-blue-300"
-                onChange={(e) => setCondoCnpj(e.target.value)}
+                onChange={(e) => handleChange(condoCnpj, e.target.value)}
               />
             </div>
             <div className="space-y-3">
@@ -795,7 +817,7 @@ export default function MinhaContaPage() {
           ref={saveButtonRef}
           onClick={handleUpdate}
           disabled={updating}
-          className="flex items-center justify-center gap-3 px-10 py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all"
+          className="flex items-center justify-center gap-3 px-10 py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all cursor-pointer"
         >
           <Save size={16} /> {updating ? "Sincronizando..." : "Salvar Alterações"}
         </button>

@@ -96,6 +96,7 @@ export default function CadastroPage() {
 
     setLoading(true);
     const slugFinal = formatarSlug(slugDesejado);
+    const nomeFinal = nome.trim() || "Anônimo";
 
     const { data: slugExistente } = await supabase
       .from('profiles')
@@ -114,7 +115,7 @@ export default function CadastroPage() {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: emailParaAuth,
       password,
-      options: { data: { full_name: nome || "Anônimo" } }
+      options: { data: { full_name: nomeFinal } }
     });
 
     if (authError) {
@@ -129,21 +130,49 @@ export default function CadastroPage() {
     }
 
     if (authData.user) {
-      await supabase.from('profiles').insert([
+      // 1. Inserção ou atualização na tabela profiles com o nome completo preenchido
+      await supabase.from('profiles').upsert([
         {
           id: authData.user.id,
           email: emailParaAuth,
           email_contato: email.trim() || null,
-          nome_completo: nome || "Anônimo",
+          nome_completo: nomeFinal,
           plan_type: 'free',
           slug: slugFinal
         }
       ]);
 
-      await enviarNotificacaoAdm(nome || "Anônimo", emailParaAuth);
+      // 2. Inserção na tabela opcional/legada 'usuarios' caso exista na estrutura para garantir o 'nome_completo'
+      try {
+        await supabase.from('usuarios').upsert([
+          {
+            id: authData.user.id,
+            email: emailParaAuth,
+            nome_completo: nomeFinal
+          }
+        ]);
+      } catch (err) {
+        console.warn("Aviso na tabela usuarios:", err);
+      }
+
+      // 3. Inserção em condominio_membros garantindo o preenchimento de condominio_nome e parâmetros essenciais
+      try {
+        await supabase.from('condominio_membros').insert([
+          {
+            user_id: authData.user.id,
+            role: 'morador',
+            acesso_app: false,
+            condominio_nome: nomeFinal // Atribui corretamente o nome preenchido no cadastro
+          }
+        ]);
+      } catch (err) {
+        console.warn("Aviso na inserção de condominio_membros:", err);
+      }
+
+      await enviarNotificacaoAdm(nomeFinal, emailParaAuth);
 
       if (email.trim()) {
-        await enviarOnboardingUsuario(nome, email.trim());
+        await enviarOnboardingUsuario(nomeFinal, email.trim());
       }
 
       const indicadorId = localStorage.getItem("nucleobase_referral_id");
@@ -183,7 +212,7 @@ export default function CadastroPage() {
                   {[
                     { icon: <Clock size={20} className="text-blue-400" />, text: "90 dias: Acesso irrestrito a todas as funções e suporte humanizado." },
                     { icon: <CheckCircle2 size={20} className="text-emerald-500" />, text: "Pós-90 dias: Sua conta continua ativa. Consulta e métricas seguem livres." },
-                    { icon: <ShieldCheck size={20} className="text-blue-500" />, text: "Segurança de dados e privacidade, garantindo personalizaçôes exclusivamente para o seu perfil." }
+                    { icon: <ShieldCheck size={20} className="text-blue-500" />, text: "Segurança de dados e privacidade, garantindo personalizações exclusivamente para o seu perfil." }
                   ].map((item, i) => (
                     <div key={i} className="flex items-start gap-4 text-white/80 font-medium text-sm">
                       <div className="p-2 bg-white/5 rounded-xl shrink-0">{item.icon}</div>

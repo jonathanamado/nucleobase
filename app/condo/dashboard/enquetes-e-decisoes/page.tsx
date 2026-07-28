@@ -1,6 +1,6 @@
 // app/condo/dashboard/enquetes-e-decisoes/page.tsx
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import {
@@ -15,7 +15,15 @@ import {
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+        auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true,
+            storageKey: 'nucleo_condo_auth_session', // Chave isolada para blindagem contra lock broken
+        },
+    }
 );
 
 interface UserMemberData {
@@ -30,56 +38,112 @@ export default function EnquetesDecisoesPage() {
     const [loading, setLoading] = useState(true);
     const [memberData, setMemberData] = useState<UserMemberData | null>(null);
 
-    const verifyAccess = async () => {
+    const isMountedRef = useRef(true);
+
+    const verifyAccess = async (currentSession: any, retries = 2) => {
         try {
-            setLoading(true);
-
-            const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-
-            if (sessionError || !currentSession) {
-                setSession(null);
-                setMemberData(null);
-                setLoading(false);
+            if (!currentSession || !currentSession.user) {
+                if (isMountedRef.current) {
+                    setSession(null);
+                    setMemberData(null);
+                    setLoading(false);
+                }
                 return;
             }
 
-            setSession(currentSession);
+            if (isMountedRef.current) {
+                setSession(currentSession);
+            }
             const userId = currentSession.user.id;
 
-            const { data, error } = await supabase
-                .from("condominio_membros")
-                .select(`
-                    role,
-                    acesso_app,
-                    condominio:condominios ( nome )
-                `)
-                .eq("user_id", userId)
-                .eq("acesso_app", true)
-                .order("role", { ascending: false })
-                .order("criado_em", { ascending: false })
-                .limit(1);
+            let data = null;
+            let error = null;
 
-            if (error) throw error;
+            for (let i = 0; i <= retries; i++) {
+                const res = await supabase
+                    .from("condominio_membros")
+                    .select(`
+                        role,
+                        acesso_app,
+                        condominio:condominios ( nome )
+                    `)
+                    .eq("user_id", userId)
+                    .eq("acesso_app", true)
+                    .order("role", { ascending: false })
+                    .order("criado_em", { ascending: false })
+                    .limit(1);
 
-            if (data && data.length > 0) {
-                setMemberData(data[0] as unknown as UserMemberData);
-            } else {
+                data = res.data;
+                error = res.error;
+
+                if (error) {
+                    const errorMsg = error.message || JSON.stringify(error);
+                    if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
+                        console.error("Erro na consulta Supabase:", errorMsg);
+                    }
+                }
+
+                if (data && data.length > 0) {
+                    break;
+                }
+
+                if (i < retries) {
+                    await new Promise((resolve) => setTimeout(resolve, 300));
+                }
+            }
+
+            if (isMountedRef.current) {
+                if (data && data.length > 0) {
+                    setMemberData(data[0] as unknown as UserMemberData);
+                } else {
+                    setMemberData(null);
+                }
+            }
+        } catch (e: any) {
+            const errString = e?.message || JSON.stringify(e);
+            if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
+                console.error("Erro ao verificar acesso:", errString);
+            }
+            if (isMountedRef.current) {
                 setMemberData(null);
             }
-        } catch (e) {
-            console.error("Erro ao verificar acesso:", e);
-            setMemberData(null);
         } finally {
-            setLoading(false);
+            if (isMountedRef.current) {
+                setLoading(false);
+            }
         }
     };
 
     useEffect(() => {
-        verifyAccess();
+        isMountedRef.current = true;
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                await verifyAccess();
+        const initAuth = async () => {
+            try {
+                const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+
+                if (sessionError && !currentSession) throw sessionError;
+
+                if (isMountedRef.current) {
+                    await verifyAccess(currentSession);
+                }
+            } catch (err: any) {
+                const errString = err?.message || JSON.stringify(err);
+                if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
+                    console.error("Erro ao recuperar sessão inicial:", errString);
+                }
+                if (isMountedRef.current) setLoading(false);
+            }
+        };
+
+        initAuth();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+            if (!isMountedRef.current) return;
+
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+                if (currentSession) {
+                    await verifyAccess(currentSession);
+                }
             } else if (event === 'SIGNED_OUT') {
                 setSession(null);
                 setMemberData(null);
@@ -87,7 +151,10 @@ export default function EnquetesDecisoesPage() {
             }
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            isMountedRef.current = false;
+            subscription.unsubscribe();
+        };
     }, []);
 
     if (loading) {
@@ -216,7 +283,7 @@ export default function EnquetesDecisoesPage() {
                         <div className="relative">
                             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
 
-                            <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[1.8rem] md:rounded-[2rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+                            <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[1.8rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
                                 <Instagram className="w-8 h-8 md:w-10 md:h-10" strokeWidth={1.5} />
                             </div>
                         </div>

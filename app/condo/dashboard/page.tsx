@@ -1,6 +1,6 @@
 // app/condo/dashboard/page.tsx
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import {
@@ -14,13 +14,17 @@ import {
     Loader2,
     Users,
     MessageSquarePlus,
-    ArrowLeft,
-    Instagram,
     Building2,
     LifeBuoy,
     Mail,
     X,
-    ArrowRight
+    ArrowRight,
+    AtSign,
+    Key,
+    KeyRound,
+    UserCheck,
+    CheckCircle2,
+    Instagram
 } from "lucide-react";
 
 const supabase = createClient(
@@ -31,6 +35,7 @@ const supabase = createClient(
             persistSession: true,
             autoRefreshToken: true,
             detectSessionInUrl: true,
+            storageKey: 'nucleo_condo_auth_session', // Chave dedicada para isolar locks de sessão
         }
     }
 );
@@ -40,7 +45,7 @@ interface UserMemberData {
     unidade: string;
     condominio: {
         nome: string;
-    };
+    } | null;
 }
 
 export default function CondoDashboard() {
@@ -58,67 +63,121 @@ export default function CondoDashboard() {
     const [resetEmail, setResetEmail] = useState("");
     const [resetLoading, setResetLoading] = useState(false);
 
+    // Modal de Primeiro Acesso com ID/Slug
+    const [showFirstAccessModal, setShowFirstAccessModal] = useState(false);
+    const [firstAccessSlug, setFirstAccessSlug] = useState("");
+    const [firstAccessLoading, setFirstAccessLoading] = useState(false);
+
     const [memberData, setMemberData] = useState<UserMemberData | null>(null);
 
-    // Consulta unificada e flexível: Prioriza síndico mas aceita o vínculo ativo sem travar papéis
-    const fetchMemberPermissionsAndSession = async () => {
-        try {
-            const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+    const isMountedRef = useRef(true);
 
-            if (sessionError || !currentSession) {
-                setSession(null);
-                setMemberData(null);
-                setLoading(false);
+    // Consulta unificada com retentativa integrada para blindagem contra race conditions
+    const fetchMemberPermissionsAndSession = async (currentSession: any, retries = 2) => {
+        try {
+            if (!currentSession || !currentSession.user) {
+                if (isMountedRef.current) {
+                    setSession(null);
+                    setMemberData(null);
+                    setLoading(false);
+                }
                 return;
             }
 
-            setSession(currentSession);
+            if (isMountedRef.current) {
+                setSession(currentSession);
+            }
             const userId = currentSession.user.id;
 
-            const { data, error } = await supabase
-                .from("condominio_membros")
-                .select(`
-                    role,
-                    unidade,
-                    acesso_app,
-                    condominio:condominios ( nome )
-                `)
-                .eq("user_id", userId)
-                .order("role", { ascending: false }) // 'sindico' vem antes de 'morador'
-                .order("criado_em", { ascending: false })
-                .limit(1);
+            let data = null;
+            let error = null;
 
-            if (error) throw error;
+            // Loop de retentativas rápidas caso o banco demore milissegundos para responder
+            for (let i = 0; i <= retries; i++) {
+                const res = await supabase
+                    .from("condominio_membros")
+                    .select(`
+                        role,
+                        unidade,
+                        acesso_app,
+                        condominio:condominios ( nome )
+                    `)
+                    .eq("user_id", userId)
+                    .eq("acesso_app", true)
+                    .order("role", { ascending: false }) // 'sindico' vem antes de 'morador'
+                    .order("criado_em", { ascending: false })
+                    .limit(1);
 
-            if (data && data.length > 0) {
-                setMemberData(data[0] as unknown as UserMemberData);
-            } else {
+                data = res.data;
+                error = res.error;
+
+                if (error) {
+                    const errorMsg = error.message || JSON.stringify(error);
+                    if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
+                        console.error("Erro na consulta Supabase:", errorMsg);
+                    }
+                }
+
+                if (data && data.length > 0) {
+                    break;
+                }
+
+                if (i < retries) {
+                    await new Promise((resolve) => setTimeout(resolve, 300));
+                }
+            }
+
+            if (isMountedRef.current) {
+                if (data && data.length > 0) {
+                    setMemberData(data[0] as unknown as UserMemberData);
+                } else {
+                    setMemberData(null);
+                }
+            }
+        } catch (e: any) {
+            const errString = e?.message || JSON.stringify(e);
+            if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
+                console.error("Erro ao carregar permissões condominiais:", errString);
+            }
+            if (isMountedRef.current) {
                 setMemberData(null);
             }
-        } catch (e) {
-            console.error("Erro ao carregar permissões condominiais:", e);
-            setMemberData(null);
         } finally {
-            setLoading(false);
+            if (isMountedRef.current) {
+                setLoading(false);
+            }
         }
     };
 
     useEffect(() => {
-        let isMounted = true;
+        isMountedRef.current = true;
 
         const initAuth = async () => {
-            if (isMounted) await fetchMemberPermissionsAndSession();
+            try {
+                const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+
+                if (sessionError && !currentSession) throw sessionError;
+
+                if (isMountedRef.current) {
+                    await fetchMemberPermissionsAndSession(currentSession);
+                }
+            } catch (err: any) {
+                const errString = err?.message || JSON.stringify(err);
+                if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
+                    console.error("Erro ao recuperar sessão inicial:", errString);
+                }
+                if (isMountedRef.current) setLoading(false);
+            }
         };
 
         initAuth();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-            if (!isMounted) return;
+            if (!isMountedRef.current) return;
 
             if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
                 if (currentSession) {
-                    setSession(currentSession);
-                    await fetchMemberPermissionsAndSession();
+                    await fetchMemberPermissionsAndSession(currentSession);
                 }
             } else if (event === 'SIGNED_OUT') {
                 setSession(null);
@@ -128,7 +187,7 @@ export default function CondoDashboard() {
         });
 
         return () => {
-            isMounted = false;
+            isMountedRef.current = false;
             subscription.unsubscribe();
         };
     }, []);
@@ -138,27 +197,50 @@ export default function CondoDashboard() {
         setAuthLoading(true);
         setLoginError("");
 
-        let emailParaAuth = emailOrSlug.trim();
-        if (!emailParaAuth.includes("@")) {
-            emailParaAuth = `${emailParaAuth.toLowerCase()}@nucleobase.app`;
-        }
+        const inputAcesso = emailOrSlug.trim().toLowerCase();
+        const isEmail = inputAcesso.includes("@");
 
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email: emailParaAuth,
-            password
-        });
+        try {
+            let emailParaLogin = "";
+            if (isEmail) {
+                emailParaLogin = inputAcesso;
+            } else {
+                const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('email_contato')
+                    .eq('slug', inputAcesso)
+                    .maybeSingle();
 
-        if (error) {
-            setLoginError("Credenciais inválidas. Verifique seu ID de usuário/e-mail e senha.");
+                if (profileError) throw profileError;
+                if (!profile || !profile.email_contato) {
+                    setLoginError("ID de usuário ou e-mail não foi localizado.");
+                    setAuthLoading(false);
+                    return;
+                }
+                emailParaLogin = profile.email_contato;
+            }
+
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: emailParaLogin,
+                password
+            });
+
+            if (error || !data.session) {
+                setLoginError("Credenciais inválidas. Verifique seu ID de usuário/e-mail e senha.");
+                setAuthLoading(false);
+                return;
+            }
+
+            if (data.session) {
+                // Notifica imediatamente o Header global sobre a nova sessão no storage customizado
+                window.dispatchEvent(new Event("storage"));
+                await fetchMemberPermissionsAndSession(data.session);
+            }
+        } catch (err) {
+            setLoginError("Ocorreu um erro inesperado ao realizar login.");
+        } finally {
             setAuthLoading(false);
-            return;
         }
-
-        if (data.session) {
-            setSession(data.session);
-            await fetchMemberPermissionsAndSession();
-        }
-        setAuthLoading(false);
     };
 
     const handleForgotPassword = async (e: React.FormEvent) => {
@@ -176,8 +258,50 @@ export default function CondoDashboard() {
         setResetLoading(false);
     };
 
+    const handleFirstAccessSetup = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setFirstAccessLoading(true);
+
+        const inputSlug = firstAccessSlug.trim().toLowerCase();
+
+        try {
+            const { data: profileData, error: profileQueryError } = await supabase
+                .from('profiles')
+                .select('id, slug, email_contato')
+                .ilike('slug', inputSlug)
+                .maybeSingle();
+
+            if (profileQueryError) throw profileQueryError;
+
+            if (!profileData || !profileData.id) {
+                alert("ID de Usuário (slug) não localizado no sistema. Verifique a chave informada.");
+                setFirstAccessLoading(false);
+                return;
+            }
+
+            alert(
+                `Conta localizada com sucesso!\n\n` +
+                `Para acessar pela primeira vez, utilize o seu ID (${profileData.slug}) na tela de login e a senha temporária fornecida pelo síndico.\n\n` +
+                `Após entrar, recomendamos alterar sua senha nas configurações.`
+            );
+
+            setEmailOrSlug(profileData.slug);
+            setShowFirstAccessModal(false);
+            setFirstAccessSlug("");
+        } catch (err: any) {
+            console.error("Erro no primeiro acesso:", err);
+            alert(err?.message || "Houve uma falha interna ao processar sua solicitação.");
+        } finally {
+            setFirstAccessLoading(false);
+        }
+    };
+
     const handleLogout = async () => {
         setLoading(true);
+        try {
+            localStorage.removeItem('nucleo_condo_auth_session');
+            window.dispatchEvent(new Event("storage"));
+        } catch (e) { }
         await supabase.auth.signOut();
     };
 
@@ -203,42 +327,55 @@ export default function CondoDashboard() {
                     <form onSubmit={handleLogin} className="space-y-4">
                         <div className="space-y-1">
                             <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">E-mail ou ID de Usuário</label>
-                            <input
-                                type="text"
-                                placeholder="Exemplo: joao-silva"
-                                required
-                                className="w-full px-5 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-sm font-medium"
-                                onChange={(e) => setEmailOrSlug(e.target.value)}
-                            />
+                            <div className="relative group">
+                                <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                                <input
+                                    type="text"
+                                    placeholder="Exemplo: joao-silva"
+                                    required
+                                    className="w-full pl-11 pr-5 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-sm font-medium"
+                                    value={emailOrSlug}
+                                    onChange={(e) => setEmailOrSlug(e.target.value)}
+                                />
+                            </div>
                         </div>
 
                         <div className="space-y-1">
                             <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Senha</label>
-                            <div className="relative">
+                            <div className="relative group">
+                                <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-blue-500 transition-colors" size={16} />
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     placeholder="••••••••"
                                     required
-                                    className="w-full px-5 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-sm font-medium pr-12"
+                                    className="w-full pl-11 pr-12 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-sm font-medium"
+                                    value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 p-1 hover:text-zinc-600"
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 p-1 hover:text-zinc-600 cursor-pointer"
                                 >
                                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                 </button>
                             </div>
                         </div>
 
-                        <div className="flex justify-end pr-1">
+                        <div className="flex flex-col items-end gap-1.5 mt-1 pr-1">
                             <button
                                 type="button"
                                 onClick={() => setShowForgotModal(true)}
-                                className="text-[10px] text-zinc-400 font-bold hover:text-blue-600 transition-colors"
+                                className="text-[10px] text-zinc-400 font-bold hover:text-blue-600 transition-colors cursor-pointer"
                             >
                                 Esqueceu a senha?
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowFirstAccessModal(true)}
+                                className="text-[10px] text-blue-600 font-black hover:text-blue-700 transition-colors cursor-pointer"
+                            >
+                                Primeiro acesso com ID de usuário?
                             </button>
                         </div>
 
@@ -251,7 +388,7 @@ export default function CondoDashboard() {
                         <button
                             type="submit"
                             disabled={authLoading}
-                            className="w-full bg-zinc-900 text-white py-4 rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2"
+                            className="w-full bg-zinc-900 text-white py-4 rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 cursor-pointer"
                         >
                             {authLoading ? "Acessando..." : "Entrar no Painel"}
                         </button>
@@ -264,7 +401,7 @@ export default function CondoDashboard() {
                         <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
                             <button
                                 onClick={() => setShowForgotModal(false)}
-                                className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-colors"
+                                className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-colors cursor-pointer"
                             >
                                 <X size={20} />
                             </button>
@@ -292,10 +429,56 @@ export default function CondoDashboard() {
                                     </div>
                                     <button
                                         disabled={resetLoading}
-                                        className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-100 text-xs flex items-center justify-center gap-2 disabled:opacity-50"
+                                        className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-100 text-xs flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                                     >
                                         {resetLoading ? "Enviando..." : "Enviar Link de Acesso"}
                                         <ArrowRight size={16} />
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* MODAL: PRIMEIRO ACESSO VIA ID/SLUG */}
+                {showFirstAccessModal && (
+                    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
+                            <button
+                                onClick={() => setShowFirstAccessModal(false)}
+                                className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-colors cursor-pointer"
+                            >
+                                <X size={20} />
+                            </button>
+
+                            <div className="flex flex-col items-center text-center">
+                                <div className="bg-blue-50 p-4 rounded-2xl text-blue-600 mb-4">
+                                    <KeyRound size={32} />
+                                </div>
+                                <h2 className="text-xl font-black text-gray-900 tracking-tight mb-2">Primeiro Acesso</h2>
+                                <p className="text-gray-500 text-xs mb-6">
+                                    Insira a chave/slug gerada pelo síndico para validar seu cadastro e realizar o login com sua senha temporária.
+                                </p>
+
+                                <form onSubmit={handleFirstAccessSetup} className="w-full space-y-3">
+                                    <div className="relative group text-left">
+                                        <UserCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                                        <input
+                                            type="text"
+                                            required
+                                            placeholder="Ex: condo-joao-xyz"
+                                            value={firstAccessSlug}
+                                            onChange={(e) => setFirstAccessSlug(e.target.value)}
+                                            className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-blue-100 outline-none text-xs font-mono font-bold text-gray-700 uppercase"
+                                        />
+                                    </div>
+
+                                    <button
+                                        disabled={firstAccessLoading}
+                                        className="w-full bg-zinc-900 text-white py-3.5 rounded-xl font-bold hover:bg-black transition shadow-lg text-xs flex items-center justify-center gap-2 disabled:opacity-50 mt-2 uppercase tracking-widest text-[10px] cursor-pointer"
+                                    >
+                                        {firstAccessLoading ? "Verificando Chave..." : "Validar e Acessar"}
+                                        <ArrowRight size={14} />
                                     </button>
                                 </form>
                             </div>
@@ -320,7 +503,7 @@ export default function CondoDashboard() {
                         </p>
                     </div>
                     <div className="pt-4 border-t border-zinc-100 flex gap-4">
-                        <button onClick={handleLogout} className="w-full px-4 py-3 border border-zinc-200 rounded-xl hover:bg-zinc-50 text-zinc-600 font-bold text-xs transition-colors">
+                        <button onClick={handleLogout} className="w-full px-4 py-3 border border-zinc-200 rounded-xl hover:bg-zinc-50 text-zinc-600 font-bold text-xs transition-colors cursor-pointer">
                             Sair / Trocar Conta
                         </button>
                     </div>

@@ -1,6 +1,6 @@
 // app/condo/dashboard/reserva-de-espacos/page.tsx
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import {
@@ -15,14 +15,22 @@ import {
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+        auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true,
+            storageKey: 'nucleo_condo_auth_session', // Chave isolada para blindagem contra lock broken
+        },
+    }
 );
 
 interface UserMemberData {
     role: string;
     condominio: {
         nome: string;
-    };
+    } | null;
 }
 
 export default function ReservaEspacosPage() {
@@ -30,56 +38,112 @@ export default function ReservaEspacosPage() {
     const [loading, setLoading] = useState(true);
     const [memberData, setMemberData] = useState<UserMemberData | null>(null);
 
-    const verifyAccess = async () => {
+    const isMountedRef = useRef(true);
+
+    const verifyAccessAndLoadData = async (currentSession: any, retries = 2) => {
         try {
-            setLoading(true);
-
-            const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-
-            if (sessionError || !currentSession) {
-                setSession(null);
-                setMemberData(null);
-                setLoading(false);
+            if (!currentSession || !currentSession.user) {
+                if (isMountedRef.current) {
+                    setSession(null);
+                    setMemberData(null);
+                    setLoading(false);
+                }
                 return;
             }
 
-            setSession(currentSession);
+            if (isMountedRef.current) {
+                setSession(currentSession);
+            }
             const userId = currentSession.user.id;
 
-            const { data, error } = await supabase
-                .from("condominio_membros")
-                .select(`
-                    role,
-                    acesso_app,
-                    condominio:condominios ( nome )
-                `)
-                .eq("user_id", userId)
-                .eq("acesso_app", true)
-                .order("role", { ascending: false })
-                .order("criado_em", { ascending: false })
-                .limit(1);
+            let data = null;
+            let error = null;
 
-            if (error) throw error;
+            for (let i = 0; i <= retries; i++) {
+                const res = await supabase
+                    .from("condominio_membros")
+                    .select(`
+                        role,
+                        acesso_app,
+                        condominio:condominios ( nome )
+                    `)
+                    .eq("user_id", userId)
+                    .eq("acesso_app", true)
+                    .order("role", { ascending: false })
+                    .order("criado_em", { ascending: false })
+                    .limit(1);
 
-            if (data && data.length > 0) {
-                setMemberData(data[0] as unknown as UserMemberData);
-            } else {
+                data = res.data;
+                error = res.error;
+
+                if (error) {
+                    const errorMsg = error.message || JSON.stringify(error);
+                    if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
+                        console.error("Erro na consulta Supabase:", errorMsg);
+                    }
+                }
+
+                if (data && data.length > 0) {
+                    break;
+                }
+
+                if (i < retries) {
+                    await new Promise((resolve) => setTimeout(resolve, 300));
+                }
+            }
+
+            if (isMountedRef.current) {
+                if (data && data.length > 0) {
+                    setMemberData(data[0] as unknown as UserMemberData);
+                } else {
+                    setMemberData(null);
+                }
+            }
+        } catch (e: any) {
+            const errString = e?.message || JSON.stringify(e);
+            if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
+                console.error("Erro ao verificar acesso:", errString);
+            }
+            if (isMountedRef.current) {
                 setMemberData(null);
             }
-        } catch (e) {
-            console.error("Erro ao verificar acesso:", e);
-            setMemberData(null);
         } finally {
-            setLoading(false);
+            if (isMountedRef.current) {
+                setLoading(false);
+            }
         }
     };
 
     useEffect(() => {
-        verifyAccess();
+        isMountedRef.current = true;
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                await verifyAccess();
+        const initAuth = async () => {
+            try {
+                const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+
+                if (sessionError && !currentSession) throw sessionError;
+
+                if (isMountedRef.current) {
+                    await verifyAccessAndLoadData(currentSession);
+                }
+            } catch (err: any) {
+                const errString = err?.message || JSON.stringify(err);
+                if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
+                    console.error("Erro ao recuperar sessão inicial:", errString);
+                }
+                if (isMountedRef.current) setLoading(false);
+            }
+        };
+
+        initAuth();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+            if (!isMountedRef.current) return;
+
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+                if (currentSession) {
+                    await verifyAccessAndLoadData(currentSession);
+                }
             } else if (event === 'SIGNED_OUT') {
                 setSession(null);
                 setMemberData(null);
@@ -87,7 +151,10 @@ export default function ReservaEspacosPage() {
             }
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            isMountedRef.current = false;
+            subscription.unsubscribe();
+        };
     }, []);
 
     if (loading) {
@@ -155,7 +222,7 @@ export default function ReservaEspacosPage() {
                         {/* Botão de Voltar Minimalista Premium */}
                         <button
                             onClick={() => window.history.back()}
-                            className="group relative flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 self-start md:self-auto overflow-hidden"
+                            className="group relative flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 self-start md:self-auto overflow-hidden cursor-pointer"
                         >
                             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
                             <ArrowLeft
@@ -182,14 +249,14 @@ export default function ReservaEspacosPage() {
                             </span>
                             <h2 className="text-xl md:text-3xl font-black tracking-tight text-zinc-950">Estamos em fase de construção</h2>
                             <p className="text-xs md:text-sm text-zinc-500 max-w-sm mx-auto leading-relaxed">
-                                Esta seção da plataforma está sendo estruturada para trazer total transparência e controle financeiro integrado ao seu condomínio.
+                                Esta seção da plataforma está sendo estruturada para trazer total transparência e controle integrado ao seu condomínio.
                             </p>
                         </div>
 
                         <div className="pt-2">
                             <button
                                 onClick={() => window.history.back()}
-                                className="bg-zinc-900 hover:bg-black text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md"
+                                className="bg-zinc-900 hover:bg-black text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md cursor-pointer"
                             >
                                 Retornar ao Painel
                             </button>
