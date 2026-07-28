@@ -1,3 +1,4 @@
+// components/Header.tsx
 "use client";
 
 import { supabase } from "@/lib/supabase";
@@ -76,17 +77,50 @@ export function Header() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setIsLoggedIn(!!session);
-      if (session?.user) fetchProfile(session.user.id);
+      // Verifica primeiro a chave padrão do Supabase e, caso não exista, verifica também a chave isolada do condo ('nucleo_condo_auth_session')
+      let currentSession = null;
+      const { data } = await supabase.auth.getSession();
+      currentSession = data.session;
+
+      if (!currentSession) {
+        try {
+          const condoSessionStorage = localStorage.getItem('nucleo_condo_auth_session');
+          if (condoSessionStorage) {
+            const parsedSession = JSON.parse(condoSessionStorage);
+            if (parsedSession && parsedSession.access_token) {
+              currentSession = parsedSession;
+            }
+          }
+        } catch (e) {
+          // Erro silencioso ao parsear session customizada
+        }
+      }
+
+      setIsLoggedIn(!!currentSession);
+      if (currentSession?.user) fetchProfile(currentSession.user.id);
     };
 
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsLoggedIn(!!session);
-      if (session?.user) {
-        fetchProfile(session.user.id);
+      let activeSession = session;
+      if (!activeSession) {
+        try {
+          const condoSessionStorage = localStorage.getItem('nucleo_condo_auth_session');
+          if (condoSessionStorage) {
+            const parsedSession = JSON.parse(condoSessionStorage);
+            if (parsedSession && parsedSession.access_token) {
+              activeSession = parsedSession;
+            }
+          }
+        } catch (e) {
+          // Erro silencioso
+        }
+      }
+
+      setIsLoggedIn(!!activeSession);
+      if (activeSession?.user) {
+        fetchProfile(activeSession.user.id);
       } else {
         setUserProfile({ nome: "", avatar: null });
       }
@@ -105,6 +139,9 @@ export function Header() {
   const handleLogout = async () => {
     const confirmLogout = window.confirm("Tem certeza que deseja sair da conta?");
     if (confirmLogout) {
+      try {
+        localStorage.removeItem('nucleo_condo_auth_session');
+      } catch (e) { }
       await supabase.auth.signOut();
       setIsMenuOpen(false);
       setIsUserDropdownOpen(false);
@@ -307,7 +344,7 @@ export function Header() {
                 {pathname === "/minha-conta" && (
                   <button
                     onClick={handleLogout}
-                    className="flex items-center justify-center w-10 h-10 rounded-md bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 border border-gray-100 transition-all shadow-sm active:scale-95"
+                    className="flex items-center justify-center w-10 h-10 rounded-md bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 border border-gray-100 transition-all shadow-sm active:scale-95 cursor-pointer"
                     title="Sair da conta"
                   >
                     <Power size={18} strokeWidth={2.5} />
@@ -320,7 +357,7 @@ export function Header() {
               <div className="relative" ref={userDropdownRef}>
                 <button
                   onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                  className={`ml-1 flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all overflow-hidden bg-gray-50 ${isUserDropdownOpen ? 'border-blue-500 shadow-md' : 'border-gray-100 hover:border-blue-400'}`}
+                  className={`ml-1 flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all overflow-hidden bg-gray-50 cursor-pointer ${isUserDropdownOpen ? 'border-blue-500 shadow-md' : 'border-gray-100 hover:border-blue-400'}`}
                 >
                   {isLoggedIn ? (
                     userProfile.avatar ? (
@@ -367,7 +404,7 @@ export function Header() {
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className={`
               relative flex items-center justify-center gap-2 
-              h-9 px-4 rounded-xl transition-all duration-300 z-[110]
+              h-9 px-4 rounded-xl transition-all duration-300 z-[110] cursor-pointer
               ${isMenuOpen
                 ? "bg-gray-900 text-white shadow-lg ring-4 ring-gray-900/10"
                 : "bg-white text-gray-600 border border-gray-200 shadow-sm active:scale-95"
@@ -438,7 +475,7 @@ export function Header() {
                       <a href="/resultados" className="flex items-center justify-center gap-2 w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-sm shadow-lg active:scale-95 transition-all">
                         <BarChart3 size={18} /> Visão de Resultados
                       </a>
-                      <button onClick={handleLogout} className="flex items-center justify-center gap-2 w-full py-4 bg-red-50 text-red-600 rounded-2xl font-bold text-sm border border-red-100 active:scale-95 transition-all">
+                      <button onClick={handleLogout} className="flex items-center justify-center gap-2 w-full py-4 bg-red-50 text-red-600 rounded-2xl font-bold text-sm border border-red-100 active:scale-95 transition-all cursor-pointer">
                         <Power size={18} /> Sair da conta
                       </button>
                     </div>
