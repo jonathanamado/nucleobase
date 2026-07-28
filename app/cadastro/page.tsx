@@ -20,7 +20,15 @@ import {
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    }
+  }
 );
 
 export default function CadastroPage() {
@@ -130,6 +138,14 @@ export default function CadastroPage() {
     }
 
     if (authData.user) {
+      // Assegura que a sessão gerada no signUp seja explicitamente estabelecida no cliente mobile
+      if (authData.session) {
+        await supabase.auth.setSession({
+          access_token: authData.session.access_token,
+          refresh_token: authData.session.refresh_token,
+        });
+      }
+
       // 1. Inserção ou atualização na tabela profiles com o nome completo preenchido
       await supabase.from('profiles').upsert([
         {
@@ -183,7 +199,10 @@ export default function CadastroPage() {
         localStorage.removeItem("nucleobase_referral_id");
       }
 
-      window.location.href = "/minha-conta";
+      // Pequeno atraso para garantir gravação completa do storage no mobile antes do redirecionamento
+      setTimeout(() => {
+        window.location.href = "/minha-conta";
+      }, 300);
     }
     setLoading(false);
   };
