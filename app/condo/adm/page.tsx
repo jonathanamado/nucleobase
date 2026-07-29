@@ -21,7 +21,6 @@ import {
     ArrowRight,
     FileSpreadsheet,
     Package,
-    Edit3,
     Lock,
     Key,
     KeyRound,
@@ -71,7 +70,7 @@ export default function CondoAdm() {
     const [showSindicoDeleteModal, setShowSindicoDeleteModal] = useState(false);
     const [moradorParaExcluir, setMoradorParaExcluir] = useState<Morador | null>(null);
 
-    // Modais de Ações de Síndico (Apenas o de edição de morador permanece em popup)
+    // Modais de Ações de Síndico
     const [showMoradorModal, setShowMoradorModal] = useState(false);
 
     // Dados do Condomínio e Vínculo
@@ -106,6 +105,14 @@ export default function CondoAdm() {
         return `${partes[0]} ${partes[partes.length - 1]}`;
     };
 
+    // Função para abreviar o nome do condomínio mantendo apenas o primeiro e o último nome (para Mobile)
+    const obterNomeCondominioMobile = (nomeCompleto: string) => {
+        if (!nomeCompleto) return "Condomínio";
+        const partes = nomeCompleto.trim().split(/\s+/);
+        if (partes.length <= 1) return partes[0];
+        return `${partes[0]} ${partes[partes.length - 1]}`;
+    };
+
     const loadMoradores = async (condoId: string) => {
         const { data, error } = await supabase
             .from("condominio_membros")
@@ -125,6 +132,7 @@ export default function CondoAdm() {
         }
     };
 
+    // Verificação blindada com RPC para evitar instabilidades de RLS
     const verifySindicoAndLoadData = async (currentSession: any, retries = 2) => {
         try {
             if (!currentSession || !currentSession.user) {
@@ -143,26 +151,15 @@ export default function CondoAdm() {
             }
             const userId = currentSession.user.id;
 
-            let membroDataList = null;
-            let membroError = null;
+            let condoData = null;
 
             for (let i = 0; i <= retries; i++) {
-                const res = await supabase
-                    .from("condominio_membros")
-                    .select("condominio_id, role, unidade, acesso_app, condominio_nome")
-                    .eq("user_id", userId);
+                const { data, error } = await supabase.rpc('get_user_condo_context', {
+                    p_user_id: userId
+                });
 
-                membroDataList = res.data;
-                membroError = res.error;
-
-                if (membroError) {
-                    const errorMsg = membroError.message || JSON.stringify(membroError);
-                    if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
-                        console.error("Erro na consulta Supabase (membros):", errorMsg);
-                    }
-                }
-
-                if (membroDataList && membroDataList.length > 0) {
+                if (!error && data) {
+                    condoData = data;
                     break;
                 }
 
@@ -171,48 +168,36 @@ export default function CondoAdm() {
                 }
             }
 
-            if (!membroDataList || membroDataList.length === 0) {
+            if (!condoData || !condoData.role) {
                 if (isMountedRef.current) {
                     setIsApenasMorador(true);
                     setCondominio(null);
+                    setMoradores([]);
                     setLoading(false);
                 }
                 return;
             }
 
-            const vinculoAdm = membroDataList.find(
-                (m: any) => m.role === 'sindico'
-            );
-
-            if (!vinculoAdm) {
+            // Valida se o usuário logado possui perfil de síndico
+            if (condoData.role !== 'sindico') {
                 if (isMountedRef.current) {
                     setIsApenasMorador(true);
                     setCondominio(null);
+                    setMoradores([]);
                     setLoading(false);
                 }
                 return;
-            }
-
-            let nomeCondominioOficial = vinculoAdm.condominio_nome || "Condomínio";
-            const { data: condoDataReal } = await supabase
-                .from("condominios")
-                .select("nome")
-                .eq("id", vinculoAdm.condominio_id)
-                .maybeSingle();
-
-            if (condoDataReal && condoDataReal.nome) {
-                nomeCondominioOficial = condoDataReal.nome;
             }
 
             if (isMountedRef.current) {
                 setIsApenasMorador(false);
                 setCondominio({
-                    id: vinculoAdm.condominio_id,
-                    nome: nomeCondominioOficial
+                    id: condoData.condominio_id,
+                    nome: condoData.condominio_nome
                 });
             }
 
-            await loadMoradores(vinculoAdm.condominio_id);
+            await loadMoradores(condoData.condominio_id);
         } catch (e: any) {
             const errString = e?.message || JSON.stringify(e);
             if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
@@ -876,7 +861,10 @@ export default function CondoAdm() {
                                     <span className="md:hidden">Controle de acessos</span>
                                     <span className="hidden md:inline">Painel de Gestão - Controles internos</span>
                                 </span>
-                                <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5">{condominio?.nome}</h1>
+                                <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5">
+                                    <span className="md:hidden text-black">{obterNomeCondominioMobile(condominio?.nome || "Condomínio")}</span>
+                                    <span className="hidden md:inline">{condominio?.nome || "Condomínio"}</span>
+                                </h1>
                             </div>
                         </div>
 
@@ -899,7 +887,6 @@ export default function CondoAdm() {
 
                 <div className="w-full max-w-none space-y-6">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 justify-start">
-                        {/* Redirecionamento para a página cadastro_morador */}
                         <Link
                             href="/condo/adm/cadastro_morador"
                             className="bg-white border border-zinc-200 hover:border-blue-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
@@ -915,7 +902,6 @@ export default function CondoAdm() {
                             </div>
                         </Link>
 
-                        {/* Redirecionamento para a página prestacao_contas */}
                         <Link
                             href="/condo/adm/prestacao_contas"
                             className="bg-white border border-zinc-200 hover:border-emerald-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
@@ -1106,7 +1092,7 @@ export default function CondoAdm() {
                 </div>
             )}
 
-            {/* MODAL DE EDIÇÃO DE MORADOR (Único popup de ação remanescente nesta página) */}
+            {/* MODAL DE EDIÇÃO DE MORADOR */}
             {showMoradorModal && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
                     <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-6 md:p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200 my-auto">
@@ -1203,30 +1189,40 @@ export default function CondoAdm() {
                 </div>
             )}
 
-            <div className="mt-12">
-                <div className="flex items-center gap-4 mb-6">
+            <div>
+                <div className="mt-24 flex items-center gap-4 mb-12">
                     <div className="h-px bg-gray-200 flex-1"></div>
                     <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
                     <div className="h-px bg-gray-200 flex-1"></div>
                 </div>
 
                 <div className="flex flex-col items-center text-center pb-6">
+                    <div className="max-w-3xl mb-12">
+                        <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
+                            Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+                        </h4>
+                        <p className="text-gray-500 font-medium text-sm md:text-base">
+                            Dicas de gestão inteligente, novidades do sistema e conteúdos exclusivos no nosso Instagram.
+                        </p>
+                    </div>
+
                     <a
                         href="https://www.instagram.com/nucleobase.app/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group relative flex flex-col items-center gap-4"
+                        className="group relative flex flex-col items-center gap-6"
                     >
                         <div className="relative">
                             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
-                            <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[1.8rem] md:rounded-[2.0rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
-                                <Instagram className="w-8 h-8 md:w-10 md:h-10" strokeWidth={1.5} />
+
+                            <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+                                <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
                             </div>
                         </div>
 
                         <div className="flex flex-col items-center">
                             <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
-                            <div className="h-1 w-0 bg-pink-500 mt-1.5 group-hover:w-full transition-all duration-500 rounded-full"></div>
+                            <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
                         </div>
                     </a>
                 </div>

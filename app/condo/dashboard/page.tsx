@@ -60,7 +60,7 @@ export default function CondoDashboard() {
 
     const isMountedRef = useRef(true);
 
-    // Consulta unificada corrigida para garantir filtro correto por acesso_app e evitar falhas intermitentes
+    // Substitua a função fetchMemberPermissionsAndSession por esta:
     const fetchMemberPermissionsAndSession = async (currentSession: any, retries = 2) => {
         try {
             if (!currentSession || !currentSession.user) {
@@ -77,35 +77,15 @@ export default function CondoDashboard() {
             }
             const userId = currentSession.user.id;
 
-            let data = null;
-            let error = null;
+            let condoData = null;
 
             for (let i = 0; i <= retries; i++) {
-                const res = await supabase
-                    .from("condominio_membros")
-                    .select(`
-                        role,
-                        unidade,
-                        acesso_app,
-                        condominio:condominios ( nome )
-                    `)
-                    .eq("user_id", userId)
-                    .eq("acesso_app", true) // Filtro essencial para evitar buscar vínculos sem permissão de acesso
-                    .order("role", { ascending: false }) // 'sindico' vem antes de 'morador'
-                    .order("criado_em", { ascending: false })
-                    .limit(1);
+                const { data, error } = await supabase.rpc('get_user_condo_context', {
+                    p_user_id: userId
+                });
 
-                data = res.data;
-                error = res.error;
-
-                if (error) {
-                    const errorMsg = error.message || JSON.stringify(error);
-                    if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
-                        console.error("Erro na consulta Supabase:", errorMsg);
-                    }
-                }
-
-                if (data && data.length > 0) {
+                if (!error && data) {
+                    condoData = data;
                     break;
                 }
 
@@ -115,8 +95,15 @@ export default function CondoDashboard() {
             }
 
             if (isMountedRef.current) {
-                if (data && data.length > 0) {
-                    setMemberData(data[0] as unknown as UserMemberData);
+                if (condoData && condoData.role) {
+                    setMemberData({
+                        role: condoData.role,
+                        unidade: condoData.unidade || "N/A",
+                        acesso_app: condoData.acesso_app,
+                        condominio: {
+                            nome: condoData.condominio_nome
+                        }
+                    });
                 } else {
                     setMemberData(null);
                 }
@@ -124,7 +111,7 @@ export default function CondoDashboard() {
         } catch (e: any) {
             const errString = e?.message || JSON.stringify(e);
             if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
-                console.error("Erro ao carregar permissões condominiais:", errString);
+                console.error("Erro ao carregar permissões condominiais via RPC:", errString);
             }
             if (isMountedRef.current) {
                 setMemberData(null);
