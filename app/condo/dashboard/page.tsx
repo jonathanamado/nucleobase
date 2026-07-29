@@ -90,7 +90,6 @@ export default function CondoDashboard() {
                         condominio:condominios ( nome )
                     `)
                     .eq("user_id", userId)
-                    .eq("acesso_app", true)
                     .order("role", { ascending: false }) // 'sindico' vem antes de 'morador'
                     .order("criado_em", { ascending: false })
                     .limit(1);
@@ -286,9 +285,15 @@ export default function CondoDashboard() {
         setLoading(true);
         try {
             localStorage.removeItem('nucleo_condo_auth_session');
+            localStorage.removeItem('sb-' + process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split('.')[0] + '-auth-token');
             window.dispatchEvent(new Event("storage"));
-        } catch (e) { }
+        } catch (e) {
+            console.error("Erro ao limpar storages:", e);
+        }
         await supabase.auth.signOut();
+        setSession(null);
+        setMemberData(null);
+        setLoading(false);
     };
 
     if (loading) {
@@ -563,7 +568,6 @@ export default function CondoDashboard() {
                 </div>
             </div>
 
-            {/* Mini contexto de boas-vindas após a linha divisória */}
             <p className="text-xs md:text-sm text-zinc-500 font-medium mb-10">
                 Seja bem-vindo(a) ao <span className="font-bold text-zinc-800">{memberData?.condominio?.nome || "Condomínio"}</span>! Explore ferramentas integradas ao seu condomínio.
             </p>
@@ -573,7 +577,7 @@ export default function CondoDashboard() {
                     <Link
                         key={idx}
                         href={modulo.path}
-                        className="bg-white border border-zinc-150 p-3 md:p-8 rounded-[1.5rem] md:rounded-[2rem] shadow-sm hover:shadow-md transition-all group cursor-pointer flex flex-col justify-between"
+                        className="bg-white border border-zinc-200 p-3 md:p-8 rounded-[1.5rem] md:rounded-[2rem] shadow-sm hover:shadow-md transition-all group cursor-pointer flex flex-col justify-between"
                     >
                         <div>
                             <div className="flex items-center justify-between mb-3 md:mb-6">

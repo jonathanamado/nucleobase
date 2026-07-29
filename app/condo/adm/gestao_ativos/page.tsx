@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import {
     Loader2,
     ArrowLeft,
@@ -16,19 +16,6 @@ import {
     Edit3,
     X
 } from "lucide-react";
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-        auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true,
-            storageKey: 'nucleo_condo_auth_session',
-        }
-    }
-);
 
 interface AtivoItem {
     id: string;
@@ -129,8 +116,12 @@ export default function GestaoAtivosPage() {
                 return;
             }
 
+            // Aceita perfis de gestão (sindico, adm, administrador)
             const vinculoAdm = membroDataList.find(
-                (m: any) => m.role === 'sindico'
+                (m: any) => {
+                    const r = (m.role || "").toLowerCase();
+                    return r === 'sindico' || r === 'síndico' || r === 'adm' || r === 'administrador';
+                }
             );
 
             if (!vinculoAdm) {
@@ -142,14 +133,16 @@ export default function GestaoAtivosPage() {
             }
 
             let nomeCondominioOficial = vinculoAdm.condominio_nome || "Condomínio";
-            const { data: condoDataReal } = await supabase
-                .from("condominios")
-                .select("nome")
-                .eq("id", vinculoAdm.condominio_id)
-                .maybeSingle();
+            if (vinculoAdm.condominio_id) {
+                const { data: condoDataReal } = await supabase
+                    .from("condominios")
+                    .select("nome")
+                    .eq("id", vinculoAdm.condominio_id)
+                    .maybeSingle();
 
-            if (condoDataReal && condoDataReal.nome) {
-                nomeCondominioOficial = condoDataReal.nome;
+                if (condoDataReal && condoDataReal.nome) {
+                    nomeCondominioOficial = condoDataReal.nome;
+                }
             }
 
             if (isMountedRef.current) {
@@ -159,7 +152,9 @@ export default function GestaoAtivosPage() {
                 });
             }
 
-            await loadAtivos(vinculoAdm.condominio_id);
+            if (vinculoAdm.condominio_id) {
+                await loadAtivos(vinculoAdm.condominio_id);
+            }
         } catch (e: any) {
             const errString = e?.message || JSON.stringify(e);
             if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
@@ -251,7 +246,6 @@ export default function GestaoAtivosPage() {
         setMsgSucesso("");
 
         try {
-            // Normaliza o valor monetário substituindo vírgula por ponto para evitar erros de parse
             const valorTratado = valorInput.replace(',', '.');
             const valorNumerico = parseFloat(valorTratado);
 

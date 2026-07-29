@@ -11,7 +11,8 @@ import {
     Vote,
     Send,
     CheckCircle2,
-    MessageSquarePlus
+    MessageSquarePlus,
+    ShieldAlert
 } from "lucide-react";
 
 interface UserMemberData {
@@ -62,7 +63,6 @@ export default function EnquetesDecisoesPage() {
                         condominio:condominios ( nome )
                     `)
                     .eq("user_id", userId)
-                    .eq("acesso_app", true)
                     .order("role", { ascending: false })
                     .order("criado_em", { ascending: false })
                     .limit(1);
@@ -197,9 +197,27 @@ export default function EnquetesDecisoesPage() {
         );
     }
 
+    if (session && !memberData) {
+        return (
+            <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
+                <div className="w-full max-w-sm bg-white border border-zinc-200 p-8 rounded-[2.5rem] text-center space-y-4 shadow-sm">
+                    <div className="mx-auto w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 mb-2">
+                        <ShieldAlert size={24} />
+                    </div>
+                    <h1 className="text-xl font-black text-zinc-900">Sem vínculo ativo</h1>
+                    <p className="text-sm text-zinc-500">
+                        Seu perfil não possui acesso liberado neste condomínio no momento.
+                    </p>
+                    <Link href="/condo/dashboard" className="inline-block bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors mt-2">
+                        Voltar ao Início
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 pt-6 px-6 md:px-10 flex flex-col justify-between">
-            {/* Header */}
             <div>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-5 mb-6">
                     <div className="flex flex-col md:flex-row md:items-center gap-6 w-full justify-between">
@@ -217,7 +235,6 @@ export default function EnquetesDecisoesPage() {
                             </div>
                         </div>
 
-                        {/* Botão de Voltar Minimalista Premium - Apenas Desktop */}
                         <button
                             onClick={() => window.history.back()}
                             className="hidden md:flex group relative items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 self-start md:self-auto overflow-hidden cursor-pointer"
@@ -236,21 +253,14 @@ export default function EnquetesDecisoesPage() {
                     Participe das votações ativas criadas pela administração ou envie novas propostas de enquetes para avaliação do síndico.
                 </p>
 
-                {/* Seção Principal: Enquetes Ativas e Sugestões */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
-                    {/* Lista de Enquetes Ativas (Criadas pelo Síndico) */}
                     <div className="lg:col-span-2 space-y-6 flex flex-col">
                         <div className="flex items-center justify-between">
                             <h2 className="text-base font-bold text-zinc-900 flex items-center gap-2">
                                 <Vote size={18} className="text-blue-600" /> Enquetes em Andamento
                             </h2>
-                            {/* Contador visível apenas em Desktop */}
-                            <span className="hidden md:inline-flex text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1 rounded-full">
-                                0 Ativas
-                            </span>
                         </div>
 
-                        {/* Card com altura flexível no mobile e esticada/igualada no desktop via flex-1 */}
                         <div className="bg-white border border-zinc-200 rounded-[2.5rem] p-8 text-center space-y-4 shadow-sm flex-1 flex flex-col justify-center items-center">
                             <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
                                 <Vote size={26} />
@@ -264,7 +274,6 @@ export default function EnquetesDecisoesPage() {
                         </div>
                     </div>
 
-                    {/* Formulário para Sugestão de Enquete pelo Condômino */}
                     <div className="space-y-6 flex flex-col">
                         <div className="flex items-center justify-between">
                             <h2 className="text-base font-bold text-zinc-900 flex items-center gap-2">
@@ -326,7 +335,6 @@ export default function EnquetesDecisoesPage() {
                 </div>
             </div>
 
-            {/* Rodapé / Conecte-se */}
             <div>
                 <div className="flex items-center gap-4 mb-6">
                     <div className="h-px bg-gray-200 flex-1"></div>

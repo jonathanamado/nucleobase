@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import {
   ShieldCheck,
   Zap,
@@ -17,19 +17,6 @@ import {
   User,
   Mail
 } from "lucide-react";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-    }
-  }
-);
 
 export default function CadastroPage() {
   const [nome, setNome] = useState("");
@@ -138,7 +125,6 @@ export default function CadastroPage() {
     }
 
     if (authData.user) {
-      // Assegura que a sessão gerada no signUp seja explicitamente estabelecida no cliente mobile
       if (authData.session) {
         await supabase.auth.setSession({
           access_token: authData.session.access_token,
@@ -146,7 +132,7 @@ export default function CadastroPage() {
         });
       }
 
-      // 1. Inserção ou atualização na tabela profiles com o nome completo preenchido
+      // 1. Inserção ou atualização na tabela profiles
       await supabase.from('profiles').upsert([
         {
           id: authData.user.id,
@@ -158,7 +144,7 @@ export default function CadastroPage() {
         }
       ]);
 
-      // 2. Inserção na tabela opcional/legada 'usuarios' caso exista na estrutura para garantir o 'nome_completo'
+      // 2. Inserção na tabela opcional 'usuarios'
       try {
         await supabase.from('usuarios').upsert([
           {
@@ -169,20 +155,6 @@ export default function CadastroPage() {
         ]);
       } catch (err) {
         console.warn("Aviso na tabela usuarios:", err);
-      }
-
-      // 3. Inserção em condominio_membros garantindo o preenchimento de condominio_nome e parâmetros essenciais
-      try {
-        await supabase.from('condominio_membros').insert([
-          {
-            user_id: authData.user.id,
-            role: 'morador',
-            acesso_app: false,
-            condominio_nome: nomeFinal // Atribui corretamente o nome preenchido no cadastro
-          }
-        ]);
-      } catch (err) {
-        console.warn("Aviso na inserção de condominio_membros:", err);
       }
 
       await enviarNotificacaoAdm(nomeFinal, emailParaAuth);
@@ -199,7 +171,6 @@ export default function CadastroPage() {
         localStorage.removeItem("nucleobase_referral_id");
       }
 
-      // Pequeno atraso para garantir gravação completa do storage no mobile antes do redirecionamento
       setTimeout(() => {
         window.location.href = "/minha-conta";
       }, 300);
@@ -358,7 +329,7 @@ export default function CadastroPage() {
               <button
                 disabled={loading}
                 type="submit"
-                className="w-full bg-gray-900 text-white py-4 rounded-2xl hover:bg-black transition-all font-bold text-[10px] uppercase tracking-[0.2em] mt-6 flex items-center justify-center gap-3 disabled:bg-gray-400"
+                className="w-full bg-gray-900 text-white py-4 rounded-2xl hover:bg-black transition-all font-bold text-[10px] uppercase tracking-[0.2em] mt-6 flex items-center justify-center gap-3 disabled:bg-gray-400 cursor-pointer"
               >
                 {loading ? "Sincronizando..." : "Finalizar cadastro"}
               </button>

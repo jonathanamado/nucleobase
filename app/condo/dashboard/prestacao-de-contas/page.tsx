@@ -2,7 +2,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import {
     Building2,
     Loader2,
@@ -16,19 +16,6 @@ import {
     Filter,
     ShieldAlert
 } from "lucide-react";
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-        auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true,
-            storageKey: 'nucleo_condo_auth_session', // Chave isolada para blindagem contra lock broken
-        },
-    }
-);
 
 interface ContaCondominio {
     id: string;
@@ -69,7 +56,6 @@ export default function PrestacaoContasPage() {
 
     const isMountedRef = useRef(true);
 
-    // Função para formatar o período no formato desejado (Mobile: Jul/26, Desktop: padrão ou conforme selecionado)
     const formatarPeriodoExibicao = (valorPeriodo: string) => {
         if (valorPeriodo === 'acumulado') return 'Acumulado';
         if (!valorPeriodo) return '';
@@ -116,35 +102,26 @@ export default function PrestacaoContasPage() {
             }
             const userId = currentSession.user.id;
 
-            let data = null;
-            let error = null;
+            let membroDataList = null;
+            let membroError = null;
 
             for (let i = 0; i <= retries; i++) {
                 const res = await supabase
                     .from("condominio_membros")
-                    .select(`
-                        condominio_id,
-                        role,
-                        acesso_app,
-                        condominio:condominios ( id, nome )
-                    `)
-                    .eq("user_id", userId)
-                    .eq("acesso_app", true)
-                    .order("role", { ascending: false })
-                    .order("criado_em", { ascending: false })
-                    .limit(1);
+                    .select("condominio_id, role, unidade, acesso_app, condominio_nome")
+                    .eq("user_id", userId);
 
-                data = res.data;
-                error = res.error;
+                membroDataList = res.data;
+                membroError = res.error;
 
-                if (error) {
-                    const errorMsg = error.message || JSON.stringify(error);
+                if (membroError) {
+                    const errorMsg = membroError.message || JSON.stringify(membroError);
                     if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
-                        console.error("Erro na consulta Supabase:", errorMsg);
+                        console.error("Erro na consulta Supabase (membros):", errorMsg);
                     }
                 }
 
-                if (data && data.length > 0 && data[0].condominio) {
+                if (membroDataList && membroDataList.length > 0) {
                     break;
                 }
 
@@ -153,16 +130,37 @@ export default function PrestacaoContasPage() {
                 }
             }
 
-            if (isMountedRef.current) {
-                if (data && data.length > 0 && data[0].condominio) {
-                    // @ts-ignore
-                    setCondominio(data[0].condominio);
-                    // @ts-ignore
-                    await loadContas(data[0].condominio_id);
-                } else {
+            if (!membroDataList || membroDataList.length === 0) {
+                if (isMountedRef.current) {
                     setCondominio(null);
                     setContas([]);
+                    setLoading(false);
                 }
+                return;
+            }
+
+            // Seleciona o primeiro vínculo disponível do usuário
+            const vinculo = membroDataList[0];
+
+            let nomeCondominioOficial = vinculo.condominio_nome || "Condomínio";
+            if (vinculo.condominio_id) {
+                const { data: condoData } = await supabase
+                    .from("condominios")
+                    .select("nome")
+                    .eq("id", vinculo.condominio_id)
+                    .maybeSingle();
+
+                if (condoData && condoData.nome) {
+                    nomeCondominioOficial = condoData.nome;
+                }
+            }
+
+            if (isMountedRef.current) {
+                setCondominio({
+                    id: vinculo.condominio_id,
+                    nome: nomeCondominioOficial
+                });
+                await loadContas(vinculo.condominio_id);
             }
         } catch (e: any) {
             const errString = e?.message || JSON.stringify(e);
@@ -326,7 +324,6 @@ export default function PrestacaoContasPage() {
 
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 pt-6 px-6 md:px-10 flex flex-col justify-between relative">
-            {/* Header */}
             <div>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-5 mb-4">
                     <div className="flex items-center gap-4 w-full justify-between">
@@ -356,19 +353,12 @@ export default function PrestacaoContasPage() {
                     </div>
                 </div>
 
-                {/* Contexto Inicial da Tela logo após a linha divisória */}
-                <p className="text-xs md:text-sm text-zinc-500 font-medium mb-4">
-
-                </p>
-
-                {/* Barra de Filtro de Período centralizada no mobile e alinhada à direita no desktop, com largura correspondente exatamente a dois cards do grid no mobile */}
                 <div className="flex justify-center md:justify-end mb-5">
                     <div className="w-full md:w-auto flex items-center justify-between md:justify-start gap-2 bg-white border border-zinc-200 px-3.5 py-1.5 rounded-full shadow-sm">
                         <div className="flex items-center gap-2 overflow-hidden relative">
                             <Filter size={14} className="text-zinc-800 shrink-0" />
                             <span className="text-[10px] font-bold text-zinc-800 uppercase whitespace-nowrap">Filtro:</span>
 
-                            {/* Visualização amigável reduzida em 1 linha apenas no Mobile (Jul/26) */}
                             <span className="md:hidden text-xs font-bold text-zinc-800 whitespace-nowrap cursor-pointer">
                                 {formatarPeriodoExibicao(filtroPeriodo)}
                             </span>
@@ -377,9 +367,7 @@ export default function PrestacaoContasPage() {
                                 type="month"
                                 value={filtroPeriodo === 'acumulado' ? '' : filtroPeriodo}
                                 onChange={(e) => setFiltroPeriodo(e.target.value || mesVigentePadrao)}
-                                className={`text-xs font-bold text-zinc-800 bg-transparent outline-none cursor-pointer ${
-                                    /* No mobile, o input fica absolutamente invisível cobrindo o texto amigável para acionar o seletor nativo ao toque sem quebrar a linha */
-                                    'absolute inset-0 opacity-0 md:opacity-100 md:static'
+                                className={`text-xs font-bold text-zinc-800 bg-transparent outline-none cursor-pointer ${'absolute inset-0 opacity-0 md:opacity-100 md:static'
                                     }`}
                                 title="Filtrar por Mês"
                             />
@@ -393,7 +381,6 @@ export default function PrestacaoContasPage() {
                     </div>
                 </div>
 
-                {/* Bloco de Contexto Inicial e Indicadores (Cards) - 2 por linha no mobile */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
                     <div className="bg-white border border-zinc-200 p-4 md:p-5 rounded-3xl shadow-sm flex flex-col justify-between">
                         <div className="flex items-center justify-between">
@@ -445,7 +432,6 @@ export default function PrestacaoContasPage() {
                     </div>
                 </div>
 
-                {/* Tabela Analítica Detalhada */}
                 <div className="bg-white border border-zinc-200 rounded-[2rem] shadow-sm p-6 mb-6">
                     <div className="flex items-center justify-between pb-4 border-b border-zinc-100 mb-4">
                         <div className="flex items-center gap-2">
@@ -461,7 +447,6 @@ export default function PrestacaoContasPage() {
                         <div className="text-center py-12 space-y-2">
                             <FileSpreadsheet className="mx-auto text-zinc-300" size={36} />
                             <p className="text-zinc-400 text-sm font-medium">Nenhum lançamento financeiro para o período selecionado.</p>
-                            <p className="text-xs text-zinc-400">Modifique o filtro de período acima ou adicione um novo lançamento.</p>
                         </div>
                     ) : (
                         <div className="overflow-x-auto max-h-[320px] scrollbar-thin">
@@ -502,7 +487,6 @@ export default function PrestacaoContasPage() {
                     )}
                 </div>
 
-                {/* Bloco de Gráfico Comparativo */}
                 <div className="bg-white border border-zinc-200 rounded-[2rem] shadow-sm p-6 mb-10">
                     <div className="flex items-center justify-between pb-4 border-b border-zinc-100 mb-6">
                         <div className="flex items-center gap-2">
@@ -554,7 +538,6 @@ export default function PrestacaoContasPage() {
                 </div>
             </div>
 
-            {/* Rodapé / Conecte-se */}
             <div>
                 <div className="flex items-center gap-4 mb-6">
                     <div className="h-px bg-gray-200 flex-1"></div>

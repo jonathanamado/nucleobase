@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import {
     ShieldCheck,
     Target,
@@ -22,11 +22,6 @@ import {
     X,
     MessageSquarePlus
 } from "lucide-react";
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export default function NucleobaseCondo() {
     const [pilarAtivo, setPilarAtivo] = useState(0);
@@ -201,7 +196,6 @@ export default function NucleobaseCondo() {
                 <div className="h-px bg-blue-100 flex-1"></div>
             </div>
 
-            {/* Texto de gestão democrática posicionado logo após a linha divisória do texto Destaques no mobile */}
             <p className="text-gray-700 text-sm font-medium mb-6 text-center leading-relaxed">
                 Acreditamos que a <span className="text-gray-900 font-bold underline decoration-blue-200 underline-offset-4 decoration-2">gestão democrática</span> é o caminho para valorizar seu patrimônio.
             </p>
@@ -212,7 +206,7 @@ export default function NucleobaseCondo() {
                         <div className="flex items-center gap-3">
                             <Star size={20} className="text-blue-500" fill="currentColor" />
                             <div>
-                                <p className="text-blue-400 text-[8px] font-black uppercase tracking-widest font-black">Modernização</p>
+                                <p className="text-blue-400 text-[8px] font-black uppercase tracking-widest">Modernização</p>
                                 <h4 className="font-bold text-white text-sm">Praticidade e Segurança</h4>
                             </div>
                         </div>
@@ -231,7 +225,6 @@ export default function NucleobaseCondo() {
                     <BotaoAcessoDinamico />
                 </div>
 
-                {/* Contexto breve sobre as funcionalidades do módulo de Administração Condo */}
                 <div className="col-span-2 bg-blue-50/60 border border-blue-100 p-4 rounded-2xl my-2 text-center">
                     <p className="text-xs text-blue-900 font-medium leading-relaxed">
                         Explore abaixo as ferramentas integradas do nosso módulo de Administração Condo, projetadas para otimizar a rotina de síndicos e condôminos com total agilidade.
@@ -255,7 +248,6 @@ export default function NucleobaseCondo() {
 
     return (
         <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
-
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
                 <div>
                     <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
@@ -268,7 +260,6 @@ export default function NucleobaseCondo() {
                     </h2>
                 </div>
 
-                {/* BOTÕES DESKTOP */}
                 <div className="hidden md:flex flex-row gap-3 w-full md:max-w-[340px] shrink-0">
                     <a
                         href="/condo/adm"
@@ -283,7 +274,7 @@ export default function NucleobaseCondo() {
 
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="flex items-center justify-between flex-1 bg-white border border-gray-200 text-gray-700 py-3.5 px-4 rounded-2xl hover:border-blue-600 hover:text-blue-600 transition-all group font-black text-[10px] uppercase tracking-widest shadow-sm"
+                        className="flex items-center justify-between flex-1 bg-white border border-gray-200 text-gray-700 py-3.5 px-4 rounded-2xl hover:border-blue-600 hover:text-blue-600 transition-all group font-black text-[10px] uppercase tracking-widest shadow-sm cursor-pointer"
                     >
                         <div className="flex items-center gap-2">
                             <MessageSquarePlus size={15} className="text-blue-600 shrink-0" />
@@ -293,7 +284,6 @@ export default function NucleobaseCondo() {
                 </div>
             </div>
 
-            {/* Botões Prioritários Mobile (Movidos para baixo do título, subtítulo e linha divisória) */}
             <div className="flex flex-col sm:flex-row gap-3 w-full mb-8 mt-4 md:hidden">
                 <a href="/condo/adm" className="flex items-center justify-between flex-1 bg-gray-900 text-white py-4 px-6 rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest shadow-lg">
                     <div className="flex items-center gap-2"><Building2 size={15} className="text-blue-500" /> Área do Síndico</div>
@@ -327,7 +317,7 @@ export default function NucleobaseCondo() {
 
                             <button
                                 onClick={() => setIsModalOpen(true)}
-                                className="w-full flex items-center justify-center gap-2 bg-white border border-blue-600 text-blue-600 py-4 px-6 rounded-2xl hover:bg-blue-50 transition-all font-black text-[10px] uppercase tracking-widest shadow-sm"
+                                className="w-full flex items-center justify-center gap-2 bg-white border border-blue-600 text-blue-600 py-4 px-6 rounded-2xl hover:bg-blue-50 transition-all font-black text-[10px] uppercase tracking-widest shadow-sm cursor-pointer"
                             >
                                 <MessageSquarePlus size={16} /> Solicitar Acesso
                             </button>
@@ -377,7 +367,6 @@ export default function NucleobaseCondo() {
                 </div>
             </div>
 
-            {/* Card Fale Conosco alterado para redirecionar para a página /contato */}
             <div className="mt-12 md:mt-20 bg-blue-600 rounded-3xl md:rounded-[4rem] p-8 md:p-20 text-center relative overflow-hidden group w-full">
                 <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
                 <div className="relative z-10">
@@ -388,7 +377,7 @@ export default function NucleobaseCondo() {
                         <a href="/contato" className="bg-white text-blue-600 px-6 py-4 md:px-10 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-[10px] md:text-[12px] uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all w-full md:w-auto text-center">
                             Entrar em Contato
                         </a>
-                        <button onClick={() => setIsModalOpen(true)} className="bg-blue-700 text-white border border-white/20 px-6 py-4 md:px-10 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-[10px] md:text-[12px] uppercase tracking-widest hover:bg-blue-800 transition-all w-full md:w-auto text-center">
+                        <button onClick={() => setIsModalOpen(true)} className="bg-blue-700 text-white border border-white/20 px-6 py-4 md:px-10 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-[10px] md:text-[12px] uppercase tracking-widest hover:bg-blue-800 transition-all w-full md:w-auto text-center cursor-pointer">
                             Solicitar Entrada
                         </button>
                     </div>
@@ -437,7 +426,7 @@ export default function NucleobaseCondo() {
                     <div className="bg-white w-full max-w-lg rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative animate-in zoom-in-95 duration-250">
                         <button
                             onClick={() => setIsModalOpen(false)}
-                            className="absolute right-6 top-6 p-1 text-gray-400 hover:text-gray-900 rounded-full hover:bg-gray-50 transition-all"
+                            className="absolute right-6 top-6 p-1 text-gray-400 hover:text-gray-900 rounded-full hover:bg-gray-50 transition-all cursor-pointer"
                         >
                             <X size={20} />
                         </button>
@@ -504,7 +493,7 @@ export default function NucleobaseCondo() {
 
                             <button
                                 type="submit"
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white h-13 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 mt-6 shadow-lg shadow-blue-600/10"
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white h-13 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 mt-6 shadow-lg shadow-blue-600/10 cursor-pointer"
                             >
                                 Enviar Solicitação via WhatsApp
                             </button>

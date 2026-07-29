@@ -2,7 +2,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import {
     Users,
     Search,
@@ -13,19 +13,6 @@ import {
     UserCircle,
     Instagram
 } from "lucide-react";
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-        auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true,
-            storageKey: 'nucleo_condo_auth_session', // Chave isolada para blindagem contra lock broken
-        },
-    }
-);
 
 interface Morador {
     id: string;
@@ -264,8 +251,6 @@ export default function ListaMoradoresCondomino() {
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-6 md:p-10 flex flex-col justify-between">
             <div className="max-w-5xl mx-auto w-full space-y-8">
-
-                {/* Header Integrado com Botão Voltar Premium */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-6">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
@@ -290,7 +275,6 @@ export default function ListaMoradoresCondomino() {
                     </button>
                 </div>
 
-                {/* Seção Totalizador + Contexto + Barra de Busca reposicionada abaixo */}
                 <div className="space-y-4">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
                         <span className="text-xs text-zinc-500 font-medium">
@@ -310,7 +294,6 @@ export default function ListaMoradoresCondomino() {
                     </div>
                 </div>
 
-                {/* Grade de Vizinhos Ajustada (2 por linha) */}
                 {moradoresProcessados.length === 0 ? (
                     <div className="bg-white border border-zinc-200 p-12 rounded-[2.5rem] text-center space-y-2 shadow-sm">
                         <p className="text-zinc-400 font-bold text-sm">Nenhum morador encontrado</p>
@@ -356,14 +339,12 @@ export default function ListaMoradoresCondomino() {
                     </div>
                 )}
 
-                {/* LINHA DIVISÓRIA CONECTE-SE */}
                 <div className="mt-24 flex items-center gap-4 mb-12">
                     <div className="h-px bg-gray-200 flex-1"></div>
                     <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
                     <div className="h-px bg-gray-200 flex-1"></div>
                 </div>
 
-                {/* BLOCO INSTAGRAM */}
                 <div className="flex flex-col items-center text-center pb-6">
                     <div className="max-w-3xl mb-12">
                         <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
@@ -394,7 +375,6 @@ export default function ListaMoradoresCondomino() {
                         </div>
                     </a>
                 </div>
-
             </div>
         </div>
     );

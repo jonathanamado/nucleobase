@@ -1,7 +1,8 @@
-// app/condo/adm/page.tsx
+// app/condo/adm/cadastro_morador/page.tsx
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { createClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import {
     Users,
@@ -9,27 +10,21 @@ import {
     Trash2,
     ShieldAlert,
     Loader2,
-    Building2,
     CheckCircle2,
     Smartphone,
     Pencil,
     ArrowLeft,
     Instagram,
-    LifeBuoy,
-    Mail,
-    X,
-    ArrowRight,
-    FileSpreadsheet,
-    Package,
-    Edit3,
     Lock,
-    Key,
     KeyRound,
-    UserCheck,
+    X,
+    Key,
     AtSign,
     Eye,
     EyeOff,
-    MessageCircle
+    LifeBuoy,
+    Mail,
+    ArrowRight
 } from "lucide-react";
 
 interface Morador {
@@ -45,7 +40,7 @@ interface Morador {
     };
 }
 
-export default function CondoAdm() {
+export default function CadastroMoradorPage() {
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
@@ -71,9 +66,6 @@ export default function CondoAdm() {
     const [showSindicoDeleteModal, setShowSindicoDeleteModal] = useState(false);
     const [moradorParaExcluir, setMoradorParaExcluir] = useState<Morador | null>(null);
 
-    // Modais de Ações de Síndico (Apenas o de edição de morador permanece em popup)
-    const [showMoradorModal, setShowMoradorModal] = useState(false);
-
     // Dados do Condomínio e Vínculo
     const [condominio, setCondominio] = useState<{ id: string; nome: string } | null>(null);
     const [moradores, setMoradores] = useState<Morador[]>([]);
@@ -81,7 +73,7 @@ export default function CondoAdm() {
     // Controle de acesso negado específico
     const [isApenasMorador, setIsApenasMorador] = useState(false);
 
-    // Formulário para Adicionar/Editar Morador
+    // Formulário para Adicionar Morador
     const [novoMoradorNome, setNovoMoradorNome] = useState("");
     const [novoMoradorEmail, setNovoMoradorEmail] = useState("");
     const [novoMoradorUnidade, setNovoMoradorUnidade] = useState("");
@@ -395,7 +387,7 @@ export default function CondoAdm() {
         const semEmail = emailContato.startsWith("pendente.morador.");
 
         setEditandoSemEmail(semEmail);
-        setNovoMoradorEmail(semEmail ? "Cadastro sem e-mail" : emailContato);
+        setNovoMoradorEmail(semEmail ? "" : emailContato);
 
         let unidadeTratada = morador.unidade;
         if (unidadeTratada.trim().toLowerCase() === "administração") {
@@ -403,7 +395,6 @@ export default function CondoAdm() {
         }
         setNovoMoradorUnidade(unidadeTratada);
         setAutorizadoApp(morador.acesso_app);
-        setShowMoradorModal(true);
     };
 
     const cancelarEdicao = () => {
@@ -417,7 +408,6 @@ export default function CondoAdm() {
         setFormSuccess("");
         setResetPasswordSuccess("");
         setResetPasswordError("");
-        setShowMoradorModal(false);
     };
 
     const handleResetPasswordByAdmin = () => {
@@ -510,7 +500,14 @@ export default function CondoAdm() {
                 if (!targetUserId) {
                     const tempPassword = "Condo123!";
 
-                    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+                    // Instância isolada do Supabase para criação sem alterar a sessão ativa do síndico
+                    const isolatedSupabase = createClient(
+                        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+                        { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } }
+                    );
+
+                    const { data: signUpData, error: signUpError } = await isolatedSupabase.auth.signUp({
                         email: emailFormatado,
                         password: tempPassword,
                         options: { data: { nome_completo: nomeFormatado } }
@@ -564,7 +561,6 @@ export default function CondoAdm() {
                 setNovoMoradorUnidade("");
                 setAutorizadoApp(true);
                 setTimeout(() => {
-                    setShowMoradorModal(false);
                     setFormSuccess("");
                 }, 1500);
             }
@@ -649,7 +645,7 @@ export default function CondoAdm() {
         return (
             <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
                 <Loader2 className="animate-spin text-blue-600 mb-4" size={32} />
-                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Autenticando painel de gestão...</p>
+                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Carregando módulo de cadastro...</p>
             </div>
         );
     }
@@ -735,7 +731,6 @@ export default function CondoAdm() {
                     </form>
                 </div>
 
-                {/* MODAL: RECOVERY PASSWORD */}
                 {showForgotModal && (
                     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                         <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
@@ -780,7 +775,6 @@ export default function CondoAdm() {
                     </div>
                 )}
 
-                {/* MODAL: PRIMEIRO ACESSO VIA ID/SLUG */}
                 {showFirstAccessModal && (
                     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                         <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
@@ -802,7 +796,7 @@ export default function CondoAdm() {
 
                                 <form onSubmit={handleFirstAccessSetup} className="w-full space-y-3">
                                     <div className="relative group text-left">
-                                        <UserCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                                        <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-500 transition-colors" size={16} />
                                         <input
                                             type="text"
                                             required
@@ -869,196 +863,237 @@ export default function CondoAdm() {
                     <div className="flex flex-col md:flex-row md:items-center gap-6 w-full justify-between">
                         <div className="flex items-center gap-4">
                             <div className="w-auto h-auto bg-blue-600 text-white p-3 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/25 shrink-0 self-stretch">
-                                <Building2 size={24} />
+                                <UserPlus size={24} />
                             </div>
                             <div>
                                 <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">
-                                    <span className="md:hidden">Controle de acessos</span>
-                                    <span className="hidden md:inline">Painel de Gestão - Controles internos</span>
+                                    Controle de Moradores
                                 </span>
                                 <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5">{condominio?.nome}</h1>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            <button
-                                onClick={() => window.history.back()}
-                                className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 overflow-hidden shrink-0 cursor-pointer"
+                        <div className="hidden md:flex items-center gap-3">
+                            <Link
+                                href="/condo/adm"
+                                className="group relative flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 overflow-hidden shrink-0 cursor-pointer"
                             >
                                 <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
                                 <ArrowLeft size={12} className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out" />
                                 <span>Voltar</span>
-                            </button>
+                            </Link>
                         </div>
                     </div>
                 </div>
 
                 <p className="text-xs md:text-sm text-zinc-500 font-medium mb-6">
-                    Painel para gerenciamento de acessos de moradores, registros de lançamentos contábeis e controle de ocorrências e sugestões.
+                    Gerencie o cadastro de novos condôminos, configure permissões digitais de acesso ao aplicativo e atualize dados cadastrais em ambiente exclusivo.
                 </p>
 
-                <div className="w-full max-w-none space-y-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 justify-start">
-                        {/* Redirecionamento para a página cadastro_morador */}
-                        <Link
-                            href="/condo/adm/cadastro_morador"
-                            className="bg-white border border-zinc-200 hover:border-blue-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
-                        >
-                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shrink-0">
-                                    <UserPlus className="w-4 h-4 md:w-5 md:h-5" />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Cadastro Morador</h3>
-                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Acesso novo condômino</p>
-                                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+                    {/* FORMULÁRIO DE CADASTRO / EDIÇÃO */}
+                    <div className="bg-white border border-zinc-200 p-6 md:p-8 rounded-[2.5rem] shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div className="flex items-center gap-3 border-b border-zinc-100 pb-3 mb-4">
+                                {editandoId ? <Pencil className="text-indigo-600" size={20} /> : <UserPlus className="text-blue-600" size={20} />}
+                                <h2 className="font-bold text-base text-zinc-900">{editandoId ? "Editar Morador" : "Novo Cadastro"}</h2>
                             </div>
-                        </Link>
 
-                        {/* Redirecionamento para a página prestacao_contas */}
-                        <Link
-                            href="/condo/adm/prestacao_contas"
-                            className="bg-white border border-zinc-200 hover:border-emerald-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
-                        >
-                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all shrink-0">
-                                    <FileSpreadsheet className="w-4 h-4 md:w-5 md:h-5" />
+                            <form onSubmit={handleSaveForm} id="form-cadastro-morador" className="space-y-3.5">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Nome Completo</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Ex: João da Silva"
+                                        required
+                                        value={novoMoradorNome}
+                                        onChange={(e) => setNovoMoradorNome(e.target.value)}
+                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium"
+                                    />
                                 </div>
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Prestação de Contas</h3>
-                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Lançamentos financeiros</p>
-                                </div>
-                            </div>
-                        </Link>
 
-                        <Link
-                            href="/condo/adm/gestao_ativos"
-                            className="bg-white border border-zinc-200 hover:border-indigo-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
-                        >
-                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all shrink-0">
-                                    <Package className="w-4 h-4 md:w-5 md:h-5" />
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">
+                                        E-mail Login {editandoSemEmail ? "(Bloqueado)" : "(Opcional)"}
+                                    </label>
+                                    <input
+                                        type="email"
+                                        placeholder="Ex: john@dominio.com"
+                                        value={novoMoradorEmail}
+                                        disabled={editandoSemEmail}
+                                        onChange={(e) => setNovoMoradorEmail(e.target.value)}
+                                        className={`w-full px-4 py-3 border rounded-xl outline-none transition-all text-xs font-medium ${editandoSemEmail ? 'bg-zinc-100 border-zinc-200 text-zinc-400 cursor-not-allowed select-none' : 'bg-zinc-50 border-zinc-200 focus:bg-white focus:border-blue-400'}`}
+                                    />
+                                    <span className="text-[10px] text-zinc-400 block px-1">
+                                        Se preenchido, deve ser um e-mail válido. Se deixado em branco, será gerado acesso automático por ID de usuário.
+                                    </span>
                                 </div>
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Controle de bens</h3>
-                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Gestão de ativos</p>
-                                </div>
-                            </div>
-                        </Link>
 
-                        <Link
-                            href="/condo/adm/analise_ocorrencias"
-                            className="bg-white border border-zinc-200 hover:border-amber-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
-                        >
-                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-all shrink-0">
-                                    <ShieldAlert className="w-4 h-4 md:w-5 md:h-5" />
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Unidade</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Ex: Apto 102"
+                                        required
+                                        value={novoMoradorUnidade}
+                                        onChange={(e) => setNovoMoradorUnidade(e.target.value)}
+                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium"
+                                    />
                                 </div>
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Análise de Ocorrências</h3>
-                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Ações em chamados</p>
+
+                                <div className="flex items-center justify-between bg-zinc-50 border border-zinc-200 p-3.5 rounded-xl">
+                                    <div className="flex flex-col">
+                                        <span className="text-xs font-bold text-zinc-800 uppercase tracking-wide">Acesso APP</span>
+                                        <span className="text-[10px] text-zinc-400 font-medium">Permissão digital do perfil</span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setAutorizadoApp(!autorizadoApp)}
+                                        className={`w-11 h-6 flex items-center rounded-full p-1 transition-all duration-300 outline-none cursor-pointer ${autorizadoApp ? 'bg-blue-600 justify-end' : 'bg-zinc-300 justify-start'}`}
+                                    >
+                                        <div className="bg-white w-4 h-4 rounded-full shadow-md transition-all"></div>
+                                    </button>
                                 </div>
-                            </div>
-                        </Link>
-                    </div>
 
-                    <p className="text-xs text-zinc-400 font-medium px-1">
-                        Abaixo encontra-se a relação atualizada de todos os cadastros e moradores vinculados ao condomínio.
-                    </p>
-
-                    <div className="bg-white border border-zinc-200 p-6 md:p-8 rounded-[2.5rem] shadow-sm text-left mb-8">
-                        <div className="flex items-center justify-between border-b border-zinc-100 pb-4 mb-4">
-                            <div className="flex items-center gap-3">
-                                <Users className="text-blue-600" size={24} />
-                                <h2 className="font-bold text-lg text-zinc-900">Cadastro</h2>
-                            </div>
-                            <span className="hidden md:inline-block text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1 rounded-full">
-                                {moradores.length} Registros
-                            </span>
+                                {formError && <p className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 p-3 rounded-xl">{formError}</p>}
+                                {formSuccess && <p className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-3 rounded-xl flex items-center gap-2"><CheckCircle2 size={14} /> {formSuccess}</p>}
+                            </form>
                         </div>
 
-                        {moradores.length === 0 ? (
-                            <div className="text-center py-12 space-y-2">
-                                <p className="text-zinc-400 text-sm font-medium">Nenhum condômino cadastrado ainda.</p>
+                        <div className="pt-4 mt-4 border-t border-zinc-100 space-y-2">
+                            <div className="flex gap-2">
+                                <button
+                                    type="submit"
+                                    form="form-cadastro-morador"
+                                    disabled={actionLoading}
+                                    className={`flex-1 py-3.5 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 text-white cursor-pointer ${editandoId ? 'bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/10' : 'bg-blue-600 hover:bg-blue-700'}`}
+                                >
+                                    {actionLoading ? "Processando..." : editandoId ? "Salvar Alterações" : "Cadastrar Morador"}
+                                </button>
+                                {editandoId && (
+                                    <button
+                                        type="button"
+                                        onClick={cancelarEdicao}
+                                        className="bg-zinc-100 hover:bg-zinc-200 text-zinc-600 px-4 py-3.5 rounded-xl font-bold text-xs transition-colors cursor-pointer"
+                                    >
+                                        Cancelar
+                                    </button>
+                                )}
                             </div>
-                        ) : (
-                            <div className="overflow-x-hidden max-h-[300px]">
-                                <table className="w-full text-left border-collapse table-fixed">
-                                    <thead className="sticky top-0 bg-white z-15">
-                                        <tr className="border-b border-zinc-100">
-                                            <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider bg-white align-top w-[18%] pr-2">Apto</th>
-                                            <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider bg-white align-top w-[57%] pl-3">Nome</th>
-                                            <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider hidden md:table-cell bg-white align-top w-[15%]">App</th>
-                                            <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider text-right bg-white align-top w-[25%] pr-1">Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-zinc-50">
-                                        {moradores.map((morador) => {
-                                            const isSemEmail = morador.profile?.email_contato?.startsWith("pendente.morador.");
-                                            const nomeExibicaoOriginal = morador.profile?.nome_completo || "Sem Nome";
-                                            const unidadeOriginal = morador.unidade || "";
-                                            const isAdm = unidadeOriginal.trim().toLowerCase() === "administração" || unidadeOriginal.trim().toLowerCase() === "adm";
-                                            const nomeExibicaoFinal = formatarNomePrimeiroEUltimo(nomeExibicaoOriginal);
 
-                                            return (
-                                                <tr key={morador.id} className={`group transition-colors ${editandoId === morador.id ? 'bg-indigo-50/30' : ''}`}>
-                                                    <td className="py-3 text-sm font-bold text-zinc-900 align-top truncate pr-2">
-                                                        {isAdm ? "Adm" : unidadeOriginal}
-                                                    </td>
-                                                    <td className="py-3 align-top truncate pl-3 pr-2">
-                                                        <div className="text-sm font-bold text-zinc-800 leading-tight truncate">
-                                                            {nomeExibicaoFinal}
-                                                        </div>
-                                                        <div className="mt-1 truncate">
-                                                            {isSemEmail ? (
-                                                                <div className="text-[9px] text-zinc-400 font-semibold tracking-wide truncate">
-                                                                    ID: {morador.profile?.slug}
-                                                                </div>
-                                                            ) : (
-                                                                <div className="text-[9px] text-zinc-400 font-semibold tracking-wide truncate">
-                                                                    {mascararEmail(morador.profile?.email_contato)}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                    <td className="py-3 hidden md:table-cell align-top">
-                                                        {morador.acesso_app ? (
-                                                            <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md">
-                                                                <Smartphone size={10} /> Ativo
-                                                            </span>
-                                                        ) : (
-                                                            <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase bg-zinc-100 text-zinc-400 px-2 py-0.5 rounded-md">
-                                                                <Smartphone size={10} className="opacity-50" /> Inativo
-                                                            </span>
-                                                        )}
-                                                    </td>
-                                                    <td className="py-3 text-right align-top pr-0">
-                                                        <div className="flex items-center justify-end gap-0.5">
-                                                            <button
-                                                                onClick={() => iniciarEdicao(morador)}
-                                                                disabled={actionLoading}
-                                                                className="p-2 text-zinc-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer"
-                                                                title="Editar Cadastro"
-                                                            >
-                                                                <Pencil size={15} />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleRemoveMorador(morador)}
-                                                                disabled={actionLoading}
-                                                                className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
-                                                                title="Revogar Acesso"
-                                                            >
-                                                                <Trash2 size={15} />
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
+                            {editandoId && (
+                                <div className="space-y-2">
+                                    <button
+                                        type="button"
+                                        onClick={handleResetPasswordByAdmin}
+                                        disabled={actionLoading}
+                                        className="w-full bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer shadow-sm"
+                                    >
+                                        <KeyRound size={14} /> Solicitar redefinição de senha (WhatsApp)
+                                    </button>
+                                    {resetPasswordError && <p className="text-[11px] font-bold text-red-600 bg-red-50 border border-red-100 p-2 rounded-xl text-center">{resetPasswordError}</p>}
+                                    {resetPasswordSuccess && <p className="text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-2 rounded-xl flex items-center justify-center gap-1.5"><CheckCircle2 size={14} /> {resetPasswordSuccess}</p>}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* LISTAGEM DE MORADORES */}
+                    <div className="lg:col-span-2 bg-white border border-zinc-200 p-6 md:p-8 rounded-[2.5rem] shadow-sm flex flex-col justify-between h-full">
+                        <div>
+                            <div className="flex items-center justify-between border-b border-zinc-100 pb-4 mb-4">
+                                <div className="flex items-center gap-3">
+                                    <Users className="text-blue-600" size={24} />
+                                    <h2 className="font-bold text-lg text-zinc-900">Relação de Condôminos</h2>
+                                </div>
+                                <span className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1 rounded-full">
+                                    {moradores.length} Registros
+                                </span>
                             </div>
-                        )}
+
+                            {moradores.length === 0 ? (
+                                <div className="text-center py-12 space-y-2">
+                                    <p className="text-zinc-400 text-sm font-medium">Nenhum condômino cadastrado ainda.</p>
+                                </div>
+                            ) : (
+                                <div className="overflow-x-auto max-h-[500px]">
+                                    <table className="w-full text-left border-collapse">
+                                        <thead className="sticky top-0 bg-white z-10">
+                                            <tr className="border-b border-zinc-100">
+                                                <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider bg-white">Apto</th>
+                                                <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider bg-white">Nome / Contato</th>
+                                                <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider hidden md:table-cell bg-white">App</th>
+                                                <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider text-right bg-white">Ações</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-zinc-50">
+                                            {moradores.map((morador) => {
+                                                const isSemEmail = morador.profile?.email_contato?.startsWith("pendente.morador.");
+                                                const nomeExibicaoOriginal = morador.profile?.nome_completo || "Sem Nome";
+                                                const unidadeOriginal = morador.unidade || "";
+                                                const isAdm = unidadeOriginal.trim().toLowerCase() === "administração" || unidadeOriginal.trim().toLowerCase() === "adm";
+                                                const nomeExibicaoFinal = formatarNomePrimeiroEUltimo(nomeExibicaoOriginal);
+
+                                                return (
+                                                    <tr key={morador.id} className={`group transition-colors ${editandoId === morador.id ? 'bg-indigo-50/30' : ''}`}>
+                                                        <td className="py-3.5 text-sm font-bold text-zinc-900 align-top">
+                                                            {isAdm ? "Adm" : unidadeOriginal}
+                                                        </td>
+                                                        <td className="py-3.5 align-top">
+                                                            <div className="text-sm font-bold text-zinc-800 leading-tight">
+                                                                {nomeExibicaoFinal}
+                                                            </div>
+                                                            <div className="mt-1">
+                                                                {isSemEmail ? (
+                                                                    <div className="text-[10px] text-zinc-400 font-semibold tracking-wide">
+                                                                        ID: {morador.profile?.slug}
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="text-[10px] text-zinc-400 font-semibold tracking-wide">
+                                                                        {mascararEmail(morador.profile?.email_contato)}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-3.5 hidden md:table-cell align-top">
+                                                            {morador.acesso_app ? (
+                                                                <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md">
+                                                                    <Smartphone size={10} /> Ativo
+                                                                </span>
+                                                            ) : (
+                                                                <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase bg-zinc-100 text-zinc-400 px-2 py-0.5 rounded-md">
+                                                                    <Smartphone size={10} className="opacity-50" /> Inativo
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                        <td className="py-3.5 text-right align-top">
+                                                            <div className="flex items-center justify-end gap-1">
+                                                                <button
+                                                                    onClick={() => iniciarEdicao(morador)}
+                                                                    disabled={actionLoading}
+                                                                    className="p-2 text-zinc-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer"
+                                                                    title="Editar Cadastro"
+                                                                >
+                                                                    <Pencil size={15} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleRemoveMorador(morador)}
+                                                                    disabled={actionLoading}
+                                                                    className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
+                                                                    title="Revogar Acesso"
+                                                                >
+                                                                    <Trash2 size={15} />
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1099,106 +1134,9 @@ export default function CondoAdm() {
                                 onClick={handleConfirmarExclusaoSindicoWhatsApp}
                                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition shadow-md shadow-emerald-100 flex items-center justify-center gap-2 cursor-pointer mt-2"
                             >
-                                <MessageCircle size={15} /> Falar com a Central Nucleo (WhatsApp)
+                                <span className="text-sm">💬</span> Falar com a Central Nucleo (WhatsApp)
                             </button>
                         </div>
-                    </div>
-                </div>
-            )}
-
-            {/* MODAL DE EDIÇÃO DE MORADOR (Único popup de ação remanescente nesta página) */}
-            {showMoradorModal && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-6 md:p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200 my-auto">
-                        <button
-                            onClick={cancelarEdicao}
-                            className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-colors cursor-pointer"
-                        >
-                            <X size={20} />
-                        </button>
-
-                        <div className="flex items-center gap-3 border-b border-zinc-100 pb-3 mb-4">
-                            <Pencil className="text-indigo-600" size={20} />
-                            <h2 className="font-bold text-base">Editar Morador</h2>
-                        </div>
-
-                        <form onSubmit={handleSaveForm} className="space-y-3">
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Nome Completo</label>
-                                <input
-                                    type="text"
-                                    placeholder="Ex: João da Silva"
-                                    required
-                                    value={novoMoradorNome}
-                                    onChange={(e) => setNovoMoradorNome(e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium"
-                                />
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">E-mail Login {editandoSemEmail ? "(Bloqueado)" : "(Opcional)"}</label>
-                                <input
-                                    type="text"
-                                    placeholder="Ex: john@dominio.com"
-                                    value={novoMoradorEmail}
-                                    disabled={editandoSemEmail}
-                                    onChange={(e) => setNovoMoradorEmail(e.target.value)}
-                                    className={`w-full px-4 py-2.5 border rounded-xl outline-none transition-all text-xs font-medium ${editandoSemEmail ? 'bg-zinc-100 border-zinc-200 text-zinc-400 cursor-not-allowed select-none' : 'bg-zinc-50 border-zinc-200 focus:bg-white focus:border-blue-400'}`}
-                                />
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Unidade</label>
-                                <input
-                                    type="text"
-                                    placeholder="Ex: Apto 102"
-                                    required
-                                    value={novoMoradorUnidade}
-                                    onChange={(e) => setNovoMoradorUnidade(e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium"
-                                />
-                            </div>
-
-                            <div className="flex items-center justify-between bg-zinc-50 border border-zinc-200 p-3 rounded-xl">
-                                <div className="flex flex-col">
-                                    <span className="text-xs font-bold text-zinc-800 uppercase tracking-wide">Acesso APP</span>
-                                    <span className="text-[10px] text-zinc-400 font-medium">Permissão digital do perfil</span>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => setAutorizadoApp(!autorizadoApp)}
-                                    className={`w-11 h-6 flex items-center rounded-full p-1 transition-all duration-300 outline-none cursor-pointer ${autorizadoApp ? 'bg-blue-600 justify-end' : 'bg-zinc-300 justify-start'}`}
-                                >
-                                    <div className="bg-white w-4 h-4 rounded-full shadow-md transition-all"></div>
-                                </button>
-                            </div>
-
-                            {formError && <p className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 p-2.5 rounded-xl">{formError}</p>}
-                            {formSuccess && <p className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-2.5 rounded-xl flex items-center gap-2"><CheckCircle2 size={14} /> {formSuccess}</p>}
-
-                            <button
-                                type="submit"
-                                disabled={actionLoading}
-                                className="w-full py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 text-white cursor-pointer bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/10"
-                            >
-                                {actionLoading ? "Processando..." : "Salvar Alterações"}
-                            </button>
-
-                            {editandoId && (
-                                <div className="pt-2 border-t border-zinc-100 space-y-2">
-                                    <button
-                                        type="button"
-                                        onClick={handleResetPasswordByAdmin}
-                                        disabled={actionLoading}
-                                        className="w-full bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer shadow-sm"
-                                    >
-                                        <KeyRound size={14} /> Solicitar redefinição de senha (WhatsApp)
-                                    </button>
-                                    {resetPasswordError && <p className="text-[11px] font-bold text-red-600 bg-red-50 border border-red-100 p-2 rounded-xl text-center">{resetPasswordError}</p>}
-                                    {resetPasswordSuccess && <p className="text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-2 rounded-xl flex items-center justify-center gap-1.5"><CheckCircle2 size={14} /> {resetPasswordSuccess}</p>}
-                                </div>
-                            )}
-                        </form>
                     </div>
                 </div>
             )}

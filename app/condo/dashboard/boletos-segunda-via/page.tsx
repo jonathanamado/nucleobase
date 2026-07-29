@@ -2,7 +2,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import {
     Loader2,
     ArrowLeft,
@@ -14,19 +14,6 @@ import {
     CheckCircle2,
     Edit3
 } from "lucide-react";
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-        auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true,
-            storageKey: 'nucleo_condo_auth_session', // Chave isolada para blindagem contra lock broken
-        },
-    }
-);
 
 interface UserMemberData {
     role: string;
@@ -69,7 +56,6 @@ export default function BoletosSegundaViaPage() {
         "Jul/26"
     ];
 
-    // Verificação robusta de sessão padronizada com o modelo de moradores e retentativa contra race conditions
     const loadDadosCondominio = async (currentSession: any, retries = 2) => {
         try {
             if (!currentSession || !currentSession.user) {
@@ -202,8 +188,6 @@ export default function BoletosSegundaViaPage() {
         if (newWindow) newWindow.opener = null;
     };
 
-    // --- RENDERS DE AUTENTICAÇÃO ---
-
     if (loading) {
         return (
             <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
@@ -246,8 +230,6 @@ export default function BoletosSegundaViaPage() {
         );
     }
 
-    // --- RENDER PRINCIPAL (AUTORIZADO) ---
-
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-6 md:p-10 flex flex-col justify-between">
             <div className="max-w-4xl mx-auto w-full space-y-6">
@@ -279,7 +261,7 @@ export default function BoletosSegundaViaPage() {
 
                 <div>
                     <p className="text-xs md:text-sm text-zinc-500 font-medium">
-                        Selecione o mês em que precisa da reemissão do boleto para solicitar a 2ª via diretamente à administração.
+                        Seu perfil não possui acesso liberado neste condomínio no momento.
                     </p>
                 </div>
 
@@ -294,8 +276,8 @@ export default function BoletosSegundaViaPage() {
                             <button
                                 onClick={() => setModoPersonalizado(!modoPersonalizado)}
                                 className={`px-4 py-2.5 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${modoPersonalizado
-                                        ? "bg-blue-50 border-blue-500 text-blue-900 shadow-sm"
-                                        : "bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                                    ? "bg-blue-50 border-blue-500 text-blue-900 shadow-sm"
+                                    : "bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50"
                                     }`}
                             >
                                 <Edit3 size={15} className={modoPersonalizado ? "text-blue-600" : "text-zinc-400"} />
@@ -348,8 +330,8 @@ export default function BoletosSegundaViaPage() {
                                         key={mes}
                                         onClick={() => setMesSelecionado(mes)}
                                         className={`p-3.5 md:p-4 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center items-center justify-between cursor-pointer text-center md:text-left ${selecionado
-                                                ? "bg-blue-50/80 border-blue-500 text-blue-900 shadow-sm ring-1 ring-blue-500/20"
-                                                : "bg-zinc-50/60 border-zinc-200/80 text-zinc-700 hover:bg-zinc-100 hover:border-zinc-300"
+                                            ? "bg-blue-50/80 border-blue-500 text-blue-900 shadow-sm ring-1 ring-blue-500/20"
+                                            : "bg-zinc-50/60 border-zinc-200/80 text-zinc-700 hover:bg-zinc-100 hover:border-zinc-300"
                                             }`}
                                     >
                                         <div className="flex flex-col md:flex-row md:items-center items-center gap-2 md:gap-3 min-w-0 w-full">

@@ -2,7 +2,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import {
     Building2,
     Loader2,
@@ -18,19 +18,6 @@ import {
     Send,
     ArrowLeft
 } from "lucide-react";
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-        auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true,
-            storageKey: 'nucleo_condo_auth_session', // Chave isolada para blindagem contra lock broken
-        },
-    }
-);
 
 interface UserMemberData {
     role: string;
@@ -348,7 +335,6 @@ export default function OcorrenciasSugestoesPage() {
 
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 pt-6 px-6 md:px-10 flex flex-col justify-between">
-            {/* Header */}
             <div>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-5 mb-6">
                     <div className="flex flex-col md:flex-row md:items-center gap-6 w-full justify-between">
@@ -362,7 +348,6 @@ export default function OcorrenciasSugestoesPage() {
                             </div>
                         </div>
 
-                        {/* Botão Voltar integrado à direita no desktop */}
                         <button
                             onClick={() => window.history.back()}
                             className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 self-start md:self-auto overflow-hidden cursor-pointer shrink-0"
@@ -377,13 +362,11 @@ export default function OcorrenciasSugestoesPage() {
                     </div>
                 </div>
 
-                {/* Subtítulo / Contexto e Botões à direita no Desktop */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <p className="text-xs md:text-sm text-zinc-500 font-medium">
                         Livro digital integrado para registro transparente de ocorrências operacionais e envio de sugestões para a administração.
                     </p>
 
-                    {/* Ações / Botões de Abertura de Popups */}
                     <div className="grid grid-cols-2 md:flex md:flex-row items-center gap-3 w-full md:w-auto shrink-0">
                         <button
                             onClick={() => { setShowModalOcorrencia(true); setFormError(''); setFormSuccess(''); }}
@@ -419,9 +402,7 @@ export default function OcorrenciasSugestoesPage() {
                     </div>
                 )}
 
-                {/* Grid Vertical: Ocorrências e Sugestões dispostas uma abaixo da outra */}
                 <div className="flex flex-col gap-6 mb-12">
-                    {/* Bloco de Ocorrências */}
                     <div className="bg-white border border-zinc-200 rounded-[2rem] p-6 shadow-sm flex flex-col justify-between">
                         <div>
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-zinc-100 mb-4 gap-3">
@@ -433,7 +414,6 @@ export default function OcorrenciasSugestoesPage() {
                                 </div>
 
                                 <div className="flex items-center justify-end md:justify-start gap-2 w-full sm:w-auto">
-                                    {/* Filtro Opcional de Status */}
                                     <div className="flex items-center gap-1 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-xl">
                                         <Filter size={12} className="text-zinc-400" />
                                         <select
@@ -466,8 +446,8 @@ export default function OcorrenciasSugestoesPage() {
                                             <div className="flex justify-between items-start">
                                                 <h4 className="font-bold text-xs text-zinc-900">{item.titulo}</h4>
                                                 <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full ${item.status === 'resolvido' ? 'bg-emerald-50 text-emerald-600' :
-                                                        item.status === 'em_andamento' ? 'bg-amber-50 text-amber-600' :
-                                                            'bg-rose-50 text-rose-600'
+                                                    item.status === 'em_andamento' ? 'bg-amber-50 text-amber-600' :
+                                                        'bg-rose-50 text-rose-600'
                                                     }`}>
                                                     {item.status.replace('_', ' ')}
                                                 </span>
@@ -495,7 +475,6 @@ export default function OcorrenciasSugestoesPage() {
                         </div>
                     </div>
 
-                    {/* Bloco de Sugestões */}
                     <div className="bg-white border border-zinc-200 rounded-[2rem] p-6 shadow-sm flex flex-col justify-between">
                         <div>
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-zinc-100 mb-4 gap-3">
@@ -507,7 +486,6 @@ export default function OcorrenciasSugestoesPage() {
                                 </div>
 
                                 <div className="flex items-center justify-end md:justify-start gap-2 w-full sm:w-auto">
-                                    {/* Filtro Opcional de Status */}
                                     <div className="flex items-center gap-1 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-xl">
                                         <Filter size={12} className="text-zinc-400" />
                                         <select
@@ -540,8 +518,8 @@ export default function OcorrenciasSugestoesPage() {
                                             <div className="flex justify-between items-start">
                                                 <h4 className="font-bold text-xs text-zinc-900">{item.titulo}</h4>
                                                 <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full ${item.status === 'resolvido' ? 'bg-emerald-50 text-emerald-600' :
-                                                        item.status === 'em_andamento' ? 'bg-amber-50 text-amber-600' :
-                                                            'bg-indigo-50 text-indigo-600'
+                                                    item.status === 'em_andamento' ? 'bg-amber-50 text-amber-600' :
+                                                        'bg-indigo-50 text-indigo-600'
                                                     }`}>
                                                     {item.status.replace('_', ' ')}
                                                 </span>
@@ -570,7 +548,6 @@ export default function OcorrenciasSugestoesPage() {
                     </div>
                 </div>
 
-                {/* Bloco do Botão Enviar WhatsApp ao final da página */}
                 <div className="bg-white border border-zinc-200 rounded-[2rem] p-6 md:p-8 shadow-sm mb-12 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="space-y-1 text-center md:text-left">
                         <h3 className="font-bold text-base text-zinc-900">
@@ -595,7 +572,6 @@ export default function OcorrenciasSugestoesPage() {
                 </div>
             </div>
 
-            {/* POPUP: NOVA OCORRÊNCIA */}
             {showModalOcorrencia && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden border border-zinc-100 animate-in zoom-in-95 duration-200">
@@ -684,7 +660,6 @@ export default function OcorrenciasSugestoesPage() {
                 </div>
             )}
 
-            {/* POPUP: NOVA SUGESTÃO */}
             {showModalSugestao && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden border border-zinc-100 animate-in zoom-in-95 duration-200">
@@ -773,7 +748,6 @@ export default function OcorrenciasSugestoesPage() {
                 </div>
             )}
 
-            {/* POPUP: ENVIAR VIA WHATSAPP */}
             {showModalWhatsApp && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden border border-zinc-100 animate-in zoom-in-95 duration-200">
@@ -830,7 +804,6 @@ export default function OcorrenciasSugestoesPage() {
                 </div>
             )}
 
-            {/* Rodapé / Conecte-se */}
             <div>
                 <div className="flex items-center gap-4 mb-6">
                     <div className="h-px bg-gray-200 flex-1"></div>

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import {
     Building2,
     Loader2,
@@ -19,19 +19,6 @@ import {
     ArrowLeft,
     Trash2
 } from "lucide-react";
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-        auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true,
-            storageKey: 'nucleo_condo_auth_session',
-        }
-    }
-);
 
 interface UserMemberData {
     role: string;
@@ -150,9 +137,13 @@ export default function AnaliseOcorrenciasAdmPage() {
                 return;
             }
 
-            // Permite acesso se for síndico, unidade 106 ou Adm
+            // Permite acesso flexível para síndicos, administradores e unidades gestoras
             const vinculoAdm = membroDataList.find(
-                (m: any) => m.role === 'sindico' || m.unidade === '106' || m.unidade.toLowerCase() === 'adm'
+                (m: any) => {
+                    const r = (m.role || "").toLowerCase();
+                    const u = (m.unidade || "").toLowerCase();
+                    return r === 'sindico' || r === 'síndico' || r === 'adm' || r === 'administrador' || u === '106' || u === 'adm';
+                }
             );
 
             if (!vinculoAdm) {
@@ -164,16 +155,17 @@ export default function AnaliseOcorrenciasAdmPage() {
                 return;
             }
 
-            // Busca separadamente os dados do condomínio para evitar falhas
             let nomeCondominioOficial = vinculoAdm.condominio_nome || "Condomínio";
-            const { data: condoData } = await supabase
-                .from("condominios")
-                .select("nome")
-                .eq("id", vinculoAdm.condominio_id)
-                .maybeSingle();
+            if (vinculoAdm.condominio_id) {
+                const { data: condoData } = await supabase
+                    .from("condominios")
+                    .select("nome")
+                    .eq("id", vinculoAdm.condominio_id)
+                    .maybeSingle();
 
-            if (condoData && condoData.nome) {
-                nomeCondominioOficial = condoData.nome;
+                if (condoData && condoData.nome) {
+                    nomeCondominioOficial = condoData.nome;
+                }
             }
 
             if (isMountedRef.current) {
@@ -187,7 +179,9 @@ export default function AnaliseOcorrenciasAdmPage() {
                 });
             }
 
-            await loadOcorrenciasSugestoes(vinculoAdm.condominio_id);
+            if (vinculoAdm.condominio_id) {
+                await loadOcorrenciasSugestoes(vinculoAdm.condominio_id);
+            }
         } catch (e: any) {
             const errString = e?.message || JSON.stringify(e);
             if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
@@ -247,7 +241,6 @@ export default function AnaliseOcorrenciasAdmPage() {
         };
     }, []);
 
-    // Função para o síndico alterar o status de um item diretamente na lista suspensa do card
     const handleAtualizarStatus = async (id: string, novoStatus: 'pendente' | 'em_andamento' | 'resolvido') => {
         if (!memberData) return;
 
@@ -276,7 +269,6 @@ export default function AnaliseOcorrenciasAdmPage() {
         }
     };
 
-    // Função de Moderação: Excluir ocorrência ou sugestão com tratamento de políticas RLS do Supabase
     const handleExcluirItem = async (id: string) => {
         if (!confirm("Deseja realmente excluir este registro? Esta ação não poderá ser desfeita.")) return;
         if (!memberData) return;
@@ -312,7 +304,6 @@ export default function AnaliseOcorrenciasAdmPage() {
         }
     };
 
-    // Função para abrir o popup de devolutiva para um item específico
     const abrirModalDevolutiva = (item: ItemOcorrenciaSugestao) => {
         setWhatsappItemSelecionado(item);
         setMensagemDevolutiva(`Olá! Passando para dar uma devolutiva sobre a sua ${item.tipo === 'ocorrencia' ? 'ocorrência' : 'sugestão'} "${item.titulo}": `);
