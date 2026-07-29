@@ -30,6 +30,7 @@ import {
 interface UserMemberData {
     role: string;
     unidade: string;
+    acesso_app: boolean;
     condominio: {
         nome: string;
     } | null;
@@ -59,7 +60,7 @@ export default function CondoDashboard() {
 
     const isMountedRef = useRef(true);
 
-    // Consulta unificada com retentativa integrada para blindagem contra race conditions
+    // Consulta unificada corrigida para garantir filtro correto por acesso_app e evitar falhas intermitentes
     const fetchMemberPermissionsAndSession = async (currentSession: any, retries = 2) => {
         try {
             if (!currentSession || !currentSession.user) {
@@ -79,7 +80,6 @@ export default function CondoDashboard() {
             let data = null;
             let error = null;
 
-            // Loop de retentativas rápidas caso o banco demore milissegundos para responder
             for (let i = 0; i <= retries; i++) {
                 const res = await supabase
                     .from("condominio_membros")
@@ -90,6 +90,7 @@ export default function CondoDashboard() {
                         condominio:condominios ( nome )
                     `)
                     .eq("user_id", userId)
+                    .eq("acesso_app", true) // Filtro essencial para evitar buscar vínculos sem permissão de acesso
                     .order("role", { ascending: false }) // 'sindico' vem antes de 'morador'
                     .order("criado_em", { ascending: false })
                     .limit(1);
