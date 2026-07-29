@@ -28,7 +28,10 @@ import {
     AtSign,
     Eye,
     EyeOff,
-    MessageCircle
+    MessageCircle,
+    Vote,
+    Cog,
+    FileText
 } from "lucide-react";
 
 interface Morador {
@@ -105,7 +108,6 @@ export default function CondoAdm() {
         return `${partes[0]} ${partes[partes.length - 1]}`;
     };
 
-    // Função para abreviar o nome do condomínio mantendo apenas o primeiro e o último nome (para Mobile)
     const obterNomeCondominioMobile = (nomeCompleto: string) => {
         if (!nomeCompleto) return "Condomínio";
         const partes = nomeCompleto.trim().split(/\s+/);
@@ -132,7 +134,6 @@ export default function CondoAdm() {
         }
     };
 
-    // Verificação blindada com RPC para evitar instabilidades de RLS
     const verifySindicoAndLoadData = async (currentSession: any, retries = 2) => {
         try {
             if (!currentSession || !currentSession.user) {
@@ -178,7 +179,6 @@ export default function CondoAdm() {
                 return;
             }
 
-            // Valida se o usuário logado possui perfil de síndico
             if (condoData.role !== 'sindico') {
                 if (isMountedRef.current) {
                     setIsApenasMorador(true);
@@ -613,21 +613,36 @@ export default function CondoAdm() {
         setMoradorParaExcluir(null);
     };
 
+    // Função de Logout blindada contra sessões fantasmas/residuais
     const handleLogout = async () => {
         setLoading(true);
         try {
-            localStorage.removeItem('nucleo_condo_auth_session');
-            localStorage.removeItem('sb-' + process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split('.')[0] + '-auth-token');
-            window.dispatchEvent(new Event("storage"));
+            await supabase.auth.signOut({ scope: 'global' });
         } catch (e) {
-            console.error("Erro ao limpar storages:", e);
+            console.error("Erro ao deslogar no servidor:", e);
         }
-        await supabase.auth.signOut();
+
+        try {
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('nucleo'))) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+            localStorage.clear();
+            sessionStorage.clear();
+        } catch (e) {
+            console.error("Erro ao limpar storages locais:", e);
+        }
+
         setSession(null);
         setCondominio(null);
         setIsApenasMorador(false);
         setMoradores([]);
         setLoading(false);
+        window.dispatchEvent(new Event("storage"));
     };
 
     if (loading) {
@@ -946,6 +961,45 @@ export default function CondoAdm() {
                                 </div>
                             </div>
                         </Link>
+
+                        <Link
+                            href="/enquetes"
+                            className="bg-white border border-zinc-200 hover:border-blue-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
+                        >
+                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shrink-0">
+                                    <Vote className="w-4 h-4 md:w-5 md:h-5" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Enquetes e decisões</h3>
+                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Votações e assembleias</p>
+                                </div>
+                            </div>
+                        </Link>
+
+                        <div className="bg-white border border-zinc-200 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center text-left opacity-75">
+                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-zinc-100 text-zinc-500 rounded-xl flex items-center justify-center shrink-0">
+                                    <Cog className="w-4 h-4 md:w-5 md:h-5" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Controle Conservadora</h3>
+                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">em construção</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white border border-zinc-200 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center text-left opacity-75">
+                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-zinc-100 text-zinc-500 rounded-xl flex items-center justify-center shrink-0">
+                                    <FileText className="w-4 h-4 md:w-5 md:h-5" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Obrigações fiscais</h3>
+                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">em construção</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <p className="text-xs text-zinc-400 font-medium px-1">

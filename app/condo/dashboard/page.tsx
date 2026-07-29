@@ -60,7 +60,6 @@ export default function CondoDashboard() {
 
     const isMountedRef = useRef(true);
 
-    // Substitua a função fetchMemberPermissionsAndSession por esta:
     const fetchMemberPermissionsAndSession = async (currentSession: any, retries = 2) => {
         try {
             if (!currentSession || !currentSession.user) {
@@ -269,19 +268,34 @@ export default function CondoDashboard() {
         }
     };
 
+    // Função de Logout blindada contra sessões fantasmas/residuais
     const handleLogout = async () => {
         setLoading(true);
         try {
-            localStorage.removeItem('nucleo_condo_auth_session');
-            localStorage.removeItem('sb-' + process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split('.')[0] + '-auth-token');
-            window.dispatchEvent(new Event("storage"));
+            await supabase.auth.signOut({ scope: 'global' });
         } catch (e) {
-            console.error("Erro ao limpar storages:", e);
+            console.error("Erro ao deslogar no servidor:", e);
         }
-        await supabase.auth.signOut();
+
+        try {
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('nucleo'))) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+            localStorage.clear();
+            sessionStorage.clear();
+        } catch (e) {
+            console.error("Erro ao limpar storages locais:", e);
+        }
+
         setSession(null);
         setMemberData(null);
         setLoading(false);
+        window.dispatchEvent(new Event("storage"));
     };
 
     if (loading) {

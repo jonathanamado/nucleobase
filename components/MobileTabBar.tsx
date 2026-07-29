@@ -1,22 +1,10 @@
+// components/MobileTabBar.tsx
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { Search, User, Home, X, Rocket, Power, Dna, Settings, Key, UserPlus, PlayCircle, KeyRound, Eye, EyeOff, Info, Fingerprint, Building2 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-    }
-  }
-);
+import { supabase } from "@/lib/supabase";
 
 export function MobileTabBar() {
   const router = useRouter();
@@ -79,27 +67,55 @@ export function MobileTabBar() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setIsLoggedIn(!!session);
-      if (session?.user) fetchProfile(session.user.id);
-      else setUserProfile({ nome: "", avatar: null });
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      } else {
+        setUserProfile({ nome: "", avatar: null });
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
   const getInitials = (name: string) => {
-    if (!name) return "NB";
+    if (!name) return "";
     const parts = name.trim().split(" ");
     if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
+  // Logout blindado contra sessões fantasmas/residuais (NB)
   const handleLogout = async () => {
     const confirmLogout = window.confirm("Tem certeza que deseja sair da conta?");
-    if (confirmLogout) {
-      await supabase.auth.signOut();
-      setIsMenuOpen(false);
-      router.push("/");
+    if (!confirmLogout) return;
+
+    try {
+      await supabase.auth.signOut({ scope: 'global' });
+    } catch (e) {
+      console.error("Erro ao deslogar no servidor:", e);
     }
+
+    try {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('nucleo'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (e) {
+      console.error("Erro ao limpar storages locais:", e);
+    }
+
+    setIsLoggedIn(false);
+    setIsMenuOpen(false);
+    setUserProfile({ nome: "", avatar: null });
+
+    window.dispatchEvent(new Event("storage"));
+    router.push("/");
   };
 
   const handlePasswordReset = async (e: React.FormEvent) => {
@@ -133,14 +149,13 @@ export function MobileTabBar() {
   const MenuItem = ({ icon: Icon, label, onClick, color = "text-gray-700" }: any) => (
     <button
       onClick={onClick}
-      className="flex flex-col items-center justify-center gap-1.5 flex-1 h-full active:bg-gray-50 transition-colors"
+      className="flex flex-col items-center justify-center gap-1.5 flex-1 h-full active:bg-gray-50 transition-colors cursor-pointer"
     >
       <Icon size={18} className={color} strokeWidth={2} />
       <span className={`text-[8px] font-black uppercase tracking-widest text-center leading-none ${color}`}>{label}</span>
     </button>
   );
 
-  // Verificando se o pathname pertence ao módulo do condomínio (incluindo todas as subpáginas listadas)
   const isCondoActive = !isSearchOpen && !isMenuOpen && (pathname === "/condo" || pathname?.startsWith("/condo/"));
 
   const isProfileActive = isMenuOpen || (showPassModal && !isSearchOpen) ||
@@ -153,7 +168,7 @@ export function MobileTabBar() {
       {showPassModal && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-xl z-[150] flex items-center justify-center p-6">
           <div className="bg-white w-full max-w-md rounded-[3.5rem] p-12 shadow-2xl relative border border-gray-100 animate-in zoom-in-95 duration-300">
-            <button onClick={() => setShowPassModal(false)} className="absolute right-10 top-10 text-gray-300 hover:text-gray-900 transition-colors">
+            <button onClick={() => setShowPassModal(false)} className="absolute right-10 top-10 text-gray-300 hover:text-gray-900 transition-colors cursor-pointer">
               <X size={28} strokeWidth={1.5} />
             </button>
             <div className="text-center mb-10">
@@ -166,12 +181,12 @@ export function MobileTabBar() {
             <form onSubmit={handlePasswordReset} className="space-y-5">
               <div className="relative">
                 <input type={showPass ? "text" : "password"} placeholder="Nova senha" required onChange={(e) => setNewPassword(e.target.value)} className="w-full h-14 px-6 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-gray-900" />
-                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400">
+                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer">
                   {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
               <input type={showPass ? "text" : "password"} placeholder="Confirmar nova senha" required onChange={(e) => setConfirmPassword(e.target.value)} className="w-full h-14 px-6 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-gray-900" />
-              <button disabled={passLoading} className="w-full bg-gray-900 text-white h-16 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-lg mt-4 active:scale-95 transition-all disabled:opacity-50">
+              <button disabled={passLoading} className="w-full bg-gray-900 text-white h-16 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-lg mt-4 active:scale-95 transition-all disabled:opacity-50 cursor-pointer">
                 {passLoading ? "Atualizando..." : "Confirmar Alteração"}
               </button>
             </form>
@@ -216,7 +231,7 @@ export function MobileTabBar() {
               <div className="bg-blue-600 text-white px-3 py-1 rounded-md text-[10px] font-black tracking-widest uppercase shadow-sm">
                 Busca Rápida
               </div>
-              <button onClick={() => setIsSearchOpen(false)} className="p-2 bg-gray-50 rounded-full">
+              <button onClick={() => setIsSearchOpen(false)} className="p-2 bg-gray-50 rounded-full cursor-pointer">
                 <X size={20} className="text-gray-400" />
               </button>
             </div>
@@ -233,7 +248,7 @@ export function MobileTabBar() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-gray-900 focus:ring-2 focus:ring-blue-600 outline-none transition-all shadow-inner"
                 />
-                <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 bg-blue-600 text-white p-2 rounded-xl shadow-md">
+                <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 bg-blue-600 text-white p-2 rounded-xl shadow-md cursor-pointer">
                   <Search size={18} />
                 </button>
               </form>
@@ -248,23 +263,23 @@ export function MobileTabBar() {
       {/* Tab Bar Principal */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 h-[60px] z-[100] flex items-center justify-between shadow-[0_-1px_10px_rgba(0,0,0,0.02)] pb-safe-bottom">
 
-        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); router.push("/"); }} className={`p-2 transition-colors ${!isSearchOpen && !isMenuOpen && pathname === "/" ? "text-blue-600" : "text-gray-400"}`}>
+        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); router.push("/"); }} className={`p-2 transition-colors cursor-pointer ${!isSearchOpen && !isMenuOpen && pathname === "/" ? "text-blue-600" : "text-gray-400"}`}>
           <Home size={22} strokeWidth={!isSearchOpen && !isMenuOpen && pathname === "/" ? 2.5 : 2} />
         </button>
 
-        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); router.push("/lancamentos"); }} className={`p-2 transition-colors ${!isSearchOpen && !isMenuOpen && pathname === "/lancamentos" ? "text-orange-500" : "text-gray-400"}`}>
+        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); router.push("/lancamentos"); }} className={`p-2 transition-colors cursor-pointer ${!isSearchOpen && !isMenuOpen && pathname === "/lancamentos" ? "text-orange-500" : "text-gray-400"}`}>
           <Rocket size={22} strokeWidth={!isSearchOpen && !isMenuOpen && pathname === "/lancamentos" ? 2.5 : 2} />
         </button>
 
-        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); router.push("/condo"); }} className={`p-2 transition-colors ${isCondoActive ? "text-blue-600" : "text-gray-400"}`}>
+        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); router.push("/condo"); }} className={`p-2 transition-colors cursor-pointer ${isCondoActive ? "text-blue-600" : "text-gray-400"}`}>
           <Building2 size={22} strokeWidth={isCondoActive ? 2.5 : 2} />
         </button>
 
-        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(true); }} className={`p-2 transition-colors ${(isSearchOpen || pathname === "/busca") && !isMenuOpen ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}>
+        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(true); }} className={`p-2 transition-colors cursor-pointer ${(isSearchOpen || pathname === "/busca") && !isMenuOpen ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}>
           <Search size={22} strokeWidth={(isSearchOpen || pathname === "/busca") && !isMenuOpen ? 2.5 : 2} />
         </button>
 
-        <button onClick={handleProfileClick} className={`w-9 h-9 rounded-full border transition-all overflow-hidden flex items-center justify-center relative ${isProfileActive ? "border-blue-600 ring-2 ring-blue-600/20 shadow-[0_0_10px_rgba(37,99,235,0.1)]" : "border-gray-100 bg-gray-50"}`}>
+        <button onClick={handleProfileClick} className={`w-9 h-9 rounded-full border transition-all overflow-hidden flex items-center justify-center relative cursor-pointer ${isProfileActive ? "border-blue-600 ring-2 ring-blue-600/20 shadow-[0_0_10px_rgba(37,99,235,0.1)]" : "border-gray-100 bg-gray-50"}`}>
           {isLoggedIn && userProfile.avatar ? (
             <div className="relative w-full h-full">
               <img src={userProfile.avatar} alt="Perfil" className="w-full h-full object-cover" />
@@ -276,7 +291,7 @@ export function MobileTabBar() {
             </div>
           ) : isLoggedIn ? (
             <span className={`text-[10px] font-black tracking-tighter ${isProfileActive ? "text-blue-600" : "text-gray-400"}`}>
-              {isMenuOpen ? <X size={16} /> : getInitials(userProfile.nome)}
+              {isMenuOpen ? <X size={16} /> : (userProfile.nome ? getInitials(userProfile.nome) : <User size={16} />)}
             </span>
           ) : (
             <>

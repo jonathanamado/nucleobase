@@ -11,7 +11,8 @@ import {
     ShieldCheck,
     Building2,
     UserCircle,
-    Instagram
+    Instagram,
+    ShieldAlert
 } from "lucide-react";
 
 interface Morador {
@@ -192,6 +193,36 @@ export default function ListaMoradoresCondomino() {
         };
     }, []);
 
+    // Função de Logout blindada contra sessões fantasmas/residuais
+    const handleLogout = async () => {
+        setLoading(true);
+        try {
+            await supabase.auth.signOut({ scope: 'global' });
+        } catch (e) {
+            console.error("Erro ao deslogar no servidor:", e);
+        }
+
+        try {
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('nucleo'))) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+            localStorage.clear();
+            sessionStorage.clear();
+        } catch (e) {
+            console.error("Erro ao limpar storages locais:", e);
+        }
+
+        setSession(null);
+        setMoradores([]);
+        setLoading(false);
+        window.dispatchEvent(new Event("storage"));
+    };
+
     // Função utilitária para limpar e padronizar o número da unidade para ordenação precisa
     const extrairNumeroUnidade = (unidadeStr: string) => {
         if (!unidadeStr) return "";
@@ -298,6 +329,11 @@ export default function ListaMoradoresCondomino() {
                     <div className="bg-white border border-zinc-200 p-12 rounded-[2.5rem] text-center space-y-2 shadow-sm">
                         <p className="text-zinc-400 font-bold text-sm">Nenhum morador encontrado</p>
                         <p className="text-xs text-zinc-400">Verifique os termos digitados ou contate a administração se houver inconsistências.</p>
+                        <div className="pt-4">
+                            <button onClick={handleLogout} className="text-xs font-bold text-red-500 hover:underline cursor-pointer">
+                                Sair / Trocar Conta
+                            </button>
+                        </div>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

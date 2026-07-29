@@ -1,3 +1,4 @@
+// app/condo/page.tsx
 "use client";
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
@@ -211,8 +212,8 @@ export default function NucleobaseCondo() {
                             </div>
                         </div>
                         <div className="flex gap-2">
-                            <button onClick={anteriorPilar} className="p-2 bg-white/5 rounded-full text-white active:bg-white/20"><ChevronLeft size={16} /></button>
-                            <button onClick={proximoPilar} className="p-2 bg-white/5 rounded-full text-white active:bg-white/20"><ChevronRight size={16} /></button>
+                            <button onClick={anteriorPilar} className="p-2 bg-white/5 rounded-full text-white active:bg-white/20 cursor-pointer"><ChevronLeft size={16} /></button>
+                            <button onClick={proximoPilar} className="p-2 bg-white/5 rounded-full text-white active:bg-white/20 cursor-pointer"><ChevronRight size={16} /></button>
                         </div>
                     </div>
 
@@ -264,7 +265,7 @@ export default function NucleobaseCondo() {
                     <a
                         href="/condo/adm"
                         onClick={() => trackClick("Acessar Área do Síndico", "/condo/adm")}
-                        className="flex items-center justify-between flex-1 bg-gray-900 text-white py-3.5 px-4 rounded-2xl hover:bg-black transition-all group font-black text-[10px] uppercase tracking-widest shadow-lg"
+                        className="flex items-center justify-between flex-1 bg-gray-900 text-white py-3.5 px-4 rounded-2xl hover:bg-black transition-all group font-black text-[10px] uppercase tracking-widest shadow-lg cursor-pointer"
                     >
                         <div className="flex items-center gap-2">
                             <Building2 size={15} className="text-blue-500 shrink-0" />
@@ -335,7 +336,7 @@ export default function NucleobaseCondo() {
                         </div>
 
                         <p className="mb-8 text-gray-700 hidden md:block">
-                            Do planejamento orçamentário anual à reserva instantânea do salão de festas — oferecemos ao síndico o poder de uma gestão ágil e orientada a dados, enquanto o morador ganha a conveniência de acompanhar tudo de onde estiver.
+                            Do planejamento orçamentário anual à reserva instantánea do salão de festas — oferecemos ao síndico o poder de uma gestão ágil e orientada a dados, enquanto o morador ganha a conveniência de acompanhar tudo de onde estiver.
                         </p>
                     </div>
                     <p className="text-gray-700 text-sm md:text-lg">

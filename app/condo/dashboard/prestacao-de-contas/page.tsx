@@ -247,6 +247,37 @@ export default function PrestacaoContasPage() {
         };
     }, []);
 
+    // Função de Logout blindada contra sessões fantasmas/residuais
+    const handleLogout = async () => {
+        setLoading(true);
+        try {
+            await supabase.auth.signOut({ scope: 'global' });
+        } catch (e) {
+            console.error("Erro ao deslogar no servidor:", e);
+        }
+
+        try {
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('nucleo'))) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+            localStorage.clear();
+            sessionStorage.clear();
+        } catch (e) {
+            console.error("Erro ao limpar storages locais:", e);
+        }
+
+        setSession(null);
+        setCondominio(null);
+        setContas([]);
+        setLoading(false);
+        window.dispatchEvent(new Event("storage"));
+    };
+
     const handleSaveConta = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!condominio || !session) return;
@@ -339,9 +370,14 @@ export default function PrestacaoContasPage() {
                     <p className="text-sm text-zinc-500">
                         Seu perfil não possui acesso liberado neste condomínio no momento.
                     </p>
-                    <Link href="/condo/dashboard" className="inline-block bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors mt-2">
-                        Voltar ao Início
-                    </Link>
+                    <div className="pt-2 flex flex-col gap-2">
+                        <Link href="/condo/dashboard" className="inline-block bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
+                            Voltar ao Início
+                        </Link>
+                        <button onClick={handleLogout} className="text-xs font-bold text-red-500 hover:underline py-2 cursor-pointer">
+                            Sair / Trocar Conta
+                        </button>
+                    </div>
                 </div>
             </div>
         );

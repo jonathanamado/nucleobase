@@ -46,7 +46,7 @@ export default function BoletosSegundaViaPage() {
 
     const anosDisponiveis = ["2024", "2025", "2026", "2027"];
 
-    // Últimos 6 meses no formato "Mês Abreviado/Ano" (Ex: Fev/26 até Jul/26)
+    // Últimos 6 meses no formato "Mês Abreviado/Ano"
     const ultimosSeisMeses = [
         "Fev/26",
         "Mar/26",
@@ -172,6 +172,36 @@ export default function BoletosSegundaViaPage() {
         };
     }, []);
 
+    // Função de Logout blindada contra sessões fantasmas/residuais
+    const handleLogout = async () => {
+        setLoading(true);
+        try {
+            await supabase.auth.signOut({ scope: 'global' });
+        } catch (e) {
+            console.error("Erro ao deslogar no servidor:", e);
+        }
+
+        try {
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('nucleo'))) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+            localStorage.clear();
+            sessionStorage.clear();
+        } catch (e) {
+            console.error("Erro ao limpar storages locais:", e);
+        }
+
+        setSession(null);
+        setMemberData(null);
+        setLoading(false);
+        window.dispatchEvent(new Event("storage"));
+    };
+
     const handleSolicitarWhatsApp = (e: React.MouseEvent) => {
         e.preventDefault();
 
@@ -222,9 +252,14 @@ export default function BoletosSegundaViaPage() {
                     <p className="text-sm text-zinc-500">
                         Seu perfil não possui acesso liberado neste condomínio no momento.
                     </p>
-                    <Link href="/condo/dashboard" className="inline-block bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors mt-2">
-                        Voltar ao Início
-                    </Link>
+                    <div className="pt-2 flex flex-col gap-2">
+                        <Link href="/condo/dashboard" className="inline-block bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
+                            Voltar ao Início
+                        </Link>
+                        <button onClick={handleLogout} className="text-xs font-bold text-red-500 hover:underline py-2 cursor-pointer">
+                            Sair / Trocar Conta
+                        </button>
+                    </div>
                 </div>
             </div>
         );
@@ -259,12 +294,6 @@ export default function BoletosSegundaViaPage() {
                     </button>
                 </div>
 
-                <div>
-                    <p className="text-xs md:text-sm text-zinc-500 font-medium">
-                        Seu perfil não possui acesso liberado neste condomínio no momento.
-                    </p>
-                </div>
-
                 <div className="bg-white border border-zinc-200 rounded-[2.5rem] p-6 md:p-8 shadow-sm space-y-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-100">
                         <div className="space-y-0.5">
@@ -276,8 +305,8 @@ export default function BoletosSegundaViaPage() {
                             <button
                                 onClick={() => setModoPersonalizado(!modoPersonalizado)}
                                 className={`px-4 py-2.5 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${modoPersonalizado
-                                    ? "bg-blue-50 border-blue-500 text-blue-900 shadow-sm"
-                                    : "bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                                        ? "bg-blue-50 border-blue-500 text-blue-900 shadow-sm"
+                                        : "bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50"
                                     }`}
                             >
                                 <Edit3 size={15} className={modoPersonalizado ? "text-blue-600" : "text-zinc-400"} />
@@ -330,8 +359,8 @@ export default function BoletosSegundaViaPage() {
                                         key={mes}
                                         onClick={() => setMesSelecionado(mes)}
                                         className={`p-3.5 md:p-4 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center items-center justify-between cursor-pointer text-center md:text-left ${selecionado
-                                            ? "bg-blue-50/80 border-blue-500 text-blue-900 shadow-sm ring-1 ring-blue-500/20"
-                                            : "bg-zinc-50/60 border-zinc-200/80 text-zinc-700 hover:bg-zinc-100 hover:border-zinc-300"
+                                                ? "bg-blue-50/80 border-blue-500 text-blue-900 shadow-sm ring-1 ring-blue-500/20"
+                                                : "bg-zinc-50/60 border-zinc-200/80 text-zinc-700 hover:bg-zinc-100 hover:border-zinc-300"
                                             }`}
                                     >
                                         <div className="flex flex-col md:flex-row md:items-center items-center gap-2 md:gap-3 min-w-0 w-full">

@@ -112,7 +112,6 @@ export default function ReservaEspacosPage() {
             let membroError = null;
 
             for (let i = 0; i <= retries; i++) {
-                // Buscamos também o nome do perfil e a unidade do membro para preencher os novos campos na inserção
                 const res = await supabase
                     .from("condominio_membros")
                     .select(`
@@ -237,6 +236,37 @@ export default function ReservaEspacosPage() {
         };
     }, []);
 
+    // Função de Logout blindada contra sessões fantasmas/residuais
+    const handleLogout = async () => {
+        setLoading(true);
+        try {
+            await supabase.auth.signOut({ scope: 'global' });
+        } catch (e) {
+            console.error("Erro ao deslogar no servidor:", e);
+        }
+
+        try {
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('nucleo'))) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+            localStorage.clear();
+            sessionStorage.clear();
+        } catch (e) {
+            console.error("Erro ao limpar storages locais:", e);
+        }
+
+        setSession(null);
+        setMemberData(null);
+        setIsApenasMoradorBloqueado(false);
+        setLoading(false);
+        window.dispatchEvent(new Event("storage"));
+    };
+
     const gerarDiasCalendario = () => {
         const dias = [];
         const hoje = new Date();
@@ -285,7 +315,6 @@ export default function ReservaEspacosPage() {
         setFeedbackMessage(null);
 
         try {
-            // Verifica duplicidade no banco
             const { data: checkData } = await supabase
                 .from("condominio_reservas")
                 .select("id")
@@ -302,7 +331,6 @@ export default function ReservaEspacosPage() {
                 return;
             }
 
-            // Buscamos dados atualizados do membro/perfil para popular responsavel_nome e unidade na tabela de forma escalável
             const { data: membroInfo } = await supabase
                 .from("condominio_membros")
                 .select(`
@@ -317,7 +345,6 @@ export default function ReservaEspacosPage() {
             const nomeResponsavel = profileObj?.nome_completo || session.user.user_metadata?.nome_completo || "Condômino";
             const unidadeMorador = membroInfo?.unidade || "N/A";
 
-            // Insere no banco com os campos novos de redundância escalável
             const { error } = await supabase
                 .from("condominio_reservas")
                 .insert([
@@ -404,22 +431,6 @@ export default function ReservaEspacosPage() {
         return diffDays;
     };
 
-    const handleLogout = async () => {
-        setLoading(true);
-        try {
-            localStorage.removeItem('nucleo_condo_auth_session');
-            localStorage.removeItem('sb-' + process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split('.')[0] + '-auth-token');
-            window.dispatchEvent(new Event("storage"));
-        } catch (e) {
-            console.error("Erro ao limpar storages:", e);
-        }
-        await supabase.auth.signOut();
-        setSession(null);
-        setMemberData(null);
-        setIsApenasMoradorBloqueado(false);
-        setLoading(false);
-    };
-
     if (loading) {
         return (
             <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
@@ -487,9 +498,14 @@ export default function ReservaEspacosPage() {
                     <p className="text-sm text-zinc-500">
                         Seu perfil não possui acesso liberado neste condomínio no momento.
                     </p>
-                    <Link href="/condo/dashboard" className="inline-block bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors mt-2">
-                        Voltar ao Início
-                    </Link>
+                    <div className="pt-2 flex flex-col gap-2">
+                        <Link href="/condo/dashboard" className="inline-block bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
+                            Voltar ao Início
+                        </Link>
+                        <button onClick={handleLogout} className="text-xs font-bold text-red-500 hover:underline py-2 cursor-pointer">
+                            Sair / Trocar Conta
+                        </button>
+                    </div>
                 </div>
             </div>
         );
@@ -595,7 +611,7 @@ export default function ReservaEspacosPage() {
                     </div>
                 )}
 
-                {/* Calendário de Disponibilidade (Mês vigente a partir de amanhã + Mês seguinte completo) */}
+                {/* Calendário de Disponibilidade */}
                 <div className="bg-white border border-zinc-200 p-6 md:p-8 rounded-[2.5rem] shadow-sm mb-12">
                     <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-zinc-100 pb-4 mb-6 gap-2">
                         <div className="flex items-center gap-3">
@@ -622,8 +638,8 @@ export default function ReservaEspacosPage() {
                                 <div
                                     key={dia.dataIso}
                                     className={`p-4 rounded-2xl border flex flex-col justify-between items-center text-center transition-all ${dia.reservado
-                                            ? 'bg-zinc-100/70 border-zinc-200 text-zinc-400 opacity-80'
-                                            : 'bg-white border-zinc-200 hover:border-blue-400 hover:shadow-md cursor-pointer group'
+                                        ? 'bg-zinc-100/70 border-zinc-200 text-zinc-400 opacity-80'
+                                        : 'bg-white border-zinc-200 hover:border-blue-400 hover:shadow-md cursor-pointer group'
                                         }`}
                                 >
                                     <div className="space-y-0.5">
@@ -666,8 +682,8 @@ export default function ReservaEspacosPage() {
                                 <div
                                     key={dia.dataIso}
                                     className={`p-2.5 rounded-xl border flex flex-col justify-between items-center text-center transition-all ${dia.reservado
-                                            ? 'bg-zinc-100/70 border-zinc-200 text-zinc-400 opacity-80'
-                                            : 'bg-white border-zinc-200 active:border-blue-400'
+                                        ? 'bg-zinc-100/70 border-zinc-200 text-zinc-400 opacity-80'
+                                        : 'bg-white border-zinc-200 active:border-blue-400'
                                         }`}
                                 >
                                     <div className="space-y-0">
@@ -698,10 +714,9 @@ export default function ReservaEspacosPage() {
                         })}
                     </div>
 
-                    {/* Linha Divisória */}
                     <hr className="my-8 border-zinc-200" />
 
-                    {/* Opção de Sinalizar Data Futura de forma Personalizada */}
+                    {/* Opção de Sinalizar Data Futura */}
                     <div className="bg-zinc-50 border border-zinc-200 p-5 md:p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
                         <div className="space-y-1 text-left w-full">
                             <div className="flex items-center gap-2">

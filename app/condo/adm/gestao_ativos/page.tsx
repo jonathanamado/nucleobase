@@ -213,6 +213,37 @@ export default function GestaoAtivosPage() {
         };
     }, []);
 
+    // Função de Logout blindada e completa
+    const handleLogout = async () => {
+        setLoading(true);
+        try {
+            await supabase.auth.signOut({ scope: 'global' });
+        } catch (e) {
+            console.error("Erro ao deslogar no servidor:", e);
+        }
+
+        try {
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('nucleo'))) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+            localStorage.clear();
+            sessionStorage.clear();
+        } catch (e) {
+            console.error("Erro ao limpar storages locais:", e);
+        }
+
+        setSession(null);
+        setCondominio(null);
+        setAtivos([]);
+        setLoading(false);
+        window.dispatchEvent(new Event("storage"));
+    };
+
     const abrirNovoCadastro = () => {
         setItemEditando(null);
         setNomeInput("");
@@ -317,9 +348,14 @@ export default function GestaoAtivosPage() {
                 <div className="w-full max-w-sm bg-white border border-zinc-200 p-8 rounded-[2.5rem] text-center space-y-4 shadow-sm">
                     <h1 className="text-xl font-black text-zinc-900">Acesso restrito</h1>
                     <p className="text-sm text-zinc-500">Faça login como síndico para acessar esta página.</p>
-                    <Link href="/condo/adm" className="inline-block bg-zinc-900 text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider">
-                        Voltar ao Painel
-                    </Link>
+                    <div className="pt-2 flex flex-col gap-2">
+                        <Link href="/condo/adm" className="inline-block bg-zinc-900 text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider">
+                            Voltar ao Painel
+                        </Link>
+                        <button onClick={handleLogout} className="text-xs font-bold text-red-500 hover:underline py-2 cursor-pointer">
+                            Sair / Trocar Conta
+                        </button>
+                    </div>
                 </div>
             </div>
         );

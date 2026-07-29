@@ -500,7 +500,6 @@ export default function CadastroMoradorPage() {
                 if (!targetUserId) {
                     const tempPassword = "Condo123!";
 
-                    // Instância isolada do Supabase para criação sem alterar a sessão ativa do síndico
                     const isolatedSupabase = createClient(
                         process.env.NEXT_PUBLIC_SUPABASE_URL!,
                         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -624,21 +623,36 @@ export default function CadastroMoradorPage() {
         setMoradorParaExcluir(null);
     };
 
+    // Função de Logout blindada e completa
     const handleLogout = async () => {
         setLoading(true);
         try {
-            localStorage.removeItem('nucleo_condo_auth_session');
-            localStorage.removeItem('sb-' + process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split('.')[0] + '-auth-token');
-            window.dispatchEvent(new Event("storage"));
+            await supabase.auth.signOut({ scope: 'global' });
         } catch (e) {
-            console.error("Erro ao limpar storages:", e);
+            console.error("Erro ao deslogar no servidor:", e);
         }
-        await supabase.auth.signOut();
+
+        try {
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('nucleo'))) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+            localStorage.clear();
+            sessionStorage.clear();
+        } catch (e) {
+            console.error("Erro ao limpar storages locais:", e);
+        }
+
         setSession(null);
         setCondominio(null);
         setIsApenasMorador(false);
         setMoradores([]);
         setLoading(false);
+        window.dispatchEvent(new Event("storage"));
     };
 
     if (loading) {
@@ -840,7 +854,7 @@ export default function CadastroMoradorPage() {
                     <div className="pt-2 space-y-3">
                         <button
                             onClick={() => window.history.back()}
-                            className="w-full bg-zinc-900 hover:bg-black text-white py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md shadow-zinc-900/10 cursor-pointer"
+                            className="w-full bg-zinc-900 hover:bg-black text-white py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md shadow-zinc-900/10 cursor-pointer hidden md:flex"
                         >
                             <ArrowLeft size={14} /> Voltar à página anterior
                         </button>

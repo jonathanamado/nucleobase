@@ -77,7 +77,6 @@ export function Header() {
 
   useEffect(() => {
     const checkSession = async () => {
-      // Verifica primeiro a chave padrão do Supabase e, caso não exista, verifica também a chave isolada do condo ('nucleo_condo_auth_session')
       let currentSession = null;
       const { data } = await supabase.auth.getSession();
       currentSession = data.session;
@@ -130,23 +129,45 @@ export function Header() {
   }, []);
 
   const getInitials = (name: string) => {
-    if (!name) return "NB";
+    if (!name) return "";
     const parts = name.trim().split(" ");
     if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
+  // Função de Logout blindada contra sessões fantasmas/residuais (NB)
   const handleLogout = async () => {
     const confirmLogout = window.confirm("Tem certeza que deseja sair da conta?");
-    if (confirmLogout) {
-      try {
-        localStorage.removeItem('nucleo_condo_auth_session');
-      } catch (e) { }
-      await supabase.auth.signOut();
-      setIsMenuOpen(false);
-      setIsUserDropdownOpen(false);
-      router.push("/");
+    if (!confirmLogout) return;
+
+    try {
+      await supabase.auth.signOut({ scope: 'global' });
+    } catch (e) {
+      console.error("Erro ao deslogar no servidor:", e);
     }
+
+    try {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('nucleo'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (e) {
+      console.error("Erro ao limpar storages locais:", e);
+    }
+
+    setIsLoggedIn(false);
+    setIsMenuOpen(false);
+    setIsUserDropdownOpen(false);
+    setUserProfile({ nome: "", avatar: null });
+
+    window.dispatchEvent(new Event("storage"));
+    router.push("/");
   };
 
   const handlePasswordReset = async (e: React.FormEvent) => {
@@ -171,7 +192,6 @@ export function Header() {
     }
   };
 
-  // Menu Mobile Ajustado: "Administração Condo" incluído estrategicamente na lista
   const menuLinks = [
     { name: "Sobre a Plataforma", href: "/sobre", icon: <Info size={18} /> },
     { name: "Indique e ganhe", href: "/indique", icon: <Gift size={18} /> },
@@ -185,7 +205,7 @@ export function Header() {
   const DropdownItem = ({ icon: Icon, label, onClick, color = "text-gray-600" }: any) => (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-3 px-4 py-3 text-sm ${color} hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl border-b border-gray-50 last:border-0`}
+      className={`w-full flex items-center gap-3 px-4 py-3 text-sm ${color} hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl border-b border-gray-50 last:border-0 cursor-pointer`}
     >
       <Icon size={18} strokeWidth={2} />
       <span className="font-bold">{label}</span>
@@ -249,7 +269,7 @@ export function Header() {
       {showPassModal && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md z-[150] flex items-center justify-center p-6">
           <div className="bg-white w-full max-w-md rounded-[3.5rem] p-12 shadow-2xl relative border border-gray-100 animate-in zoom-in-95 duration-300">
-            <button onClick={() => setShowPassModal(false)} className="absolute right-10 top-10 text-gray-400 hover:text-gray-900 transition-colors">
+            <button onClick={() => setShowPassModal(false)} className="absolute right-10 top-10 text-gray-400 hover:text-gray-900 transition-colors cursor-pointer">
               <X size={28} strokeWidth={1.5} />
             </button>
             <div className="text-center mb-10">
@@ -268,7 +288,7 @@ export function Header() {
                   onChange={(e) => setNewPassword(e.target.value)}
                   className="w-full h-14 px-6 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-gray-900 placeholder:text-gray-400"
                 />
-                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400">
+                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer">
                   {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
@@ -279,7 +299,7 @@ export function Header() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full h-14 px-6 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-gray-900 placeholder:text-gray-400"
               />
-              <button disabled={passLoading} className="w-full bg-gray-900 text-white h-16 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-lg mt-4 active:scale-95 transition-all disabled:opacity-50">
+              <button disabled={passLoading} className="w-full bg-gray-900 text-white h-16 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-lg mt-4 active:scale-95 transition-all disabled:opacity-50 cursor-pointer">
                 {passLoading ? "Atualizando..." : "Confirmar Alteração"}
               </button>
             </form>
@@ -321,7 +341,7 @@ export function Header() {
                 placeholder="Pesquisar..."
                 className="bg-transparent outline-none text-[12px] w-24 lg:w-40 transition-all focus:w-32 lg:focus:w-56 text-gray-900"
               />
-              <button type="submit" className="text-gray-400 group-hover:text-blue-600 transition-colors ml-1">
+              <button type="submit" className="text-gray-400 group-hover:text-blue-600 transition-colors ml-1 cursor-pointer">
                 <Search size={18} strokeWidth={2.5} />
               </button>
             </form>
@@ -363,7 +383,9 @@ export function Header() {
                     userProfile.avatar ? (
                       <img src={userProfile.avatar} alt="Perfil" className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-xs font-black text-blue-600 tracking-tighter">{getInitials(userProfile.nome)}</span>
+                      <span className="text-xs font-black text-blue-600 tracking-tighter">
+                        {userProfile.nome ? getInitials(userProfile.nome) : <UserCircle size={20} className="text-gray-400" />}
+                      </span>
                     )
                   ) : (
                     pathname === "/demonstracao" ? (

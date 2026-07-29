@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import {
   UserCog, Rocket, ArrowRight,
   CheckCircle2, LogOut, X, Mail, LifeBuoy, AtSign,
@@ -12,11 +12,6 @@ import {
   Instagram, KeyRound, UserCheck
 } from "lucide-react";
 import Link from "next/link";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export default function AcessoUsuarioPage() {
   const [slug, setSlug] = useState("");
@@ -35,7 +30,6 @@ export default function AcessoUsuarioPage() {
   // Estados do Novo Fluxo de Primeiro Acesso com ID/Slug
   const [showFirstAccessModal, setShowFirstAccessModal] = useState(false);
   const [firstAccessSlug, setFirstAccessSlug] = useState("");
-  const [firstAccessRealEmail, setFirstAccessRealEmail] = useState("");
   const [firstAccessLoading, setFirstAccessLoading] = useState(false);
 
   useEffect(() => {
@@ -45,7 +39,10 @@ export default function AcessoUsuarioPage() {
 
         if (error || !session) {
           setIsLoggedIn(false);
-          if (error) await supabase.auth.signOut();
+          if (error) {
+            // Limpeza preventiva de sessão inválida
+            await supabase.auth.signOut();
+          }
         } else {
           fetchProfileData(session.user);
         }
@@ -124,6 +121,7 @@ export default function AcessoUsuarioPage() {
       if (authError) {
         alert("Erro ao acessar: Verifique suas credenciais de acesso.");
       } else {
+        window.dispatchEvent(new Event("storage"));
         window.location.href = "/minha-conta";
       }
     } catch (err) {
@@ -131,6 +129,36 @@ export default function AcessoUsuarioPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Função de Logout blindada contra sessões fantasmas/residuais
+  const handleLogout = async () => {
+    setLoading(true);
+    try {
+      await supabase.auth.signOut({ scope: 'global' });
+    } catch (e) {
+      console.error("Erro ao deslogar no servidor:", e);
+    }
+
+    try {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('nucleo'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (e) {
+      console.error("Erro ao limpar storages locais:", e);
+    }
+
+    setIsLoggedIn(false);
+    setUserName("");
+    setLoading(false);
+    window.location.href = "/acesso-usuario";
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -148,7 +176,6 @@ export default function AcessoUsuarioPage() {
     setResetLoading(false);
   };
 
-  // Processa a validação do primeiro acesso do morador focando no reconhecimento da chave e definição de senha
   const handleFirstAccessSetup = async (e: React.FormEvent) => {
     e.preventDefault();
     setFirstAccessLoading(true);
@@ -156,7 +183,6 @@ export default function AcessoUsuarioPage() {
     const inputSlug = firstAccessSlug.trim().toLowerCase();
 
     try {
-      // 1. Localiza o usuário correspondente ao slug na tabela profiles
       const { data: profileData, error: profileQueryError } = await supabase
         .from('profiles')
         .select('id, slug, email_contato')
@@ -171,7 +197,6 @@ export default function AcessoUsuarioPage() {
         return;
       }
 
-      // 2. Tenta realizar login automático com a senha padrão temporária ("Condo123!") utilizada no cadastro do síndico
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: profileData.email_contato,
         password: "Condo123!"
@@ -190,7 +215,6 @@ export default function AcessoUsuarioPage() {
         return;
       }
 
-      // 3. Se autenticado com sucesso pelo fluxo de primeiro acesso, redireciona para /configuracoes
       window.location.href = "/configuracoes";
     } catch (err: any) {
       console.error("Erro no primeiro acesso:", err);
@@ -205,11 +229,14 @@ export default function AcessoUsuarioPage() {
       {/* Cabeçalho */}
       <div className="mb-6 mt-2 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
         <div className="lg:col-span-12 text-left">
-          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
-            <span>
-              Seja bem vindo <span className="text-orange-500">{isLoggedIn ? "(a)," : "(a)"}</span>
-            </span>
-          </h1>
+          <div className="flex items-center justify-between w-full">
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
+              <span>
+                Seja bem vindo <span className="text-orange-500">{isLoggedIn ? "(a)," : "(a)"}</span>
+              </span>
+            </h1>
+
+          </div>
 
           <div className="text-xl md:text-3xl text-gray-900 max-w-none leading-tight mb-4 flex items-center flex-wrap">
             <span className="font-bold tracking-tight">
@@ -315,7 +342,7 @@ export default function AcessoUsuarioPage() {
 
                   <button
                     disabled={loading}
-                    className="w-full bg-orange-500 text-white h-[48px] rounded-xl font-bold hover:bg-orange-600 transition shadow-lg text-xs disabled:opacity-50 mt-2"
+                    className="w-full bg-orange-500 text-white h-[48px] rounded-xl font-bold hover:bg-orange-600 transition shadow-lg text-xs disabled:opacity-50 mt-2 cursor-pointer"
                   >
                     {loading ? "Verificando..." : "Acessar Plataforma"}
                   </button>
@@ -527,7 +554,7 @@ export default function AcessoUsuarioPage() {
           <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
             <button
               onClick={() => setShowForgotModal(false)}
-              className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-colors"
+              className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-colors cursor-pointer"
             >
               <X size={20} />
             </button>
@@ -555,7 +582,7 @@ export default function AcessoUsuarioPage() {
                 </div>
                 <button
                   disabled={resetLoading}
-                  className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-100 text-xs flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-100 text-xs flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                 >
                   {resetLoading ? "Enviando..." : "Enviar Link de Acesso"}
                   <ArrowRight size={16} />
@@ -572,7 +599,7 @@ export default function AcessoUsuarioPage() {
           <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
             <button
               onClick={() => setShowFirstAccessModal(false)}
-              className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-colors"
+              className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-colors cursor-pointer"
             >
               <X size={20} />
             </button>
@@ -601,7 +628,7 @@ export default function AcessoUsuarioPage() {
 
                 <button
                   disabled={firstAccessLoading}
-                  className="w-full bg-zinc-900 text-white py-3.5 rounded-xl font-bold hover:bg-black transition shadow-lg text-xs flex items-center justify-center gap-2 disabled:opacity-50 mt-2 uppercase tracking-widest text-[10px]"
+                  className="w-full bg-zinc-900 text-white py-3.5 rounded-xl font-bold hover:bg-black transition shadow-lg text-xs flex items-center justify-center gap-2 disabled:opacity-50 mt-2 uppercase tracking-widest text-[10px] cursor-pointer"
                 >
                   {firstAccessLoading ? "Verificando Chave..." : "Validar e Acessar"}
                   <ArrowRight size={14} />

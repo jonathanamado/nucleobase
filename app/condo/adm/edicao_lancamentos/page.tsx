@@ -1,6 +1,6 @@
 // app/condo/dashboard/adm/edicao_lancamentos/page.tsx
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import {
@@ -45,48 +45,7 @@ export default function EdicaoLancamentosPage() {
     const [msgSucesso, setMsgSucesso] = useState("");
     const [msgErro, setMsgErro] = useState("");
 
-    const verifyAndLoad = async () => {
-        try {
-            setLoading(true);
-            const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-
-            if (sessionError || !currentSession) {
-                setSession(null);
-                setCondominio(null);
-                setLancamentos([]);
-                setLoading(false);
-                return;
-            }
-
-            setSession(currentSession);
-            const userId = currentSession.user.id;
-
-            const { data: membroDataList, error: membroError } = await supabase
-                .from("condominio_membros")
-                .select(`
-                    condominio_id,
-                    condominio:condominios ( id, nome )
-                `)
-                .eq("user_id", userId)
-                .order("role", { ascending: false })
-                .limit(1);
-
-            if (membroError) throw membroError;
-
-            if (membroDataList && membroDataList.length > 0 && membroDataList[0].condominio) {
-                const condoInfo = Array.isArray(membroDataList[0].condominio)
-                    ? membroDataList[0].condominio[0]
-                    : membroDataList[0].condominio;
-
-                setCondominio(condoInfo);
-                await loadLancamentos(membroDataList[0].condominio_id);
-            }
-        } catch (e) {
-            console.error("Erro ao carregar dados:", e);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const isMountedRef = useRef(true);
 
     const loadLancamentos = async (condoId: string) => {
         const { data, error } = await supabase
@@ -95,14 +54,166 @@ export default function EdicaoLancamentosPage() {
             .eq("condominio_id", condoId)
             .order("data_competencia", { ascending: false });
 
-        if (!error && data) {
+        if (!error && data && isMountedRef.current) {
             setLancamentos(data as ContaItem[]);
         }
     };
 
+    const verifyAndLoad = async (currentSession: any, retries = 2) => {
+        try {
+            if (!currentSession || !currentSession.user) {
+                if (isMountedRef.current) {
+                    setSession(null);
+                    setCondominio(null);
+                    setLancamentos([]);
+                    setLoading(false);
+                }
+                return;
+            }
+
+            if (isMountedRef.current) {
+                setSession(currentSession);
+            }
+            const userId = currentSession.user.id;
+
+            let membroDataList = null;
+            let membroError = null;
+
+            for (let i = 0; i <= retries; i++) {
+                const res = await supabase
+                    .from("condominio_membros")
+                    .select(`
+                        condominio_id,
+                        condominio:condominios ( id, nome )
+                    `)
+                    .eq("user_id", userId)
+                    .order("role", { ascending: false })
+                    .limit(1);
+
+                membroDataList = res.data;
+                membroError = res.error;
+
+                if (membroError) {
+                    const errorMsg = membroError.message || JSON.stringify(membroError);
+                    if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
+                        console.error("Erro na consulta Supabase (membros):", errorMsg);
+                    }
+                }
+
+                if (membroDataList && membroDataList.length > 0) {
+                    break;
+                }
+
+                if (i < retries) {
+                    await new Promise((resolve) => setTimeout(resolve, 300));
+                }
+            }
+
+            if (!membroDataList || membroDataList.length === 0 || !membroDataList[0].condominio) {
+                if (isMountedRef.current) {
+                    setCondominio(null);
+                    setLancamentos([]);
+                    setLoading(false);
+                }
+                return;
+            }
+
+            const condoInfo = Array.isArray(membroDataList[0].condominio)
+                ? membroDataList[0].condominio[0]
+                : membroDataList[0].condominio;
+
+            if (isMountedRef.current) {
+                setCondominio(condoInfo);
+                await loadLancamentos(membroDataList[0].condominio_id);
+            }
+        } catch (e: any) {
+            const errString = e?.message || JSON.stringify(e);
+            if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
+                console.error("Erro ao carregar dados:", errString);
+            }
+            if (isMountedRef.current) {
+                setCondominio(null);
+            }
+        } finally {
+            if (isMountedRef.current) {
+                setLoading(false);
+            }
+        }
+    };
+
     useEffect(() => {
-        verifyAndLoad();
+        isMountedRef.current = true;
+
+        const initAuth = async () => {
+            try {
+                const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+                if (sessionError && !currentSession) throw sessionError;
+
+                if (isMountedRef.current) {
+                    await verifyAndLoad(currentSession);
+                }
+            } catch (err: any) {
+                const errString = err?.message || JSON.stringify(err);
+                if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
+                    console.error("Erro ao recuperar sessão inicial:", errString);
+                }
+                if (isMountedRef.current) setLoading(false);
+            }
+        };
+
+        initAuth();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+            if (!isMountedRef.current) return;
+
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+                if (currentSession) {
+                    await verifyAndLoad(currentSession);
+                }
+            } else if (event === 'SIGNED_OUT') {
+                setSession(null);
+                setCondominio(null);
+                setLancamentos([]);
+                setLoading(false);
+            }
+        });
+
+        return () => {
+            isMountedRef.current = false;
+            subscription.unsubscribe();
+        };
     }, []);
+
+    // Função de Logout blindada e completa
+    const handleLogout = async () => {
+        setLoading(true);
+        try {
+            await supabase.auth.signOut({ scope: 'global' });
+        } catch (e) {
+            console.error("Erro ao deslogar no servidor:", e);
+        }
+
+        try {
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('nucleo'))) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+            localStorage.clear();
+            sessionStorage.clear();
+        } catch (e) {
+            console.error("Erro ao limpar storages locais:", e);
+        }
+
+        setSession(null);
+        setCondominio(null);
+        setLancamentos([]);
+        setLoading(false);
+        window.dispatchEvent(new Event("storage"));
+    };
 
     const abrirEdicao = (item: ContaItem) => {
         setItemEditando(item);
@@ -181,9 +292,14 @@ export default function EdicaoLancamentosPage() {
                 <div className="w-full max-w-sm bg-white border border-zinc-200 p-8 rounded-[2.5rem] text-center space-y-4 shadow-sm">
                     <h1 className="text-xl font-black text-zinc-900">Acesso restrito</h1>
                     <p className="text-sm text-zinc-500">Faça login como síndico para acessar esta página.</p>
-                    <Link href="/condo/dashboard/adm" className="inline-block bg-zinc-900 text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider">
-                        Voltar ao Painel
-                    </Link>
+                    <div className="pt-2 flex flex-col gap-2">
+                        <Link href="/condo/dashboard/adm" className="inline-block bg-zinc-900 text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider">
+                            Voltar ao Painel
+                        </Link>
+                        <button onClick={handleLogout} className="text-xs font-bold text-red-500 hover:underline py-2 cursor-pointer">
+                            Sair / Trocar Conta
+                        </button>
+                    </div>
                 </div>
             </div>
         );
@@ -276,14 +392,14 @@ export default function EdicaoLancamentosPage() {
                                                 <div className="flex items-center justify-end gap-1">
                                                     <button
                                                         onClick={() => abrirEdicao(item)}
-                                                        className="p-2 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                                                        className="p-2 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all cursor-pointer"
                                                         title="Editar Lançamento"
                                                     >
                                                         <Edit3 size={15} />
                                                     </button>
                                                     <button
                                                         onClick={() => handleExcluir(item.id)}
-                                                        className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                        className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
                                                         title="Excluir Lançamento"
                                                     >
                                                         <Trash2 size={15} />
@@ -305,7 +421,7 @@ export default function EdicaoLancamentosPage() {
                     <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-6 md:p-8 relative border border-zinc-100 animate-in zoom-in-95 duration-200 my-auto">
                         <button
                             onClick={() => setItemEditando(null)}
-                            className="absolute right-6 top-6 text-zinc-400 hover:text-zinc-900 transition-colors"
+                            className="absolute right-6 top-6 text-zinc-400 hover:text-zinc-900 transition-colors cursor-pointer"
                         >
                             <X size={20} />
                         </button>
@@ -356,7 +472,7 @@ export default function EdicaoLancamentosPage() {
                             <button
                                 type="submit"
                                 disabled={actionLoading}
-                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-indigo-600/10 flex items-center justify-center gap-2"
+                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-indigo-600/10 flex items-center justify-center gap-2 cursor-pointer"
                             >
                                 {actionLoading ? "Salvando..." : "Salvar Alterações"}
                             </button>
