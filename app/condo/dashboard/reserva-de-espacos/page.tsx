@@ -65,6 +65,13 @@ export default function ReservaEspacosPage() {
 
     const isMountedRef = useRef(true);
 
+    const formatarNomePrimeiroEUltimo = (nomeCompleto: string) => {
+        if (!nomeCompleto) return "";
+        const partes = nomeCompleto.trim().split(/\s+/);
+        if (partes.length <= 1) return partes[0] || "";
+        return `${partes[0]} ${partes[partes.length - 1]}`;
+    };
+
     const loadReservas = async (condoId: string) => {
         try {
             const { data, error } = await supabase
@@ -531,7 +538,8 @@ export default function ReservaEspacosPage() {
                                     </span>
                                 </div>
                                 <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1 text-zinc-900">
-                                    {memberData?.condominio?.nome || "Módulo Condominial"}
+                                    <span className="md:hidden text-black">{formatarNomePrimeiroEUltimo(memberData?.condominio?.nome || "")}</span>
+                                    <span className="hidden md:inline">{memberData?.condominio?.nome || "Módulo Condominial"}</span>
                                 </h1>
                             </div>
                         </div>
@@ -562,12 +570,12 @@ export default function ReservaEspacosPage() {
                 {/* Minhas Reservas Ativas */}
                 {minhasReservas.length > 0 && (
                     <div className="bg-white border border-zinc-200 p-6 rounded-[2.5rem] shadow-sm mb-8">
-                        <div className="flex items-center justify-between border-b border-zinc-100 pb-4 mb-4">
-                            <div className="flex items-center gap-3">
-                                <Sparkles className="text-blue-600" size={20} />
-                                <h2 className="font-bold text-base text-zinc-900">Suas Reservas Confirmadas</h2>
+                        <div className="flex flex-col md:flex-row items-center md:items-center justify-between border-b border-zinc-100 pb-4 mb-4 gap-2">
+                            <div className="flex items-center justify-center md:justify-start gap-3 w-full md:w-auto">
+                                <Sparkles className="text-blue-600 shrink-0" size={20} />
+                                <h2 className="font-bold text-base text-zinc-900 text-center md:text-left">Reservas Confirmadas</h2>
                             </div>
-                            <span className="text-[10px] font-black uppercase bg-blue-50 text-blue-600 px-3 py-1 rounded-full">
+                            <span className="hidden md:inline-block text-[10px] font-black uppercase bg-blue-50 text-blue-600 px-3 py-1 rounded-full">
                                 {minhasReservas.length} Ativa(s)
                             </span>
                         </div>
@@ -614,11 +622,11 @@ export default function ReservaEspacosPage() {
                 {/* Calendário de Disponibilidade */}
                 <div className="bg-white border border-zinc-200 p-6 md:p-8 rounded-[2.5rem] shadow-sm mb-12">
                     <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-zinc-100 pb-4 mb-6 gap-2">
-                        <div className="flex items-center gap-3">
-                            <CalendarIcon className="text-blue-600" size={24} />
+                        <div className="flex flex-col md:flex-row items-center md:items-center gap-3 text-center md:text-left w-full md:w-auto">
+                            <CalendarIcon className="text-blue-600 shrink-0" size={24} />
                             <div>
-                                <h2 className="font-bold text-lg text-zinc-900">Agenda reserva</h2>
-                                <p className="text-xs text-zinc-400">Agende sua data desejada no calendário, conforme disponibilidade</p>
+                                <h2 className="font-bold text-lg text-zinc-900 text-center md:text-left">Agenda reserva</h2>
+                                <p className="text-xs text-zinc-400 text-center md:text-left">Agende sua data desejada no calendário, conforme disponibilidade</p>
                             </div>
                         </div>
                         <div className="flex items-center justify-center md:justify-end gap-6 w-full md:w-auto text-[10px] font-bold uppercase tracking-wider text-zinc-500 my-4 md:my-0">
@@ -717,13 +725,13 @@ export default function ReservaEspacosPage() {
                     <hr className="my-8 border-zinc-200" />
 
                     {/* Opção de Sinalizar Data Futura */}
-                    <div className="bg-zinc-50 border border-zinc-200 p-5 md:p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
-                        <div className="space-y-1 text-left w-full">
-                            <div className="flex items-center gap-2">
-                                <PlusCircle size={18} className="text-blue-600" />
-                                <h3 className="font-bold text-sm md:text-base text-zinc-900">Data futura personalizada</h3>
+                    <div className="bg-zinc-50 border border-zinc-200 p-5 md:p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+                        <div className="space-y-1 w-full flex flex-col items-center md:items-start">
+                            <div className="flex items-center justify-center md:justify-start gap-2">
+                                <PlusCircle size={18} className="text-blue-600 shrink-0" />
+                                <h3 className="font-bold text-sm md:text-base text-zinc-900 text-center md:text-left">Data futura</h3>
                             </div>
-                            <p className="text-xs text-zinc-500">
+                            <p className="text-xs text-zinc-500 text-center md:text-left">
                                 Precisa agendar com antecedência estendida além dos próximos meses? Selecione uma data futura específica.
                             </p>
                         </div>
@@ -734,7 +742,7 @@ export default function ReservaEspacosPage() {
                                 required
                                 value={customDate}
                                 onChange={(e) => setCustomDate(e.target.value)}
-                                className="px-3 py-2.5 bg-white border border-zinc-200 rounded-xl text-xs font-medium outline-none focus:border-blue-400 w-full md:w-auto"
+                                className="px-3 py-2.5 bg-white border border-zinc-200 rounded-xl text-xs font-medium outline-none focus:border-blue-400 w-full md:w-auto text-center md:text-left"
                             />
                             <button
                                 type="submit"
@@ -836,32 +844,41 @@ export default function ReservaEspacosPage() {
                 </div>
             )}
 
-            {/* Rodapé / Conecte-se */}
             <div>
-                <div className="flex items-center gap-4 mb-6">
+                <div className="mt-24 flex items-center gap-4 mb-12">
                     <div className="h-px bg-gray-200 flex-1"></div>
                     <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
                     <div className="h-px bg-gray-200 flex-1"></div>
                 </div>
 
-                <div className="flex flex-col items-center text-center pb-6">
+                {/* BLOCO INSTAGRAM */}
+                <div className="flex flex-col items-center text-center">
+                    <div className="max-w-3xl mb-12">
+                        <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
+                            Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+                        </h4>
+                        <p className="text-gray-500 font-medium text-sm md:text-base">
+                            Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
+                        </p>
+                    </div>
+
                     <a
                         href="https://www.instagram.com/nucleobase.app/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group relative flex flex-col items-center gap-4"
+                        className="group relative flex flex-col items-center gap-6"
                     >
                         <div className="relative">
                             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
 
-                            <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[1.8rem] md:rounded-[2rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
-                                <Instagram className="w-8 h-8 md:w-10 md:h-10" strokeWidth={1.5} />
+                            <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+                                <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
                             </div>
                         </div>
 
                         <div className="flex flex-col items-center">
                             <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
-                            <div className="h-1 w-0 bg-pink-500 mt-1.5 group-hover:w-full transition-all duration-500 rounded-full"></div>
+                            <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
                         </div>
                     </a>
                 </div>

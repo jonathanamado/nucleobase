@@ -30,8 +30,9 @@ import {
     EyeOff,
     MessageCircle,
     Vote,
-    Cog,
-    FileText
+    Wrench,
+    FileText,
+    BookOpen
 } from "lucide-react";
 
 interface Morador {
@@ -963,16 +964,16 @@ export default function CondoAdm() {
                         </Link>
 
                         <Link
-                            href="/enquetes"
-                            className="bg-white border border-zinc-200 hover:border-blue-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
+                            href="/condo/adm/enquetes"
+                            className="bg-white border border-zinc-200 hover:border-sky-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
                         >
                             <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shrink-0">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center group-hover:bg-sky-600 group-hover:text-white transition-all shrink-0">
                                     <Vote className="w-4 h-4 md:w-5 md:h-5" />
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Enquetes e decisões</h3>
-                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Votações e assembleias</p>
+                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Votações comunitárias</p>
                                 </div>
                             </div>
                         </Link>
@@ -980,11 +981,11 @@ export default function CondoAdm() {
                         <div className="bg-white border border-zinc-200 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center text-left opacity-75">
                             <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
                                 <div className="w-8 h-8 md:w-10 md:h-10 bg-zinc-100 text-zinc-500 rounded-xl flex items-center justify-center shrink-0">
-                                    <Cog className="w-4 h-4 md:w-5 md:h-5" />
+                                    <Wrench className="w-4 h-4 md:w-5 md:h-5" />
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Controle Conservadora</h3>
-                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">em construção</p>
+                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Controle Conservação</h3>
+                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Preservação áreas comuns</p>
                                 </div>
                             </div>
                         </div>
@@ -996,7 +997,19 @@ export default function CondoAdm() {
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Obrigações fiscais</h3>
-                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">em construção</p>
+                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Gestão de tributos</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white border border-zinc-200 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center text-left opacity-75">
+                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-zinc-100 text-zinc-500 rounded-xl flex items-center justify-center shrink-0">
+                                    <BookOpen className="w-4 h-4 md:w-5 md:h-5" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Regras internas</h3>
+                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Convenção e regimento</p>
                                 </div>
                             </div>
                         </div>

@@ -56,6 +56,14 @@ export default function BoletosSegundaViaPage() {
         "Jul/26"
     ];
 
+    // Função Auxiliar: Formata nome completo para retornar apenas o primeiro e o último nome
+    const formatarNomePrimeiroEUltimo = (nomeCompleto: string) => {
+        if (!nomeCompleto) return "";
+        const partes = nomeCompleto.trim().split(/\s+/);
+        if (partes.length <= 1) return partes[0] || "";
+        return `${partes[0]} ${partes[partes.length - 1]}`;
+    };
+
     const loadDadosCondominio = async (currentSession: any, retries = 2) => {
         try {
             if (!currentSession || !currentSession.user) {
@@ -276,7 +284,8 @@ export default function BoletosSegundaViaPage() {
                         <div>
                             <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Boletos (2ª via)</span>
                             <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1 text-zinc-900">
-                                {memberData?.condominio?.nome || "Meu Condomínio"}
+                                <span className="md:hidden text-black">{formatarNomePrimeiroEUltimo(memberData?.condominio?.nome || "Meu Condomínio")}</span>
+                                <span className="hidden md:inline">{memberData?.condominio?.nome || "Meu Condomínio"}</span>
                             </h1>
                         </div>
                     </div>
@@ -305,8 +314,8 @@ export default function BoletosSegundaViaPage() {
                             <button
                                 onClick={() => setModoPersonalizado(!modoPersonalizado)}
                                 className={`px-4 py-2.5 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${modoPersonalizado
-                                        ? "bg-blue-50 border-blue-500 text-blue-900 shadow-sm"
-                                        : "bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                                    ? "bg-blue-50 border-blue-500 text-blue-900 shadow-sm"
+                                    : "bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50"
                                     }`}
                             >
                                 <Edit3 size={15} className={modoPersonalizado ? "text-blue-600" : "text-zinc-400"} />
@@ -359,8 +368,8 @@ export default function BoletosSegundaViaPage() {
                                         key={mes}
                                         onClick={() => setMesSelecionado(mes)}
                                         className={`p-3.5 md:p-4 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center items-center justify-between cursor-pointer text-center md:text-left ${selecionado
-                                                ? "bg-blue-50/80 border-blue-500 text-blue-900 shadow-sm ring-1 ring-blue-500/20"
-                                                : "bg-zinc-50/60 border-zinc-200/80 text-zinc-700 hover:bg-zinc-100 hover:border-zinc-300"
+                                            ? "bg-blue-50/80 border-blue-500 text-blue-900 shadow-sm ring-1 ring-blue-500/20"
+                                            : "bg-zinc-50/60 border-zinc-200/80 text-zinc-700 hover:bg-zinc-100 hover:border-zinc-300"
                                             }`}
                                     >
                                         <div className="flex flex-col md:flex-row md:items-center items-center gap-2 md:gap-3 min-w-0 w-full">
@@ -398,41 +407,44 @@ export default function BoletosSegundaViaPage() {
                     </div>
                 </div>
 
-                <div className="mt-24 flex items-center gap-4 mb-12">
-                    <div className="h-px bg-gray-200 flex-1"></div>
-                    <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
-                    <div className="h-px bg-gray-200 flex-1"></div>
-                </div>
-
-                <div className="flex flex-col items-center text-center pb-6">
-                    <div className="max-w-3xl mb-12">
-                        <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
-                            Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
-                        </h4>
-                        <p className="text-gray-500 font-medium text-sm md:text-base">
-                            Dicas de gestão inteligente, novidades do sistema e conteúdos exclusivos no nosso Instagram.
-                        </p>
+                <div>
+                    <div className="mt-24 flex items-center gap-4 mb-12">
+                        <div className="h-px bg-gray-200 flex-1"></div>
+                        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
+                        <div className="h-px bg-gray-200 flex-1"></div>
                     </div>
 
-                    <a
-                        href="https://www.instagram.com/nucleobase.app/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group relative flex flex-col items-center gap-6"
-                    >
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+                    {/* BLOCO INSTAGRAM */}
+                    <div className="flex flex-col items-center text-center">
+                        <div className="max-w-3xl mb-12">
+                            <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
+                                Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+                            </h4>
+                            <p className="text-gray-500 font-medium text-sm md:text-base">
+                                Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
+                            </p>
+                        </div>
 
-                            <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
-                                <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+                        <a
+                            href="https://www.instagram.com/nucleobase.app/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group relative flex flex-col items-center gap-6"
+                        >
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+
+                                <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+                                    <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="flex flex-col items-center">
-                            <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
-                            <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
-                        </div>
-                    </a>
+                            <div className="flex flex-col items-center">
+                                <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+                                <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

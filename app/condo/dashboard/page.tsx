@@ -571,7 +571,7 @@ export default function CondoDashboard() {
             </div>
 
             <p className="text-xs md:text-sm text-zinc-500 font-medium mb-10">
-                Seja bem-vindo(a) ao <span className="font-bold text-zinc-800">{memberData?.condominio?.nome || "Condomínio"}</span>! Explore ferramentas integradas ao seu condomínio.
+                Seja bem-vindo(a) ao <span className="font-bold text-zinc-800">{memberData?.condominio?.nome || "Condomínio"}</span>. Explore ferramentas integradas ao seu condomínio.
             </p>
 
             <div className="grid grid-cols-2 md:grid-cols-2 gap-4 md:gap-6 max-w-6xl">

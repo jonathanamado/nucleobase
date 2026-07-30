@@ -84,6 +84,14 @@ export default function EnquetesDecisoesPage() {
     const [criandoDetalhada, setCriandoDetalhada] = useState(false);
     const [detalhadaSucesso, setDetalhadaSucesso] = useState("");
 
+    // Função Auxiliar: Formata nome completo para retornar apenas o primeiro e o último nome
+    const formatarNomePrimeiroEUltimo = (nomeCompleto: string) => {
+        if (!nomeCompleto) return "";
+        const partes = nomeCompleto.trim().split(/\s+/);
+        if (partes.length <= 1) return partes[0] || "";
+        return `${partes[0]} ${partes[partes.length - 1]}`;
+    };
+
     const loadDadosDashboard = async (condoId: string, userId: string) => {
         try {
             // 1. Carregar todas as enquetes oficiais do condomínio
@@ -490,12 +498,13 @@ export default function EnquetesDecisoesPage() {
                                 <Building2 size={24} />
                             </div>
                             <div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">
-                                        {memberData?.condominio?.nome || "Módulo Condominial"}
-                                    </span>
+                                <div>
+                                    <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Enquetes e Decisões</span>
+                                    <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1 text-zinc-900">
+                                        <span className="md:hidden text-black">{formatarNomePrimeiroEUltimo(memberData?.condominio?.nome || "Módulo Condominial")}</span>
+                                        <span className="hidden md:inline">{memberData?.condominio?.nome || "Módulo Condominial"}</span>
+                                    </h1>
                                 </div>
-                                <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1">Enquetes e Decisões</h1>
                             </div>
                         </div>
 
@@ -518,14 +527,14 @@ export default function EnquetesDecisoesPage() {
                     {/* Botão de Destaque para Criar Enquete na Lateral Direita */}
                     <button
                         onClick={() => setIsPopupOpen(true)}
-                        className="group flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3.5 rounded-2xl shadow-xl shadow-blue-600/25 transition-all hover:scale-[1.02] active:scale-95 cursor-pointer self-start md:self-auto shrink-0"
+                        className="group flex items-center justify-center md:justify-start gap-3 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3.5 rounded-2xl shadow-xl shadow-blue-600/25 transition-all hover:scale-[1.02] active:scale-95 cursor-pointer w-full md:w-auto shrink-0"
                     >
                         <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center group-hover:rotate-90 transition-transform duration-300">
                             <Plus size={18} className="text-white" />
                         </div>
                         <div className="text-left">
                             <span className="block text-[10px] font-bold uppercase tracking-wider text-blue-100">Sua Proposta</span>
-                            <span className="block text-xs font-black uppercase tracking-tight">Criar Nova Enquete</span>
+                            <span className="block text-xs font-black uppercase tracking-tight">Criar nova enquete</span>
                         </div>
                     </button>
                 </div>
@@ -567,7 +576,7 @@ export default function EnquetesDecisoesPage() {
                                             <span className="text-[9px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full border border-emerald-200 w-fit">
                                                 Enquete aberta
                                             </span>
-                                            <span className="text-[11px] font-medium text-zinc-400 flex items-center gap-1 self-end sm:self-auto">
+                                            <span className="text-[11px] font-medium text-zinc-400 flex items-center gap-1 self-start sm:self-auto">
                                                 <Calendar size={12} /> {formatarData(eq.criado_em)}
                                             </span>
                                         </div>
@@ -576,9 +585,9 @@ export default function EnquetesDecisoesPage() {
                                         <p className="text-xs text-zinc-600 leading-relaxed whitespace-pre-line">{eq.descricao}</p>
 
                                         {/* Alternativas de Votação */}
-                                        <div className="pt-2 space-y-2 border-t border-zinc-100">
-                                            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Escolha sua alternativa:</span>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <div className="pt-2 space-y-2 border-t border-zinc-100 flex flex-col items-center md:items-stretch">
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 w-full text-center md:text-left">Escolha sua alternativa:</span>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-md md:max-w-none">
                                                 {listaOpcoes.map((op: any, i: number) => {
                                                     const selecionado = votoUsuario === op.texto;
                                                     return (
@@ -598,7 +607,7 @@ export default function EnquetesDecisoesPage() {
                                                 })}
                                             </div>
                                             {votoUsuario && (
-                                                <p className="text-[11px] text-emerald-600 font-bold pt-1 flex items-center gap-1">
+                                                <p className="text-[11px] text-emerald-600 font-bold pt-1 flex items-center gap-1 w-full text-center md:text-left justify-center md:justify-start">
                                                     <CheckCircle2 size={13} /> Seu voto registrado: &quot;{votoUsuario}&quot;
                                                 </p>
                                             )}
@@ -622,8 +631,8 @@ export default function EnquetesDecisoesPage() {
                             {propostasMorador.map((item) => (
                                 <div key={item.id} className="bg-white border border-zinc-200 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
                                     <div className="space-y-1">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[9px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 px-2.5 py-0.5 rounded-md">
+                                        <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                            <span className="text-[9px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 px-2.5 py-0.5 rounded-md w-fit">
                                                 {item.tipo === 'enquete' ? 'Enquete Detalhada' : 'Sugestão Rápida'}
                                             </span>
                                             <span className="text-[11px] font-medium text-zinc-400 flex items-center gap-1">
@@ -767,13 +776,14 @@ export default function EnquetesDecisoesPage() {
                     <div className="h-px bg-gray-200 flex-1"></div>
                 </div>
 
-                <div className="flex flex-col items-center text-center pb-6">
+                {/* BLOCO INSTAGRAM */}
+                <div className="flex flex-col items-center text-center">
                     <div className="max-w-3xl mb-12">
                         <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
                             Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
                         </h4>
                         <p className="text-gray-500 font-medium text-sm md:text-base">
-                            Dicas de gestão inteligente, novidades do sistema e conteúdos exclusivos no nosso Instagram.
+                            Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
                         </p>
                     </div>
 

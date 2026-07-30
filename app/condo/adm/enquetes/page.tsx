@@ -70,9 +70,9 @@ export default function AnaliseEnquetesAdmPage() {
     const [sugestoes, setSugestoes] = useState<SugestaoEnquete[]>([]);
     const [enquetesOficiais, setEnquetesOficiais] = useState<EnqueteOficial[]>([]);
 
-    // Estados de Filtro
+    // Estados de Filtro - Ajustado para 'todos' por padrão
     const [filtroSugestao, setFiltroSugestao] = useState<string>('todos');
-    const [filtroEnquete, setFiltroEnquete] = useState<string>('pendente'); // Foco inicial em pendentes de aprovação
+    const [filtroEnquete, setFiltroEnquete] = useState<string>('todos');
 
     // Estado do Modal de Criação Direta de Enquete pelo Síndico (+)
     const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -90,9 +90,17 @@ export default function AnaliseEnquetesAdmPage() {
     const [feedbackMessage, setFeedbackMessage] = useState("");
     const isMountedRef = useRef(true);
 
+    // Função auxiliar para retornar apenas o primeiro e o último nome
+    const formatarNomePrimeiroEUltimo = (nomeCompleto?: string) => {
+        if (!nomeCompleto) return "";
+        const partes = nomeCompleto.trim().split(/\s+/);
+        if (partes.length === 0) return "";
+        if (partes.length === 1) return partes[0];
+        return `${partes[0]} ${partes[partes.length - 1]}`;
+    };
+
     const loadDadosAdm = async (condoId: string) => {
         try {
-            // 1. Carregar sugestões simples de enquetes (foco de acompanhamento interno/internalização)
             const { data: dataSugestao, error: errSugestao } = await supabase
                 .from("condominio_sugestoes_enquetes")
                 .select("*")
@@ -103,7 +111,6 @@ export default function AnaliseEnquetesAdmPage() {
                 setSugestoes(dataSugestao as SugestaoEnquete[]);
             }
 
-            // 2. Carregar enquetes oficiais criadas pelos usuários aguardando aprovação ou ativas
             const { data: dataEnquete, error: errEnquete } = await supabase
                 .from("condominio_enquetes")
                 .select("*")
@@ -266,7 +273,6 @@ export default function AnaliseEnquetesAdmPage() {
         };
     }, []);
 
-    // Moderação do Status da Sugestão (Apenas acompanhamento interno)
     const handleAtualizarStatusSugestao = async (id: string, novoStatus: 'pendente' | 'em_andamento' | 'resolvido') => {
         if (!memberData) return;
         setActionLoading(true);
@@ -309,7 +315,6 @@ export default function AnaliseEnquetesAdmPage() {
         }
     };
 
-    // Moderação e Aprovação de Enquete Oficial (Aprovar / Atualizar status e campo aprovacao_sindico)
     const handleAtualizarStatusEnquete = async (id: string, novoStatus: 'pendente' | 'ativa' | 'encerrada', novaAprovacao: 'sim' | 'não') => {
         if (!memberData) return;
         setActionLoading(true);
@@ -355,7 +360,6 @@ export default function AnaliseEnquetesAdmPage() {
         }
     };
 
-    // Adicionar opção no popup detalhado do síndico
     const handleAdicionarOpcao = () => {
         if (!novoTextoOpcao.trim()) return;
         setOpcoes([...opcoes, { id: String(Date.now()), texto: novoTextoOpcao.trim() }]);
@@ -370,7 +374,6 @@ export default function AnaliseEnquetesAdmPage() {
         setOpcoes(opcoes.filter((o) => o.id !== id));
     };
 
-    // Criação direta de Enquete pelo Síndico (Nasce ativa e aprovada por padrão)
     const handleCriarEnqueteAdm = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!detalheTitulo.trim() || !detalheDescricao.trim() || !memberData || !session) return;
@@ -392,7 +395,7 @@ export default function AnaliseEnquetesAdmPage() {
                         opcoes: opcoes,
                         votos: {},
                         status: 'ativa',
-                        aprovacao_sindico: 'sim', // Criado pelo próprio síndico já nasce validado/aprovado
+                        aprovacao_sindico: 'sim',
                         criado_por: session.user.id
                     }
                 ]);
@@ -431,7 +434,6 @@ export default function AnaliseEnquetesAdmPage() {
         return e.status === filtroEnquete;
     });
 
-    // Helper para converter campo JSON ou string de opções em array legível
     const parseOpcoes = (opcoesData: any) => {
         if (!opcoesData) return [];
         if (Array.isArray(opcoesData)) return opcoesData;
@@ -480,14 +482,18 @@ export default function AnaliseEnquetesAdmPage() {
                             </div>
                             <div>
                                 <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Moderação e Aprovação</span>
-                                <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5 text-zinc-900">Gestão de Enquetes</h1>
+                                <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5 text-zinc-900">
+                                    <span className="md:hidden text-black">{formatarNomePrimeiroEUltimo(memberData?.condominio?.nome)}</span>
+                                    <span className="hidden md:inline">{memberData?.condominio?.nome || "Condomínio"}</span>
+                                </h1>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3 self-start md:self-auto">
+                        {/* Botão Nova Enquete Oficial e Voltar */}
+                        <div className="flex items-center justify-end gap-3 self-end md:self-auto w-full md:w-auto">
                             <button
                                 onClick={() => setIsPopupOpen(true)}
-                                className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-md shadow-blue-600/20 flex items-center gap-1.5 cursor-pointer"
+                                className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-md shadow-blue-600/20 flex items-center gap-1.5 cursor-pointer ml-auto md:ml-0"
                             >
                                 <Plus size={14} /> Nova Enquete Oficial
                             </button>
@@ -515,7 +521,7 @@ export default function AnaliseEnquetesAdmPage() {
                 )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-                    {/* COLUNA 1: APROVAÇÃO E MODERAÇÃO DE ENQUETES OFICIAIS (Foco Principal) */}
+                    {/* COLUNA 1: APROVAÇÃO E MODERAÇÃO DE ENQUETES OFICIAIS */}
                     <div className="bg-white border border-zinc-200 rounded-[2rem] p-6 shadow-sm flex flex-col justify-between">
                         <div>
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-zinc-100 mb-4 gap-3">
@@ -523,21 +529,21 @@ export default function AnaliseEnquetesAdmPage() {
                                     <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
                                         <Vote size={18} />
                                     </div>
-                                    <h3 className="font-bold text-sm md:text-base text-zinc-800">Enquetes Oficiais (Aprovação)</h3>
+                                    <h3 className="font-bold text-sm md:text-base text-zinc-800">Aprovação Enquetes</h3>
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    <div className="flex items-center gap-1 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-xl">
-                                        <Filter size={12} className="text-zinc-400" />
+                                    <div className="flex items-center gap-1 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-xl w-full sm:w-auto">
+                                        <Filter size={12} className="text-zinc-400 shrink-0" />
                                         <select
                                             value={filtroEnquete}
                                             onChange={(e) => setFiltroEnquete(e.target.value)}
-                                            className="bg-transparent text-[10px] font-bold uppercase tracking-wider text-zinc-600 outline-none cursor-pointer"
+                                            className="bg-transparent text-[10px] font-bold uppercase tracking-wider text-zinc-600 outline-none cursor-pointer w-full"
                                         >
+                                            <option value="todos">Todos Status</option>
                                             <option value="pendente">Pendentes / Não Aprovadas</option>
                                             <option value="ativa">Ativas</option>
                                             <option value="encerrada">Encerradas</option>
-                                            <option value="todos">Todos Status</option>
                                         </select>
                                     </div>
                                 </div>
@@ -555,46 +561,64 @@ export default function AnaliseEnquetesAdmPage() {
                                         const aprovada = (e.aprovacao_sindico || 'não').toLowerCase() === 'sim';
                                         return (
                                             <div key={e.id} className="p-4 bg-zinc-50 border border-zinc-100 rounded-2xl space-y-3">
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <div className="flex items-center gap-2">
+                                                {/* Cabeçalho do Card: No mobile com o badge à esquerda e o botão V/X à direita */}
+                                                <div className="flex flex-row md:items-center justify-between gap-2">
+                                                    <div className="flex items-center">
                                                         <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full ${aprovada ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
                                                             Aprovação Síndico: {aprovada ? 'Sim' : 'Não'}
                                                         </span>
                                                     </div>
 
                                                     <div className="flex items-center gap-1">
-                                                        {!aprovada ? (
-                                                            <button
-                                                                onClick={() => handleAtualizarStatusEnquete(e.id, 'ativa', 'sim')}
-                                                                disabled={actionLoading}
-                                                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1"
-                                                            >
-                                                                <Check size={12} /> Aprovar
-                                                            </button>
-                                                        ) : (
-                                                            <button
-                                                                onClick={() => handleAtualizarStatusEnquete(e.id, 'pendente', 'não')}
-                                                                disabled={actionLoading}
-                                                                className="px-3 py-1.5 bg-zinc-200 hover:bg-zinc-300 text-zinc-700 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
-                                                            >
-                                                                Desaprovar
-                                                            </button>
-                                                        )}
-                                                        <button
-                                                            onClick={() => handleExcluirEnqueteOficial(e.id)}
-                                                            disabled={actionLoading}
-                                                            className="p-1.5 bg-zinc-100 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
-                                                            title="Excluir Enquete"
-                                                        >
-                                                            <Trash2 size={15} />
-                                                        </button>
+                                                        {/* Versão Desktop (Mantida) */}
+                                                        <div className="hidden md:flex items-center gap-1">
+                                                            {!aprovada ? (
+                                                                <button
+                                                                    onClick={() => handleAtualizarStatusEnquete(e.id, 'ativa', 'sim')}
+                                                                    disabled={actionLoading}
+                                                                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1"
+                                                                >
+                                                                    <Check size={12} /> Aprovar
+                                                                </button>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => handleAtualizarStatusEnquete(e.id, 'pendente', 'não')}
+                                                                    disabled={actionLoading}
+                                                                    className="px-3 py-1.5 bg-zinc-200 hover:bg-zinc-300 text-zinc-700 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                                                                >
+                                                                    Desaprovar
+                                                                </button>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Versão Mobile (Botão V ou X correspondente) */}
+                                                        <div className="flex md:hidden items-center">
+                                                            {!aprovada ? (
+                                                                <button
+                                                                    onClick={() => handleAtualizarStatusEnquete(e.id, 'ativa', 'sim')}
+                                                                    disabled={actionLoading}
+                                                                    className="w-7 h-7 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center justify-center text-xs font-bold transition-all cursor-pointer shadow-sm"
+                                                                    title="Aprovar"
+                                                                >
+                                                                    ✓
+                                                                </button>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => handleAtualizarStatusEnquete(e.id, 'pendente', 'não')}
+                                                                    disabled={actionLoading}
+                                                                    className="w-7 h-7 bg-zinc-200 hover:bg-zinc-300 text-zinc-700 rounded-lg flex items-center justify-center text-xs font-bold transition-all cursor-pointer shadow-sm"
+                                                                    title="Desaprovar"
+                                                                >
+                                                                    ✕
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
 
                                                 <h4 className="font-bold text-xs text-zinc-900">{e.titulo}</h4>
                                                 <p className="text-xs text-zinc-500 leading-relaxed whitespace-pre-line">{e.descricao}</p>
 
-                                                {/* Exibição das opções cadastradas */}
                                                 {listaOpcoes.length > 0 && (
                                                     <div className="pt-2 flex flex-wrap gap-1.5">
                                                         {listaOpcoes.map((op: any, idx: number) => (
@@ -609,6 +633,19 @@ export default function AnaliseEnquetesAdmPage() {
                                                     <span>Criada em: {new Date(e.criado_em).toLocaleDateString('pt-BR')}</span>
                                                     <span className="font-bold text-blue-600">{listaOpcoes.length} Opções</span>
                                                 </div>
+
+                                                {/* Lixeira com observação à frente (Centralizada ao meio no mobile) */}
+                                                <div className="pt-2 flex items-center justify-center md:justify-start gap-2">
+                                                    <button
+                                                        onClick={() => handleExcluirEnqueteOficial(e.id)}
+                                                        disabled={actionLoading}
+                                                        className="p-1.5 bg-zinc-100 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer inline-flex items-center justify-center"
+                                                        title="Excluir Enquete"
+                                                    >
+                                                        <Trash2 size={15} />
+                                                    </button>
+                                                    <span className="text-[10px] font-medium text-zinc-500">Excluir registro</span>
+                                                </div>
                                             </div>
                                         );
                                     })}
@@ -617,7 +654,7 @@ export default function AnaliseEnquetesAdmPage() {
                         </div>
                     </div>
 
-                    {/* COLUNA 2: SUGESTÕES DOS MORADORES (Acompanhamento interno / Internalização) */}
+                    {/* COLUNA 2: SUGESTÕES DOS MORADORES */}
                     <div className="bg-white border border-zinc-200 rounded-[2rem] p-6 shadow-sm flex flex-col justify-between">
                         <div>
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-zinc-100 mb-4 gap-3">
@@ -625,16 +662,16 @@ export default function AnaliseEnquetesAdmPage() {
                                     <div className="w-8 h-8 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
                                         <Clock size={18} />
                                     </div>
-                                    <h3 className="font-bold text-sm md:text-base text-zinc-800">Sugestões dos Moradores (Acompanhamento)</h3>
+                                    <h3 className="font-bold text-sm md:text-base text-zinc-800">Sugestões moradores</h3>
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    <div className="flex items-center gap-1 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-xl">
-                                        <Filter size={12} className="text-zinc-400" />
+                                    <div className="flex items-center gap-1 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-xl w-full sm:w-auto">
+                                        <Filter size={12} className="text-zinc-400 shrink-0" />
                                         <select
                                             value={filtroSugestao}
                                             onChange={(e) => setFiltroSugestao(e.target.value)}
-                                            className="bg-transparent text-[10px] font-bold uppercase tracking-wider text-zinc-600 outline-none cursor-pointer"
+                                            className="bg-transparent text-[10px] font-bold uppercase tracking-wider text-zinc-600 outline-none cursor-pointer w-full"
                                         >
                                             <option value="todos">Todos Status</option>
                                             <option value="pendente">Pendentes</option>
@@ -660,29 +697,33 @@ export default function AnaliseEnquetesAdmPage() {
                                                     disabled={actionLoading}
                                                     onChange={(eVal) => handleAtualizarStatusSugestao(s.id, eVal.target.value as any)}
                                                     className={`text-[9px] font-black uppercase px-2.5 py-1.5 rounded-xl outline-none cursor-pointer transition shadow-sm border ${s.status === 'resolvido' ? 'bg-emerald-600 text-white border-emerald-600' :
-                                                            s.status === 'em_andamento' ? 'bg-amber-500 text-white border-amber-500' :
-                                                                'bg-indigo-600 text-white border-indigo-600'
+                                                        s.status === 'em_andamento' ? 'bg-amber-500 text-white border-amber-500' :
+                                                            'bg-indigo-600 text-white border-indigo-600'
                                                         }`}
                                                 >
                                                     <option value="pendente" className="bg-white text-zinc-900">Pendente</option>
                                                     <option value="em_andamento" className="bg-white text-zinc-900">Em andamento</option>
                                                     <option value="resolvido" className="bg-white text-zinc-900">Resolvido</option>
                                                 </select>
-
-                                                <button
-                                                    onClick={() => handleExcluirSugestao(s.id)}
-                                                    disabled={actionLoading}
-                                                    className="p-1.5 bg-zinc-100 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
-                                                    title="Excluir Sugestão"
-                                                >
-                                                    <Trash2 size={15} />
-                                                </button>
                                             </div>
 
                                             <h4 className="font-bold text-xs text-zinc-900">{s.titulo}</h4>
                                             <p className="text-xs text-zinc-500 leading-relaxed">{s.descricao}</p>
                                             <div className="text-[10px] text-zinc-400 pt-2 border-t border-zinc-200/60">
                                                 Enviado em: {new Date(s.criado_em).toLocaleDateString('pt-BR')}
+                                            </div>
+
+                                            {/* Lixeira com observação à frente (Centralizada ao meio no mobile) */}
+                                            <div className="pt-2 flex items-center justify-center md:justify-start gap-2">
+                                                <button
+                                                    onClick={() => handleExcluirSugestao(s.id)}
+                                                    disabled={actionLoading}
+                                                    className="p-1.5 bg-zinc-100 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer inline-flex items-center justify-center"
+                                                    title="Excluir Sugestão"
+                                                >
+                                                    <Trash2 size={15} />
+                                                </button>
+                                                <span className="text-[10px] font-medium text-zinc-500">Excluir registro</span>
                                             </div>
                                         </div>
                                     ))}
@@ -753,7 +794,6 @@ export default function AnaliseEnquetesAdmPage() {
                                 />
                             </div>
 
-                            {/* Opções de Resposta */}
                             <div className="space-y-2 pt-2">
                                 <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Opções de Votação</label>
                                 <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
@@ -809,32 +849,41 @@ export default function AnaliseEnquetesAdmPage() {
                 </div>
             )}
 
-            {/* Rodapé Instagram */}
             <div>
-                <div className="flex items-center gap-4 mb-6">
+                <div className="mt-24 flex items-center gap-4 mb-12">
                     <div className="h-px bg-gray-200 flex-1"></div>
                     <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
                     <div className="h-px bg-gray-200 flex-1"></div>
                 </div>
 
-                <div className="flex flex-col items-center text-center pb-6">
+                {/* BLOCO INSTAGRAM */}
+                <div className="flex flex-col items-center text-center">
+                    <div className="max-w-3xl mb-12">
+                        <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
+                            Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+                        </h4>
+                        <p className="text-gray-500 font-medium text-sm md:text-base">
+                            Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
+                        </p>
+                    </div>
+
                     <a
                         href="https://www.instagram.com/nucleobase.app/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group relative flex flex-col items-center gap-4"
+                        className="group relative flex flex-col items-center gap-6"
                     >
                         <div className="relative">
                             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
 
-                            <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[1.8rem] md:rounded-[2rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
-                                <Instagram className="w-8 h-8 md:w-10 md:h-10" strokeWidth={1.5} />
+                            <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+                                <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
                             </div>
                         </div>
 
                         <div className="flex flex-col items-center">
                             <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
-                            <div className="h-1 w-0 bg-pink-500 mt-1.5 group-hover:w-full transition-all duration-500 rounded-full"></div>
+                            <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
                         </div>
                     </a>
                 </div>
