@@ -115,7 +115,7 @@ export function MobileTabBar() {
     setUserProfile({ nome: "", avatar: null });
 
     window.dispatchEvent(new Event("storage"));
-    router.push("/");
+    window.location.href = "/";
   };
 
   const handlePasswordReset = async (e: React.FormEvent) => {
