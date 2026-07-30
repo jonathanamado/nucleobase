@@ -84,6 +84,29 @@ export default function EnquetesDecisoesPage() {
     const [criandoDetalhada, setCriandoDetalhada] = useState(false);
     const [detalhadaSucesso, setDetalhadaSucesso] = useState("");
 
+    const fecharPopupComConfirmacao = () => {
+        const preenchido = detalheTitulo.trim() !== "" || detalheDescricao.trim() !== "" || detalheGanho.trim() !== "";
+        if (preenchido) {
+            const confirmar = window.confirm("Existem dados preenchidos. Deseja realmente fechar e descartar as alterações?");
+            if (!confirmar) return;
+        }
+        setIsPopupOpen(false);
+        setDetalheTitulo("");
+        setDetalheDescricao("");
+        setDetalheGanho("");
+        setOpcoes([{ id: "1", texto: "Sim" }, { id: "2", texto: "Não" }]);
+    };
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape" && isPopupOpen) {
+                fecharPopupComConfirmacao();
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [isPopupOpen, detalheTitulo, detalheDescricao, detalheGanho]);
+
     // Função Auxiliar: Formata nome completo para retornar apenas o primeiro e o último nome
     const formatarNomePrimeiroEUltimo = (nomeCompleto: string) => {
         if (!nomeCompleto) return "";
@@ -392,8 +415,8 @@ export default function EnquetesDecisoesPage() {
                         descricao: descricaoCompleta,
                         opcoes: opcoes,
                         votos: {},
-                        status: 'ativa', // Alterado de 'pendente' para 'ativa' (compatível com a regra atual do banco)
-                        aprovacao_sindico: 'não', // O síndico continuará controlando a aprovação por esta coluna
+                        status: 'ativa',
+                        aprovacao_sindico: 'não',
                         criado_por: session.user.id
                     }
                 ]);
@@ -654,28 +677,29 @@ export default function EnquetesDecisoesPage() {
 
             {/* POPUP DE CRIAÇÃO DE ENQUETE DETALHADA (+) */}
             {isPopupOpen && (
-                <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md z-[150] flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-250">
-                    <div className="bg-white w-full max-w-xl rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative animate-in zoom-in-95 duration-250 my-8">
+                <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md z-[150] flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-250">
+                    <div className="bg-white w-full max-w-xl rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-8 shadow-2xl relative animate-in zoom-in-95 duration-250 my-auto max-h-[90vh] overflow-y-auto">
                         <button
-                            onClick={() => setIsPopupOpen(false)}
-                            className="absolute right-6 top-6 p-2 text-gray-400 hover:text-gray-900 rounded-full hover:bg-gray-50 transition-all cursor-pointer"
+                            onClick={fecharPopupComConfirmacao}
+                            className="absolute right-5 top-5 p-2 text-gray-400 hover:text-gray-900 rounded-full hover:bg-gray-50 transition-all cursor-pointer z-10"
+                            title="Fechar"
                         >
                             <X size={20} />
                         </button>
 
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
-                                <Sparkles size={24} />
+                        <div className="flex items-center gap-3 mb-4 mt-1">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shrink-0">
+                                <Sparkles size={22} />
                             </div>
-                            <div>
-                                <h2 className="text-xl font-black tracking-tight text-gray-900">Nova Enquete Detalhada</h2>
-                                <p className="text-xs text-zinc-500">
-                                    Estruture a votação com título, objetivos, benefícios esperados e alternativas.
+                            <div className="pr-8">
+                                <h2 className="text-lg sm:text-xl font-black tracking-tight text-gray-900">Nova Enquete</h2>
+                                <p className="text-[11px] sm:text-xs text-zinc-500">
+                                    Estruture a votação com título, objetivos, benefícios e alternativas.
                                 </p>
                             </div>
                         </div>
 
-                        <form onSubmit={handleCriarEnqueteDetalhada} className="space-y-4">
+                        <form onSubmit={handleCriarEnqueteDetalhada} className="space-y-3">
                             <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Título da Enquete</label>
                                 <input
@@ -684,7 +708,7 @@ export default function EnquetesDecisoesPage() {
                                     placeholder="Ex: Reforma da fachada do bloco A"
                                     value={detalheTitulo}
                                     onChange={(e) => setDetalheTitulo(e.target.value)}
-                                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium text-zinc-900"
+                                    className="w-full px-3.5 py-2.5 sm:py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium text-zinc-900"
                                 />
                             </div>
 
@@ -692,11 +716,11 @@ export default function EnquetesDecisoesPage() {
                                 <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Descrição / Contexto</label>
                                 <textarea
                                     required
-                                    rows={3}
-                                    placeholder="Explique os motivos e detalhes da votação..."
+                                    rows={2}
+                                    placeholder="Explique motivos e detalhes da votação"
                                     value={detalheDescricao}
                                     onChange={(e) => setDetalheDescricao(e.target.value)}
-                                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium text-zinc-900 resize-none"
+                                    className="w-full px-3.5 py-2.5 sm:py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium text-zinc-900 resize-none"
                                 />
                             </div>
 
@@ -705,19 +729,19 @@ export default function EnquetesDecisoesPage() {
                                 <input
                                     type="text"
                                     required
-                                    placeholder="Ex: Valorização do imóvel e melhoria estética"
+                                    placeholder="Ex: Valorização e melhoria estética"
                                     value={detalheGanho}
                                     onChange={(e) => setDetalheGanho(e.target.value)}
-                                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium text-zinc-900"
+                                    className="w-full px-3.5 py-2.5 sm:py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium text-zinc-900"
                                 />
                             </div>
 
                             {/* Opções de Resposta */}
-                            <div className="space-y-2 pt-2">
+                            <div className="space-y-1.5">
                                 <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Opções de Votação</label>
-                                <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                                <div className={`space-y-1.5 max-h-28 overflow-y-auto pr-1 ${opcoes.length === 2 && (opcoes[0].texto.toLowerCase() === 'sim' || opcoes[0].texto.toLowerCase() === 'não') && (opcoes[1].texto.toLowerCase() === 'sim' || opcoes[1].texto.toLowerCase() === 'não') ? 'flex space-y-0 gap-2 md:flex md:space-y-0 md:gap-2' : ''}`}>
                                     {opcoes.map((opcao) => (
-                                        <div key={opcao.id} className="flex items-center justify-between bg-zinc-50 border border-zinc-200 px-4 py-2.5 rounded-xl text-xs font-medium text-zinc-800">
+                                        <div key={opcao.id} className={`flex items-center justify-between bg-zinc-50 border border-zinc-200 px-3.5 py-2 rounded-xl text-xs font-medium text-zinc-800 ${opcoes.length === 2 && (opcoes[0].texto.toLowerCase() === 'sim' || opcoes[0].texto.toLowerCase() === 'não') && (opcoes[1].texto.toLowerCase() === 'sim' || opcoes[1].texto.toLowerCase() === 'não') ? 'flex-1 md:flex-1' : ''}`}>
                                             <span>{opcao.texto}</span>
                                             <button
                                                 type="button"
@@ -730,18 +754,18 @@ export default function EnquetesDecisoesPage() {
                                     ))}
                                 </div>
 
-                                <div className="flex gap-2 pt-1">
+                                <div className="flex flex-col sm:flex-row gap-2 pt-0.5">
                                     <input
                                         type="text"
                                         placeholder="Adicionar nova alternativa..."
                                         value={novoTextoOpcao}
                                         onChange={(e) => setNovoTextoOpcao(e.target.value)}
-                                        className="flex-1 px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 text-xs font-medium text-zinc-900"
+                                        className="w-full sm:flex-1 px-3.5 py-2 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 text-xs font-medium text-zinc-900"
                                     />
                                     <button
                                         type="button"
                                         onClick={handleAdicionarOpcao}
-                                        className="bg-zinc-900 hover:bg-black text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+                                        className="w-full sm:w-auto bg-zinc-900 hover:bg-black text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
                                     >
                                         Adicionar
                                     </button>
@@ -749,18 +773,18 @@ export default function EnquetesDecisoesPage() {
                             </div>
 
                             {detalhadaSucesso && (
-                                <p className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-3 rounded-2xl flex items-center gap-2">
+                                <p className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-2.5 rounded-xl flex items-center gap-2">
                                     <CheckCircle2 size={16} className="shrink-0" /> {detalhadaSucesso}
                                 </p>
                             )}
 
-                            <div className="pt-4">
+                            <div className="pt-2">
                                 <button
                                     type="submit"
                                     disabled={criandoDetalhada}
-                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                                 >
-                                    {criandoDetalhada ? "Salvando Enquete..." : "Enviar Enquete para Validação do Síndico"}
+                                    {criandoDetalhada ? "Salvando Enquete..." : "Enviar Enquete para Validação"}
                                 </button>
                             </div>
                         </form>
