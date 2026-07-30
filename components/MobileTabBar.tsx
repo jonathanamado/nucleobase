@@ -86,7 +86,7 @@ export function MobileTabBar() {
 
   // Logout blindado contra sessões fantasmas/residuais (NB)
   const handleLogout = async () => {
-    const confirmLogout = window.confirm("Tem certeza que deseja sair da conta?");
+    const confirmLogout = window.confirm("Deseja realmente sair da conta?");
     if (!confirmLogout) return;
 
     try {

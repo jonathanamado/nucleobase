@@ -90,6 +90,29 @@ export default function AnaliseEnquetesAdmPage() {
     const [feedbackMessage, setFeedbackMessage] = useState("");
     const isMountedRef = useRef(true);
 
+    const fecharPopupComConfirmacao = () => {
+        const preenchido = detalheTitulo.trim() !== "" || detalheDescricao.trim() !== "" || detalheGanho.trim() !== "";
+        if (preenchido) {
+            const confirmar = window.confirm("Existem dados preenchidos. Deseja realmente fechar e descartar as alterações?");
+            if (!confirmar) return;
+        }
+        setIsPopupOpen(false);
+        setDetalheTitulo("");
+        setDetalheDescricao("");
+        setDetalheGanho("");
+        setOpcoes([{ id: "1", texto: "Sim" }, { id: "2", texto: "Não" }]);
+    };
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape" && isPopupOpen) {
+                fecharPopupComConfirmacao();
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [isPopupOpen, detalheTitulo, detalheDescricao, detalheGanho]);
+
     // Função auxiliar para retornar apenas o primeiro e o último nome
     const formatarNomePrimeiroEUltimo = (nomeCompleto?: string) => {
         if (!nomeCompleto) return "";
@@ -565,7 +588,7 @@ export default function AnaliseEnquetesAdmPage() {
                                                 <div className="flex flex-row md:items-center justify-between gap-2">
                                                     <div className="flex items-center">
                                                         <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full ${aprovada ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
-                                                            Aprovação Síndico: {aprovada ? 'Sim' : 'Não'}
+                                                            Aprovação: {aprovada ? 'Sim' : 'Não'}
                                                         </span>
                                                     </div>
 
@@ -739,13 +762,22 @@ export default function AnaliseEnquetesAdmPage() {
                 <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md z-[150] flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-250">
                     <div className="bg-white w-full max-w-xl rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative animate-in zoom-in-95 duration-250 my-8">
                         <button
-                            onClick={() => setIsPopupOpen(false)}
-                            className="absolute right-6 top-6 p-2 text-gray-400 hover:text-gray-900 rounded-full hover:bg-gray-50 transition-all cursor-pointer"
+                            onClick={fecharPopupComConfirmacao}
+                            className="absolute left-6 top-6 p-2 text-gray-400 hover:text-gray-900 rounded-full hover:bg-gray-50 transition-all cursor-pointer"
+                            title="Fechar"
                         >
                             <X size={20} />
                         </button>
 
-                        <div className="flex items-center gap-3 mb-6">
+                        <button
+                            onClick={fecharPopupComConfirmacao}
+                            className="absolute right-6 top-6 p-2 text-gray-400 hover:text-gray-900 rounded-full hover:bg-gray-50 transition-all cursor-pointer"
+                            title="Fechar"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <div className="flex items-center gap-3 mb-6 mt-4">
                             <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
                                 <Sparkles size={24} />
                             </div>
@@ -811,18 +843,18 @@ export default function AnaliseEnquetesAdmPage() {
                                     ))}
                                 </div>
 
-                                <div className="flex gap-2 pt-1">
+                                <div className="flex flex-col sm:flex-row gap-2 pt-1">
                                     <input
                                         type="text"
-                                        placeholder="Adicionar nova alternativa..."
+                                        placeholder="Adicionar alternativa..."
                                         value={novoTextoOpcao}
                                         onChange={(e) => setNovoTextoOpcao(e.target.value)}
-                                        className="flex-1 px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 text-xs font-medium text-zinc-900"
+                                        className="w-full sm:flex-1 px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 text-xs font-medium text-zinc-900"
                                     />
                                     <button
                                         type="button"
                                         onClick={handleAdicionarOpcao}
-                                        className="bg-zinc-900 hover:bg-black text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+                                        className="w-full sm:w-auto bg-zinc-900 hover:bg-black text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
                                     >
                                         Adicionar
                                     </button>
