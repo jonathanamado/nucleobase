@@ -820,9 +820,9 @@ export default function AnaliseEnquetesAdmPage() {
 
                             <div className="space-y-1.5">
                                 <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Opções de Votação</label>
-                                <div className={`space-y-1.5 max-h-28 overflow-y-auto pr-1 ${opcoes.length === 2 && (opcoes[0].texto.toLowerCase() === 'sim' || opcoes[0].texto.toLowerCase() === 'não') && (opcoes[1].texto.toLowerCase() === 'sim' || opcoes[1].texto.toLowerCase() === 'não') ? 'md:flex md:space-y-0 md:gap-2' : ''}`}>
+                                <div className={`space-y-1.5 max-h-28 overflow-y-auto pr-1 ${opcoes.length === 2 && (opcoes[0].texto.toLowerCase() === 'sim' || opcoes[0].texto.toLowerCase() === 'não') && (opcoes[1].texto.toLowerCase() === 'sim' || opcoes[1].texto.toLowerCase() === 'não') ? 'flex space-y-0 gap-2 md:flex md:space-y-0 md:gap-2' : ''}`}>
                                     {opcoes.map((opcao) => (
-                                        <div key={opcao.id} className={`flex items-center justify-between bg-zinc-50 border border-zinc-200 px-3.5 py-2 rounded-xl text-xs font-medium text-zinc-800 ${opcoes.length === 2 && (opcoes[0].texto.toLowerCase() === 'sim' || opcoes[0].texto.toLowerCase() === 'não') && (opcoes[1].texto.toLowerCase() === 'sim' || opcoes[1].texto.toLowerCase() === 'não') ? 'md:flex-1' : ''}`}>
+                                        <div key={opcao.id} className={`flex items-center justify-between bg-zinc-50 border border-zinc-200 px-3.5 py-2 rounded-xl text-xs font-medium text-zinc-800 ${opcoes.length === 2 && (opcoes[0].texto.toLowerCase() === 'sim' || opcoes[0].texto.toLowerCase() === 'não') && (opcoes[1].texto.toLowerCase() === 'sim' || opcoes[1].texto.toLowerCase() === 'não') ? 'flex-1 md:flex-1' : ''}`}>
                                             <span>{opcao.texto}</span>
                                             <button
                                                 type="button"
