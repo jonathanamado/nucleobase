@@ -306,7 +306,7 @@ export default function AcessoUsuarioPage() {
                       <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
                       <input
                         type={showPassword ? "text" : "password"}
-                        placeholder="Senha de acesso"
+                        placeholder="Senha de acesso ao @PP"
                         required
                         value={password}
                         className="w-full pl-11 pr-10 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900"
