@@ -904,7 +904,8 @@ export default function CadastroMoradorPage() {
                 </div>
 
                 <p className="text-xs md:text-sm text-zinc-500 font-medium mb-6">
-                    Gerencie o cadastro de novos condôminos, configure permissões digitais de acesso ao aplicativo e atualize dados cadastrais em ambiente exclusivo.
+                    <span className="md:hidden">Gerencie o cadastro de novos condôminos e configure suas permissões de acesso.</span>
+                    <span className="hidden md:inline">Gerencie o cadastro de novos condôminos, configure permissões digitais de acesso ao aplicativo e atualize dados cadastrais em ambiente exclusivo.</span>
                 </p>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
@@ -1023,7 +1024,7 @@ export default function CadastroMoradorPage() {
                                     <Users className="text-blue-600" size={24} />
                                     <h2 className="font-bold text-lg text-zinc-900">Relação de Condôminos</h2>
                                 </div>
-                                <span className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1 rounded-full">
+                                <span className="hidden md:inline-block text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1 rounded-full">
                                     {moradores.length} Registros
                                 </span>
                             </div>
