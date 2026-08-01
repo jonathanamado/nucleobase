@@ -148,7 +148,7 @@ export default function AnaliseEnquetesAdmPage() {
         }
     };
 
-    const verifyAccessAndLoadData = async (currentSession: any, retries = 2) => {
+    const verifyAccessAndLoadData = async (currentSession: any) => {
         try {
             if (!currentSession || !currentSession.user) {
                 if (isMountedRef.current) {
@@ -166,31 +166,15 @@ export default function AnaliseEnquetesAdmPage() {
             }
             const userId = currentSession.user.id;
 
-            let membroDataList = null;
-            let membroError = null;
+            const { data: membroDataList, error: membroError } = await supabase
+                .from("condominio_membros")
+                .select("condominio_id, role, unidade, acesso_app, condominio_nome")
+                .eq("user_id", userId);
 
-            for (let i = 0; i <= retries; i++) {
-                const res = await supabase
-                    .from("condominio_membros")
-                    .select("condominio_id, role, unidade, acesso_app, condominio_nome")
-                    .eq("user_id", userId);
-
-                membroDataList = res.data;
-                membroError = res.error;
-
-                if (membroError) {
-                    const errorMsg = membroError.message || JSON.stringify(membroError);
-                    if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
-                        console.error("Erro na consulta Supabase (membros adm):", errorMsg);
-                    }
-                }
-
-                if (membroDataList && membroDataList.length > 0) {
-                    break;
-                }
-
-                if (i < retries) {
-                    await new Promise((resolve) => setTimeout(resolve, 300));
+            if (membroError) {
+                const errorMsg = membroError.message || JSON.stringify(membroError);
+                if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
+                    console.error("Erro na consulta Supabase (membros adm):", errorMsg);
                 }
             }
 
@@ -208,7 +192,7 @@ export default function AnaliseEnquetesAdmPage() {
                     const u = (m.unidade || "").toLowerCase();
                     return r === 'sindico' || r === 'síndico' || r === 'adm' || r === 'administrador' || u === '106' || u === 'adm';
                 }
-            );
+            ) || membroDataList[0];
 
             if (!vinculoAdm) {
                 if (isMountedRef.current) {
@@ -245,7 +229,10 @@ export default function AnaliseEnquetesAdmPage() {
         } catch (e: any) {
             const errString = e?.message || JSON.stringify(e);
             if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
-                console.error("Erro ao verificar acesso administrativo em enquetes:", errString);
+                console.warn("Exceção tratada em verifyAccessAndLoadData:", errString);
+            }
+            if (isMountedRef.current) {
+                setMemberData(null);
             }
         } finally {
             if (isMountedRef.current) {
@@ -256,10 +243,19 @@ export default function AnaliseEnquetesAdmPage() {
 
     useEffect(() => {
         isMountedRef.current = true;
+        let authSub: any = null;
 
         const initAuth = async () => {
             try {
+                const timeoutId = setTimeout(() => {
+                    if (isMountedRef.current && loading) {
+                        setLoading(false);
+                    }
+                }, 5000);
+
                 const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+                clearTimeout(timeoutId);
+
                 if (sessionError && !currentSession) throw sessionError;
 
                 if (isMountedRef.current) {
@@ -289,10 +285,11 @@ export default function AnaliseEnquetesAdmPage() {
                 setLoading(false);
             }
         });
+        authSub = subscription;
 
         return () => {
             isMountedRef.current = false;
-            subscription.unsubscribe();
+            if (authSub) authSub.unsubscribe();
         };
     }, []);
 
@@ -720,8 +717,8 @@ export default function AnaliseEnquetesAdmPage() {
                                                     disabled={actionLoading}
                                                     onChange={(eVal) => handleAtualizarStatusSugestao(s.id, eVal.target.value as any)}
                                                     className={`text-[9px] font-black uppercase px-2.5 py-1.5 rounded-xl outline-none cursor-pointer transition shadow-sm border ${s.status === 'resolvido' ? 'bg-emerald-600 text-white border-emerald-600' :
-                                                        s.status === 'em_andamento' ? 'bg-amber-500 text-white border-amber-500' :
-                                                            'bg-indigo-600 text-white border-indigo-600'
+                                                            s.status === 'em_andamento' ? 'bg-amber-500 text-white border-amber-500' :
+                                                                'bg-indigo-600 text-white border-indigo-600'
                                                         }`}
                                                 >
                                                     <option value="pendente" className="bg-white text-zinc-900">Pendente</option>

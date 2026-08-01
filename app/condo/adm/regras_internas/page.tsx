@@ -1,14 +1,14 @@
-// app/condo/adm/gestao_ativos/page.tsx
+// app/condo/adm/regras_internas/page.tsx
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import Link from "next/navigation";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
     Loader2,
     ArrowLeft,
     Instagram,
-    Package,
+    BookOpen,
     Plus,
     Trash2,
     CheckCircle2,
@@ -17,14 +17,13 @@ import {
     X
 } from "lucide-react";
 
-interface AtivoItem {
+interface RegraItem {
     id: string;
     condominio_id: string;
-    nome: string;
+    titulo: string;
     categoria: string;
-    quantidade: number;
-    valor_aquisicao: number | string;
-    data_aquisicao: string;
+    descricao: string;
+    atualizado_em: string;
 }
 
 interface UserMemberData {
@@ -36,24 +35,22 @@ interface UserMemberData {
     };
 }
 
-export default function GestaoAtivosPage() {
+export default function RegrasInternasPage() {
     const router = useRouter();
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
     const [memberData, setMemberData] = useState<UserMemberData | null>(null);
-    const [ativos, setAtivos] = useState<AtivoItem[]>([]);
+    const [regras, setRegras] = useState<RegraItem[]>([]);
 
     // Estados de Modal / Cadastro / Edição
     const [showModal, setShowModal] = useState(false);
-    const [itemEditando, setItemEditando] = useState<AtivoItem | null>(null);
+    const [itemEditando, setItemEditando] = useState<RegraItem | null>(null);
 
     // Campos do Formulário
-    const [nomeInput, setNomeInput] = useState("");
-    const [categoriaInput, setCategoriaInput] = useState("Equipamento");
-    const [quantidadeInput, setQuantidadeInput] = useState("1");
-    const [valorInput, setValorInput] = useState("");
-    const [dataAquisicaoInput, setDataAquisicaoInput] = useState(new Date().toISOString().split('T')[0]);
+    const [tituloInput, setTituloInput] = useState("");
+    const [categoriaInput, setCategoriaInput] = useState("Convenção");
+    const [descricaoInput, setDescricaoInput] = useState("");
 
     const [msgSucesso, setMsgSucesso] = useState("");
     const [msgErro, setMsgErro] = useState("");
@@ -68,19 +65,19 @@ export default function GestaoAtivosPage() {
         return `${partes[0]} ${partes[partes.length - 1]}`;
     };
 
-    const loadAtivos = async (condoId: string) => {
+    const loadRegras = async (condoId: string) => {
         try {
             const { data, error } = await supabase
-                .from("condominio_ativos")
+                .from("condominio_regras")
                 .select("*")
                 .eq("condominio_id", condoId)
-                .order("data_aquisicao", { ascending: false });
+                .order("atualizado_em", { ascending: false });
 
             if (!error && data && isMountedRef.current) {
-                setAtivos(data as AtivoItem[]);
+                setRegras(data as RegraItem[]);
             }
         } catch (err) {
-            console.error("Erro ao carregar ativos:", err);
+            console.error("Erro ao carregar regras internas:", err);
         }
     };
 
@@ -90,7 +87,7 @@ export default function GestaoAtivosPage() {
                 if (isMountedRef.current) {
                     setSession(null);
                     setMemberData(null);
-                    setAtivos([]);
+                    setRegras([]);
                     setLoading(false);
                 }
                 return;
@@ -109,7 +106,7 @@ export default function GestaoAtivosPage() {
             if (membroError) {
                 const errorMsg = membroError.message || JSON.stringify(membroError);
                 if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
-                    console.error("Erro na consulta Supabase (membros ativos):", errorMsg);
+                    console.error("Erro na consulta Supabase (membros regras):", errorMsg);
                 }
             }
 
@@ -159,7 +156,7 @@ export default function GestaoAtivosPage() {
                         nome: nomeCondominioOficial
                     }
                 });
-                await loadAtivos(vinculoAdm.condominio_id);
+                await loadRegras(vinculoAdm.condominio_id);
             }
         } catch (e: any) {
             const errString = e?.message || JSON.stringify(e);
@@ -199,7 +196,7 @@ export default function GestaoAtivosPage() {
             } catch (err: any) {
                 const errString = err?.message || JSON.stringify(err);
                 if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
-                    console.error("Erro ao recuperar sessão inicial ativos:", errString);
+                    console.error("Erro ao recuperar sessão inicial regras:", errString);
                 }
                 if (isMountedRef.current) setLoading(false);
             }
@@ -217,7 +214,7 @@ export default function GestaoAtivosPage() {
             } else if (event === 'SIGNED_OUT') {
                 setSession(null);
                 setMemberData(null);
-                setAtivos([]);
+                setRegras([]);
                 setLoading(false);
             }
         });
@@ -231,29 +228,25 @@ export default function GestaoAtivosPage() {
 
     const abrirNovoCadastro = () => {
         setItemEditando(null);
-        setNomeInput("");
-        setCategoriaInput("Equipamento");
-        setQuantidadeInput("1");
-        setValorInput("");
-        setDataAquisicaoInput(new Date().toISOString().split('T')[0]);
+        setTituloInput("");
+        setCategoriaInput("Convenção");
+        setDescricaoInput("");
         setMsgSucesso("");
         setMsgErro("");
         setShowModal(true);
     };
 
-    const abrirEdicao = (item: AtivoItem) => {
+    const abrirEdicao = (item: RegraItem) => {
         setItemEditando(item);
-        setNomeInput(item.nome);
+        setTituloInput(item.titulo);
         setCategoriaInput(item.categoria);
-        setQuantidadeInput(item.quantidade.toString());
-        setValorInput(item.valor_aquisicao ? item.valor_aquisicao.toString() : "");
-        setDataAquisicaoInput(item.data_aquisicao ? item.data_aquisicao.split('T')[0] : new Date().toISOString().split('T')[0]);
+        setDescricaoInput(item.descricao || "");
         setMsgSucesso("");
         setMsgErro("");
         setShowModal(true);
     };
 
-    const handleSalvarAtivo = async (e: React.FormEvent) => {
+    const handleSalvarRegra = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!memberData) return;
 
@@ -262,59 +255,55 @@ export default function GestaoAtivosPage() {
         setMsgSucesso("");
 
         try {
-            const valorTratado = valorInput.replace(',', '.');
-            const valorNumerico = parseFloat(valorTratado);
-
             const payload = {
                 condominio_id: memberData.condominio_id,
-                nome: nomeInput.trim(),
+                titulo: tituloInput.trim(),
                 categoria: categoriaInput.trim(),
-                quantidade: parseInt(quantidadeInput, 10) || 1,
-                valor_aquisicao: isNaN(valorNumerico) ? 0 : valorNumerico,
-                data_aquisicao: dataAquisicaoInput
+                descricao: descricaoInput.trim(),
+                atualizado_em: new Date().toISOString()
             };
 
             if (itemEditando) {
                 const { error } = await supabase
-                    .from("condominio_ativos")
+                    .from("condominio_regras")
                     .update(payload)
                     .eq("id", itemEditando.id);
 
                 if (error) throw error;
-                setMsgSucesso("Ativo atualizado com sucesso!");
+                setMsgSucesso("Regra interna atualizada com sucesso!");
             } else {
                 const { error } = await supabase
-                    .from("condominio_ativos")
+                    .from("condominio_regras")
                     .insert([payload]);
 
                 if (error) throw error;
-                setMsgSucesso("Ativo cadastrado com sucesso!");
+                setMsgSucesso("Regra interna cadastrada com sucesso!");
             }
 
-            await loadAtivos(memberData.condominio_id);
+            await loadRegras(memberData.condominio_id);
             setTimeout(() => {
                 setShowModal(false);
                 setMsgSucesso("");
             }, 1000);
         } catch (err: any) {
-            setMsgErro(err?.message || "Erro ao salvar ativo do condomínio.");
+            setMsgErro(err?.message || "Erro ao salvar regra interna do condomínio.");
         } finally {
             setActionLoading(false);
         }
     };
 
     const handleExcluir = async (id: string) => {
-        if (!confirm("Deseja realmente remover este ativo do inventário?")) return;
+        if (!confirm("Deseja realmente remover esta regra interna?")) return;
         if (!memberData) return;
 
         setActionLoading(true);
         const { error } = await supabase
-            .from("condominio_ativos")
+            .from("condominio_regras")
             .delete()
             .eq("id", id);
 
         if (!error) {
-            await loadAtivos(memberData.condominio_id);
+            await loadRegras(memberData.condominio_id);
         }
         setActionLoading(false);
     };
@@ -323,7 +312,7 @@ export default function GestaoAtivosPage() {
         return (
             <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
                 <Loader2 className="animate-spin text-blue-600 mb-4" size={32} />
-                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Carregando controle de bens...</p>
+                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Carregando regras internas...</p>
             </div>
         );
     }
@@ -350,11 +339,11 @@ export default function GestaoAtivosPage() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-5 mb-4">
                     <div className="flex flex-col md:flex-row md:items-center gap-6 w-full justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="w-auto h-auto bg-indigo-600 text-white p-3 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-600/25 shrink-0 self-stretch">
-                                <Package size={24} />
+                            <div className="w-auto h-auto bg-zinc-900 text-white p-3 rounded-2xl flex items-center justify-center shadow-lg shadow-zinc-900/25 shrink-0 self-stretch">
+                                <BookOpen size={24} />
                             </div>
                             <div>
-                                <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest">Gestão de Ativos</span>
+                                <span className="text-xs font-bold text-zinc-600 uppercase tracking-widest">Regras Internas</span>
                                 <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5 text-zinc-900">
                                     <span className="md:hidden text-black">{formatarNomePrimeiroEUltimo(memberData?.condominio?.nome)}</span>
                                     <span className="hidden md:inline">{memberData?.condominio?.nome || "Condomínio"}</span>
@@ -375,68 +364,60 @@ export default function GestaoAtivosPage() {
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <p className="text-xs md:text-sm text-zinc-500 font-medium">
-                        Cadastre e gerencie o patrimônio e os bens permanentes pertencentes ao condomínio.
+                        Consulte e gerencie a convenção, o regimento interno e as diretrizes do condomínio.
                     </p>
 
                     <button
                         onClick={abrirNovoCadastro}
-                        className="group relative flex items-center justify-center gap-1.5 h-9 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-indigo-600/10 active:scale-95 shrink-0 cursor-pointer self-end sm:self-auto"
+                        className="group relative flex items-center justify-center gap-1.5 h-9 px-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 shrink-0 cursor-pointer self-end sm:self-auto"
                     >
                         <Plus size={12} />
-                        <span>Novo Ativo</span>
+                        <span>Nova Regra</span>
                     </button>
                 </div>
 
                 <div className="bg-white border border-zinc-200 rounded-[2.5rem] p-6 shadow-sm mb-12">
-                    {ativos.length === 0 ? (
+                    {regras.length === 0 ? (
                         <div className="text-center py-12 space-y-2">
                             <AlertCircle className="mx-auto text-zinc-300" size={36} />
-                            <p className="text-zinc-400 text-sm font-medium">Nenhum bem patrimonial cadastrado.</p>
+                            <p className="text-zinc-400 text-sm font-medium">Nenhuma regra interna cadastrada.</p>
                         </div>
                     ) : (
                         <div className="overflow-x-auto max-h-[450px]">
                             <table className="w-full text-left border-collapse whitespace-nowrap">
                                 <thead className="sticky top-0 bg-white z-10 border-b border-zinc-100">
                                     <tr>
-                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Item / Bem</th>
+                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Título / Diretriz</th>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Categoria</th>
-                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Qtd</th>
-                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Valor</th>
-                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Data</th>
+                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Atualização</th>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider text-right sticky right-0 bg-white md:bg-transparent pl-4">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-zinc-50">
-                                    {ativos.map((item) => (
+                                    {regras.map((item) => (
                                         <tr key={item.id} className="hover:bg-zinc-50/50 transition-colors">
                                             <td className="py-3.5 pr-3 text-xs font-bold text-zinc-800">
-                                                {item.nome}
+                                                {item.titulo}
                                             </td>
                                             <td className="py-3.5 pr-3 text-xs font-bold text-zinc-800">
                                                 {item.categoria}
                                             </td>
                                             <td className="py-3.5 pr-3 text-xs font-bold text-zinc-800">
-                                                {item.quantidade} un
-                                            </td>
-                                            <td className="py-3.5 pr-3 text-xs font-bold text-zinc-800">
-                                                R$ {Number(item.valor_aquisicao || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                            </td>
-                                            <td className="py-3.5 pr-3 text-xs font-bold text-zinc-800">
-                                                {item.data_aquisicao ? new Date(item.data_aquisicao).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '-'}
+                                                {item.atualizado_em ? new Date(item.atualizado_em).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '-'}
                                             </td>
                                             <td className="py-3.5 text-right sticky right-0 bg-white md:bg-transparent pl-4">
                                                 <div className="flex items-center justify-end gap-1">
                                                     <button
                                                         onClick={() => abrirEdicao(item)}
-                                                        className="p-2 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all cursor-pointer"
-                                                        title="Editar Ativo"
+                                                        className="p-2 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl transition-all cursor-pointer"
+                                                        title="Editar Regra"
                                                     >
                                                         <Edit3 size={15} />
                                                     </button>
                                                     <button
                                                         onClick={() => handleExcluir(item.id)}
                                                         className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
-                                                        title="Excluir Ativo"
+                                                        title="Excluir Regra"
                                                     >
                                                         <Trash2 size={15} />
                                                     </button>
@@ -462,20 +443,20 @@ export default function GestaoAtivosPage() {
                         </button>
 
                         <div className="flex items-center gap-3 border-b border-zinc-100 pb-3 mb-4">
-                            <Package className="text-indigo-600" size={20} />
-                            <h2 className="font-bold text-base">{itemEditando ? "Editar Ativo" : "Novo Ativo / Bem"}</h2>
+                            <BookOpen className="text-zinc-900" size={20} />
+                            <h2 className="font-bold text-base">{itemEditando ? "Editar Regra Interna" : "Nova Regra Interna"}</h2>
                         </div>
 
-                        <form onSubmit={handleSalvarAtivo} className="space-y-3">
+                        <form onSubmit={handleSalvarRegra} className="space-y-3">
                             <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Nome do Item</label>
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Título / Diretriz</label>
                                 <input
                                     type="text"
-                                    placeholder="Ex: Microondas, Frigobar, Mesas..."
+                                    placeholder="Ex: Horário de Mudanças, Uso da Churrasqueira..."
                                     required
-                                    value={nomeInput}
-                                    onChange={(e) => setNomeInput(e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-medium text-zinc-900"
+                                    value={tituloInput}
+                                    onChange={(e) => setTituloInput(e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-zinc-400 text-xs font-medium text-zinc-900"
                                 />
                             </div>
 
@@ -484,48 +465,24 @@ export default function GestaoAtivosPage() {
                                 <select
                                     value={categoriaInput}
                                     onChange={(e) => setCategoriaInput(e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-bold uppercase tracking-wider cursor-pointer text-zinc-900"
+                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-zinc-400 text-xs font-bold uppercase tracking-wider cursor-pointer text-zinc-900"
                                 >
-                                    <option value="Equipamento">Equipamento</option>
-                                    <option value="Mobiliário">Mobiliário</option>
-                                    <option value="Eletrodoméstico">Eletrodoméstico</option>
+                                    <option value="Convenção">Convenção</option>
+                                    <option value="Regimento Interno">Regimento Interno</option>
+                                    <option value="Áreas Comuns">Áreas Comuns</option>
                                     <option value="Outros">Outros</option>
                                 </select>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2.5">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Quantidade</label>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        required
-                                        value={quantidadeInput}
-                                        onChange={(e) => setQuantidadeInput(e.target.value)}
-                                        className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-medium text-zinc-900"
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Valor Unitário (R$)</label>
-                                    <input
-                                        type="text"
-                                        placeholder="0.00"
-                                        required
-                                        value={valorInput}
-                                        onChange={(e) => setValorInput(e.target.value)}
-                                        className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-medium text-zinc-900"
-                                    />
-                                </div>
-                            </div>
-
                             <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Data de Aquisição</label>
-                                <input
-                                    type="date"
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Descrição / Detalhes</label>
+                                <textarea
+                                    rows={4}
+                                    placeholder="Descreva detalhadamente a regra..."
                                     required
-                                    value={dataAquisicaoInput}
-                                    onChange={(e) => setDataAquisicaoInput(e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-medium text-zinc-900"
+                                    value={descricaoInput}
+                                    onChange={(e) => setDescricaoInput(e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-zinc-400 text-xs font-medium text-zinc-900 resize-none"
                                 />
                             </div>
 
@@ -535,9 +492,9 @@ export default function GestaoAtivosPage() {
                             <button
                                 type="submit"
                                 disabled={actionLoading}
-                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-indigo-600/10 flex items-center justify-center gap-2 cursor-pointer"
+                                className="w-full bg-zinc-900 hover:bg-black text-white py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-zinc-900/10 flex items-center justify-center gap-2 cursor-pointer"
                             >
-                                {actionLoading ? "Salvando..." : itemEditando ? "Salvar Alterações" : "Cadastrar Ativo"}
+                                {actionLoading ? "Salvando..." : itemEditando ? "Salvar Alterações" : "Cadastrar Regra"}
                             </button>
                         </form>
                     </div>
@@ -551,7 +508,6 @@ export default function GestaoAtivosPage() {
                     <div className="h-px bg-gray-200 flex-1"></div>
                 </div>
 
-                {/* BLOCO INSTAGRAM */}
                 <div className="flex flex-col items-center text-center">
                     <div className="max-w-3xl mb-12">
                         <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">

@@ -1,14 +1,14 @@
-// app/condo/adm/gestao_ativos/page.tsx
+// app/condo/adm/controle_conservacao/page.tsx
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import Link from "next/navigation";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
     Loader2,
     ArrowLeft,
     Instagram,
-    Package,
+    Wrench,
     Plus,
     Trash2,
     CheckCircle2,
@@ -17,14 +17,13 @@ import {
     X
 } from "lucide-react";
 
-interface AtivoItem {
+interface ConservacaoItem {
     id: string;
     condominio_id: string;
-    nome: string;
-    categoria: string;
-    quantidade: number;
-    valor_aquisicao: number | string;
-    data_aquisicao: string;
+    area_item: string;
+    tipo_manutencao: string;
+    frequencia: string;
+    ultima_realizacao: string;
 }
 
 interface UserMemberData {
@@ -36,24 +35,23 @@ interface UserMemberData {
     };
 }
 
-export default function GestaoAtivosPage() {
+export default function ControleConservacaoPage() {
     const router = useRouter();
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
     const [memberData, setMemberData] = useState<UserMemberData | null>(null);
-    const [ativos, setAtivos] = useState<AtivoItem[]>([]);
+    const [itens, setItens] = useState<ConservacaoItem[]>([]);
 
     // Estados de Modal / Cadastro / Edição
     const [showModal, setShowModal] = useState(false);
-    const [itemEditando, setItemEditando] = useState<AtivoItem | null>(null);
+    const [itemEditando, setItemEditando] = useState<ConservacaoItem | null>(null);
 
     // Campos do Formulário
-    const [nomeInput, setNomeInput] = useState("");
-    const [categoriaInput, setCategoriaInput] = useState("Equipamento");
-    const [quantidadeInput, setQuantidadeInput] = useState("1");
-    const [valorInput, setValorInput] = useState("");
-    const [dataAquisicaoInput, setDataAquisicaoInput] = useState(new Date().toISOString().split('T')[0]);
+    const [areaItemInput, setAreaItemInput] = useState("");
+    const [tipoManutencaoInput, setTipoManutencaoInput] = useState("Preventiva");
+    const [frequenciaInput, setFrequenciaInput] = useState("Mensal");
+    const [ultimaRealizacaoInput, setUltimaRealizacaoInput] = useState(new Date().toISOString().split('T')[0]);
 
     const [msgSucesso, setMsgSucesso] = useState("");
     const [msgErro, setMsgErro] = useState("");
@@ -68,19 +66,19 @@ export default function GestaoAtivosPage() {
         return `${partes[0]} ${partes[partes.length - 1]}`;
     };
 
-    const loadAtivos = async (condoId: string) => {
+    const loadItens = async (condoId: string) => {
         try {
             const { data, error } = await supabase
-                .from("condominio_ativos")
+                .from("condominio_conservacao")
                 .select("*")
                 .eq("condominio_id", condoId)
-                .order("data_aquisicao", { ascending: false });
+                .order("ultima_realizacao", { ascending: false });
 
             if (!error && data && isMountedRef.current) {
-                setAtivos(data as AtivoItem[]);
+                setItens(data as ConservacaoItem[]);
             }
         } catch (err) {
-            console.error("Erro ao carregar ativos:", err);
+            console.error("Erro ao carregar itens de conservação:", err);
         }
     };
 
@@ -90,7 +88,7 @@ export default function GestaoAtivosPage() {
                 if (isMountedRef.current) {
                     setSession(null);
                     setMemberData(null);
-                    setAtivos([]);
+                    setItens([]);
                     setLoading(false);
                 }
                 return;
@@ -109,7 +107,7 @@ export default function GestaoAtivosPage() {
             if (membroError) {
                 const errorMsg = membroError.message || JSON.stringify(membroError);
                 if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
-                    console.error("Erro na consulta Supabase (membros ativos):", errorMsg);
+                    console.error("Erro na consulta Supabase (membros conservação):", errorMsg);
                 }
             }
 
@@ -159,7 +157,7 @@ export default function GestaoAtivosPage() {
                         nome: nomeCondominioOficial
                     }
                 });
-                await loadAtivos(vinculoAdm.condominio_id);
+                await loadItens(vinculoAdm.condominio_id);
             }
         } catch (e: any) {
             const errString = e?.message || JSON.stringify(e);
@@ -199,7 +197,7 @@ export default function GestaoAtivosPage() {
             } catch (err: any) {
                 const errString = err?.message || JSON.stringify(err);
                 if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
-                    console.error("Erro ao recuperar sessão inicial ativos:", errString);
+                    console.error("Erro ao recuperar sessão inicial conservação:", errString);
                 }
                 if (isMountedRef.current) setLoading(false);
             }
@@ -217,7 +215,7 @@ export default function GestaoAtivosPage() {
             } else if (event === 'SIGNED_OUT') {
                 setSession(null);
                 setMemberData(null);
-                setAtivos([]);
+                setItens([]);
                 setLoading(false);
             }
         });
@@ -231,29 +229,27 @@ export default function GestaoAtivosPage() {
 
     const abrirNovoCadastro = () => {
         setItemEditando(null);
-        setNomeInput("");
-        setCategoriaInput("Equipamento");
-        setQuantidadeInput("1");
-        setValorInput("");
-        setDataAquisicaoInput(new Date().toISOString().split('T')[0]);
+        setAreaItemInput("");
+        setTipoManutencaoInput("Preventiva");
+        setFrequenciaInput("Mensal");
+        setUltimaRealizacaoInput(new Date().toISOString().split('T')[0]);
         setMsgSucesso("");
         setMsgErro("");
         setShowModal(true);
     };
 
-    const abrirEdicao = (item: AtivoItem) => {
+    const abrirEdicao = (item: ConservacaoItem) => {
         setItemEditando(item);
-        setNomeInput(item.nome);
-        setCategoriaInput(item.categoria);
-        setQuantidadeInput(item.quantidade.toString());
-        setValorInput(item.valor_aquisicao ? item.valor_aquisicao.toString() : "");
-        setDataAquisicaoInput(item.data_aquisicao ? item.data_aquisicao.split('T')[0] : new Date().toISOString().split('T')[0]);
+        setAreaItemInput(item.area_item);
+        setTipoManutencaoInput(item.tipo_manutencao);
+        setFrequenciaInput(item.frequencia);
+        setUltimaRealizacaoInput(item.ultima_realizacao ? item.ultima_realizacao.split('T')[0] : new Date().toISOString().split('T')[0]);
         setMsgSucesso("");
         setMsgErro("");
         setShowModal(true);
     };
 
-    const handleSalvarAtivo = async (e: React.FormEvent) => {
+    const handleSalvarItem = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!memberData) return;
 
@@ -262,59 +258,55 @@ export default function GestaoAtivosPage() {
         setMsgSucesso("");
 
         try {
-            const valorTratado = valorInput.replace(',', '.');
-            const valorNumerico = parseFloat(valorTratado);
-
             const payload = {
                 condominio_id: memberData.condominio_id,
-                nome: nomeInput.trim(),
-                categoria: categoriaInput.trim(),
-                quantidade: parseInt(quantidadeInput, 10) || 1,
-                valor_aquisicao: isNaN(valorNumerico) ? 0 : valorNumerico,
-                data_aquisicao: dataAquisicaoInput
+                area_item: areaItemInput.trim(),
+                tipo_manutencao: tipoManutencaoInput.trim(),
+                frequencia: frequenciaInput.trim(),
+                ultima_realizacao: ultimaRealizacaoInput
             };
 
             if (itemEditando) {
                 const { error } = await supabase
-                    .from("condominio_ativos")
+                    .from("condominio_conservacao")
                     .update(payload)
                     .eq("id", itemEditando.id);
 
                 if (error) throw error;
-                setMsgSucesso("Ativo atualizado com sucesso!");
+                setMsgSucesso("Registro de conservação atualizado com sucesso!");
             } else {
                 const { error } = await supabase
-                    .from("condominio_ativos")
+                    .from("condominio_conservacao")
                     .insert([payload]);
 
                 if (error) throw error;
-                setMsgSucesso("Ativo cadastrado com sucesso!");
+                setMsgSucesso("Registro de conservação cadastrado com sucesso!");
             }
 
-            await loadAtivos(memberData.condominio_id);
+            await loadItens(memberData.condominio_id);
             setTimeout(() => {
                 setShowModal(false);
                 setMsgSucesso("");
             }, 1000);
         } catch (err: any) {
-            setMsgErro(err?.message || "Erro ao salvar ativo do condomínio.");
+            setMsgErro(err?.message || "Erro ao salvar registro de conservação do condomínio.");
         } finally {
             setActionLoading(false);
         }
     };
 
     const handleExcluir = async (id: string) => {
-        if (!confirm("Deseja realmente remover este ativo do inventário?")) return;
+        if (!confirm("Deseja realmente remover este registro de conservação?")) return;
         if (!memberData) return;
 
         setActionLoading(true);
         const { error } = await supabase
-            .from("condominio_ativos")
+            .from("condominio_conservacao")
             .delete()
             .eq("id", id);
 
         if (!error) {
-            await loadAtivos(memberData.condominio_id);
+            await loadItens(memberData.condominio_id);
         }
         setActionLoading(false);
     };
@@ -322,8 +314,8 @@ export default function GestaoAtivosPage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
-                <Loader2 className="animate-spin text-blue-600 mb-4" size={32} />
-                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Carregando controle de bens...</p>
+                <Loader2 className="animate-spin text-zinc-900 mb-4" size={32} />
+                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Carregando controle de conservação...</p>
             </div>
         );
     }
@@ -350,11 +342,11 @@ export default function GestaoAtivosPage() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-5 mb-4">
                     <div className="flex flex-col md:flex-row md:items-center gap-6 w-full justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="w-auto h-auto bg-indigo-600 text-white p-3 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-600/25 shrink-0 self-stretch">
-                                <Package size={24} />
+                            <div className="w-auto h-auto bg-zinc-900 text-white p-3 rounded-2xl flex items-center justify-center shadow-lg shadow-zinc-900/25 shrink-0 self-stretch">
+                                <Wrench size={24} />
                             </div>
                             <div>
-                                <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest">Gestão de Ativos</span>
+                                <span className="text-xs font-bold text-zinc-600 uppercase tracking-widest">Controle Conservação</span>
                                 <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5 text-zinc-900">
                                     <span className="md:hidden text-black">{formatarNomePrimeiroEUltimo(memberData?.condominio?.nome)}</span>
                                     <span className="hidden md:inline">{memberData?.condominio?.nome || "Condomínio"}</span>
@@ -375,68 +367,64 @@ export default function GestaoAtivosPage() {
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <p className="text-xs md:text-sm text-zinc-500 font-medium">
-                        Cadastre e gerencie o patrimônio e os bens permanentes pertencentes ao condomínio.
+                        Monitore a manutenção, a preservação e os cuidados periódicos das áreas comuns do condomínio.
                     </p>
 
                     <button
                         onClick={abrirNovoCadastro}
-                        className="group relative flex items-center justify-center gap-1.5 h-9 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-indigo-600/10 active:scale-95 shrink-0 cursor-pointer self-end sm:self-auto"
+                        className="group relative flex items-center justify-center gap-1.5 h-9 px-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 shrink-0 cursor-pointer self-end sm:self-auto"
                     >
                         <Plus size={12} />
-                        <span>Novo Ativo</span>
+                        <span>Novo Registro</span>
                     </button>
                 </div>
 
                 <div className="bg-white border border-zinc-200 rounded-[2.5rem] p-6 shadow-sm mb-12">
-                    {ativos.length === 0 ? (
+                    {itens.length === 0 ? (
                         <div className="text-center py-12 space-y-2">
                             <AlertCircle className="mx-auto text-zinc-300" size={36} />
-                            <p className="text-zinc-400 text-sm font-medium">Nenhum bem patrimonial cadastrado.</p>
+                            <p className="text-zinc-400 text-sm font-medium">Nenhum registro de conservação cadastrado.</p>
                         </div>
                     ) : (
                         <div className="overflow-x-auto max-h-[450px]">
                             <table className="w-full text-left border-collapse whitespace-nowrap">
                                 <thead className="sticky top-0 bg-white z-10 border-b border-zinc-100">
                                     <tr>
-                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Item / Bem</th>
-                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Categoria</th>
-                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Qtd</th>
-                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Valor</th>
-                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Data</th>
+                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Área / Item</th>
+                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Tipo</th>
+                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Frequência</th>
+                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Última Realização</th>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider text-right sticky right-0 bg-white md:bg-transparent pl-4">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-zinc-50">
-                                    {ativos.map((item) => (
+                                    {itens.map((item) => (
                                         <tr key={item.id} className="hover:bg-zinc-50/50 transition-colors">
                                             <td className="py-3.5 pr-3 text-xs font-bold text-zinc-800">
-                                                {item.nome}
+                                                {item.area_item}
                                             </td>
                                             <td className="py-3.5 pr-3 text-xs font-bold text-zinc-800">
-                                                {item.categoria}
+                                                {item.tipo_manutencao}
                                             </td>
                                             <td className="py-3.5 pr-3 text-xs font-bold text-zinc-800">
-                                                {item.quantidade} un
+                                                {item.frequencia}
                                             </td>
                                             <td className="py-3.5 pr-3 text-xs font-bold text-zinc-800">
-                                                R$ {Number(item.valor_aquisicao || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                            </td>
-                                            <td className="py-3.5 pr-3 text-xs font-bold text-zinc-800">
-                                                {item.data_aquisicao ? new Date(item.data_aquisicao).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '-'}
+                                                {item.ultima_realizacao ? new Date(item.ultima_realizacao).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '-'}
                                             </td>
                                             <td className="py-3.5 text-right sticky right-0 bg-white md:bg-transparent pl-4">
                                                 <div className="flex items-center justify-end gap-1">
                                                     <button
                                                         onClick={() => abrirEdicao(item)}
-                                                        className="p-2 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all cursor-pointer"
-                                                        title="Editar Ativo"
+                                                        className="p-2 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl transition-all cursor-pointer"
+                                                        title="Editar Registro"
                                                     >
                                                         <Edit3 size={15} />
                                                     </button>
                                                     <button
                                                         onClick={() => handleExcluir(item.id)}
                                                         className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
-                                                        title="Excluir Ativo"
+                                                        title="Excluir Registro"
                                                     >
                                                         <Trash2 size={15} />
                                                     </button>
@@ -462,70 +450,61 @@ export default function GestaoAtivosPage() {
                         </button>
 
                         <div className="flex items-center gap-3 border-b border-zinc-100 pb-3 mb-4">
-                            <Package className="text-indigo-600" size={20} />
-                            <h2 className="font-bold text-base">{itemEditando ? "Editar Ativo" : "Novo Ativo / Bem"}</h2>
+                            <Wrench className="text-zinc-900" size={20} />
+                            <h2 className="font-bold text-base">{itemEditando ? "Editar Conservação" : "Novo Registro de Conservação"}</h2>
                         </div>
 
-                        <form onSubmit={handleSalvarAtivo} className="space-y-3">
+                        <form onSubmit={handleSalvarItem} className="space-y-3">
                             <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Nome do Item</label>
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Área / Item</label>
                                 <input
                                     type="text"
-                                    placeholder="Ex: Microondas, Frigobar, Mesas..."
+                                    placeholder="Ex: Elevadores, Jardim, Fachada, Piscina..."
                                     required
-                                    value={nomeInput}
-                                    onChange={(e) => setNomeInput(e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-medium text-zinc-900"
+                                    value={areaItemInput}
+                                    onChange={(e) => setAreaItemInput(e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-zinc-400 text-xs font-medium text-zinc-900"
                                 />
                             </div>
 
                             <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Categoria</label>
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Tipo de Manutenção</label>
                                 <select
-                                    value={categoriaInput}
-                                    onChange={(e) => setCategoriaInput(e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-bold uppercase tracking-wider cursor-pointer text-zinc-900"
+                                    value={tipoManutencaoInput}
+                                    onChange={(e) => setTipoManutencaoInput(e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-zinc-400 text-xs font-bold uppercase tracking-wider cursor-pointer text-zinc-900"
                                 >
-                                    <option value="Equipamento">Equipamento</option>
-                                    <option value="Mobiliário">Mobiliário</option>
-                                    <option value="Eletrodoméstico">Eletrodoméstico</option>
-                                    <option value="Outros">Outros</option>
+                                    <option value="Preventiva">Preventiva</option>
+                                    <option value="Corretiva">Corretiva</option>
+                                    <option value="Limpeza / Conservação">Limpeza / Conservação</option>
+                                    <option value="Inspeção">Inspeção</option>
                                 </select>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2.5">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Quantidade</label>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        required
-                                        value={quantidadeInput}
-                                        onChange={(e) => setQuantidadeInput(e.target.value)}
-                                        className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-medium text-zinc-900"
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Valor Unitário (R$)</label>
-                                    <input
-                                        type="text"
-                                        placeholder="0.00"
-                                        required
-                                        value={valorInput}
-                                        onChange={(e) => setValorInput(e.target.value)}
-                                        className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-medium text-zinc-900"
-                                    />
-                                </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Frequência</label>
+                                <select
+                                    value={frequenciaInput}
+                                    onChange={(e) => setFrequenciaInput(e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-zinc-400 text-xs font-bold uppercase tracking-wider cursor-pointer text-zinc-900"
+                                >
+                                    <option value="Semanal">Semanal</option>
+                                    <option value="Mensal">Mensal</option>
+                                    <option value="Trimestral">Trimestral</option>
+                                    <option value="Semestral">Semestral</option>
+                                    <option value="Anual">Anual</option>
+                                    <option value="Eventual">Eventual</option>
+                                </select>
                             </div>
 
                             <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Data de Aquisição</label>
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Última Realização</label>
                                 <input
                                     type="date"
                                     required
-                                    value={dataAquisicaoInput}
-                                    onChange={(e) => setDataAquisicaoInput(e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-medium text-zinc-900"
+                                    value={ultimaRealizacaoInput}
+                                    onChange={(e) => setUltimaRealizacaoInput(e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-zinc-400 text-xs font-medium text-zinc-900"
                                 />
                             </div>
 
@@ -535,9 +514,9 @@ export default function GestaoAtivosPage() {
                             <button
                                 type="submit"
                                 disabled={actionLoading}
-                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-indigo-600/10 flex items-center justify-center gap-2 cursor-pointer"
+                                className="w-full bg-zinc-900 hover:bg-black text-white py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-zinc-900/10 flex items-center justify-center gap-2 cursor-pointer"
                             >
-                                {actionLoading ? "Salvando..." : itemEditando ? "Salvar Alterações" : "Cadastrar Ativo"}
+                                {actionLoading ? "Salvando..." : itemEditando ? "Salvar Alterações" : "Cadastrar Registro"}
                             </button>
                         </form>
                     </div>
@@ -551,7 +530,6 @@ export default function GestaoAtivosPage() {
                     <div className="h-px bg-gray-200 flex-1"></div>
                 </div>
 
-                {/* BLOCO INSTAGRAM */}
                 <div className="flex flex-col items-center text-center">
                     <div className="max-w-3xl mb-12">
                         <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">

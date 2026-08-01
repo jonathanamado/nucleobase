@@ -66,6 +66,12 @@ export default function EnquetesDecisoesPage() {
     const [votosMorador, setVotosMorador] = useState<Record<string, string>>({});
     const [feedbackVoto, setFeedbackVoto] = useState<string>("");
 
+    // Estado para controlar a visão dos resultados parciais por enquete ('geral' ou 'apartamento')
+    const [visoesResultados, setVisoesResultados] = useState<Record<string, 'geral' | 'apartamento'>>({});
+
+    // Mapeamento de membros para associar user_id à unidade caso necessário
+    const [membrosCondominio, setMembrosCondominio] = useState<Record<string, string>>({});
+
     // Lista unificada de propostas enviadas pelo morador
     const [propostasMorador, setPropostasMorador] = useState<PropostaEnquete[]>([]);
 
@@ -117,6 +123,24 @@ export default function EnquetesDecisoesPage() {
 
     const loadDadosDashboard = async (condoId: string, userId: string) => {
         try {
+            // Carregar membros do condomínio para mapear unidades
+            const { data: membrosData } = await supabase
+                .from("condominio_membros")
+                .select("user_id, unidade")
+                .eq("condominio_id", condoId);
+
+            const mapaUnidades: Record<string, string> = {};
+            if (membrosData) {
+                membrosData.forEach((m: any) => {
+                    if (m.user_id && m.unidade) {
+                        mapaUnidades[m.user_id] = m.unidade;
+                    }
+                });
+            }
+            if (isMountedRef.current) {
+                setMembrosCondominio(mapaUnidades);
+            }
+
             // 1. Carregar todas as enquetes oficiais do condomínio
             const { data: enquetesData, error: errEnquetes } = await supabase
                 .from("condominio_enquetes")
@@ -593,6 +617,35 @@ export default function EnquetesDecisoesPage() {
                             {enquetesAtivas.map((eq) => {
                                 const listaOpcoes = parseOpcoes(eq.opcoes);
                                 const votoUsuario = votosMorador[eq.id];
+                                const tipoVisao = visoesResultados[eq.id] || 'geral';
+
+                                // Processar votos para exibição parcial
+                                let objVotos = eq.votos;
+                                if (typeof objVotos === 'string') {
+                                    try { objVotos = JSON.parse(objVotos); } catch { objVotos = {}; }
+                                }
+                                if (!objVotos || typeof objVotos !== 'object') {
+                                    objVotos = {};
+                                }
+
+                                const contagemGeral: Record<string, number> = {};
+                                const contagemApartamento: Record<string, Record<string, string>> = {}; // opcao -> { unidade: voto } ou somatorio
+
+                                listaOpcoes.forEach((op: any) => {
+                                    contagemGeral[op.texto] = 0;
+                                    contagemApartamento[op.texto] = {};
+                                });
+
+                                Object.entries(objVotos).forEach(([uId, opcaoEscolhida]) => {
+                                    if (typeof opcaoEscolhida === 'string' && contagemGeral[opcaoEscolhida] !== undefined) {
+                                        contagemGeral[opcaoEscolhida]++;
+                                        const unidadeMorador = membrosCondominio[uId] || "Apto N/D";
+                                        contagemApartamento[opcaoEscolhida][unidadeMorador] = opcaoEscolhida;
+                                    }
+                                });
+
+                                const totalVotosGeral = Object.values(contagemGeral).reduce((a, b) => a + b, 0);
+
                                 return (
                                     <div key={eq.id} className="bg-white border border-zinc-200 rounded-[2.5rem] p-6 md:p-8 shadow-sm space-y-4">
                                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -634,6 +687,75 @@ export default function EnquetesDecisoesPage() {
                                                     <CheckCircle2 size={13} /> Seu voto registrado: &quot;{votoUsuario}&quot;
                                                 </p>
                                             )}
+
+                                            {/* VISÃO DE RESULTADOS PARCIAIS */}
+                                            <div className="mt-4 pt-4 border-t border-zinc-100 space-y-3">
+                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                                    <span className="text-[10px] font-black uppercase tracking-wider text-zinc-500">
+                                                        Resultados Parciais ({totalVotosGeral} {totalVotosGeral === 1 ? 'voto' : 'votos'})
+                                                    </span>
+                                                    <div className="inline-flex bg-zinc-100 p-0.5 rounded-xl text-[10px] font-bold self-start sm:self-auto">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setVisoesResultados(prev => ({ ...prev, [eq.id]: 'geral' }))}
+                                                            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${tipoVisao === 'geral' ? 'bg-white text-zinc-900 shadow-xs' : 'text-zinc-500 hover:text-zinc-800'}`}
+                                                        >
+                                                            Votos Totais (Geral)
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setVisoesResultados(prev => ({ ...prev, [eq.id]: 'apartamento' }))}
+                                                            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${tipoVisao === 'apartamento' ? 'bg-white text-zinc-900 shadow-xs' : 'text-zinc-500 hover:text-zinc-800'}`}
+                                                        >
+                                                            Por Apartamento
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="bg-zinc-50/70 border border-zinc-100 rounded-2xl p-4 space-y-2.5">
+                                                    {listaOpcoes.map((op: any, i: number) => {
+                                                        const qtd = contagemGeral[op.texto] || 0;
+                                                        const percentual = totalVotosGeral > 0 ? Math.round((qtd / totalVotosGeral) * 100) : 0;
+                                                        const aptosVotantes = Object.keys(contagemApartamento[op.texto] || {});
+
+                                                        return (
+                                                            <div key={i} className="space-y-1">
+                                                                <div className="flex items-center justify-between text-xs">
+                                                                    <span className="font-bold text-zinc-800">{op.texto}</span>
+                                                                    <span className="font-medium text-zinc-500 text-[11px]">
+                                                                        {tipoVisao === 'geral' ? (
+                                                                            `${qtd} ${qtd === 1 ? 'voto' : 'votos'} (${percentual}%)`
+                                                                        ) : (
+                                                                            `${aptosVotantes.length} ${aptosVotantes.length === 1 ? 'apto' : 'aptos'}`
+                                                                        )}
+                                                                    </span>
+                                                                </div>
+
+                                                                {tipoVisao === 'geral' ? (
+                                                                    <div className="w-full bg-zinc-200/70 h-2 rounded-full overflow-hidden">
+                                                                        <div
+                                                                            className="bg-blue-600 h-full rounded-full transition-all duration-500"
+                                                                            style={{ width: `${percentual}%` }}
+                                                                        />
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="flex flex-wrap gap-1 pt-0.5">
+                                                                        {aptosVotantes.length === 0 ? (
+                                                                            <span className="text-[10px] text-zinc-400 italic">Nenhum voto registrado</span>
+                                                                        ) : (
+                                                                            aptosVotantes.map((apto, idx) => (
+                                                                                <span key={idx} className="text-[9px] font-bold bg-white text-zinc-700 px-2 py-0.5 rounded-md border border-zinc-200/80 shadow-2xs">
+                                                                                    {apto}
+                                                                                </span>
+                                                                            ))
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 );

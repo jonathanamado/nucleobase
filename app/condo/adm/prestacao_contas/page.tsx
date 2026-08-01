@@ -86,7 +86,7 @@ export default function PrestacaoContasPage() {
         }
     };
 
-    const verifySindicoAndLoadData = async (currentSession: any, retries = 2) => {
+    const verifySindicoAndLoadData = async (currentSession: any) => {
         try {
             if (!currentSession || !currentSession.user) {
                 if (isMountedRef.current) {
@@ -103,31 +103,15 @@ export default function PrestacaoContasPage() {
             }
             const userId = currentSession.user.id;
 
-            let membroDataList = null;
-            let membroError = null;
+            const { data: membroDataList, error: membroError } = await supabase
+                .from("condominio_membros")
+                .select("condominio_id, role, unidade, acesso_app, condominio_nome")
+                .eq("user_id", userId);
 
-            for (let i = 0; i <= retries; i++) {
-                const res = await supabase
-                    .from("condominio_membros")
-                    .select("condominio_id, role, unidade, acesso_app, condominio_nome")
-                    .eq("user_id", userId);
-
-                membroDataList = res.data;
-                membroError = res.error;
-
-                if (membroError) {
-                    const errorMsg = membroError.message || JSON.stringify(membroError);
-                    if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
-                        console.error("Erro na consulta Supabase (membros):", errorMsg);
-                    }
-                }
-
-                if (membroDataList && membroDataList.length > 0) {
-                    break;
-                }
-
-                if (i < retries) {
-                    await new Promise((resolve) => setTimeout(resolve, 300));
+            if (membroError) {
+                const errorMsg = membroError.message || JSON.stringify(membroError);
+                if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
+                    console.error("Erro na consulta Supabase (membros):", errorMsg);
                 }
             }
 
@@ -142,9 +126,9 @@ export default function PrestacaoContasPage() {
 
             const vinculoAdm = membroDataList.find(
                 (m: any) => m.role === 'sindico'
-            );
+            ) || membroDataList[0];
 
-            if (!vinculoAdm) {
+            if (!vinculoAdm || vinculoAdm.role !== 'sindico') {
                 if (isMountedRef.current) {
                     setIsApenasMorador(true);
                     setCondominio(null);
@@ -154,14 +138,16 @@ export default function PrestacaoContasPage() {
             }
 
             let nomeCondominioOficial = vinculoAdm.condominio_nome || "Condomínio";
-            const { data: condoDataReal } = await supabase
-                .from("condominios")
-                .select("nome")
-                .eq("id", vinculoAdm.condominio_id)
-                .maybeSingle();
+            if (vinculoAdm.condominio_id) {
+                const { data: condoDataReal } = await supabase
+                    .from("condominios")
+                    .select("nome")
+                    .eq("id", vinculoAdm.condominio_id)
+                    .maybeSingle();
 
-            if (condoDataReal && condoDataReal.nome) {
-                nomeCondominioOficial = condoDataReal.nome;
+                if (condoDataReal && condoDataReal.nome) {
+                    nomeCondominioOficial = condoDataReal.nome;
+                }
             }
 
             if (isMountedRef.current) {
@@ -188,10 +174,19 @@ export default function PrestacaoContasPage() {
 
     useEffect(() => {
         isMountedRef.current = true;
+        let authSub: any = null;
 
         const initAuth = async () => {
             try {
+                const timeoutId = setTimeout(() => {
+                    if (isMountedRef.current && loading) {
+                        setLoading(false);
+                    }
+                }, 5000);
+
                 const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+                clearTimeout(timeoutId);
+
                 if (sessionError && !currentSession) throw sessionError;
 
                 if (isMountedRef.current) {
@@ -222,10 +217,11 @@ export default function PrestacaoContasPage() {
                 setLoading(false);
             }
         });
+        authSub = subscription;
 
         return () => {
             isMountedRef.current = false;
-            subscription.unsubscribe();
+            if (authSub) authSub.unsubscribe();
         };
     }, []);
 
@@ -687,7 +683,7 @@ export default function PrestacaoContasPage() {
                                 required
                                 value={categoriaConta}
                                 onChange={(e) => setCategoriaConta(e.target.value)}
-                                className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium"
+                                className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium text-zinc-900"
                             />
                         </div>
 
@@ -699,7 +695,7 @@ export default function PrestacaoContasPage() {
                                 required
                                 value={descricaoConta}
                                 onChange={(e) => setDescricaoConta(e.target.value)}
-                                className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium"
+                                className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium text-zinc-900"
                             />
                         </div>
 
@@ -713,7 +709,7 @@ export default function PrestacaoContasPage() {
                                     required
                                     value={valorPrevistoConta}
                                     onChange={(e) => setValorPrevistoConta(e.target.value)}
-                                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium"
+                                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium text-zinc-900"
                                 />
                             </div>
                             <div className="space-y-1">
@@ -725,7 +721,7 @@ export default function PrestacaoContasPage() {
                                     required
                                     value={valorRealizadoConta}
                                     onChange={(e) => setValorRealizadoConta(e.target.value)}
-                                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium"
+                                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium text-zinc-900"
                                 />
                             </div>
                         </div>
@@ -737,7 +733,7 @@ export default function PrestacaoContasPage() {
                                 required
                                 value={dataCompetenciaConta}
                                 onChange={(e) => setDataCompetenciaConta(e.target.value)}
-                                className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium"
+                                className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium text-zinc-900"
                             />
                         </div>
 

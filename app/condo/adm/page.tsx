@@ -41,6 +41,7 @@ interface Morador {
     role: string;
     user_id: string;
     acesso_app: boolean;
+    criado_em: string;
     profile: {
         nome_completo: string;
         email_contato: string;
@@ -109,6 +110,21 @@ export default function CondoAdm() {
         return `${partes[0]} ${partes[partes.length - 1]}`;
     };
 
+    const formatarDataBrasileira = (dataString: string) => {
+        if (!dataString) return "";
+        try {
+            const data = new Date(dataString);
+            if (isNaN(data.getTime())) return dataString;
+            return data.toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+            });
+        } catch {
+            return dataString;
+        }
+    };
+
     const obterNomeCondominioMobile = (nomeCompleto: string) => {
         if (!nomeCompleto) return "Condomínio";
         const partes = nomeCompleto.trim().split(/\s+/);
@@ -125,6 +141,7 @@ export default function CondoAdm() {
                 role,
                 user_id,
                 acesso_app,
+                criado_em,
                 profile:profiles ( nome_completo, email_contato, slug )
             `)
             .eq("condominio_id", condoId)
@@ -135,7 +152,7 @@ export default function CondoAdm() {
         }
     };
 
-    const verifySindicoAndLoadData = async (currentSession: any, retries = 2) => {
+    const verifySindicoAndLoadData = async (currentSession: any) => {
         try {
             if (!currentSession || !currentSession.user) {
                 if (isMountedRef.current) {
@@ -153,34 +170,11 @@ export default function CondoAdm() {
             }
             const userId = currentSession.user.id;
 
-            let condoData = null;
+            const { data: condoData, error } = await supabase.rpc('get_user_condo_context', {
+                p_user_id: userId
+            });
 
-            for (let i = 0; i <= retries; i++) {
-                const { data, error } = await supabase.rpc('get_user_condo_context', {
-                    p_user_id: userId
-                });
-
-                if (!error && data) {
-                    condoData = data;
-                    break;
-                }
-
-                if (i < retries) {
-                    await new Promise((resolve) => setTimeout(resolve, 300));
-                }
-            }
-
-            if (!condoData || !condoData.role) {
-                if (isMountedRef.current) {
-                    setIsApenasMorador(true);
-                    setCondominio(null);
-                    setMoradores([]);
-                    setLoading(false);
-                }
-                return;
-            }
-
-            if (condoData.role !== 'sindico') {
+            if (error || !condoData || condoData.role !== 'sindico') {
                 if (isMountedRef.current) {
                     setIsApenasMorador(true);
                     setCondominio(null);
@@ -216,10 +210,19 @@ export default function CondoAdm() {
 
     useEffect(() => {
         isMountedRef.current = true;
+        let authSub: any = null;
 
         const initAuth = async () => {
             try {
+                const timeoutId = setTimeout(() => {
+                    if (isMountedRef.current && loading) {
+                        setLoading(false);
+                    }
+                }, 5000);
+
                 const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+                clearTimeout(timeoutId);
+
                 if (sessionError && !currentSession) throw sessionError;
 
                 if (isMountedRef.current) {
@@ -239,7 +242,7 @@ export default function CondoAdm() {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
             if (!isMountedRef.current) return;
 
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
                 if (currentSession) {
                     await verifySindicoAndLoadData(currentSession);
                 }
@@ -251,10 +254,11 @@ export default function CondoAdm() {
                 setLoading(false);
             }
         });
+        authSub = subscription;
 
         return () => {
             isMountedRef.current = false;
-            subscription.unsubscribe();
+            if (authSub) authSub.unsubscribe();
         };
     }, []);
 
@@ -614,7 +618,6 @@ export default function CondoAdm() {
         setMoradorParaExcluir(null);
     };
 
-    // Função de Logout blindada contra sessões fantasmas/residuais
     const handleLogout = async () => {
         setLoading(true);
         try {
@@ -978,21 +981,12 @@ export default function CondoAdm() {
                             </div>
                         </Link>
 
-                        <div className="bg-white border border-zinc-200 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center text-left opacity-75">
+                        <Link
+                            href="/condo/adm/obrigacoes"
+                            className="bg-white border border-zinc-200 hover:border-blue-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
+                        >
                             <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-zinc-100 text-zinc-500 rounded-xl flex items-center justify-center shrink-0">
-                                    <Wrench className="w-4 h-4 md:w-5 md:h-5" />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Controle Conservação</h3>
-                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Preservação áreas comuns</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white border border-zinc-200 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center text-left opacity-75">
-                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-zinc-100 text-zinc-500 rounded-xl flex items-center justify-center shrink-0">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shrink-0">
                                     <FileText className="w-4 h-4 md:w-5 md:h-5" />
                                 </div>
                                 <div className="min-w-0 flex-1">
@@ -1000,11 +994,29 @@ export default function CondoAdm() {
                                     <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Gestão de tributos</p>
                                 </div>
                             </div>
-                        </div>
+                        </Link>
 
-                        <div className="bg-white border border-zinc-200 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center text-left opacity-75">
+                        <Link
+                            href="/condo/adm/controle_conservacao"
+                            className="bg-white border border-zinc-200 hover:border-zinc-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
+                        >
                             <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-zinc-100 text-zinc-500 rounded-xl flex items-center justify-center shrink-0">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-zinc-100 text-zinc-600 rounded-xl flex items-center justify-center group-hover:bg-zinc-900 group-hover:text-white transition-all shrink-0">
+                                    <Wrench className="w-4 h-4 md:w-5 md:h-5" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Controle Conservação</h3>
+                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Preservação áreas comuns</p>
+                                </div>
+                            </div>
+                        </Link>
+
+                        <Link
+                            href="/condo/adm/regras_internas"
+                            className="bg-white border border-zinc-200 hover:border-zinc-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
+                        >
+                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-zinc-100 text-zinc-600 rounded-xl flex items-center justify-center group-hover:bg-zinc-900 group-hover:text-white transition-all shrink-0">
                                     <BookOpen className="w-4 h-4 md:w-5 md:h-5" />
                                 </div>
                                 <div className="min-w-0 flex-1">
@@ -1012,7 +1024,7 @@ export default function CondoAdm() {
                                     <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Convenção e regimento</p>
                                 </div>
                             </div>
-                        </div>
+                        </Link>
                     </div>
 
                     <p className="text-xs text-zinc-400 font-medium px-1">
@@ -1039,10 +1051,11 @@ export default function CondoAdm() {
                                 <table className="w-full text-left border-collapse table-fixed">
                                     <thead className="sticky top-0 bg-white z-15">
                                         <tr className="border-b border-zinc-100">
-                                            <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider bg-white align-top w-[18%] pr-2">Apto</th>
-                                            <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider bg-white align-top w-[57%] pl-3">Nome</th>
-                                            <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider hidden md:table-cell bg-white align-top w-[15%]">App</th>
-                                            <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider text-right bg-white align-top w-[25%] pr-1">Ações</th>
+                                            <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider bg-white align-top w-[15%] pr-2">Apto</th>
+                                            <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider bg-white align-top w-[48%] pl-2">Nome</th>
+                                            <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider hidden md:table-cell bg-white align-top w-[9%]">App</th>
+                                            <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider hidden md:table-cell bg-white align-top w-[16%]">Data Cadastro</th>
+                                            <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider text-right bg-white align-top w-[12%] pr-1">Ações</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-zinc-50">
@@ -1052,13 +1065,14 @@ export default function CondoAdm() {
                                             const unidadeOriginal = morador.unidade || "";
                                             const isAdm = unidadeOriginal.trim().toLowerCase() === "administração" || unidadeOriginal.trim().toLowerCase() === "adm";
                                             const nomeExibicaoFinal = formatarNomePrimeiroEUltimo(nomeExibicaoOriginal);
+                                            const dataCadastroFormatada = formatarDataBrasileira(morador.criado_em);
 
                                             return (
                                                 <tr key={morador.id} className={`group transition-colors ${editandoId === morador.id ? 'bg-indigo-50/30' : ''}`}>
                                                     <td className="py-3 text-sm font-bold text-zinc-900 align-top truncate pr-2">
                                                         {isAdm ? "Adm" : unidadeOriginal}
                                                     </td>
-                                                    <td className="py-3 align-top truncate pl-3 pr-2">
+                                                    <td className="py-3 align-top truncate pl-2 pr-2">
                                                         <div className="text-sm font-bold text-zinc-800 leading-tight truncate">
                                                             {nomeExibicaoFinal}
                                                         </div>
@@ -1084,6 +1098,9 @@ export default function CondoAdm() {
                                                                 <Smartphone size={10} className="opacity-50" /> Inativo
                                                             </span>
                                                         )}
+                                                    </td>
+                                                    <td className="py-3 hidden md:table-cell align-top text-xs font-medium text-zinc-600">
+                                                        {dataCadastroFormatada || "-"}
                                                     </td>
                                                     <td className="py-3 text-right align-top pr-0">
                                                         <div className="flex items-center justify-end gap-0.5">

@@ -59,7 +59,7 @@ export default function EdicaoLancamentosPage() {
         }
     };
 
-    const verifyAndLoad = async (currentSession: any, retries = 2) => {
+    const verifyAndLoad = async (currentSession: any) => {
         try {
             if (!currentSession || !currentSession.user) {
                 if (isMountedRef.current) {
@@ -76,40 +76,19 @@ export default function EdicaoLancamentosPage() {
             }
             const userId = currentSession.user.id;
 
-            let membroDataList = null;
-            let membroError = null;
+            const { data: membroDataList, error: membroError } = await supabase
+                .from("condominio_membros")
+                .select("condominio_id, role, unidade, acesso_app, condominio_nome")
+                .eq("user_id", userId);
 
-            for (let i = 0; i <= retries; i++) {
-                const res = await supabase
-                    .from("condominio_membros")
-                    .select(`
-                        condominio_id,
-                        condominio:condominios ( id, nome )
-                    `)
-                    .eq("user_id", userId)
-                    .order("role", { ascending: false })
-                    .limit(1);
-
-                membroDataList = res.data;
-                membroError = res.error;
-
-                if (membroError) {
-                    const errorMsg = membroError.message || JSON.stringify(membroError);
-                    if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
-                        console.error("Erro na consulta Supabase (membros):", errorMsg);
-                    }
-                }
-
-                if (membroDataList && membroDataList.length > 0) {
-                    break;
-                }
-
-                if (i < retries) {
-                    await new Promise((resolve) => setTimeout(resolve, 300));
+            if (membroError) {
+                const errorMsg = membroError.message || JSON.stringify(membroError);
+                if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
+                    console.error("Erro na consulta Supabase (membros):", errorMsg);
                 }
             }
 
-            if (!membroDataList || membroDataList.length === 0 || !membroDataList[0].condominio) {
+            if (!membroDataList || membroDataList.length === 0) {
                 if (isMountedRef.current) {
                     setCondominio(null);
                     setLancamentos([]);
@@ -118,18 +97,34 @@ export default function EdicaoLancamentosPage() {
                 return;
             }
 
-            const condoInfo = Array.isArray(membroDataList[0].condominio)
-                ? membroDataList[0].condominio[0]
-                : membroDataList[0].condominio;
+            const vinculoAdm = membroDataList.find(
+                (m: any) => m.role === 'sindico'
+            ) || membroDataList[0];
+
+            let nomeCondominioOficial = vinculoAdm.condominio_nome || "Condomínio";
+            if (vinculoAdm.condominio_id) {
+                const { data: condoDataReal } = await supabase
+                    .from("condominios")
+                    .select("nome")
+                    .eq("id", vinculoAdm.condominio_id)
+                    .maybeSingle();
+
+                if (condoDataReal && condoDataReal.nome) {
+                    nomeCondominioOficial = condoDataReal.nome;
+                }
+            }
 
             if (isMountedRef.current) {
-                setCondominio(condoInfo);
-                await loadLancamentos(membroDataList[0].condominio_id);
+                setCondominio({
+                    id: vinculoAdm.condominio_id,
+                    nome: nomeCondominioOficial
+                });
+                await loadLancamentos(vinculoAdm.condominio_id);
             }
         } catch (e: any) {
             const errString = e?.message || JSON.stringify(e);
             if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
-                console.error("Erro ao carregar dados:", errString);
+                console.warn("Exceção tratada em verifyAndLoad:", errString);
             }
             if (isMountedRef.current) {
                 setCondominio(null);
@@ -143,10 +138,19 @@ export default function EdicaoLancamentosPage() {
 
     useEffect(() => {
         isMountedRef.current = true;
+        let authSub: any = null;
 
         const initAuth = async () => {
             try {
+                const timeoutId = setTimeout(() => {
+                    if (isMountedRef.current && loading) {
+                        setLoading(false);
+                    }
+                }, 5000);
+
                 const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+                clearTimeout(timeoutId);
+
                 if (sessionError && !currentSession) throw sessionError;
 
                 if (isMountedRef.current) {
@@ -177,10 +181,11 @@ export default function EdicaoLancamentosPage() {
                 setLoading(false);
             }
         });
+        authSub = subscription;
 
         return () => {
             isMountedRef.current = false;
-            subscription.unsubscribe();
+            if (authSub) authSub.unsubscribe();
         };
     }, []);
 

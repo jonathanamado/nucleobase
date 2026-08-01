@@ -83,7 +83,7 @@ export default function AnaliseOcorrenciasAdmPage() {
         }
     };
 
-    const verifyAccessAndLoadData = async (currentSession: any, retries = 2) => {
+    const verifyAccessAndLoadData = async (currentSession: any) => {
         try {
             if (!currentSession || !currentSession.user) {
                 if (isMountedRef.current) {
@@ -100,31 +100,15 @@ export default function AnaliseOcorrenciasAdmPage() {
             }
             const userId = currentSession.user.id;
 
-            let membroDataList = null;
-            let membroError = null;
+            const { data: membroDataList, error: membroError } = await supabase
+                .from("condominio_membros")
+                .select("condominio_id, role, unidade, acesso_app, condominio_nome")
+                .eq("user_id", userId);
 
-            for (let i = 0; i <= retries; i++) {
-                const res = await supabase
-                    .from("condominio_membros")
-                    .select("condominio_id, role, unidade, acesso_app, condominio_nome")
-                    .eq("user_id", userId);
-
-                membroDataList = res.data;
-                membroError = res.error;
-
-                if (membroError) {
-                    const errorMsg = membroError.message || JSON.stringify(membroError);
-                    if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
-                        console.error("Erro na consulta Supabase (membros):", errorMsg);
-                    }
-                }
-
-                if (membroDataList && membroDataList.length > 0) {
-                    break;
-                }
-
-                if (i < retries) {
-                    await new Promise((resolve) => setTimeout(resolve, 300));
+            if (membroError) {
+                const errorMsg = membroError.message || JSON.stringify(membroError);
+                if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
+                    console.error("Erro na consulta Supabase (membros):", errorMsg);
                 }
             }
 
@@ -197,10 +181,20 @@ export default function AnaliseOcorrenciasAdmPage() {
 
     useEffect(() => {
         isMountedRef.current = true;
+        let authSub: any = null;
 
         const initAuth = async () => {
             try {
+                // Timeout de segurança (5 segundos) para evitar loader travado eternamente se houver instabilidade
+                const timeoutId = setTimeout(() => {
+                    if (isMountedRef.current && loading) {
+                        setLoading(false);
+                    }
+                }, 5000);
+
                 const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+                clearTimeout(timeoutId);
+
                 if (sessionError && !currentSession) throw sessionError;
 
                 if (isMountedRef.current) {
@@ -220,7 +214,7 @@ export default function AnaliseOcorrenciasAdmPage() {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
             if (!isMountedRef.current) return;
 
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
                 if (currentSession) {
                     await verifyAccessAndLoadData(currentSession);
                 }
@@ -231,10 +225,11 @@ export default function AnaliseOcorrenciasAdmPage() {
                 setLoading(false);
             }
         });
+        authSub = subscription;
 
         return () => {
             isMountedRef.current = false;
-            subscription.unsubscribe();
+            if (authSub) authSub.unsubscribe();
         };
     }, []);
 
