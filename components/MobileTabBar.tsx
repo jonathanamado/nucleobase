@@ -58,14 +58,18 @@ export function MobileTabBar() {
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      if (!isMounted) return;
       setIsLoggedIn(!!session);
       if (session?.user) fetchProfile(session.user.id);
     };
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return;
       setIsLoggedIn(!!session);
       if (session?.user) {
         fetchProfile(session.user.id);
@@ -74,7 +78,10 @@ export function MobileTabBar() {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const getInitials = (name: string) => {
@@ -84,10 +91,12 @@ export function MobileTabBar() {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
-  // Logout blindado contra sessões fantasmas/residuais (NB)
+  // Logout blindado e otimizado para mobile e web
   const handleLogout = async () => {
     const confirmLogout = window.confirm("Deseja realmente sair da conta?");
     if (!confirmLogout) return;
+
+    setIsMenuOpen(false);
 
     try {
       await supabase.auth.signOut({ scope: 'global' });
@@ -96,7 +105,7 @@ export function MobileTabBar() {
     }
 
     try {
-      const keysToRemove = [];
+      const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('nucleo'))) {
@@ -111,11 +120,13 @@ export function MobileTabBar() {
     }
 
     setIsLoggedIn(false);
-    setIsMenuOpen(false);
     setUserProfile({ nome: "", avatar: null });
 
     window.dispatchEvent(new Event("storage"));
-    window.location.href = "/";
+
+    // Transição fluida usando router do Next.js sem recarregamento forçado de página inteira
+    router.replace("/");
+    router.refresh();
   };
 
   const handlePasswordReset = async (e: React.FormEvent) => {
