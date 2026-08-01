@@ -92,6 +92,7 @@ export function MobileTabBar() {
   };
 
   // Logout blindado e otimizado para mobile e web
+  // Logout blindado para mobile (limpeza completa de Cookies, Storage e Reload forçado)
   const handleLogout = async () => {
     const confirmLogout = window.confirm("Deseja realmente sair da conta?");
     if (!confirmLogout) return;
@@ -105,6 +106,17 @@ export function MobileTabBar() {
     }
 
     try {
+      // Limpeza agressiva de todos os cookies de sessão do Supabase no navegador do celular
+      document.cookie.split(";").forEach((c) => {
+        const eqPos = c.indexOf("=");
+        const name = eqPos > -1 ? c.substr(0, eqPos).trim() : c.trim();
+        if (name.includes("sb-") || name.includes("supabase")) {
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+        }
+      });
+
+      // Limpeza do Storage
       const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -124,9 +136,8 @@ export function MobileTabBar() {
 
     window.dispatchEvent(new Event("storage"));
 
-    // Transição fluida usando router do Next.js sem recarregamento forçado de página inteira
-    router.replace("/");
-    router.refresh();
+    // Força o redirecionamento absoluto limpando a pilha de histórico e o cache de rotas do Next.js
+    window.location.href = "/";
   };
 
   const handlePasswordReset = async (e: React.FormEvent) => {
