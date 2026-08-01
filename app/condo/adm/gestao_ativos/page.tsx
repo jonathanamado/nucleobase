@@ -1,7 +1,7 @@
 // app/condo/adm/gestao_ativos/page.tsx
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import Link from "next/navigation";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
@@ -551,7 +551,6 @@ export default function GestaoAtivosPage() {
                     <div className="h-px bg-gray-200 flex-1"></div>
                 </div>
 
-                {/* BLOCO INSTAGRAM */}
                 <div className="flex flex-col items-center text-center">
                     <div className="max-w-3xl mb-12">
                         <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
