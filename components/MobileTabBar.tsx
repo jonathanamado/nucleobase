@@ -12,11 +12,9 @@ export function MobileTabBar() {
   const menuRef = useRef<HTMLDivElement>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [userProfile, setUserProfile] = useState<{ nome: string; avatar: string | null; role: string; unidade: string }>({
+  const [userProfile, setUserProfile] = useState<{ nome: string; avatar: string | null }>({
     nome: "",
     avatar: null,
-    role: "",
-    unidade: ""
   });
 
   const [showPassModal, setShowPassModal] = useState(false);
@@ -44,24 +42,16 @@ export function MobileTabBar() {
     setIsSearchOpen(false);
   }, [pathname]);
 
-  const fetchProfileAndRole = async (userId: string) => {
+  const fetchProfile = async (userId: string) => {
     const { data: profileData } = await supabase
       .from("profiles")
       .select("nome_completo, avatar_url")
       .eq("id", userId)
       .maybeSingle();
 
-    const { data: membroData } = await supabase
-      .from("condominio_membros")
-      .select("role, unidade")
-      .eq("user_id", userId)
-      .maybeSingle();
-
     setUserProfile({
       nome: profileData?.nome_completo || "",
       avatar: profileData?.avatar_url || null,
-      role: membroData?.role || "",
-      unidade: membroData?.unidade || ""
     });
   };
 
@@ -72,7 +62,7 @@ export function MobileTabBar() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!isMounted) return;
       setIsLoggedIn(!!session);
-      if (session?.user) fetchProfileAndRole(session.user.id);
+      if (session?.user) fetchProfile(session.user.id);
     };
     checkSession();
 
@@ -80,9 +70,9 @@ export function MobileTabBar() {
       if (!isMounted) return;
       setIsLoggedIn(!!session);
       if (session?.user) {
-        fetchProfileAndRole(session.user.id);
+        fetchProfile(session.user.id);
       } else {
-        setUserProfile({ nome: "", avatar: null, role: "", unidade: "" });
+        setUserProfile({ nome: "", avatar: null });
       }
     });
 
@@ -138,7 +128,7 @@ export function MobileTabBar() {
     }
 
     setIsLoggedIn(false);
-    setUserProfile({ nome: "", avatar: null, role: "", unidade: "" });
+    setUserProfile({ nome: "", avatar: null });
 
     window.dispatchEvent(new Event("storage"));
 
@@ -171,21 +161,6 @@ export function MobileTabBar() {
       setIsSearchOpen(false);
       router.push(`/busca?q=${encodeURIComponent(searchQuery)}`);
       setSearchQuery("");
-    }
-  };
-
-  const handleCondoNavigation = () => {
-    setIsMenuOpen(false);
-    setIsSearchOpen(false);
-
-    const r = (userProfile.role || "").toLowerCase();
-    const u = (userProfile.unidade || "").toLowerCase();
-    const isSindicoOuAdm = r === 'sindico' || r === 'síndico' || r === 'adm' || r === 'administrador' || u === '106' || u === 'adm';
-
-    if (isSindicoOuAdm) {
-      router.push("/condo/adm");
-    } else {
-      router.push("/condo/dashboard");
     }
   };
 
@@ -314,7 +289,7 @@ export function MobileTabBar() {
           <Rocket size={22} strokeWidth={!isSearchOpen && !isMenuOpen && pathname === "/lancamentos" ? 2.5 : 2} />
         </button>
 
-        <button onClick={handleCondoNavigation} className={`p-2 transition-colors cursor-pointer ${isCondoActive ? "text-blue-600" : "text-gray-400"}`}>
+        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); router.push("/condo"); }} className={`p-2 transition-colors cursor-pointer ${isCondoActive ? "text-blue-600" : "text-gray-400"}`}>
           <Building2 size={22} strokeWidth={isCondoActive ? 2.5 : 2} />
         </button>
 
