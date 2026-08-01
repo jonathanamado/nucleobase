@@ -12,9 +12,11 @@ export function MobileTabBar() {
   const menuRef = useRef<HTMLDivElement>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [userProfile, setUserProfile] = useState<{ nome: string; avatar: string | null }>({
+  const [userProfile, setUserProfile] = useState<{ nome: string; avatar: string | null; role: string; unidade: string }>({
     nome: "",
     avatar: null,
+    role: "",
+    unidade: ""
   });
 
   const [showPassModal, setShowPassModal] = useState(false);
@@ -42,19 +44,25 @@ export function MobileTabBar() {
     setIsSearchOpen(false);
   }, [pathname]);
 
-  const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
+  const fetchProfileAndRole = async (userId: string) => {
+    const { data: profileData } = await supabase
       .from("profiles")
       .select("nome_completo, avatar_url")
       .eq("id", userId)
-      .single();
+      .maybeSingle();
 
-    if (data) {
-      setUserProfile({
-        nome: data.nome_completo || "",
-        avatar: data.avatar_url || null,
-      });
-    }
+    const { data: membroData } = await supabase
+      .from("condominio_membros")
+      .select("role, unidade")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    setUserProfile({
+      nome: profileData?.nome_completo || "",
+      avatar: profileData?.avatar_url || null,
+      role: membroData?.role || "",
+      unidade: membroData?.unidade || ""
+    });
   };
 
   useEffect(() => {
@@ -64,7 +72,7 @@ export function MobileTabBar() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!isMounted) return;
       setIsLoggedIn(!!session);
-      if (session?.user) fetchProfile(session.user.id);
+      if (session?.user) fetchProfileAndRole(session.user.id);
     };
     checkSession();
 
@@ -72,9 +80,9 @@ export function MobileTabBar() {
       if (!isMounted) return;
       setIsLoggedIn(!!session);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        fetchProfileAndRole(session.user.id);
       } else {
-        setUserProfile({ nome: "", avatar: null });
+        setUserProfile({ nome: "", avatar: null, role: "", unidade: "" });
       }
     });
 
@@ -91,8 +99,7 @@ export function MobileTabBar() {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
-  // Logout blindado e otimizado para mobile e web
-  // Logout blindado para mobile (limpeza completa de Cookies, Storage e Reload forçado)
+  // Logout blindado e universal (limpeza agressiva de cookies, storage e reload para zerar cache global)
   const handleLogout = async () => {
     const confirmLogout = window.confirm("Deseja realmente sair da conta?");
     if (!confirmLogout) return;
@@ -106,7 +113,7 @@ export function MobileTabBar() {
     }
 
     try {
-      // Limpeza agressiva de todos os cookies de sessão do Supabase no navegador do celular
+      // Limpeza de todos os cookies de sessão do Supabase no navegador do celular/web
       document.cookie.split(";").forEach((c) => {
         const eqPos = c.indexOf("=");
         const name = eqPos > -1 ? c.substr(0, eqPos).trim() : c.trim();
@@ -116,7 +123,6 @@ export function MobileTabBar() {
         }
       });
 
-      // Limpeza do Storage
       const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -132,11 +138,11 @@ export function MobileTabBar() {
     }
 
     setIsLoggedIn(false);
-    setUserProfile({ nome: "", avatar: null });
+    setUserProfile({ nome: "", avatar: null, role: "", unidade: "" });
 
     window.dispatchEvent(new Event("storage"));
 
-    // Força o redirecionamento absoluto limpando a pilha de histórico e o cache de rotas do Next.js
+    // Recarregamento absoluto para garantir que a sessão fantasmas/residuais de qualquer página limpem instantaneamente
     window.location.href = "/";
   };
 
@@ -165,6 +171,21 @@ export function MobileTabBar() {
       setIsSearchOpen(false);
       router.push(`/busca?q=${encodeURIComponent(searchQuery)}`);
       setSearchQuery("");
+    }
+  };
+
+  const handleCondoNavigation = () => {
+    setIsMenuOpen(false);
+    setIsSearchOpen(false);
+
+    const r = (userProfile.role || "").toLowerCase();
+    const u = (userProfile.unidade || "").toLowerCase();
+    const isSindicoOuAdm = r === 'sindico' || r === 'síndico' || r === 'adm' || r === 'administrador' || u === '106' || u === 'adm';
+
+    if (isSindicoOuAdm) {
+      router.push("/condo/adm");
+    } else {
+      router.push("/condo/dashboard");
     }
   };
 
@@ -293,7 +314,7 @@ export function MobileTabBar() {
           <Rocket size={22} strokeWidth={!isSearchOpen && !isMenuOpen && pathname === "/lancamentos" ? 2.5 : 2} />
         </button>
 
-        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); router.push("/condo"); }} className={`p-2 transition-colors cursor-pointer ${isCondoActive ? "text-blue-600" : "text-gray-400"}`}>
+        <button onClick={handleCondoNavigation} className={`p-2 transition-colors cursor-pointer ${isCondoActive ? "text-blue-600" : "text-gray-400"}`}>
           <Building2 size={22} strokeWidth={isCondoActive ? 2.5 : 2} />
         </button>
 
