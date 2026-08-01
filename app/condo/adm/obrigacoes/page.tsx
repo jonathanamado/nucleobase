@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import {
-    Building2,
     Loader2,
     ArrowLeft,
     Instagram,
@@ -57,13 +56,12 @@ export default function ObrigacoesFiscaisPage() {
     const gerarCompetenciasDisponiveis = () => {
         const anoAtual = 2026;
         const mesLimite = 7; // Julho de 2026
-        const lista = [];
+        const lista: Array<{ valor: string; label: string }> = [];
 
         // Ordem cronológica (calendário: Janeiro até o limite)
         for (let m = 1; m <= mesLimite; m++) {
             const mesStr = String(m).padStart(2, '0');
             const valor = `${anoAtual}-${mesStr}`;
-            // Formato curto no mobile ("Jun/26") e completo ou adaptado conforme desejado
             const nomeMes = new Date(anoAtual, m - 1, 1).toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
             const nomeFormatado = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1).replace('.', '');
             lista.push({ valor, label: nomeFormatado });
@@ -305,8 +303,20 @@ export default function ObrigacoesFiscaisPage() {
             }
 
             const vinculoAdm = membroDataList.find(
-                (m: any) => m.role === 'sindico'
+                (m: any) => {
+                    const r = (m.role || "").toLowerCase();
+                    const u = (m.unidade || "").toLowerCase();
+                    return r === 'sindico' || r === 'síndico' || r === 'adm' || r === 'administrador' || u === '106' || u === 'adm';
+                }
             ) || membroDataList[0];
+
+            if (!vinculoAdm) {
+                if (isMountedRef.current) {
+                    setCondominio(null);
+                    setLoading(false);
+                }
+                return;
+            }
 
             let nomeCondominioOficial = vinculoAdm.condominio_nome || "Condomínio";
             if (vinculoAdm.condominio_id) {
@@ -405,7 +415,7 @@ export default function ObrigacoesFiscaisPage() {
         }
 
         try {
-            const keysToRemove = [];
+            const keysToRemove: string[] = [];
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('nucleo'))) {
@@ -442,9 +452,9 @@ export default function ObrigacoesFiscaisPage() {
             <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
                 <div className="w-full max-w-sm bg-white border border-zinc-200 p-8 rounded-[2.5rem] text-center space-y-4 shadow-sm">
                     <h1 className="text-xl font-black text-zinc-900">Acesso restrito</h1>
-                    <p className="text-sm text-zinc-500">Faça login como síndico para acessar esta página.</p>
+                    <p className="text-sm text-zinc-500">Faça login com um perfil autorizado para acessar esta página.</p>
                     <div className="pt-2 flex flex-col gap-2">
-                        <Link href="/condo/dashboard/adm" className="inline-block bg-zinc-900 text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider">
+                        <Link href="/condo/adm" className="inline-block bg-zinc-900 text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider">
                             Voltar ao Painel
                         </Link>
                         <button onClick={handleLogout} className="text-xs font-bold text-red-500 hover:underline py-2 cursor-pointer">
@@ -580,8 +590,8 @@ export default function ObrigacoesFiscaisPage() {
                                                         type="button"
                                                         onClick={() => handleToggleAplicavel(item.id)}
                                                         className={`px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer inline-flex items-center gap-1 ${isAplicavel
-                                                                ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                                                                : 'bg-zinc-100 text-zinc-400 border border-zinc-200'
+                                                            ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                                            : 'bg-zinc-100 text-zinc-400 border border-zinc-200'
                                                             }`}
                                                     >
                                                         {isAplicavel ? <Check size={12} /> : <X size={12} />}
@@ -594,10 +604,10 @@ export default function ObrigacoesFiscaisPage() {
                                                         disabled={!isAplicavel}
                                                         onClick={() => handleToggleQuitado(item.id)}
                                                         className={`px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all inline-flex items-center gap-1 ${!isAplicavel
-                                                                ? 'opacity-40 cursor-not-allowed bg-zinc-100 text-zinc-400 border border-zinc-200'
-                                                                : isQuitado
-                                                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-pointer'
-                                                                    : 'bg-amber-50 text-amber-700 border border-amber-200 cursor-pointer'
+                                                            ? 'opacity-40 cursor-not-allowed bg-zinc-100 text-zinc-400 border border-zinc-200'
+                                                            : isQuitado
+                                                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-pointer'
+                                                                : 'bg-amber-50 text-amber-700 border border-amber-200 cursor-pointer'
                                                             }`}
                                                     >
                                                         {isAplicavel && (isQuitado ? <Check size={12} /> : <X size={12} />)}
@@ -672,7 +682,7 @@ export default function ObrigacoesFiscaisPage() {
                                     required
                                     value={novoAnoMesInput}
                                     onChange={(e) => setNovoAnoMesInput(e.target.value)}
-                                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 text-xs font-medium"
+                                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 text-xs font-medium text-zinc-900"
                                 />
                             </div>
 
@@ -713,12 +723,20 @@ export default function ObrigacoesFiscaisPage() {
                         href="https://www.instagram.com/nucleobase.app/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group relative flex flex-col items-center gap-4"
+                        className="group relative flex flex-col items-center gap-6"
                     >
-                        <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[1.8rem] md:rounded-[2rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
-                            <Instagram className="w-8 h-8 md:w-10 md:h-10" strokeWidth={1.5} />
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+
+                            <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+                                <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+                            </div>
                         </div>
-                        <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+
+                        <div className="flex flex-col items-center">
+                            <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+                            <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
+                        </div>
                     </a>
                 </div>
             </div>
