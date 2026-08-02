@@ -1,4 +1,6 @@
+// components/AuthModal.tsx
 "use client";
+
 import React, { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Loader2, Lock, Mail, User, Sparkles } from "lucide-react";
@@ -14,23 +16,25 @@ export default function AuthModal({ onSucess }: { onSucess: () => void }) {
     e.preventDefault();
     setLoading(true);
 
-    if (isLogin) {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) alert(error.message);
-      else onSucess();
-    } else {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { full_name: nome } }
-      });
-      if (error) alert(error.message);
-      else {
-        // Lógica de indicação integrada aqui se quiser
+    try {
+      if (isLogin) {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        onSucess();
+      } else {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: nome } }
+        });
+        if (error) throw error;
         onSucess();
       }
+    } catch (error: any) {
+      alert(error.message || "Ocorreu um erro na autenticação.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -51,41 +55,43 @@ export default function AuthModal({ onSucess }: { onSucess: () => void }) {
         {!isLogin && (
           <div className="relative">
             <User className="absolute left-4 top-3.5 text-gray-400" size={18} />
-            <input 
+            <input
               type="text" placeholder="Nome Completo" required
-              className="w-full pl-12 pr-4 py-3 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full pl-12 pr-4 py-3 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 font-medium"
               onChange={(e) => setNome(e.target.value)}
             />
           </div>
         )}
         <div className="relative">
           <Mail className="absolute left-4 top-3.5 text-gray-400" size={18} />
-          <input 
+          <input
             type="email" placeholder="E-mail" required
-            className="w-full pl-12 pr-4 py-3 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            className="w-full pl-12 pr-4 py-3 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 font-medium"
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
         <div className="relative">
           <Lock className="absolute left-4 top-3.5 text-gray-400" size={18} />
-          <input 
+          <input
             type="password" placeholder="Senha" required
-            className="w-full pl-12 pr-4 py-3 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            className="w-full pl-12 pr-4 py-3 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 font-medium"
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
 
-        <button 
+        <button
+          type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-sm hover:bg-blue-700 transition shadow-lg shadow-blue-100 flex items-center justify-center gap-2"
+          className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-sm hover:bg-blue-700 transition shadow-lg shadow-blue-100 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
         >
-          {loading ? <Loader2 className="animate-spin" size={18} /> : isLogin ? "Entrar agora" : "Criar minha conta"}
+          {loading ? <Loader2 className="animate-spin" size={18} /> : (isLogin ? "Entrar agora" : "Criar minha conta")}
         </button>
       </form>
 
-      <button 
+      <button
+        type="button"
         onClick={() => setIsLogin(!isLogin)}
-        className="w-full mt-6 text-xs font-bold text-gray-400 hover:text-blue-600 transition uppercase tracking-widest"
+        className="w-full mt-6 text-xs font-bold text-gray-400 hover:text-blue-600 transition uppercase tracking-widest cursor-pointer"
       >
         {isLogin ? "Não tem conta? Cadastre-se" : "Já tem conta? Faça login"}
       </button>

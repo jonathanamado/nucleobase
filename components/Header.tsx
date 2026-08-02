@@ -65,7 +65,7 @@ export function Header() {
       .from("profiles")
       .select("nome_completo, avatar_url")
       .eq("id", userId)
-      .single();
+      .maybeSingle();
 
     if (data) {
       setUserProfile({
@@ -76,56 +76,35 @@ export function Header() {
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkSession = async () => {
-      let currentSession = null;
-      const { data } = await supabase.auth.getSession();
-      currentSession = data.session;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!isMounted) return;
 
-      if (!currentSession) {
-        try {
-          const condoSessionStorage = localStorage.getItem('nucleo_condo_auth_session');
-          if (condoSessionStorage) {
-            const parsedSession = JSON.parse(condoSessionStorage);
-            if (parsedSession && parsedSession.access_token) {
-              currentSession = parsedSession;
-            }
-          }
-        } catch (e) {
-          // Erro silencioso ao parsear session customizada
-        }
+      setIsLoggedIn(!!session);
+      if (session?.user) {
+        fetchProfile(session.user.id);
       }
-
-      setIsLoggedIn(!!currentSession);
-      if (currentSession?.user) fetchProfile(currentSession.user.id);
     };
 
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      let activeSession = session;
-      if (!activeSession) {
-        try {
-          const condoSessionStorage = localStorage.getItem('nucleo_condo_auth_session');
-          if (condoSessionStorage) {
-            const parsedSession = JSON.parse(condoSessionStorage);
-            if (parsedSession && parsedSession.access_token) {
-              activeSession = parsedSession;
-            }
-          }
-        } catch (e) {
-          // Erro silencioso
-        }
-      }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return;
 
-      setIsLoggedIn(!!activeSession);
-      if (activeSession?.user) {
-        fetchProfile(activeSession.user.id);
+      setIsLoggedIn(!!session);
+      if (session?.user) {
+        fetchProfile(session.user.id);
       } else {
         setUserProfile({ nome: "", avatar: null });
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const getInitials = (name: string) => {
@@ -135,7 +114,7 @@ export function Header() {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
-  // Função de Logout blindada contra sessões fantasmas/residuais (NB)
+  // Logout inteligente: Encerra a sessão global sem destruir cookies de consentimento ou preferências do navegador
   const handleLogout = async () => {
     const confirmLogout = window.confirm("Tem certeza que deseja sair da conta?");
     if (!confirmLogout) return;
@@ -147,16 +126,14 @@ export function Header() {
     }
 
     try {
-      const keysToRemove = [];
+      const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('nucleo'))) {
+        if (key && (key.startsWith('sb-') || key.includes('auth-token'))) {
           keysToRemove.push(key);
         }
       }
       keysToRemove.forEach(k => localStorage.removeItem(k));
-      localStorage.clear();
-      sessionStorage.clear();
     } catch (e) {
       console.error("Erro ao limpar storages locais:", e);
     }

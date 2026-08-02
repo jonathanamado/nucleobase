@@ -49,10 +49,12 @@ export function MobileTabBar() {
       .eq("id", userId)
       .maybeSingle();
 
-    setUserProfile({
-      nome: profileData?.nome_completo || "",
-      avatar: profileData?.avatar_url || null,
-    });
+    if (profileData) {
+      setUserProfile({
+        nome: profileData.nome_completo || "",
+        avatar: profileData.avatar_url || null,
+      });
+    }
   };
 
   useEffect(() => {
@@ -89,7 +91,7 @@ export function MobileTabBar() {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
-  // Logout blindado e universal (limpeza agressiva de cookies, storage e reload para zerar cache global)
+  // Logout inteligente e seguro (Preserva consentimento de cookies e limpa estritamente os tokens de sessão)
   const handleLogout = async () => {
     const confirmLogout = window.confirm("Deseja realmente sair da conta?");
     if (!confirmLogout) return;
@@ -103,37 +105,23 @@ export function MobileTabBar() {
     }
 
     try {
-      // Limpeza de todos os cookies de sessão do Supabase no navegador do celular/web
-      document.cookie.split(";").forEach((c) => {
-        const eqPos = c.indexOf("=");
-        const name = eqPos > -1 ? c.substr(0, eqPos).trim() : c.trim();
-        if (name.includes("sb-") || name.includes("supabase")) {
-          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
-          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
-        }
-      });
-
       const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('nucleo'))) {
+        if (key && (key.startsWith('sb-') || key.includes('auth-token'))) {
           keysToRemove.push(key);
         }
       }
       keysToRemove.forEach(k => localStorage.removeItem(k));
-      localStorage.clear();
-      sessionStorage.clear();
     } catch (e) {
-      console.error("Erro ao limpar storages locais:", e);
+      console.error("Erro ao limpar storages de sessão:", e);
     }
 
     setIsLoggedIn(false);
     setUserProfile({ nome: "", avatar: null });
 
     window.dispatchEvent(new Event("storage"));
-
-    // Recarregamento absoluto para garantir que a sessão fantasmas/residuais de qualquer página limpem instantaneamente
-    window.location.href = "/";
+    router.push("/");
   };
 
   const handlePasswordReset = async (e: React.FormEvent) => {

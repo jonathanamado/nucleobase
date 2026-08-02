@@ -1,3 +1,4 @@
+// components/Sidebar.tsx
 "use client";
 
 import Link from 'next/link';
@@ -13,18 +14,18 @@ export function Sidebar() {
       <aside
         className="w-80 hidden md:flex flex-col fixed left-0 top-20 flex-shrink-0 pl-10 pr-6 bg-white text-gray-900"
         style={{
-          height: 'calc(100vh - 5rem)', // 5rem (80px) é a altura do header
-          paddingTop: '1.4rem', // Reduzido drasticamente para puxar tudo para o topo
+          height: 'calc(100vh - 5rem)',
+          paddingTop: '1.4rem',
           overflowY: 'auto',
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
-          zIndex: 40, // Garante que fique acima do conteúdo mas abaixo de modais
+          zIndex: 40,
         }}
       >
         <nav className="flex flex-col h-full w-full">
           <div className="flex flex-col h-full">
 
-            {/* ÁREA DE LINKS - Mantém o gap expandido, mas agora começando do topo absoluto */}
+            {/* ÁREA DE LINKS */}
             <div className="flex-grow flex flex-col gap-[4.5vh] 2xl:gap-[6vh]">
 
               {/* CATEGORIA 1 */}
@@ -64,7 +65,7 @@ export function Sidebar() {
               </section>
             </div>
 
-            {/* SEÇÃO COMUNIDADE - Fixa na base, isolada com o maior respiro superior criado */}
+            {/* SEÇÃO COMUNIDADE */}
             <section className="pt-3 pb-6 border-t border-gray-100 flex flex-col gap-1.5 items-center mt-auto bg-white w-full">
               <p className="text-[clamp(10px,0.75vw,11px)] font-black text-gray-400 uppercase tracking-[0.2em] w-full text-center mb-1">
                 COMUNIDADE NUCLEO

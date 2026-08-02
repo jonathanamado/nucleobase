@@ -170,7 +170,7 @@ export default function ObrigacoesFiscaisPage() {
                 nome: 'ISS Municipal (Serviços Tomados)',
                 tipo: 'mensal',
                 prazo_regra: 'prefeitura',
-                observacao_asterisco: 'ISS Municipal: Vencimento pela Prefeitura',
+                observacao_asterisco: 'ISS: Vencimento pela Prefeitura',
                 status: 'Regular / Em dia',
                 data_atualizacao: new Date().toISOString()
             },
@@ -180,7 +180,7 @@ export default function ObrigacoesFiscaisPage() {
                 nome: 'DIRF (Declaração de IR Retido na Fonte)',
                 tipo: 'anual',
                 prazo_regra: 'anual',
-                observacao_asterisco: 'DIRF: Entrega anual (Fev/Mar subsequente)',
+                observacao_asterisco: 'DIRF: Entrega anual +1  (Fev/Mar)',
                 status: 'Entregue',
                 data_atualizacao: new Date().toISOString()
             },
@@ -190,7 +190,7 @@ export default function ObrigacoesFiscaisPage() {
                 nome: 'Certidão Negativa de Débitos Federais (CND)',
                 tipo: 'certidao',
                 prazo_regra: 'continua',
-                observacao_asterisco: 'CND Federal: Renovação contínua conforme validade',
+                observacao_asterisco: 'CND Federal: Renovação contínua',
                 status: 'Válida',
                 data_atualizacao: new Date().toISOString()
             },
@@ -200,7 +200,7 @@ export default function ObrigacoesFiscaisPage() {
                 nome: 'CRF do FGTS (Regularidade do Empregador)',
                 tipo: 'certidao',
                 prazo_regra: 'continua',
-                observacao_asterisco: 'CRF FGTS: Renovação contínua (Caixa)',
+                observacao_asterisco: 'CRF FGTS: Renovação contínua',
                 status: 'Válida',
                 data_atualizacao: new Date().toISOString()
             }
@@ -523,9 +523,9 @@ export default function ObrigacoesFiscaisPage() {
                             <ShieldCheck size={18} />
                         </div>
                         <div className="space-y-1">
-                            <h2 className="text-xs font-black uppercase tracking-wider text-blue-900">Gestão Fiscal</h2>
+                            <h2 className="text-xs font-black uppercase tracking-wider text-blue-900">Administração</h2>
                             <p className="text-xs text-blue-700 leading-relaxed">
-                                <span className="md:hidden">Verifique e atualize a aplicabilidade e quitação das obrigações.</span>
+                                <span className="md:hidden">Acompanhamento mensal.</span>
                                 <span className="hidden md:inline">Selecione a competência desejada abaixo para verificar e atualizar a aplicabilidade e a quitação de cada obrigação no período correspondente.</span>
                             </p>
                         </div>

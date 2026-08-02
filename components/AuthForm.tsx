@@ -1,3 +1,4 @@
+// components/AuthForm.tsx
 "use client";
 
 import { useState } from "react";
@@ -16,7 +17,7 @@ export default function AuthForm({ onSuccess, redirectTo, view = "login" }: Auth
   const [mode, setMode] = useState(view);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
+
   // Estados do formulário
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,18 +30,18 @@ export default function AuthForm({ onSuccess, redirectTo, view = "login" }: Auth
 
     try {
       if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+        if (authError) throw authError;
       } else {
-        const { error } = await supabase.auth.signUp({ email, password });
-        if (error) throw error;
+        const { error: authError } = await supabase.auth.signUp({ email, password });
+        if (authError) throw authError;
         alert("Verifique seu e-mail para confirmar o cadastro!");
       }
 
       if (onSuccess) onSuccess();
       if (redirectTo) router.push(redirectTo);
       else router.refresh();
-      
+
     } catch (err: any) {
       setError(err.message || "Ocorreu um erro na autenticação.");
     } finally {
@@ -91,7 +92,7 @@ export default function AuthForm({ onSuccess, redirectTo, view = "login" }: Auth
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-600"
+            className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-600 cursor-pointer"
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
@@ -99,7 +100,7 @@ export default function AuthForm({ onSuccess, redirectTo, view = "login" }: Auth
 
         <button
           disabled={loading}
-          className="w-full bg-gray-900 hover:bg-black text-white h-16 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-xl hover:shadow-blue-900/10 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3 group"
+          className="w-full bg-gray-900 hover:bg-black text-white h-16 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-xl hover:shadow-blue-900/10 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3 group cursor-pointer"
         >
           {loading ? (
             <Loader2 className="animate-spin" size={18} />
@@ -114,11 +115,12 @@ export default function AuthForm({ onSuccess, redirectTo, view = "login" }: Auth
 
       <div className="mt-8 text-center">
         <button
+          type="button"
           onClick={() => setMode(mode === "login" ? "signup" : "login")}
-          className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 hover:text-blue-600 transition-colors"
+          className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 hover:text-blue-600 transition-colors cursor-pointer"
         >
-          {mode === "login" 
-            ? "Não tem conta? Crie uma agora" 
+          {mode === "login"
+            ? "Não tem conta? Crie uma agora"
             : "Já possui conta? Faça o login"}
         </button>
       </div>

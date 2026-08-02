@@ -1,123 +1,168 @@
+// components/CookieNotice.tsx
 "use client";
-import React, { useState } from "react";
-import { createClient } from "@supabase/supabase-js";
-import { AtSign, Lock, Eye, EyeOff, Loader2, Unlock, LifeBuoy, X, Mail, ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Cookie, ShieldCheck, X, ExternalLink } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Tipagem global para o objeto window
+declare global {
+  interface Window {
+    dataLayer: any[];
+    gtag: (...args: any[]) => void;
+  }
+}
 
-export default function AuthRapido() {
-  const [authLoading, setAuthLoading] = useState(false);
-  const [slug, setSlug] = useState("");
-  const [senha, setSenha] = useState("");
-  const [nome, setNome] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showForgotModal, setShowForgotModal] = useState(false);
-  const [resetEmail, setResetEmail] = useState("");
-  const [resetLoading, setResetLoading] = useState(false);
+export default function CookieNotice() {
+  const [isVisible, setIsVisible] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const pathname = usePathname();
 
-  const handleAuth = async () => {
-    if (!slug || !senha) return alert("Preencha os campos para liberar.");
-    setAuthLoading(true);
-    try {
-      const input = slug.trim().toLowerCase();
-      let emailParaAuth = input;
+  useEffect(() => {
+    const consent = localStorage.getItem("nucleo-consent");
 
-      if (!input.includes("@")) {
-        const { data: p } = await supabase.from('profiles').select('email').eq('slug', input).maybeSingle();
-        if (!p) throw new Error("Usuário não encontrado. Use seu e-mail.");
-        emailParaAuth = p.email;
-      }
+    if (!consent) {
+      const timer = setTimeout(() => setIsVisible(true), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
-      const { error: loginError } = await supabase.auth.signInWithPassword({
-        email: emailParaAuth, password: senha 
-      });
+  const handleAccept = () => {
+    if (typeof window !== "undefined") {
+      // 1. Inicializa o dataLayer se não existir
+      window.dataLayer = window.dataLayer || [];
 
-      if (loginError && nome.trim() !== "") {
-        const { data: auth } = await supabase.auth.signUp({
-          email: emailParaAuth, password: senha, options: { data: { full_name: nome } }
+      // 2. DISPARO OFICIAL DO CONSENT MODE
+      if (typeof window.gtag === "function") {
+        window.gtag("consent", "update", {
+          analytics_storage: "granted",
+          ad_storage: "granted",
+          ad_user_data: "granted",
+          ad_personalization: "granted",
         });
-        if (auth.user) {
-          await supabase.from('profiles').upsert({ id: auth.user.id, email: emailParaAuth, nome_completo: nome, plan_type: 'free' });
-        }
-      } else if (loginError) {
-        alert("Senha incorreta ou usuário novo sem nome preenchido.");
+      } else {
+        window.dataLayer.push({
+          event: "gtm.consent",
+          consent_type: "update",
+          analytics_storage: "granted",
+          ad_storage: "granted",
+          ad_user_data: "granted",
+          ad_personalization: "granted",
+        });
       }
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setAuthLoading(false);
+
+      // 3. Evento customizado para disparar tags
+      window.dataLayer.push({
+        event: "cookie_consent_accepted",
+        consent_type: "full",
+      });
+
+      // 4. CRIA O COOKIE PARA O MIDDLEWARE
+      document.cookie =
+        "nucleobase-consent=true; path=/; max-age=31536000; SameSite=Lax";
+
+      // 5. Persistência local (mantida intacta e blindada contra logouts de usuário)
+      localStorage.setItem("nucleo-consent", "true");
+
+      setIsVisible(false);
     }
   };
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setResetLoading(true);
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/auth/callback?next=/v3/perfil`,
-      });
-      if (error) throw error;
-      alert("Link enviado!");
-      setShowForgotModal(false);
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setResetLoading(false);
-    }
-  };
+  if (!isVisible) return null;
+
+  const isPolicyPage = pathname === "/politica-de-cookies";
 
   return (
-    <div className="bg-white rounded-[3rem] border border-gray-100 p-8 md:p-12 shadow-2xl shadow-blue-900/5 animate-in fade-in duration-500">
-      <div className="flex items-center gap-4 mb-8">
-        <div className="bg-orange-50 p-3 rounded-2xl text-orange-500"><AtSign size={28} /></div>
-        <div>
-          <h3 className="text-xl font-bold text-gray-900">Acesso Rápido</h3>
-          <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Identifique-se para liberar</p>
-        </div>
+    <div className="fixed bottom-32 right-6 z-[70] animate-in fade-in zoom-in slide-in-from-right-10 duration-700">
+      <div
+        className="relative group"
+        onMouseEnter={() => setIsExpanded(true)}
+      >
+
+        {!isPolicyPage && (
+          <div
+            className={`
+              absolute bottom-full right-0 mb-4 w-72 p-6 bg-white border border-gray-100 rounded-[2.5rem] shadow-2xl 
+              transition-all duration-500 overflow-hidden
+              ${isExpanded
+                ? "opacity-100 translate-y-0 pointer-events-auto"
+                : "opacity-100 translate-y-0 md:opacity-0 md:translate-y-2 md:pointer-events-none"
+              }
+            `}
+          >
+            <ShieldCheck
+              size={120}
+              className="absolute -right-4 -top-4 text-blue-100/100 -rotate-12 pointer-events-none"
+              strokeWidth={1}
+            />
+
+            <div className="flex flex-col items-center text-center relative z-10">
+              <div className="mb-4">
+                <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] font-black uppercase shadow-sm inline-block tracking-widest">
+                  Privacidade
+                </span>
+              </div>
+
+              <p className="text-[12px] text-gray-500 leading-relaxed font-medium mb-2">
+                Usamos cookies essenciais para sua segurança. Ao continuar, você concorda com nossos termos, criados para a garantia de sua privacidade.
+              </p>
+
+              <Link
+                href="/politica-de-cookies"
+                className="group/link flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 transition-colors border-t border-gray-50 pt-2 w-full justify-center text-center"
+              >
+                <span>
+                  Saiba mais sobre a <br /> Política da Nucleo
+                </span>
+                <ExternalLink
+                  size={11}
+                  className="group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5 transition-transform duration-300"
+                />
+              </Link>
+            </div>
+          </div>
+        )}
+
+        <button
+          onClick={handleAccept}
+          className="
+            w-24 h-24 md:w-28 md:h-28
+            bg-gradient-to-br from-gray-800 to-black
+            border-2 border-gray-700 hover:border-blue-600
+            text-white rounded-[2.5rem]
+            shadow-[0_20px_50px_rgba(0,0,0,0.3)]
+            hover:scale-105 active:scale-95
+            transition-all duration-500
+            flex flex-col items-center justify-center gap-2
+            relative overflow-hidden cursor-pointer
+          "
+        >
+          <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+          <Cookie
+            size={32}
+            className="text-blue-400 group-hover:rotate-12 transition-transform duration-500 relative z-10"
+            strokeWidth={1.5}
+          />
+
+          <div className="flex flex-col items-center relative z-10">
+            <span className="text-[14px] font-black uppercase tracking-[0.2em] leading-none">
+              Cookies
+            </span>
+
+            <span
+              className={`text-[12px] font-bold text-blue-400/80 uppercase tracking-widest mt-1.5 transition-opacity ${isExpanded ? "opacity-100" : "opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                }`}
+            >
+              Aceitar
+            </span>
+          </div>
+
+          <div className="absolute -top-1 -right-1 bg-blue-600 p-1.5 rounded-full border-4 border-gray-50 shadow-lg">
+            <X size={10} strokeWidth={4} className="text-white" />
+          </div>
+        </button>
       </div>
-
-      <div className="space-y-4 mb-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="relative group">
-            <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-600" size={16} />
-            <input type="text" placeholder="ID ou E-mail" value={slug} onChange={(e) => setSlug(e.target.value)} className="w-full pl-11 pr-4 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-100" />
-          </div>
-          <div className="relative group">
-            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-600" size={16} />
-            <input type={showPassword ? "text" : "password"} placeholder="Senha" value={senha} onChange={(e) => setSenha(e.target.value)} className="w-full pl-11 pr-12 py-4 bg-gray-50 border-none rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-100" />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600">
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
-        </div>
-        <input type="text" placeholder="Nome Completo (Novos autores)" value={nome} onChange={(e) => setNome(e.target.value)} className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-100 font-medium" />
-      </div>
-
-      <button type="button" onClick={() => setShowForgotModal(true)} className="text-[10px] text-gray-400 font-bold hover:text-blue-600 mb-6 block w-fit">Esqueceu a senha?</button>
-
-      <button onClick={handleAuth} disabled={authLoading} className="w-full bg-gray-900 text-white py-5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-black transition-all shadow-lg shadow-gray-200">
-        {authLoading ? <Loader2 className="animate-spin" size={18} /> : <Unlock size={18} />}
-        {authLoading ? "Verificando..." : "Liberar Envio"}
-      </button>
-
-      {showForgotModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 relative text-center">
-            <button onClick={() => setShowForgotModal(false)} className="absolute right-6 top-6 text-gray-400"><X size={20} /></button>
-            <div className="bg-blue-50 p-4 rounded-2xl text-blue-600 mb-4 w-fit mx-auto"><LifeBuoy size={32} /></div>
-            <h2 className="text-xl font-black text-gray-900 mb-2 tracking-tight">Recuperar Acesso</h2>
-            <form onSubmit={handleForgotPassword} className="space-y-4">
-              <input type="email" required placeholder="seu@email.com" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} className="w-full px-5 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-blue-100 outline-none text-sm font-medium" />
-              <button disabled={resetLoading} className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2">
-                {resetLoading ? "Enviando..." : "Enviar Link"} <ArrowRight size={16} />
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

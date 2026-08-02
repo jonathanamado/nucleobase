@@ -1,3 +1,4 @@
+// components/MainContent.tsx
 "use client";
 import React, { useState } from "react";
 import Link from 'next/link';
@@ -5,7 +6,7 @@ import {
   Zap, ArrowRight, Mail, Newspaper, ShieldCheck,
   BarChart3, MessageSquare, Lock,
   Users, Gift, X, Loader2, CheckCircle2, FileWarning,
-  LayoutDashboard, Instagram, Dna, Play
+  LayoutDashboard, Instagram, Play
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -52,7 +53,7 @@ export function MainContent() {
           <div className="bg-white rounded-[3rem] p-10 max-w-md w-full relative shadow-2xl scale-in-center">
             <button
               onClick={() => { setIsModalOpen(false); setEnviado(false); }}
-              className="absolute top-6 right-6 text-gray-400 hover:text-gray-900 transition-colors"
+              className="absolute top-6 right-6 text-gray-400 hover:text-gray-900 transition-colors cursor-pointer"
             >
               <X size={24} />
             </button>
@@ -65,7 +66,7 @@ export function MainContent() {
                 <p className="text-gray-500 mb-8 font-medium">Insights financeiros e estratégicos toda semana.</p>
                 <form onSubmit={handleSubscribe} className="space-y-4">
                   <input required type="email" name="email" placeholder="Seu melhor e-mail" className="w-full bg-gray-50 border-transparent rounded-2xl py-4 px-6 text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all" />
-                  <button type="submit" disabled={loading} className="w-full py-4 bg-gray-900 text-white rounded-full font-bold text-sm uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2">
+                  <button type="submit" disabled={loading} className="w-full py-4 bg-gray-900 text-white rounded-full font-bold text-sm uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50">
                     {loading ? <Loader2 className="animate-spin" size={18} /> : "Inscrever-se agora"}
                   </button>
                 </form>
@@ -186,7 +187,7 @@ export function MainContent() {
         </div>
 
         <div className="grid grid-cols-2 gap-3 mt-4">
-          <button onClick={() => setIsModalOpen(true)} className="col-span-1 bg-blue-50 p-6 rounded-3xl flex flex-col gap-4 border border-blue-100 text-left relative overflow-hidden active:scale-95 transition-transform">
+          <button onClick={() => setIsModalOpen(true)} className="col-span-1 bg-blue-50 p-6 rounded-3xl flex flex-col gap-4 border border-blue-100 text-left relative overflow-hidden active:scale-95 transition-transform cursor-pointer">
             <Mail className="text-blue-600" size={24} />
             <span className="font-bold text-[10px] uppercase tracking-widest text-gray-800">Assinar <br /> Newsletter</span>
           </button>
