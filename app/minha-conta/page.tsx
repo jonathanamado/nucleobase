@@ -9,7 +9,7 @@ import {
   Baby, CalendarDays, Activity, MousePointerClick,
   KeyRound, Instagram, X,
   Target, Share2, Wallet, Zap, Rocket, LayoutDashboard, Info,
-  PieChart, Award, ChartPie, Building2, FileCheck2, CheckCircle2
+  PieChart, Award, ChartPie, Building2, FileCheck2, CheckCircle2, Settings2, ShieldCheck
 } from "lucide-react";
 
 const supabase = createClient(
@@ -535,7 +535,7 @@ export default function MinhaContaPage() {
             <div className="mb-10">
               <div className="flex items-center gap-3 mb-4">
                 <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2">
-                  <CalendarDays size={16} className="text-purple-600" /> Controle lançamentos
+                  <CalendarDays size={16} className="text-purple-600" /> Perfil de acesso
                 </h3>
               </div>
               <div className="bg-gray-50 rounded-2xl p-4">
@@ -561,14 +561,35 @@ export default function MinhaContaPage() {
                     )}
                   </div>
                 ) : (
-                  <Link href="/lancamentos" className="block w-full p-6 bg-orange-500 rounded-[2rem] group hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/10 text-center">
-                    <p className="text-[8px] font-black text-white/70 uppercase tracking-widest mb-1">
-                      Você ainda não possui lançamentos.<br /><br />
-                    </p>
-                    <p className="text-white text-xs font-bold leading-tight">
-                      Clique aqui para importar seus registros e iniciar sua gestão digital.
-                    </p>
-                  </Link>
+                  <div className="w-full p-6 bg-gradient-to-br from-gray-900 to-black rounded-[2rem] shadow-xl text-center space-y-4 border border-gray-800">
+                    <div className="flex items-center gap-4 text-left">
+                      <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-blue-400 shrink-0">
+                        <KeyRound size={24} />
+                      </div>
+                      <p className="text-white text-xs font-bold leading-relaxed">
+                        <span className="md:hidden">Ajuste Credenciais</span>
+                        <span className="hidden md:inline">Segurança e credenciais da conta. Redefina sua senha ou acesse as preferências completas.</span>
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-2 pt-2">
+                      <button
+                        onClick={() => setShowPassModal(true)}
+                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <KeyRound size={14} />
+                        <span className="md:hidden">Alterar senha</span>
+                        <span className="hidden md:inline">Redefinir Senha</span>
+                      </button>
+                      <Link
+                        href="/configuracoes"
+                        className="w-full py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <Settings2 size={14} />
+                        <span className="md:hidden">Configurações</span>
+                        <span className="hidden md:inline">Ir para Configurações</span>
+                      </Link>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
@@ -691,8 +712,8 @@ export default function MinhaContaPage() {
               <Link href="/lancamentos" className="block w-full p-4 bg-orange-500 rounded-xl group hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/10">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1 text-center">
-                    <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Novos Lançamentos</p>
-                    <p className="text-white text-xs font-bold leading-tight">Atualize seus registros. Clique aqui.</p>
+                    <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Controle Lançamentos</p>
+                    <p className="text-white text-xs font-bold leading-tight">Acesse aqui para realizar novas inclusões.</p>
                   </div>
                   <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform shrink-0">
                     <Rocket size={20} fill="currentColor" className="text-orange-100" />
@@ -790,7 +811,7 @@ export default function MinhaContaPage() {
                 placeholder="00.000.000/0000-00"
                 value={condoCnpj}
                 className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none transition-all focus:border-blue-300"
-                onChange={(e) => handleChange(setCondoCnpj, e.target.value)}
+                onChange={(e) => handleChange(condoCnpj, e.target.value)}
               />
             </div>
             <div className="space-y-3">

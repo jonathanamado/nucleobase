@@ -1,3 +1,4 @@
+// components/CookieNotice.tsx
 "use client";
 import { useState, useEffect } from "react";
 import { Cookie, ShieldCheck, X, ExternalLink } from "lucide-react";
@@ -32,7 +33,6 @@ export default function CookieNotice() {
       window.dataLayer = window.dataLayer || [];
 
       // 2. DISPARO OFICIAL DO CONSENT MODE
-      // Usamos a função gtag diretamente para garantir que o Google entenda o comando
       if (typeof window.gtag === "function") {
         window.gtag("consent", "update", {
           analytics_storage: "granted",
@@ -41,7 +41,6 @@ export default function CookieNotice() {
           ad_personalization: "granted",
         });
       } else {
-        // Fallback caso o script do GTM ainda não tenha carregado a função gtag
         window.dataLayer.push({
           event: "gtm.consent",
           consent_type: "update",
@@ -52,7 +51,7 @@ export default function CookieNotice() {
         });
       }
 
-      // 3. Evento customizado para disparar tags que não dependem do Consent Mode nativo
+      // 3. Evento customizado para disparar tags
       window.dataLayer.push({
         event: "cookie_consent_accepted",
         consent_type: "full",
@@ -61,8 +60,8 @@ export default function CookieNotice() {
       // 4. CRIA O COOKIE PARA O MIDDLEWARE
       document.cookie =
         "nucleobase-consent=true; path=/; max-age=31536000; SameSite=Lax";
-      
-      // 5. Persistência local
+
+      // 5. Persistência local (mantida intacta e blindada contra logouts de usuário)
       localStorage.setItem("nucleo-consent", "true");
 
       setIsVisible(false);
@@ -75,20 +74,19 @@ export default function CookieNotice() {
 
   return (
     <div className="fixed bottom-32 right-6 z-[70] animate-in fade-in zoom-in slide-in-from-right-10 duration-700">
-      <div 
-        className="relative group" 
+      <div
+        className="relative group"
         onMouseEnter={() => setIsExpanded(true)}
       >
-        
+
         {!isPolicyPage && (
           <div
             className={`
               absolute bottom-full right-0 mb-4 w-72 p-6 bg-white border border-gray-100 rounded-[2.5rem] shadow-2xl 
               transition-all duration-500 overflow-hidden
-              ${
-                isExpanded
-                  ? "opacity-100 translate-y-0 pointer-events-auto"
-                  : "opacity-100 translate-y-0 md:opacity-0 md:translate-y-2 md:pointer-events-none"
+              ${isExpanded
+                ? "opacity-100 translate-y-0 pointer-events-auto"
+                : "opacity-100 translate-y-0 md:opacity-0 md:translate-y-2 md:pointer-events-none"
               }
             `}
           >
@@ -136,7 +134,7 @@ export default function CookieNotice() {
             hover:scale-105 active:scale-95
             transition-all duration-500
             flex flex-col items-center justify-center gap-2
-            relative overflow-hidden
+            relative overflow-hidden cursor-pointer
           "
         >
           <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -153,9 +151,8 @@ export default function CookieNotice() {
             </span>
 
             <span
-              className={`text-[12px] font-bold text-blue-400/80 uppercase tracking-widest mt-1.5 transition-opacity ${
-                isExpanded ? "opacity-100" : "opacity-100 md:opacity-0 md:group-hover:opacity-100"
-              }`}
+              className={`text-[12px] font-bold text-blue-400/80 uppercase tracking-widest mt-1.5 transition-opacity ${isExpanded ? "opacity-100" : "opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                }`}
             >
               Aceitar
             </span>
