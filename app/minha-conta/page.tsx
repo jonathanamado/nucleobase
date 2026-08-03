@@ -577,7 +577,7 @@ export default function MinhaContaPage() {
                         className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
                       >
                         <KeyRound size={14} />
-                        <span className="md:hidden">Redefinir</span>
+                        <span className="md:hidden">Alterar senha</span>
                         <span className="hidden md:inline">Redefinir Senha</span>
                       </button>
                       <Link
