@@ -567,7 +567,7 @@ export default function MinhaContaPage() {
                         <KeyRound size={24} />
                       </div>
                       <p className="text-white text-xs font-bold leading-relaxed">
-                        <span className="md:hidden">Ajuste Credenciais</span>
+                        <span className="md:hidden">Ajustes de credenciais.</span>
                         <span className="hidden md:inline">Segurança e credenciais da conta. Redefina sua senha ou acesse as preferências completas.</span>
                       </p>
                     </div>
@@ -577,7 +577,7 @@ export default function MinhaContaPage() {
                         className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
                       >
                         <KeyRound size={14} />
-                        <span className="md:hidden">Alterar senha</span>
+                        <span className="md:hidden">Redefinir</span>
                         <span className="hidden md:inline">Redefinir Senha</span>
                       </button>
                       <Link
@@ -712,8 +712,8 @@ export default function MinhaContaPage() {
               <Link href="/lancamentos" className="block w-full p-4 bg-orange-500 rounded-xl group hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/10">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1 text-center">
-                    <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Controle Lançamentos</p>
-                    <p className="text-white text-xs font-bold leading-tight">Acesse aqui para realizar novas inclusões.</p>
+                    <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Novos Lançamentos</p>
+                    <p className="text-white text-xs font-bold leading-tight">Atualize seus registros. Clique aqui.</p>
                   </div>
                   <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform shrink-0">
                     <Rocket size={20} fill="currentColor" className="text-orange-100" />
@@ -811,7 +811,7 @@ export default function MinhaContaPage() {
                 placeholder="00.000.000/0000-00"
                 value={condoCnpj}
                 className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none transition-all focus:border-blue-300"
-                onChange={(e) => handleChange(condoCnpj, e.target.value)}
+                onChange={(e) => handleChange(setCondoCnpj, e.target.value)}
               />
             </div>
             <div className="space-y-3">
