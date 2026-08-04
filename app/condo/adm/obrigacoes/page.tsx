@@ -10,7 +10,6 @@ import {
     FileText,
     CheckCircle2,
     AlertCircle,
-    Calendar,
     ShieldCheck,
     Check,
     X,
@@ -20,13 +19,12 @@ import {
 
 interface ObrigacaoItem {
     id: string;
-    condominio_id: string;
     nome: string;
     tipo: 'mensal' | 'anual' | 'certidao';
     prazo_regra: string;
     observacao_asterisco?: string;
     status: string;
-    data_atualizacao: string;
+    data_criacao?: string;
 }
 
 export default function ObrigacoesFiscaisPage() {
@@ -35,14 +33,20 @@ export default function ObrigacoesFiscaisPage() {
     const [condominio, setCondominio] = useState<{ id: string; nome: string } | null>(null);
     const [obrigacoes, setObrigacoes] = useState<ObrigacaoItem[]>([]);
 
-    // Filtro de Ano/Mês dinâmico limitado até o mês corrente (Julho de 2026)
-    const [competenciaSelecionada, setCompetenciaSelecionada] = useState<string>('2026-07');
+    // Filtro de Ano/Mês dinâmico limitado até o mês corrente (Agosto de 2026)
+    const [competenciaSelecionada, setCompetenciaSelecionada] = useState<string>('2026-08');
     const [aplicavelMap, setAplicavelMap] = useState<Record<string, boolean>>({});
     const [quitadoMap, setQuitadoMap] = useState<Record<string, boolean>>({});
 
     const [competenciasExtras, setCompetenciasExtras] = useState<string[]>([]);
-    const [isModalCompetenciaOpen, setIsModalCompetenciaOpen] = useState(false);
-    const [novoAnoMesInput, setNovoAnoMesInput] = useState('');
+
+    // Estados do Modal para Adicionar Nova Obrigação / Documento
+    const [isModalObrigacaoOpen, setIsModalObrigacaoOpen] = useState(false);
+    const [novaObNome, setNovaObNome] = useState('');
+    const [novaObTipo, setNovaObTipo] = useState<'mensal' | 'anual' | 'certidao'>('mensal');
+    const [novaObPrazoRegra, setNovaObPrazoRegra] = useState('');
+    const [novaObObs, setNovaObObs] = useState('');
+    const [salvandoObrigacao, setSalvandoObrigacao] = useState(false);
 
     const isMountedRef = useRef(true);
 
@@ -55,10 +59,9 @@ export default function ObrigacoesFiscaisPage() {
 
     const gerarCompetenciasDisponiveis = () => {
         const anoAtual = 2026;
-        const mesLimite = 7; // Julho de 2026
+        const mesLimite = 8; // Agosto de 2026
         const lista: Array<{ valor: string; label: string }> = [];
 
-        // Ordem cronológica (calendário: Janeiro até o limite)
         for (let m = 1; m <= mesLimite; m++) {
             const mesStr = String(m).padStart(2, '0');
             const valor = `${anoAtual}-${mesStr}`;
@@ -113,10 +116,10 @@ export default function ObrigacoesFiscaisPage() {
         if (regra === 'continua') {
             return '*';
         }
-        return '*';
+        return regra || '*';
     };
 
-    const loadDadosCompetencia = async (condoId: string, competencia: string) => {
+    const loadDadosCompetencia = async (condoId: string, competencia: string, listaObrigacoes: ObrigacaoItem[]) => {
         const { data, error } = await supabase
             .from("condominio_obrigacoes_status")
             .select("*")
@@ -126,15 +129,18 @@ export default function ObrigacoesFiscaisPage() {
         const novoAplicavel: Record<string, boolean> = {};
         const novoQuitado: Record<string, boolean> = {};
 
-        obrigacoes.forEach(o => {
-            novoAplicavel[o.id] = true;
+        // Inicializa com padrão: aplicável = false (Não aplicável) e quitado = false
+        listaObrigacoes.forEach(o => {
+            novoAplicavel[o.id] = false;
             novoQuitado[o.id] = false;
         });
 
         if (!error && data && data.length > 0) {
             data.forEach((item: any) => {
-                novoAplicavel[item.obrigacao_id] = item.aplicavel ?? true;
-                novoQuitado[item.obrigacao_id] = item.quitado ?? false;
+                if (item.obrigacao_id) {
+                    novoAplicavel[item.obrigacao_id] = item.aplicavel ?? false;
+                    novoQuitado[item.obrigacao_id] = item.quitado ?? false;
+                }
             });
         }
 
@@ -145,77 +151,94 @@ export default function ObrigacoesFiscaisPage() {
     };
 
     const loadObrigacoes = async (condoId: string) => {
-        const listaPadrao: ObrigacaoItem[] = [
-            {
-                id: '2',
-                condominio_id: condoId,
-                nome: 'DARF / GPS (Impostos Retidos e Previdenciários)',
-                tipo: 'mensal',
-                prazo_regra: 'dia_20',
-                status: 'Regular / Em dia',
-                data_atualizacao: new Date().toISOString()
-            },
-            {
-                id: '1',
-                condominio_id: condoId,
-                nome: 'DCTFWeb / eSocial (Folha e Pró-Labore)',
-                tipo: 'mensal',
-                prazo_regra: 'dia_07',
-                status: 'Regular / Em dia',
-                data_atualizacao: new Date().toISOString()
-            },
-            {
-                id: '3',
-                condominio_id: condoId,
-                nome: 'ISS Municipal (Serviços Tomados)',
-                tipo: 'mensal',
-                prazo_regra: 'prefeitura',
-                observacao_asterisco: 'ISS: Vencimento pela Prefeitura',
-                status: 'Regular / Em dia',
-                data_atualizacao: new Date().toISOString()
-            },
-            {
-                id: '4',
-                condominio_id: condoId,
-                nome: 'DIRF (Declaração de IR Retido na Fonte)',
-                tipo: 'anual',
-                prazo_regra: 'anual',
-                observacao_asterisco: 'DIRF: Entrega anual +1  (Fev/Mar)',
-                status: 'Entregue',
-                data_atualizacao: new Date().toISOString()
-            },
-            {
-                id: '5',
-                condominio_id: condoId,
-                nome: 'Certidão Negativa de Débitos Federais (CND)',
-                tipo: 'certidao',
-                prazo_regra: 'continua',
-                observacao_asterisco: 'CND Federal: Renovação contínua',
-                status: 'Válida',
-                data_atualizacao: new Date().toISOString()
-            },
-            {
-                id: '6',
-                condominio_id: condoId,
-                nome: 'CRF do FGTS (Regularidade do Empregador)',
-                tipo: 'certidao',
-                prazo_regra: 'continua',
-                observacao_asterisco: 'CRF FGTS: Renovação contínua',
-                status: 'Válida',
-                data_atualizacao: new Date().toISOString()
-            }
-        ];
+        // 1. Busca o catálogo global padrão
+        const { data: globalData, error: globalError } = await supabase
+            .from("condominio_obrigacoes")
+            .select("*")
+            .order("nome", { ascending: true });
 
-        if (isMountedRef.current) {
-            setObrigacoes(listaPadrao);
+        let listaGlobalFinal: ObrigacaoItem[] = [];
+
+        if (!globalError && globalData && globalData.length > 0) {
+            listaGlobalFinal = globalData;
+        } else {
+            const listaPadrao = [
+                {
+                    nome: 'DARF / GPS (Impostos Retidos e Previdenciários)',
+                    tipo: 'mensal',
+                    prazo_regra: 'dia_20',
+                    status: 'Regular / Em dia'
+                },
+                {
+                    nome: 'DCTFWeb / eSocial (Folha e Pró-Labore)',
+                    tipo: 'mensal',
+                    prazo_regra: 'dia_07',
+                    status: 'Regular / Em dia'
+                },
+                {
+                    nome: 'ISS Municipal (Serviços Tomados)',
+                    tipo: 'mensal',
+                    prazo_regra: 'prefeitura',
+                    observacao_asterisco: 'ISS: Vencimento pela Prefeitura',
+                    status: 'Regular / Em dia'
+                },
+                {
+                    nome: 'DIRF (Declaração de IR Retido na Fonte)',
+                    tipo: 'anual',
+                    prazo_regra: 'anual',
+                    observacao_asterisco: 'DIRF: Entrega anual +1 (Fev/Mar)',
+                    status: 'Entregue'
+                },
+                {
+                    nome: 'Certidão Negativa de Débitos Federais (CND)',
+                    tipo: 'certidao',
+                    prazo_regra: 'continua',
+                    observacao_asterisco: 'CND Federal: Renovação contínua',
+                    status: 'Válida'
+                },
+                {
+                    nome: 'CRF do FGTS (Regularidade do Empregador)',
+                    tipo: 'certidao',
+                    prazo_regra: 'continua',
+                    observacao_asterisco: 'CRF FGTS: Renovação contínua',
+                    status: 'Válida'
+                }
+            ];
+
+            const { data: insertedData, error: insertErr } = await supabase
+                .from("condominio_obrigacoes")
+                .insert(listaPadrao)
+                .select("*");
+
+            if (!insertErr && insertedData) {
+                listaGlobalFinal = insertedData;
+            }
         }
 
-        await loadDadosCompetencia(condoId, competenciaSelecionada);
+        // 2. Busca as obrigações personalizadas específicas deste condomínio
+        const { data: personalizadasData, error: personalizadasError } = await supabase
+            .from("condominio_obrigacoes_personalizadas")
+            .select("*")
+            .eq("condominio_id", condoId)
+            .order("nome", { ascending: true });
+
+        const listaPersonalizadasFinal: ObrigacaoItem[] = (!personalizadasError && personalizadasData) ? personalizadasData : [];
+
+        // 3. Junta as duas listas em memória para exibição na tabela
+        const listaFinal = [...listaGlobalFinal, ...listaPersonalizadasFinal];
+
+        if (isMountedRef.current) {
+            setObrigacoes(listaFinal);
+        }
+
+        await loadDadosCompetencia(condoId, competenciaSelecionada, listaFinal);
     };
 
     const handleToggleAplicavel = async (obrigacaoId: string) => {
         if (!condominio) return;
         const novoValor = !aplicavelMap[obrigacaoId];
+
+        // Atualiza imediatamente o estado visual (otimista)
         setAplicavelMap(prev => ({ ...prev, [obrigacaoId]: novoValor }));
 
         await salvarStatusNoBanco(obrigacaoId, novoValor, quitadoMap[obrigacaoId] || false);
@@ -224,43 +247,96 @@ export default function ObrigacoesFiscaisPage() {
     const handleToggleQuitado = async (obrigacaoId: string) => {
         if (!condominio) return;
         const novoValor = !quitadoMap[obrigacaoId];
+
+        // Atualiza imediatamente o estado visual (otimista)
         setQuitadoMap(prev => ({ ...prev, [obrigacaoId]: novoValor }));
 
-        await salvarStatusNoBanco(obrigacaoId, aplicavelMap[obrigacaoId] ?? true, novoValor);
+        await salvarStatusNoBanco(obrigacaoId, aplicavelMap[obrigacaoId] ?? false, novoValor);
     };
 
     const salvarStatusNoBanco = async (obrigacaoId: string, aplicavel: boolean, quitado: boolean) => {
         if (!condominio) return;
         try {
-            await supabase
+            const payload = {
+                condominio_id: condominio.id,
+                obrigacao_id: obrigacaoId,
+                competencia: competenciaSelecionada,
+                aplicavel,
+                quitado,
+                atualizado_em: new Date().toISOString()
+            };
+
+            const { error } = await supabase
                 .from("condominio_obrigacoes_status")
-                .upsert({
-                    condominio_id: condominio.id,
-                    obrigacao_id: obrigacaoId,
-                    competencia: competenciaSelecionada,
-                    aplicavel,
-                    quitado,
-                    atualizado_em: new Date().toISOString()
-                }, { onConflict: 'condominio_id,obrigacao_id,competencia' });
-        } catch (e) {
-            console.error("Erro ao salvar status da obrigação fiscal:", e);
+                .upsert(payload, { onConflict: 'condominio_id,obrigacao_id,competencia' });
+
+            if (error) {
+                console.error("Erro do Supabase ao salvar status:", error.message, error.details);
+                alert("Erro ao salvar alteração no banco: " + error.message);
+            }
+        } catch (e: any) {
+            console.error("Exceção ao salvar status da obrigação fiscal:", e);
         }
     };
 
-    const handleAdicionarCompetenciaSubmit = (e: React.FormEvent) => {
+    const handleAdicionarObrigacaoSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!novoAnoMesInput) return;
-        if (!competenciasExtras.includes(novoAnoMesInput)) {
-            setCompetenciasExtras(prev => [...prev, novoAnoMesInput]);
+        if (!condominio || !novaObNome.trim()) return;
+
+        setSalvandoObrigacao(true);
+        try {
+            const novaObrigacaoPersonalizadaPayload = {
+                condominio_id: condominio.id,
+                nome: novaObNome.trim(),
+                tipo: novaObTipo,
+                prazo_regra: novaObPrazoRegra.trim() || 'dia_20',
+                observacao_asterisco: novaObObs.trim() || null,
+                status: 'Pendente / Regular'
+            };
+
+            // Insere na tabela exclusiva de personalizadas do condomínio atual
+            const { data: novaObData, error: errorOb } = await supabase
+                .from("condominio_obrigacoes_personalizadas")
+                .insert([novaObrigacaoPersonalizadaPayload])
+                .select("*")
+                .single();
+
+            if (errorOb) throw errorOb;
+
+            if (novaObData) {
+                await supabase
+                    .from("condominio_obrigacoes_status")
+                    .upsert({
+                        condominio_id: condominio.id,
+                        obrigacao_id: novaObData.id,
+                        competencia: competenciaSelecionada,
+                        aplicavel: true,
+                        quitado: false,
+                        atualizado_em: new Date().toISOString()
+                    }, { onConflict: 'condominio_id,obrigacao_id,competencia' });
+
+                setObrigacoes(prev => [...prev, novaObData]);
+                setAplicavelMap(prev => ({ ...prev, [novaObData.id]: true }));
+                setQuitadoMap(prev => ({ ...prev, [novaObData.id]: false }));
+            }
+
+            // Reseta formulário e fecha o modal com segurança
+            setIsModalObrigacaoOpen(false);
+            setNovaObNome('');
+            setNovaObTipo('mensal');
+            setNovaObPrazoRegra('');
+            setNovaObObs('');
+        } catch (err: any) {
+            console.error("Erro detalhado ao adicionar obrigação personalizada:", err);
+            alert("Erro ao adicionar obrigação: " + (err.message || JSON.stringify(err)));
+        } finally {
+            setSalvandoObrigacao(false);
         }
-        setCompetenciaSelecionada(novoAnoMesInput);
-        setIsModalCompetenciaOpen(false);
-        setNovoAnoMesInput('');
     };
 
     useEffect(() => {
         if (condominio && condominio.id) {
-            loadDadosCompetencia(condominio.id, competenciaSelecionada);
+            loadDadosCompetencia(condominio.id, competenciaSelecionada, obrigacoes);
         }
     }, [competenciaSelecionada]);
 
@@ -498,7 +574,7 @@ export default function ObrigacoesFiscaisPage() {
                     </div>
                 </div>
 
-                {/* Descrição e Botão Adicionar Competência com largura padronizada */}
+                {/* Descrição e Botão Adicionar Obrigação com largura padronizada */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <p className="text-xs md:text-sm text-zinc-500 font-medium md:max-w-xl">
                         <span className="md:hidden">Painel de obrigações fiscais e certidões.</span>
@@ -508,10 +584,10 @@ export default function ObrigacoesFiscaisPage() {
                     <div className="flex items-center gap-2">
                         <button
                             type="button"
-                            onClick={() => setIsModalCompetenciaOpen(true)}
+                            onClick={() => setIsModalObrigacaoOpen(true)}
                             className="w-full sm:w-[220px] flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-md shadow-blue-600/20 cursor-pointer"
                         >
-                            <Plus size={16} /> Adicionar competência
+                            <Plus size={16} /> Adicionar Obrigação
                         </button>
                     </div>
                 </div>
@@ -548,7 +624,7 @@ export default function ObrigacoesFiscaisPage() {
                     </div>
                 </div>
 
-                {/* Tabela de Obrigações Otimizada */}
+                {/* Tabela de Obrigações Fixa */}
                 <div className="bg-white border border-zinc-200 rounded-[2.5rem] p-6 shadow-sm mb-4">
                     {obrigacoes.length === 0 ? (
                         <div className="text-center py-12 space-y-2">
@@ -562,7 +638,7 @@ export default function ObrigacoesFiscaisPage() {
                                     <tr>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Obrigação / Documento</th>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Ciclo</th>
-                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Vencimento</th>
+                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Vencimento (Regra)</th>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider text-center">Aplicável</th>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider text-center">Quitação Realizada</th>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider text-right pr-4">Status</th>
@@ -570,7 +646,7 @@ export default function ObrigacoesFiscaisPage() {
                                 </thead>
                                 <tbody className="divide-y divide-zinc-50">
                                     {obrigacoes.map((item) => {
-                                        const isAplicavel = aplicavelMap[item.id] ?? true;
+                                        const isAplicavel = aplicavelMap[item.id] ?? false;
                                         const isQuitado = quitadoMap[item.id] ?? false;
                                         const prazoExibicao = calcularPrazoDinamico(item.prazo_regra, competenciaSelecionada);
 
@@ -621,7 +697,7 @@ export default function ObrigacoesFiscaisPage() {
                                                         </span>
                                                     ) : isQuitado ? (
                                                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                            <CheckCircle2 size={12} /> Quitado / Regular
+                                                            <CheckCircle2 size={12} /> Regular
                                                         </span>
                                                     ) : (
                                                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
@@ -638,7 +714,7 @@ export default function ObrigacoesFiscaisPage() {
                     )}
                 </div>
 
-                {/* Explicação dos asteriscos (*) fora do quadro */}
+                {/* Explicação dos asteriscos (*) com exibição estática do que consta no banco */}
                 {observacoesComAsterisco.length > 0 && (
                     <div className="mb-12 px-6 py-4 bg-zinc-100/70 border border-zinc-200/80 rounded-2xl space-y-1.5">
                         <div className="flex items-center gap-2 text-zinc-700 font-bold text-xs uppercase tracking-wider">
@@ -658,39 +734,78 @@ export default function ObrigacoesFiscaisPage() {
                 )}
             </div>
 
-            {/* MODAL ADICIONAR COMPETÊNCIA */}
-            {isModalCompetenciaOpen && (
+            {/* MODAL ADICIONAR OBRIGAÇÃO / DOCUMENTO */}
+            {isModalObrigacaoOpen && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl p-6 md:p-8 relative border border-zinc-100 animate-in zoom-in-95 duration-200 my-auto">
+                    <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-6 md:p-8 relative border border-zinc-100 animate-in zoom-in-95 duration-200 my-auto">
                         <button
-                            onClick={() => setIsModalCompetenciaOpen(false)}
+                            onClick={() => setIsModalObrigacaoOpen(false)}
                             className="absolute right-6 top-6 text-zinc-400 hover:text-zinc-900 transition-colors cursor-pointer"
                         >
                             <X size={20} />
                         </button>
 
                         <div className="flex items-center gap-3 border-b border-zinc-100 pb-3 mb-4">
-                            <Calendar className="text-blue-600" size={20} />
-                            <h2 className="font-bold text-base">Adicionar Competência</h2>
+                            <FileText className="text-blue-600" size={20} />
+                            <h2 className="font-bold text-base">Adicionar Nova Obrigação</h2>
                         </div>
 
-                        <form onSubmit={handleAdicionarCompetenciaSubmit} className="space-y-4">
+                        <form onSubmit={handleAdicionarObrigacaoSubmit} className="space-y-4">
                             <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Mês e Ano (AAAA-MM)</label>
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Nome da Obrigação / Documento</label>
                                 <input
-                                    type="month"
+                                    type="text"
                                     required
-                                    value={novoAnoMesInput}
-                                    onChange={(e) => setNovoAnoMesInput(e.target.value)}
+                                    placeholder="Ex: Seguro Incêndio Obrigatório"
+                                    value={novaObNome}
+                                    onChange={(e) => setNovaObNome(e.target.value)}
+                                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 text-xs font-medium text-zinc-900"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Ciclo / Tipo</label>
+                                    <select
+                                        value={novaObTipo}
+                                        onChange={(e) => setNovaObTipo(e.target.value as any)}
+                                        className="w-full px-3 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 text-xs font-medium text-zinc-900 cursor-pointer"
+                                    >
+                                        <option value="mensal">Mensal</option>
+                                        <option value="anual">Anual</option>
+                                        <option value="certidao">Certidão</option>
+                                    </select>
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Regra de Vencimento</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Ex: dia_20 ou Todo dia 10"
+                                        value={novaObPrazoRegra}
+                                        onChange={(e) => setNovaObPrazoRegra(e.target.value)}
+                                        className="w-full px-3 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 text-xs font-medium text-zinc-900"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Observação do Rodapé (Opcional)</label>
+                                <input
+                                    type="text"
+                                    placeholder="Ex: Vencimento via boleto bancário"
+                                    value={novaObObs}
+                                    onChange={(e) => setNovaObObs(e.target.value)}
                                     className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 text-xs font-medium text-zinc-900"
                                 />
                             </div>
 
                             <button
                                 type="submit"
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 cursor-pointer"
+                                disabled={salvandoObrigacao}
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 cursor-pointer mt-2"
                             >
-                                Adicionar e Selecionar
+                                {salvandoObrigacao ? "Salvando..." : "Salvar e Adicionar à Tabela"}
                             </button>
                         </form>
                     </div>

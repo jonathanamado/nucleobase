@@ -567,7 +567,7 @@ export default function MinhaContaPage() {
                         <KeyRound size={24} />
                       </div>
                       <p className="text-white text-xs font-bold leading-relaxed">
-                        <span className="md:hidden">Ajustes de credenciais.</span>
+                        <span className="md:hidden">Ajustes de credenciais</span>
                         <span className="hidden md:inline">Segurança e credenciais da conta. Redefina sua senha ou acesse as preferências completas.</span>
                       </p>
                     </div>
