@@ -32,7 +32,15 @@ import {
     Vote,
     Wrench,
     FileText,
-    BookOpen
+    BookOpen,
+    Network,
+    FileBarChart,
+    Truck,
+    BadgeAlert,
+    MessageSquareWarning,
+    PhoneCall,
+    ChevronLeft,
+    ChevronRight
 } from "lucide-react";
 
 interface Morador {
@@ -100,6 +108,19 @@ export default function CondoAdm() {
     // Estado para Feedback de Reset de Senha pelo Síndico
     const [resetPasswordSuccess, setResetPasswordSuccess] = useState("");
     const [resetPasswordError, setResetPasswordError] = useState("");
+
+    // Referência para o Carrossel de Cards na Visão Desktop
+    const carouselRef = useRef<HTMLDivElement>(null);
+
+    const scrollCarousel = (direction: 'left' | 'right') => {
+        if (carouselRef.current) {
+            const scrollAmount = 400;
+            carouselRef.current.scrollBy({
+                left: direction === 'left' ? -scrollAmount : scrollAmount,
+                behavior: 'smooth'
+            });
+        }
+    };
 
     const isMountedRef = useRef(true);
 
@@ -905,126 +926,259 @@ export default function CondoAdm() {
                 </p>
 
                 <div className="w-full max-w-none space-y-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 justify-start">
-                        <Link
-                            href="/condo/adm/cadastro_morador"
-                            className="bg-white border border-zinc-200 hover:border-blue-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
+                    {/* CONTAINER DE CARROSSEL DESKTOP / SEQUENCIAL MOBILE */}
+                    <div className="relative group/carousel">
+                        {/* Botão Esquerda Desktop */}
+                        <button
+                            onClick={() => scrollCarousel('left')}
+                            className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white border border-zinc-200 text-zinc-700 rounded-full items-center justify-center shadow-lg hover:bg-zinc-900 hover:text-white hover:border-zinc-900 transition-all cursor-pointer opacity-0 group-hover/carousel:opacity-100"
+                            aria-label="Rolar para esquerda"
                         >
-                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shrink-0">
-                                    <UserPlus className="w-4 h-4 md:w-5 md:h-5" />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Cadastro Morador</h3>
-                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Acesso novo condômino</p>
-                                </div>
-                            </div>
-                        </Link>
+                            <ChevronLeft size={20} />
+                        </button>
 
-                        <Link
-                            href="/condo/adm/prestacao_contas"
-                            className="bg-white border border-zinc-200 hover:border-emerald-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
+                        {/* Botão Direita Desktop */}
+                        <button
+                            onClick={() => scrollCarousel('right')}
+                            className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white border border-zinc-200 text-zinc-700 rounded-full items-center justify-center shadow-lg hover:bg-zinc-900 hover:text-white hover:border-zinc-900 transition-all cursor-pointer opacity-0 group-hover/carousel:opacity-100"
+                            aria-label="Rolar para direita"
                         >
-                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all shrink-0">
-                                    <FileSpreadsheet className="w-4 h-4 md:w-5 md:h-5" />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Prestação de Contas</h3>
-                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Lançamentos financeiros</p>
-                                </div>
-                            </div>
-                        </Link>
+                            <ChevronRight size={20} />
+                        </button>
 
-                        <Link
-                            href="/condo/adm/gestao_ativos"
-                            className="bg-white border border-zinc-200 hover:border-indigo-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
+                        {/* Lista de Cards com Carrossel Horizontal no Desktop (2 Linhas) e Sequencial no Mobile */}
+                        <div
+                            ref={carouselRef}
+                            className="flex flex-col md:flex-row md:overflow-x-auto md:scroll-smooth md:grid md:grid-flow-col md:grid-rows-2 gap-3 md:gap-4 pb-2 md:pb-4 scrollbar-none"
+                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                         >
-                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all shrink-0">
-                                    <Package className="w-4 h-4 md:w-5 md:h-5" />
+                            {/* 1. Cadastro Morador */}
+                            <Link
+                                href="/condo/adm/cadastro_morador"
+                                className="bg-white border border-zinc-200 hover:border-blue-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer md:w-[280px] shrink-0"
+                            >
+                                <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shrink-0">
+                                        <UserPlus className="w-4 h-4 md:w-5 md:h-5" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Cadastro Morador</h3>
+                                        <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Acesso novo condômino</p>
+                                    </div>
                                 </div>
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Controle de bens</h3>
-                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Gestão de ativos</p>
-                                </div>
-                            </div>
-                        </Link>
+                            </Link>
 
-                        <Link
-                            href="/condo/adm/analise_ocorrencias"
-                            className="bg-white border border-zinc-200 hover:border-amber-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
-                        >
-                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-all shrink-0">
-                                    <ShieldAlert className="w-4 h-4 md:w-5 md:h-5" />
+                            {/* 2. Prestação de Contas */}
+                            <Link
+                                href="/condo/adm/prestacao_contas"
+                                className="bg-white border border-zinc-200 hover:border-emerald-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer md:w-[280px] shrink-0"
+                            >
+                                <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all shrink-0">
+                                        <FileSpreadsheet className="w-4 h-4 md:w-5 md:h-5" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Prestação de Contas</h3>
+                                        <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Lançamentos financeiros</p>
+                                    </div>
                                 </div>
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Análise de Demandas</h3>
-                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Ocorrências e sugestões</p>
-                                </div>
-                            </div>
-                        </Link>
+                            </Link>
 
-                        <Link
-                            href="/condo/adm/enquetes"
-                            className="bg-white border border-zinc-200 hover:border-sky-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
-                        >
-                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center group-hover:bg-sky-600 group-hover:text-white transition-all shrink-0">
-                                    <Vote className="w-4 h-4 md:w-5 md:h-5" />
+                            {/* 3. Controle de bens */}
+                            <Link
+                                href="/condo/adm/gestao_ativos"
+                                className="bg-white border border-zinc-200 hover:border-indigo-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer md:w-[280px] shrink-0"
+                            >
+                                <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all shrink-0">
+                                        <Package className="w-4 h-4 md:w-5 md:h-5" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Controle de bens</h3>
+                                        <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Gestão de ativos</p>
+                                    </div>
                                 </div>
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Enquetes e decisões</h3>
-                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Votações comunitárias</p>
-                                </div>
-                            </div>
-                        </Link>
+                            </Link>
 
-                        <Link
-                            href="/condo/adm/obrigacoes"
-                            className="bg-white border border-zinc-200 hover:border-blue-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
-                        >
-                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shrink-0">
-                                    <FileText className="w-4 h-4 md:w-5 md:h-5" />
+                            {/* 4. Análise de Demandas */}
+                            <Link
+                                href="/condo/adm/analise_ocorrencias"
+                                className="bg-white border border-zinc-200 hover:border-amber-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer md:w-[280px] shrink-0"
+                            >
+                                <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-all shrink-0">
+                                        <ShieldAlert className="w-4 h-4 md:w-5 md:h-5" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Análise de Demandas</h3>
+                                        <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Ocorrências e sugestões</p>
+                                    </div>
                                 </div>
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Obrigações fiscais</h3>
-                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Gestão de tributos</p>
-                                </div>
-                            </div>
-                        </Link>
+                            </Link>
 
-                        <Link
-                            href="/condo/adm/controle_conservacao"
-                            className="bg-white border border-zinc-200 hover:border-zinc-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
-                        >
-                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-zinc-100 text-zinc-600 rounded-xl flex items-center justify-center group-hover:bg-zinc-900 group-hover:text-white transition-all shrink-0">
-                                    <Wrench className="w-4 h-4 md:w-5 md:h-5" />
+                            {/* 5. Enquetes e decisões */}
+                            <Link
+                                href="/condo/adm/enquetes"
+                                className="bg-white border border-zinc-200 hover:border-sky-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer md:w-[280px] shrink-0"
+                            >
+                                <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center group-hover:bg-sky-600 group-hover:text-white transition-all shrink-0">
+                                        <Vote className="w-4 h-4 md:w-5 md:h-5" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Enquetes e decisões</h3>
+                                        <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Votações comunitárias</p>
+                                    </div>
                                 </div>
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Melhoria contínua</h3>
-                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Conservação áreas comuns</p>
-                                </div>
-                            </div>
-                        </Link>
+                            </Link>
 
-                        <Link
-                            href="/condo/adm/regras_internas"
-                            className="bg-white border border-zinc-200 hover:border-zinc-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer"
-                        >
-                            <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-zinc-100 text-zinc-600 rounded-xl flex items-center justify-center group-hover:bg-zinc-900 group-hover:text-white transition-all shrink-0">
-                                    <BookOpen className="w-4 h-4 md:w-5 md:h-5" />
+                            {/* 6. Obrigações fiscais */}
+                            <Link
+                                href="/condo/adm/obrigacoes"
+                                className="bg-white border border-zinc-200 hover:border-blue-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer md:w-[280px] shrink-0"
+                            >
+                                <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shrink-0">
+                                        <FileText className="w-4 h-4 md:w-5 md:h-5" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Obrigações fiscais</h3>
+                                        <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Gestão de tributos</p>
+                                    </div>
                                 </div>
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Regras internas</h3>
-                                    <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Convenção e regimento</p>
+                            </Link>
+
+                            {/* 7. Obras e Melhorias */}
+                            <Link
+                                href="/condo/adm/controle_conservacao"
+                                className="bg-white border border-zinc-200 hover:border-zinc-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer md:w-[280px] shrink-0"
+                            >
+                                <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-zinc-100 text-zinc-600 rounded-xl flex items-center justify-center group-hover:bg-zinc-900 group-hover:text-white transition-all shrink-0">
+                                        <Wrench className="w-4 h-4 md:w-5 md:h-5" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Obras e Melhorias</h3>
+                                        <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Conservação áreas comuns</p>
+                                    </div>
+                                </div>
+                            </Link>
+
+                            {/* 8. Regras internas */}
+                            <Link
+                                href="/condo/adm/regras_internas"
+                                className="bg-white border border-zinc-200 hover:border-zinc-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer md:w-[280px] shrink-0"
+                            >
+                                <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-zinc-100 text-zinc-600 rounded-xl flex items-center justify-center group-hover:bg-zinc-900 group-hover:text-white transition-all shrink-0">
+                                        <BookOpen className="w-4 h-4 md:w-5 md:h-5" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Regras internas</h3>
+                                        <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Convenção e regimento</p>
+                                    </div>
+                                </div>
+                            </Link>
+
+                            {/* --- NOVOS CARDS SOLICITADOS --- */}
+
+                            {/* a) Projeto Integração */}
+                            <div className="bg-white border border-zinc-200 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left md:w-[280px] shrink-0 opacity-80 select-none">
+                                <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shrink-0">
+                                        <Network className="w-4 h-4 md:w-5 md:h-5" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Projeto Integração</h3>
+                                            <span className="text-[9px] text-purple-600 font-bold bg-purple-50 px-1.5 py-0.5 rounded">Em dev</span>
+                                        </div>
+                                        <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Integração de sistemas e de pessoas</p>
+                                    </div>
                                 </div>
                             </div>
-                        </Link>
+
+                            {/* b) Relatórios internos (vinculado a /condo/adm/rateio_condominio) */}
+                            <Link
+                                href="/condo/adm/rateio_condominio"
+                                className="bg-white border border-zinc-200 hover:border-cyan-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer md:w-[280px] shrink-0"
+                            >
+                                <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-cyan-50 text-cyan-600 rounded-xl flex items-center justify-center group-hover:bg-cyan-600 group-hover:text-white transition-all shrink-0">
+                                        <FileBarChart className="w-4 h-4 md:w-5 md:h-5" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Relatórios internos</h3>
+                                        <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Rateios, receitas, despesas, etc.</p>
+                                    </div>
+                                </div>
+                            </Link>
+
+                            {/* c) Fornecedores */}
+                            <div className="bg-white border border-zinc-200 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left md:w-[280px] shrink-0 opacity-80 select-none">
+                                <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center shrink-0">
+                                        <Truck className="w-4 h-4 md:w-5 md:h-5" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Fornecedores</h3>
+                                            <span className="text-[9px] text-orange-600 font-bold bg-orange-50 px-1.5 py-0.5 rounded">Em dev</span>
+                                        </div>
+                                        <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Contratos e prestadores de serviços</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* d) Controle de inadimplencia */}
+                            <div className="bg-white border border-zinc-200 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left md:w-[280px] shrink-0 opacity-80 select-none">
+                                <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center shrink-0">
+                                        <BadgeAlert className="w-4 h-4 md:w-5 md:h-5" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Controle de inadimplência</h3>
+                                            <span className="text-[9px] text-rose-600 font-bold bg-rose-50 px-1.5 py-0.5 rounded">Em dev</span>
+                                        </div>
+                                        <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Atualizações de pagamentos</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* e) Controle de notificações */}
+                            <div className="bg-white border border-zinc-200 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left md:w-[280px] shrink-0 opacity-80 select-none">
+                                <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-yellow-50 text-yellow-600 rounded-xl flex items-center justify-center shrink-0">
+                                        <MessageSquareWarning className="w-4 h-4 md:w-5 md:h-5" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Controle de notificações</h3>
+                                            <span className="text-[9px] text-yellow-600 font-bold bg-yellow-50 px-1.5 py-0.5 rounded">Em dev</span>
+                                        </div>
+                                        <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Reclamando ocorrências</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* f) Telefones e links úteis */}
+                            <div className="bg-white border border-zinc-200 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left md:w-[280px] shrink-0 opacity-80 select-none">
+                                <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
+                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center shrink-0">
+                                        <PhoneCall className="w-4 h-4 md:w-5 md:h-5" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Telefones úteis</h3>
+                                            <span className="text-[9px] text-teal-600 font-bold bg-teal-50 px-1.5 py-0.5 rounded">Em dev</span>
+                                        </div>
+                                        <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Contato de apoio e utilidade pública</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
 
                     <p className="text-xs text-zinc-400 font-medium px-1">
