@@ -806,6 +806,9 @@ export default function PrestacaoContasPage() {
     };
 
     const handleRemoveReservaSalao = async (reservaId: string) => {
+        // LINHA ADICIONADA: Verifica se o condomínio e a sessão existem antes de prosseguir
+        if (!condominio || !session) return;
+
         if (!confirm("Deseja realmente excluir/cancelar o lançamento deste agendamento do salão de festas?")) return;
         try {
             const dataCompetenciaCompleta = `${competenciaSelecionada}-01`;
