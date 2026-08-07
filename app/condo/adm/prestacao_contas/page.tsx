@@ -27,7 +27,8 @@ import {
     Wallet,
     Calendar,
     DollarSign,
-    Users
+    Users,
+    Save
 } from "lucide-react";
 
 interface SalaoUsoItem {
@@ -630,6 +631,48 @@ export default function PrestacaoContasPage() {
         }
     };
 
+    // NOVA FUNÇÃO: Salva apenas uma linha (unidade) no clique do disquete
+    const handleSalvarMedicaoGasLinha = async (unidade: string) => {
+        if (!condominio || !session) return;
+
+        try {
+            const dataCompetenciaCompleta = `${competenciaSelecionada}-01`;
+            const dadosUnidade = gasConsumoMap[unidade] || { anterior: '', atual: '' };
+            const antNum = converterParaFloat(dadosUnidade.anterior);
+            const atuNum = converterParaFloat(dadosUnidade.atual);
+            const consumoCalc = Math.max(0, atuNum - antNum);
+
+            const tarifaVal = converterParaFloat(valorMetroCubicoGas);
+            const valorTotalGas = consumoCalc * tarifaVal;
+
+            const payload = {
+                condominio_id: condominio.id,
+                unidade: unidade,
+                leitura_anterior: antNum,
+                leitura_atual: atuNum,
+                consumo_calculado: consumoCalc,
+                valor_calculado: valorTotalGas, // Gravando na nova coluna
+                data_competencia: dataCompetenciaCompleta,
+                criado_por: session.user.id,
+                atualizado_em: new Date().toISOString()
+            };
+
+            const { error: upsertErr } = await supabase
+                .from("condominio_contas_gas_medicao")
+                .upsert([payload], {
+                    onConflict: 'condominio_id,unidade,data_competencia'
+                });
+
+            if (upsertErr) throw upsertErr;
+
+            alert(`Medição da unidade ${unidade} salva com sucesso!`);
+        } catch (err: any) {
+            console.error(`Erro ao salvar medição da unidade ${unidade}:`, err);
+            alert(`Erro ao salvar medição da unidade ${unidade}: ` + (err?.message || JSON.stringify(err)));
+        }
+    };
+
+    // ATUALIZADA: Agora também calcula e envia a nova coluna "valor_calculado" no salvamento em lote
     const handleSalvarMedicaoGas = async () => {
         if (!condominio || !session) return;
         setLoadingMedicaoGas(true);
@@ -637,12 +680,14 @@ export default function PrestacaoContasPage() {
 
         try {
             const dataCompetenciaCompleta = `${competenciaSelecionada}-01`;
+            const tarifaVal = converterParaFloat(valorMetroCubicoGas);
 
             const payloads = unidadesCondominio.map((unidade) => {
                 const dadosUnidade = gasConsumoMap[unidade] || { anterior: '', atual: '' };
                 const antNum = converterParaFloat(dadosUnidade.anterior);
                 const atuNum = converterParaFloat(dadosUnidade.atual);
                 const consumoCalc = Math.max(0, atuNum - antNum);
+                const valorTotalGas = consumoCalc * tarifaVal;
 
                 return {
                     condominio_id: condominio.id,
@@ -650,6 +695,7 @@ export default function PrestacaoContasPage() {
                     leitura_anterior: antNum,
                     leitura_atual: atuNum,
                     consumo_calculado: consumoCalc,
+                    valor_calculado: valorTotalGas, // Adicionado aqui
                     data_competencia: dataCompetenciaCompleta,
                     criado_por: session.user.id,
                     atualizado_em: new Date().toISOString()
@@ -657,7 +703,6 @@ export default function PrestacaoContasPage() {
             });
 
             if (payloads.length > 0) {
-                // CORREÇÃO CRÍTICA: o onConflict exige a lista de colunas, não o nome da constraint do Postgres
                 const { error: upsertErr } = await supabase
                     .from("condominio_contas_gas_medicao")
                     .upsert(payloads, {
@@ -667,7 +712,7 @@ export default function PrestacaoContasPage() {
                 if (upsertErr) throw upsertErr;
             }
 
-            setMedicaoGasSuccess("Medições de gás salvas com sucesso!");
+            setMedicaoGasSuccess("Todas as medições de gás foram salvas com sucesso!");
             await carregarDadosCompetencia(condominio.id, competenciaSelecionada);
             setTimeout(() => setMedicaoGasSuccess(""), 3000);
         } catch (err: any) {
@@ -806,13 +851,10 @@ export default function PrestacaoContasPage() {
     };
 
     const handleRemoveReservaSalao = async (reservaId: string) => {
-        // LINHA ADICIONADA: Verifica se o condomínio e a sessão existem antes de prosseguir
         if (!condominio || !session) return;
 
         if (!confirm("Deseja realmente excluir/cancelar o lançamento deste agendamento do salão de festas?")) return;
         try {
-            const dataCompetenciaCompleta = `${competenciaSelecionada}-01`;
-
             const { error: cobrancaError } = await supabase
                 .from("condominio_reservas_cobrancas")
                 .update({
@@ -1316,7 +1358,7 @@ export default function PrestacaoContasPage() {
                                             <th className="p-3.5">Unidade / Apartamento</th>
                                             <th className="p-3.5">Leitura Mês Passado (Antes)</th>
                                             <th className="p-3.5">Leitura Mês Atual (Depois)</th>
-                                            <th className="p-3.5 pr-5 text-right">Consumo Calculado (m³)</th>
+                                            <th className="p-3.5 pr-5 text-right">Consumo (m³) / Salvar</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-zinc-50">
@@ -1390,8 +1432,18 @@ export default function PrestacaoContasPage() {
                                                                 className="w-full max-w-[140px] px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium text-zinc-900 outline-none focus:bg-white focus:border-emerald-400"
                                                             />
                                                         </td>
-                                                        <td className="p-3.5 pr-5 text-right text-xs font-black text-emerald-600">
-                                                            {consumo.toFixed(3).replace('.', ',')} m³ <span className="text-[10px] text-zinc-400 font-normal">({valorTotalGas > 0 ? `R$ ${valorTotalGas.toFixed(2).replace('.', ',')}` : 'R$ 0,00'})</span>
+                                                        <td className="p-3.5 pr-5 flex items-center justify-end gap-3">
+                                                            <div className="text-right text-xs font-black text-emerald-600">
+                                                                {consumo.toFixed(3).replace('.', ',')} m³ <span className="text-[10px] text-zinc-400 font-normal">({valorTotalGas > 0 ? `R$ ${valorTotalGas.toFixed(2).replace('.', ',')}` : 'R$ 0,00'})</span>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleSalvarMedicaoGasLinha(unidade)}
+                                                                className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-xl transition-colors cursor-pointer shadow-sm flex items-center justify-center shrink-0"
+                                                                title="Gravar Leitura (Salvar Linha)"
+                                                            >
+                                                                <Save size={14} />
+                                                            </button>
                                                         </td>
                                                     </tr>
                                                 );
@@ -1415,7 +1467,7 @@ export default function PrestacaoContasPage() {
                                 disabled={loadingMedicaoGas}
                                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-emerald-600/10 flex items-center justify-center gap-2 cursor-pointer"
                             >
-                                {loadingMedicaoGas ? "Salvando Medições..." : "Salvar Medições de Gás"}
+                                {loadingMedicaoGas ? "Salvando Todas as Medições..." : "Salvar Todas as Medições de Gás"}
                             </button>
                         </div>
                     </div>

@@ -21,7 +21,8 @@ import {
     Vote,
     Building2,
     X,
-    MessageSquarePlus
+    MessageSquarePlus,
+    Sparkles
 } from "lucide-react";
 
 export default function NucleobaseCondo() {
@@ -152,7 +153,8 @@ export default function NucleobaseCondo() {
 
     const CardsDestaqueDesktop = () => (
         <div className="flex flex-col gap-6 h-full">
-            <div className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center flex-1">
+            {/* CARD 1: ÁREA DO CONDOMÍNIO */}
+            <div className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center">
                 <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
                     <Zap size={180} strokeWidth={1} className="text-blue-500" />
                 </div>
@@ -171,21 +173,67 @@ export default function NucleobaseCondo() {
                     <BotaoAcessoDinamico />
                 </div>
             </div>
-            {[
-                { id: "prestacao_visual", icon: <FileText size={24} />, title: "Prestações Visuais", text: "Acabe com planilhas confusas e pastas físicas." },
-                { id: "agendamento_comum", icon: <CalendarDays size={24} />, title: "Reservas de Espaços", text: "Salão de festas e áreas comuns sem complicação." },
-                { id: "decisoes_coletivas", icon: <Vote size={24} />, title: "Enquetes e Decisões", text: "Votações e avisos na tela de cada morador." }
-            ].map((item, idx) => (
-                <div key={idx} className="bg-white border border-gray-100 p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all group flex items-center gap-6 flex-1">
-                    <div className="w-14 h-14 shrink-0 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm">
-                        {item.icon}
+
+            {/* CARD 2: CONTABILIDADE */}
+            <div className="bg-white border border-gray-100 p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all group relative overflow-hidden flex flex-col justify-center">
+                <div className="relative z-10 w-full">
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="w-14 h-14 shrink-0 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all duration-500 shadow-sm">
+                            <LockKeyhole size={24} />
+                        </div>
+                        <div>
+                            <p className="text-emerald-600 text-[10px] font-black uppercase tracking-[0.2em]">Empresa parceira</p>
+                            <h4 className="font-bold text-gray-900 text-xl leading-tight">
+                                Contabilidade
+                            </h4>
+                        </div>
                     </div>
-                    <div>
-                        <h4 className="font-black text-gray-900 text-lg mb-1 tracking-tight">{item.title}</h4>
-                        <p className="text-[13px] text-gray-500 leading-relaxed font-medium">{item.text}</p>
-                    </div>
+                    <a
+                        href="/condo/contabilidade"
+                        onClick={() => trackClick("Acessar Contabilidade", "/condo/contabilidade")}
+                        className="flex items-center justify-between bg-emerald-600 hover:bg-emerald-700 py-3 px-4 rounded-xl transition-all group/btn shadow-lg shadow-emerald-600/20"
+                    >
+                        <div className="flex items-center gap-2">
+                            <UserCircle size={16} className="text-white" />
+                            <span className="text-white text-[10px] font-black uppercase tracking-widest">Acesso Restrito</span>
+                        </div>
+                        <ArrowUpRight size={14} className="text-white/70 group-hover/btn:text-white transition-colors" />
+                    </a>
                 </div>
-            ))}
+            </div>
+
+            {/* GRID DE DUAS LINHAS PARA OS RECURSOS + CARD DE EXPANSÃO (LAYOUT LATERALIZADO) */}
+            <div className="grid grid-cols-2 gap-4">
+                {[
+                    { id: "prestacao_visual", icon: <FileText size={20} />, title: "Prestações Visuais", text: "Acabe com planilhas confusas e pastas físicas." },
+                    { id: "agendamento_comum", icon: <CalendarDays size={20} />, title: "Reservas de Espaços", text: "Salão de festas e áreas comuns sem complicação." },
+                    { id: "decisoes_coletivas", icon: <Vote size={20} />, title: "Enquetes e Decisões", text: "Votações e avisos na tela de cada morador." },
+                    { id: "mais_recursos", icon: <Sparkles size={20} />, title: "E muito mais...", text: "Explore recursos avançados e navegue por tudo o que preparamos.", highlight: true }
+                ].map((item, idx) => (
+                    <div
+                        key={idx}
+                        className={`p-4 rounded-[2rem] transition-all group flex items-center gap-3.5 ${item.highlight
+                                ? "bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-lg shadow-blue-600/20 hover:scale-[1.02]"
+                                : "bg-white border border-gray-100 shadow-sm hover:shadow-xl"
+                            }`}
+                    >
+                        <div className={`w-11 h-11 shrink-0 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-sm ${item.highlight
+                                ? "bg-white/10 text-white"
+                                : "bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white"
+                            }`}>
+                            {item.icon}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <h4 className={`font-black text-[13px] mb-0.5 tracking-tight truncate ${item.highlight ? "text-white" : "text-gray-900"}`}>
+                                {item.title}
+                            </h4>
+                            <p className={`text-[11px] leading-tight font-medium line-clamp-2 ${item.highlight ? "text-blue-100" : "text-gray-500"}`}>
+                                {item.text}
+                            </p>
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 
@@ -202,6 +250,7 @@ export default function NucleobaseCondo() {
             </p>
 
             <div className="grid grid-cols-2 gap-3">
+                {/* CARD 1 MOBILE: ÁREA DO CONDOMÍNIO */}
                 <div className="col-span-2 bg-gray-900 p-6 rounded-[2rem] relative overflow-hidden">
                     <div className="flex items-center justify-between relative z-10 mb-4">
                         <div className="flex items-center gap-3">
@@ -226,6 +275,39 @@ export default function NucleobaseCondo() {
                     <BotaoAcessoDinamico />
                 </div>
 
+                {/* CARD 2 MOBILE: CONTABILIDADE */}
+                <div className="col-span-2 bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm relative overflow-hidden">
+                    <div className="flex items-center justify-between relative z-10 mb-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                <LockKeyhole size={18} />
+                            </div>
+                            <div>
+                                <p className="text-emerald-600 text-[8px] font-black uppercase tracking-widest">Parceiros</p>
+                                <h4 className="font-bold text-gray-900 text-sm">Contabilidade</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="relative z-10 py-2 border-y border-gray-100 mb-4">
+                        <p className="text-gray-500 text-[11px] font-medium italic leading-relaxed">
+                            "Acesso restrito para gestão e auditoria financeira do condomínio."
+                        </p>
+                    </div>
+
+                    <a
+                        href="/condo/contabilidade"
+                        onClick={() => trackClick("Acessar Contabilidade", "/condo/contabilidade")}
+                        className="flex items-center justify-between bg-emerald-600 hover:bg-emerald-700 py-2.5 px-4 rounded-xl transition-all shadow-md shadow-emerald-600/20"
+                    >
+                        <div className="flex items-center gap-2">
+                            <UserCircle size={14} className="text-white" />
+                            <span className="text-white text-[10px] font-black uppercase tracking-widest">Acesso Restrito</span>
+                        </div>
+                        <ArrowUpRight size={14} className="text-white/70" />
+                    </a>
+                </div>
+
                 <div className="col-span-2 bg-blue-50/60 border border-blue-100 p-4 rounded-2xl my-2 text-center">
                     <p className="text-xs text-blue-900 font-medium leading-relaxed">
                         Explore abaixo as ferramentas integradas do nosso módulo de Administração Condo, projetadas para otimizar a rotina de síndicos e condôminos com total agilidade.
@@ -233,13 +315,13 @@ export default function NucleobaseCondo() {
                 </div>
 
                 {[
-                    { icon: <FileText size={20} />, title: "Finanças" },
-                    { icon: <CalendarDays size={20} />, title: "Reservas" },
-                    { icon: <Vote size={20} />, title: "Enquetes" },
-                    { icon: <ShieldCheck size={20} />, title: "Segurança" }
+                    { icon: <FileText size={18} />, title: "Finanças" },
+                    { icon: <CalendarDays size={18} />, title: "Reservas" },
+                    { icon: <Vote size={18} />, title: "Enquetes" },
+                    { icon: <Sparkles size={18} />, title: "Muito mais" }
                 ].map((item, idx) => (
                     <div key={idx} className="bg-white border border-gray-100 p-4 rounded-[1.5rem] flex flex-col items-center text-center gap-2">
-                        <div className="text-blue-600 bg-blue-50 p-3 rounded-xl">{item.icon}</div>
+                        <div className="text-blue-600 bg-blue-50 p-2.5 rounded-xl">{item.icon}</div>
                         <h4 className="font-bold text-gray-900 text-[10px] leading-tight uppercase tracking-tight">{item.title}</h4>
                     </div>
                 ))}
@@ -300,8 +382,8 @@ export default function NucleobaseCondo() {
                 Gestão de acesso APP <div className="h-px bg-gray-300 flex-1"></div>
             </h3>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
-                <div className="lg:col-span-7 text-gray-700 text-lg leading-[1.8] pr-0 lg:pr-10 flex flex-col justify-between">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+                <div className="lg:col-span-7 text-gray-700 text-lg leading-[1.8] pr-0 lg:pr-10">
                     <div>
                         <p className="mb-8 leading-relaxed text-gray-700 hidden md:block">
                             A Nucleobase nasceu para permitir clareza aos fluxos financeiros, e agora trazemos o mesmo rigor tecnológico para a{" "}
@@ -336,7 +418,7 @@ export default function NucleobaseCondo() {
                         </div>
 
                         <p className="mb-8 text-gray-700 hidden md:block">
-                            Do planejamento orçamentário anual à reserva instantánea do salão de festas — oferecemos ao síndico o poder de uma gestão ágil e orientada a dados, enquanto o morador ganha a conveniência de acompanhar tudo de onde estiver.
+                            Do planejamento orçamentário anual à reserva instantânea do salão de festas — oferecemos ao síndico o poder de uma gestão ágil e orientada a dados, enquanto o morador ganha a conveniência de acompanhar tudo de onde estiver.
                         </p>
                     </div>
                     <p className="text-gray-700 text-sm md:text-lg">
