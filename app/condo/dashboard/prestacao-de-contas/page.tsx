@@ -481,7 +481,7 @@ export default function PrestacaoContasPage() {
                 </div>
 
                 <div className="flex justify-center md:justify-end mb-5">
-                    <div className="w-full md:w-auto flex items-center justify-between md:justify-start gap-2 bg-white border border-zinc-200 px-3.5 py-1.5 rounded-full shadow-sm">
+                    <div className="w-full md:w-[calc(25%-12px)] flex items-center justify-between gap-2 bg-white border border-zinc-200 px-3.5 py-1.5 rounded-full shadow-sm">
                         <div className="flex items-center gap-2 overflow-hidden relative">
                             <Filter size={14} className="text-zinc-800 shrink-0" />
                             <span className="text-[10px] font-bold text-zinc-800 uppercase whitespace-nowrap">Filtro:</span>
@@ -580,7 +580,7 @@ export default function PrestacaoContasPage() {
                             <p className="text-zinc-400 text-sm font-medium">Nenhum lançamento financeiro para o período selecionado.</p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto max-h-[320px] scrollbar-thin">
+                        <div className="overflow-x-auto max-h-[640px] scrollbar-thin">
                             <table className="w-full text-left border-collapse whitespace-nowrap">
                                 <thead className="sticky top-0 bg-white z-10">
                                     <tr className="border-b border-zinc-100">
