@@ -231,7 +231,7 @@ export default function EdicaoLancamentosPage() {
 
     const handleSalvarEdicao = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!itemEditando) return;
+        if (!itemEditando || !condominio) return;
 
         setActionLoading(true);
         setMsgErro("");
@@ -250,7 +250,7 @@ export default function EdicaoLancamentosPage() {
             if (error) throw error;
 
             setMsgSucesso("Lançamento atualizado com sucesso!");
-            if (condominio) await loadLancamentos(condominio.id);
+            await loadLancamentos(condominio.id);
             setTimeout(() => {
                 setItemEditando(null);
                 setMsgSucesso("");
@@ -322,7 +322,7 @@ export default function EdicaoLancamentosPage() {
                             </div>
                             <div>
                                 <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Prestação de Contas</span>
-                                <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5 text-zinc-900">Editar Registros</h1>
+                                <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5 text-zinc-900">{condominio.nome}</h1>
                             </div>
                         </div>
 
@@ -371,48 +371,51 @@ export default function EdicaoLancamentosPage() {
                             <table className="w-full text-left border-collapse whitespace-nowrap">
                                 <thead className="sticky top-0 bg-white z-20 border-b border-zinc-100">
                                     <tr>
-                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Tipo</th>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Categoria</th>
+                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Descrição</th>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Competência</th>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Realizado</th>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider text-right sticky right-0 bg-white z-30 shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.05)] pr-4">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-zinc-50">
-                                    {lancamentosFiltrados.map((item) => (
-                                        <tr key={item.id} className="hover:bg-zinc-50/50 transition-colors group">
-                                            <td className="py-3.5 pr-3 text-xs font-bold text-zinc-800">
-                                                {item.tipo === 'receita' ? 'Receita' : 'Despesa'}
-                                            </td>
-                                            <td className="py-3.5 pr-3 text-xs font-bold text-zinc-800">
-                                                {item.categoria}
-                                            </td>
-                                            <td className="py-3.5 pr-3 text-xs font-bold text-zinc-800">
-                                                {item.data_competencia ? new Date(item.data_competencia).toLocaleDateString('pt-BR', { timeZone: 'UTC', month: '2-digit', year: 'numeric' }) : '-'}
-                                            </td>
-                                            <td className="py-3.5 pr-3 text-xs font-bold text-zinc-800">
-                                                R$ {Number(item.valor_realizado || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                            </td>
-                                            <td className="py-3.5 text-right sticky right-0 bg-white group-hover:bg-zinc-50 transition-colors z-10 shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.05)] pr-4">
-                                                <div className="flex items-center justify-end gap-1">
-                                                    <button
-                                                        onClick={() => abrirEdicao(item)}
-                                                        className="p-2 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all cursor-pointer"
-                                                        title="Editar Lançamento"
-                                                    >
-                                                        <Edit3 size={15} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleExcluir(item.id)}
-                                                        className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
-                                                        title="Excluir Lançamento"
-                                                    >
-                                                        <Trash2 size={15} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {lancamentosFiltrados.map((item) => {
+                                        const corTextoNatureza = item.tipo === 'receita' ? 'text-blue-600' : 'text-red-600';
+                                        return (
+                                            <tr key={item.id} className="hover:bg-zinc-50/50 transition-colors group">
+                                                <td className={`py-3.5 pr-3 text-xs font-bold ${corTextoNatureza}`}>
+                                                    {item.categoria}
+                                                </td>
+                                                <td className={`py-3.5 pr-3 text-xs font-bold ${corTextoNatureza}`}>
+                                                    {item.descricao || '-'}
+                                                </td>
+                                                <td className={`py-3.5 pr-3 text-xs font-bold ${corTextoNatureza}`}>
+                                                    {item.data_competencia ? new Date(item.data_competencia).toLocaleDateString('pt-BR', { timeZone: 'UTC', month: '2-digit', year: 'numeric' }) : '-'}
+                                                </td>
+                                                <td className={`py-3.5 pr-3 text-xs font-bold ${corTextoNatureza}`}>
+                                                    R$ {Number(item.valor_realizado || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                </td>
+                                                <td className="py-3.5 text-right sticky right-0 bg-white group-hover:bg-zinc-50 transition-colors z-10 shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.05)] pr-4">
+                                                    <div className="flex items-center justify-end gap-1">
+                                                        <button
+                                                            onClick={() => abrirEdicao(item)}
+                                                            className="p-2 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all cursor-pointer"
+                                                            title="Editar Lançamento"
+                                                        >
+                                                            <Edit3 size={15} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleExcluir(item.id)}
+                                                            className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
+                                                            title="Excluir Lançamento"
+                                                        >
+                                                            <Trash2 size={15} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>
@@ -486,25 +489,42 @@ export default function EdicaoLancamentosPage() {
                 </div>
             )}
 
-            {/* Rodapé */}
-            <div>
-                <div className="flex items-center gap-4 mb-6">
+            {/* BLOCO INSTAGRAM */}
+            <div className="mt-24">
+                <div className="flex items-center gap-4 mb-12">
                     <div className="h-px bg-gray-200 flex-1"></div>
                     <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
                     <div className="h-px bg-gray-200 flex-1"></div>
                 </div>
 
-                <div className="flex flex-col items-center text-center pb-6">
+                <div className="flex flex-col items-center text-center">
+                    <div className="max-w-3xl mb-12">
+                        <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
+                            Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+                        </h4>
+                        <p className="text-gray-500 font-medium text-sm md:text-base">
+                            Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
+                        </p>
+                    </div>
+
                     <a
                         href="https://www.instagram.com/nucleobase.app/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group relative flex flex-col items-center gap-4"
+                        className="group relative flex flex-col items-center gap-6"
                     >
-                        <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[1.8rem] md:rounded-[2rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
-                            <Instagram className="w-8 h-8 md:w-10 md:h-10" strokeWidth={1.5} />
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+
+                            <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+                                <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+                            </div>
                         </div>
-                        <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+
+                        <div className="flex flex-col items-center">
+                            <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+                            <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
+                        </div>
                     </a>
                 </div>
             </div>

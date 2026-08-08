@@ -66,6 +66,10 @@ export default function CadastroMoradorPage() {
     const [showSindicoDeleteModal, setShowSindicoDeleteModal] = useState(false);
     const [moradorParaExcluir, setMoradorParaExcluir] = useState<Morador | null>(null);
 
+    // Modal de Aviso de E-mail Já Cadastrado na Nucleo
+    const [showEmailDuplicadoModal, setShowEmailDuplicadoModal] = useState(false);
+    const [emailDuplicadoInfo, setEmailDuplicadoInfo] = useState({ email: "", nome: "" });
+
     // Dados do Condomínio e Vínculo
     const [condominio, setCondominio] = useState<{ id: string; nome: string } | null>(null);
     const [moradores, setMoradores] = useState<Morador[]>([]);
@@ -211,7 +215,6 @@ export default function CadastroMoradorPage() {
 
         const initAuth = async () => {
             try {
-                // Timeout de segurança (5 segundos) para evitar loader travado eternamente se houver instabilidade
                 const timeoutId = setTimeout(() => {
                     if (isMountedRef.current && loading) {
                         setLoading(false);
@@ -508,7 +511,15 @@ export default function CadastroMoradorPage() {
                         options: { data: { nome_completo: nomeFormatado } }
                     });
 
-                    if (signUpError) throw signUpError;
+                    if (signUpError) {
+                        if (signUpError.message?.toLowerCase().includes("user already registered")) {
+                            setEmailDuplicadoInfo({ email: emailFormatado, nome: nomeFormatado });
+                            setShowEmailDuplicadoModal(true);
+                            setActionLoading(false);
+                            return;
+                        }
+                        throw signUpError;
+                    }
                     if (!signUpData.user) throw new Error("Erro ao registrar credenciais de acesso.");
 
                     targetUserId = signUpData.user.id;
@@ -563,10 +574,28 @@ export default function CadastroMoradorPage() {
             await loadMoradores(condominio.id);
         } catch (err: any) {
             console.error("Erro no cadastro:", err);
-            setFormError(err?.message || "Ocorreu um erro ao processar a operação.");
+            const errMsg = err?.message || JSON.stringify(err);
+            if (errMsg.toLowerCase().includes("user already registered")) {
+                setEmailDuplicadoInfo({ email: novoMoradorEmail.trim().toLowerCase(), nome: novoMoradorNome.trim() });
+                setShowEmailDuplicadoModal(true);
+            } else {
+                setFormError(errMsg || "Ocorreu um erro ao processar a operação.");
+            }
         } finally {
             setActionLoading(false);
         }
+    };
+
+    const handleWhatsAppEmailDuplicado = () => {
+        const nomeMorador = emailDuplicadoInfo.nome || "Morador";
+        const emailMorador = emailDuplicadoInfo.email || "E-mail";
+        const nomeCondominio = condominio?.nome || "Condomínio";
+
+        const mensagem = `Olá! Tentei cadastrar o morador ${nomeMorador} (${emailMorador}) no condomínio ${nomeCondominio}, mas o sistema indicou que o e-mail já possui cadastro prévio na Nucleo. Gostaria de solicitar a revisão e regularização deste cadastro.`;
+        const whatsappUrl = `https://wa.link/qbxg9f?text=${encodeURIComponent(mensagem)}`;
+
+        window.open(whatsappUrl, '_blank');
+        setShowEmailDuplicadoModal(false);
     };
 
     const handleRemoveMorador = async (morador: Morador) => {
@@ -1111,6 +1140,46 @@ export default function CadastroMoradorPage() {
                     </div>
                 </div>
             </div>
+
+            {/* MODAL DE AVISO DE E-MAIL JÁ CADASTRADO NA NUCLEO */}
+            {showEmailDuplicadoModal && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-6 md:p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
+                        <button
+                            onClick={() => setShowEmailDuplicadoModal(false)}
+                            className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-colors cursor-pointer"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <div className="flex items-center gap-3 border-b border-zinc-100 pb-3 mb-4">
+                            <div className="w-10 h-10 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center shrink-0">
+                                <ShieldAlert size={20} />
+                            </div>
+                            <div>
+                                <h2 className="font-bold text-base text-zinc-900">E-mail já cadastrado</h2>
+                                <p className="text-[11px] text-zinc-500">Aviso de cadastro prévio na Nucleo</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <p className="text-xs text-zinc-600 leading-relaxed">
+                                O e-mail <strong>{emailDuplicadoInfo.email}</strong> já possui um registro ativo na base global da Nucleo.
+                            </p>
+                            <p className="text-xs text-zinc-600 leading-relaxed">
+                                Para vincular este morador de forma correta e segura, por favor, solicite à central da Nucleo a revisão e alinhamento deste cadastro.
+                            </p>
+
+                            <button
+                                onClick={handleWhatsAppEmailDuplicado}
+                                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition shadow-md shadow-emerald-100 flex items-center justify-center gap-2 cursor-pointer mt-2"
+                            >
+                                <span className="text-sm">💬</span> Solicitar Revisão via WhatsApp
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO DE CONTA DE SÍNDICO */}
             {showSindicoDeleteModal && moradorParaExcluir && (

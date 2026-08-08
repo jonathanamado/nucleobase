@@ -14,7 +14,8 @@ import {
     FileSpreadsheet,
     BarChart3,
     Filter,
-    ShieldAlert
+    ShieldAlert,
+    ArrowUpDown
 } from "lucide-react";
 
 interface ContaCondominio {
@@ -40,6 +41,13 @@ export default function PrestacaoContasPage() {
     // Estados de Filtro de Período
     const mesVigentePadrao = new Date().toISOString().slice(0, 7);
     const [filtroPeriodo, setFiltroPeriodo] = useState<string>(mesVigentePadrao);
+
+    // Estados de Ordenação da Tabela Demonstrativo
+    const [orderBy, setOrderBy] = useState<'tipo' | 'descricao'>('tipo');
+    const [orderDirection, setOrderDirection] = useState<'asc' | 'desc'>('asc');
+
+    // Estados do Gráfico Acumulado / Mensal
+    const [filtroDescricaoGrafico, setFiltroDescricaoGrafico] = useState<string>('todas');
 
     // Estados do Formulário de Cadastro / Importação
     const [showModal, setShowModal] = useState(false);
@@ -73,7 +81,6 @@ export default function PrestacaoContasPage() {
         return `${nomeMes}/${anoDoisDigitos}`;
     };
 
-    // Função para formatar o mês no formato "Mês de Ano" com inicial maiúscula (para Desktop)
     const formatarPeriodoDesktop = (valorPeriodo: string) => {
         if (valorPeriodo === 'acumulado') return 'Acumulado';
         if (!valorPeriodo) return '';
@@ -91,7 +98,6 @@ export default function PrestacaoContasPage() {
         return `${nomeMesCapitalizado} de ${ano}`;
     };
 
-    // Função para abreviar o nome do condomínio mantendo apenas o primeiro e o último nome (para Mobile)
     const obterNomeCondominioMobile = (nomeCompleto: string) => {
         if (!nomeCompleto) return "Condomínio";
         const partes = nomeCompleto.trim().split(/\s+/);
@@ -247,7 +253,6 @@ export default function PrestacaoContasPage() {
         };
     }, []);
 
-    // Função de Logout blindada contra sessões fantasmas/residuais
     const handleLogout = async () => {
         setLoading(true);
         try {
@@ -328,6 +333,27 @@ export default function PrestacaoContasPage() {
         return compMes === filtroPeriodo;
     });
 
+    // Ordenação da tabela Demonstrativo
+    const contasOrdenadas = [...contasFiltradas].sort((a, b) => {
+        let valA = a[orderBy] || '';
+        let valB = b[orderBy] || '';
+        if (typeof valA === 'string') valA = valA.toLowerCase();
+        if (typeof valB === 'string') valB = valB.toLowerCase();
+
+        if (valA < valB) return orderDirection === 'asc' ? -1 : 1;
+        if (valA > valB) return orderDirection === 'asc' ? 1 : -1;
+        return 0;
+    });
+
+    const toggleSort = (coluna: 'tipo' | 'descricao') => {
+        if (orderBy === coluna) {
+            setOrderDirection(orderDirection === 'asc' ? 'desc' : 'asc');
+        } else {
+            setOrderBy(coluna);
+            setOrderDirection('asc');
+        }
+    };
+
     const totalRealizadoReceitas = contasFiltradas.filter(c => c.tipo === 'receita').reduce((acc, curr) => acc + Number(curr.valor_realizado), 0);
     const totalRealizadoDespesas = contasFiltradas.filter(c => c.tipo === 'despesa').reduce((acc, curr) => acc + Number(curr.valor_realizado), 0);
     const saldoLiquido = totalRealizadoReceitas - totalRealizadoDespesas;
@@ -335,6 +361,43 @@ export default function PrestacaoContasPage() {
     const maiorValorGrafico = Math.max(totalRealizadoReceitas, totalRealizadoDespesas, 1);
     const larguraBarraReceita = Math.round((totalRealizadoReceitas / maiorValorGrafico) * 100);
     const larguraBarraDespesa = Math.round((totalRealizadoDespesas / maiorValorGrafico) * 100);
+
+    // Listas de descrições únicas para o filtro do gráfico acumulado/mensal
+    const descricoesDisponiveis = Array.from(new Set(contas.map(c => c.descricao).filter(Boolean)));
+
+    // Preparação dos dados para o Gráfico Acumulado x Mês (até o mês atual)
+    const anoAtualStr = new Date().getFullYear().toString();
+    const mesesDoAno = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+    const mesAtualIndex = new Date().getMonth(); // 0 a 11
+
+    const dadosMensaisGrafico = mesesDoAno.slice(0, mesAtualIndex + 1).map((mesNum) => {
+        const chaveMes = `${anoAtualStr}-${mesNum}`;
+        const contasDoMes = contas.filter(c => {
+            const comp = c.data_competencia ? c.data_competencia.slice(0, 7) : '';
+            const matchMes = comp === chaveMes;
+            const matchDesc = filtroDescricaoGrafico === 'todas' || c.descricao === filtroDescricaoGrafico;
+            return matchMes && matchDesc;
+        });
+
+        const rec = contasDoMes.filter(c => c.tipo === 'receita').reduce((acc, curr) => acc + Number(curr.valor_realizado), 0);
+        const desp = contasDoMes.filter(c => c.tipo === 'despesa').reduce((acc, curr) => acc + Number(curr.valor_realizado), 0);
+        const saldo = rec - desp;
+
+        const nomesMesesCurto: { [key: string]: string } = {
+            '01': 'Jan', '02': 'Fev', '03': 'Mar', '04': 'Abr',
+            '05': 'Mai', '06': 'Jun', '07': 'Jul', '08': 'Ago',
+            '09': 'Set', '10': 'Out', '11': 'Nov', '12': 'Dez'
+        };
+
+        return {
+            mes: nomesMesesCurto[mesNum],
+            receita: rec,
+            despesa: desp,
+            saldo: saldo
+        };
+    });
+
+    const maiorValorColunaMensal = Math.max(...dadosMensaisGrafico.map(d => Math.max(d.receita, d.despesa)), 1);
 
     if (loading) {
         return (
@@ -499,6 +562,7 @@ export default function PrestacaoContasPage() {
                     </div>
                 </div>
 
+                {/* TABELA DEMONSTRATIVO */}
                 <div className="bg-white border border-zinc-200 rounded-[2rem] shadow-sm p-6 mb-6">
                     <div className="flex items-center justify-between pb-4 border-b border-zinc-100 mb-4">
                         <div className="flex items-center gap-2">
@@ -520,40 +584,52 @@ export default function PrestacaoContasPage() {
                             <table className="w-full text-left border-collapse whitespace-nowrap">
                                 <thead className="sticky top-0 bg-white z-10">
                                     <tr className="border-b border-zinc-100">
-                                        <th className="pb-3 pr-6 text-[10px] font-black text-zinc-400 uppercase tracking-wider align-top text-left">Tipo</th>
-                                        <th className="pb-3 px-6 text-[10px] font-black text-zinc-400 uppercase tracking-wider align-top text-left">Descrição</th>
+                                        <th className="pb-3 pr-6 text-[10px] font-black text-zinc-400 uppercase tracking-wider align-top text-left">
+                                            <button onClick={() => toggleSort('tipo')} className="flex items-center gap-1 hover:text-zinc-700 cursor-pointer">
+                                                Tipo <ArrowUpDown size={12} />
+                                            </button>
+                                        </th>
+                                        <th className="pb-3 px-6 text-[10px] font-black text-zinc-400 uppercase tracking-wider align-top text-left">
+                                            <button onClick={() => toggleSort('descricao')} className="flex items-center gap-1 hover:text-zinc-700 cursor-pointer">
+                                                Descrição <ArrowUpDown size={12} />
+                                            </button>
+                                        </th>
                                         <th className="pb-3 px-6 text-[10px] font-black text-zinc-400 uppercase tracking-wider align-top text-left">Competência</th>
                                         <th className="pb-3 px-6 text-[10px] font-black text-zinc-400 uppercase tracking-wider align-top text-left">Realizado</th>
                                         <th className="pb-3 pl-6 text-[10px] font-black text-zinc-400 uppercase tracking-wider align-top text-left">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-zinc-50 text-sm">
-                                    {contasFiltradas.map((conta) => (
-                                        <tr key={conta.id} className="hover:bg-zinc-50/50 transition-colors">
-                                            <td className="py-3 pr-6 text-xs font-semibold text-zinc-600 align-top text-left capitalize">
-                                                {conta.tipo}
-                                            </td>
-                                            <td className="py-3 px-6 text-xs font-semibold text-zinc-600 align-top text-left">
-                                                <div>{conta.descricao}</div>
-                                                <div className="text-[10px] text-zinc-400 max-w-xs hidden md:block font-normal mt-0.5">{conta.descricao || "Sem observações"}</div>
-                                            </td>
-                                            <td className="py-3 px-6 text-xs font-semibold text-zinc-600 align-top text-left">
-                                                {conta.data_competencia?.slice(0, 7)}
-                                            </td>
-                                            <td className="py-3 px-6 text-xs font-semibold text-zinc-600 align-top text-left">
-                                                R$ {Number(conta.valor_realizado).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                            </td>
-                                            <td className="py-3 pl-6 text-xs font-semibold text-zinc-600 align-top text-left capitalize">
-                                                {conta.status}
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {contasOrdenadas.map((conta) => {
+                                        const corLinha = conta.tipo === 'receita' ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold';
+                                        return (
+                                            <tr key={conta.id} className="hover:bg-zinc-50/50 transition-colors">
+                                                <td className={`py-3 pr-6 text-xs align-top text-left capitalize ${corLinha}`}>
+                                                    {conta.tipo}
+                                                </td>
+                                                <td className={`py-3 px-6 text-xs align-top text-left ${corLinha}`}>
+                                                    <div>{conta.descricao}</div>
+                                                    <div className="text-[10px] text-zinc-400 max-w-xs hidden md:block font-normal mt-0.5">{conta.descricao || "Sem observações"}</div>
+                                                </td>
+                                                <td className={`py-3 px-6 text-xs align-top text-left ${corLinha}`}>
+                                                    {conta.data_competencia?.slice(0, 7)}
+                                                </td>
+                                                <td className={`py-3 px-6 text-xs align-top text-left ${corLinha}`}>
+                                                    R$ {Number(conta.valor_realizado).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                </td>
+                                                <td className={`py-3 pl-6 text-xs align-top text-left capitalize ${corLinha}`}>
+                                                    {conta.status}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>
                     )}
                 </div>
 
+                {/* GRÁFICO DEMONSTRATIVO */}
                 <div className="bg-white border border-zinc-200 rounded-[2rem] shadow-sm p-6 mb-10">
                     <div className="flex items-center justify-between pb-4 border-b border-zinc-100 mb-6">
                         <div className="flex items-center gap-2">
@@ -599,6 +675,97 @@ export default function PrestacaoContasPage() {
                                     className="bg-rose-500 h-full rounded-full transition-all duration-700 ease-out"
                                     style={{ width: `${Math.max(larguraBarraDespesa, 3)}%` }}
                                 ></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* LINHA DIVISÓRIA: GRÁFICO ACUMULADO */}
+                <div className="mt-16 mb-8 flex items-center gap-4">
+                    <div className="h-px bg-gray-200 flex-1"></div>
+                    <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Gráfico Acumulado</h3>
+                    <div className="h-px bg-gray-200 flex-1"></div>
+                </div>
+
+                {/* GRÁFICO DE COLUNAS MÊS A MÊS COM VALORES DENTRO DAS COLUNAS NO TOPO E SALDO ABAIXO EM LARANJA */}
+                <div className="bg-white border border-zinc-200 rounded-[2rem] shadow-sm p-6 mb-12">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-zinc-100 mb-6 gap-4">
+                        <div className="flex items-center gap-2">
+                            <BarChart3 className="text-blue-600" size={20} />
+                            <h3 className="font-bold text-base text-zinc-800">Evolução Mensal (Receitas, Despesas e Saldo Líquido)</h3>
+                        </div>
+                        <div className="flex items-center gap-2 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-xl">
+                            <span className="text-[10px] font-bold text-zinc-500 uppercase">Filtrar Descrição:</span>
+                            <select
+                                value={filtroDescricaoGrafico}
+                                onChange={(e) => setFiltroDescricaoGrafico(e.target.value)}
+                                className="bg-transparent text-xs font-bold text-zinc-800 outline-none cursor-pointer"
+                            >
+                                <option value="todas">Todas as descrições</option>
+                                {descricoesDisponiveis.map((desc, idx) => (
+                                    <option key={idx} value={desc}>{desc}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Gráfico Visual Customizado em Colunas */}
+                    <div className="pt-6 pb-2">
+                        <div className="flex items-end justify-between gap-3 h-64 border-b border-zinc-200 pb-2 overflow-x-auto">
+                            {dadosMensaisGrafico.map((dado, i) => {
+                                const alturaReceita = Math.round((dado.receita / maiorValorColunaMensal) * 100);
+                                const alturaDespesa = Math.round((dado.despesa / maiorValorColunaMensal) * 100);
+
+                                return (
+                                    <div key={i} className="flex-1 flex flex-col items-center justify-end h-full min-w-[50px] relative">
+                                        <div className="w-full flex items-end justify-center gap-1 h-full px-1">
+                                            {/* Coluna Receita */}
+                                            <div
+                                                className="w-1/2 bg-emerald-500 rounded-t-lg transition-all duration-500 relative flex flex-col items-center justify-start pt-1.5"
+                                                style={{ height: `${Math.max(alturaReceita, 18)}%` }}
+                                                title={`Receita: R$ ${dado.receita.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                                            >
+                                                <span className="text-[8px] font-black text-white whitespace-nowrap -rotate-90 md:rotate-0">
+                                                    R$ {dado.receita.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                                </span>
+                                            </div>
+                                            {/* Coluna Despesa */}
+                                            <div
+                                                className="w-1/2 bg-rose-500 rounded-t-lg transition-all duration-500 relative flex flex-col items-center justify-start pt-1.5"
+                                                style={{ height: `${Math.max(alturaDespesa, 18)}%` }}
+                                                title={`Despesa: R$ ${dado.despesa.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                                            >
+                                                <span className="text-[8px] font-black text-white whitespace-nowrap -rotate-90 md:rotate-0">
+                                                    R$ {dado.despesa.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Mês e Saldo Líquido abaixo da coluna em cor laranjado */}
+                                        <div className="flex flex-col items-center mt-2">
+                                            <span className="text-[10px] font-bold text-zinc-700">{dado.mes}</span>
+                                            <span className="text-[9px] font-black text-orange-500">
+                                                R$ {dado.saldo.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                            </span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Legenda */}
+                        <div className="flex flex-wrap items-center justify-center gap-6 mt-4 pt-3 border-t border-zinc-100 text-xs font-bold">
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 bg-emerald-500 rounded-sm"></div>
+                                <span className="text-zinc-600">Receitas</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 bg-rose-500 rounded-sm"></div>
+                                <span className="text-zinc-600">Despesas</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 bg-orange-500 rounded-sm"></div>
+                                <span className="text-orange-500 font-black">Saldo Líquido Mensal (abaixo de cada mês)</span>
                             </div>
                         </div>
                     </div>

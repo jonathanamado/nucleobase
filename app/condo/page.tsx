@@ -30,6 +30,10 @@ export default function NucleobaseCondo() {
     const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    // Estado para controlar o índice do carrossel vivo (apenas um card visível por vez)
+    const [cardAtivoIndex, setCardAtivoIndex] = useState(0);
+    const [isPaused, setIsPaused] = useState(false);
+
     // Estados do Formulário de Solicitação de Entrada
     const [solicitanteNome, setSolicitanteNome] = useState("");
     const [solicitanteEmail, setSolicitanteEmail] = useState("");
@@ -60,6 +64,13 @@ export default function NucleobaseCondo() {
         }
     ];
 
+    const recursosDestaque = [
+        { id: "prestacao_visual", icon: <FileText size={20} />, title: "Prestações Visuais", text: "Tenha relatórios 100% digitais e transparentes." },
+        { id: "agendamento_comum", icon: <CalendarDays size={20} />, title: "Reservas de Espaços", text: "Reserve área comum ou salão de festas de maneira digital." },
+        { id: "decisoes_coletivas", icon: <Vote size={20} />, title: "Enquetes e Decisões", text: "Participe de votações e avisos importantes no dia a dia." },
+        { id: "mais_recursos", icon: <Sparkles size={20} />, title: "E muito mais...", text: "Explore ferramentas colaborativas para sua rotina e para os condôminos.", highlight: true }
+    ];
+
     useEffect(() => {
         window.dataLayer?.push({
             event: "view_page_content",
@@ -79,6 +90,15 @@ export default function NucleobaseCondo() {
 
         return () => subscription.unsubscribe();
     }, []);
+
+    // Efeito de carrossel vivo: muda a cada 3 segundos, pausando se o mouse estiver em cima
+    useEffect(() => {
+        if (isPaused) return;
+        const interval = setInterval(() => {
+            setCardAtivoIndex((prev) => (prev + 1) % recursosDestaque.length);
+        }, 3000);
+        return () => clearInterval(interval);
+    }, [isPaused, recursosDestaque.length]);
 
     const trackClick = (label: string, destination: string) => {
         window.dataLayer?.push({
@@ -151,91 +171,105 @@ export default function NucleobaseCondo() {
         );
     };
 
-    const CardsDestaqueDesktop = () => (
-        <div className="flex flex-col gap-6 h-full">
-            {/* CARD 1: ÁREA DO CONDOMÍNIO */}
-            <div className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center">
-                <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
-                    <Zap size={180} strokeWidth={1} className="text-blue-500" />
-                </div>
-                <div className="relative z-10 w-full">
-                    <div className="flex items-center gap-4 mb-2">
-                        <div className="w-14 h-14 shrink-0 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20">
-                            <Star size={24} fill="white" />
-                        </div>
-                        <div>
-                            <p className="text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]">O Futuro do seu Prédio</p>
-                            <h4 className="font-bold text-white text-xl leading-tight">
-                                {isLoggedIn ? "Área do condomínio" : "Gestão inteligente"}
-                            </h4>
-                        </div>
-                    </div>
-                    <BotaoAcessoDinamico />
-                </div>
-            </div>
+    const CardsDestaqueDesktop = () => {
+        const itemAtual = recursosDestaque[cardAtivoIndex];
 
-            {/* CARD 2: CONTABILIDADE */}
-            <div className="bg-white border border-gray-100 p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all group relative overflow-hidden flex flex-col justify-center">
-                <div className="relative z-10 w-full">
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="w-14 h-14 shrink-0 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all duration-500 shadow-sm">
-                            <LockKeyhole size={24} />
-                        </div>
-                        <div>
-                            <p className="text-emerald-600 text-[10px] font-black uppercase tracking-[0.2em]">Empresa parceira</p>
-                            <h4 className="font-bold text-gray-900 text-xl leading-tight">
-                                Contabilidade
-                            </h4>
-                        </div>
+        return (
+            <div className="flex flex-col gap-6 h-full">
+                {/* CARD 1: ÁREA DO CONDOMÍNIO */}
+                <div className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center">
+                    <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
+                        <Zap size={180} strokeWidth={1} className="text-blue-500" />
                     </div>
-                    <a
-                        href="/condo/contabilidade"
-                        onClick={() => trackClick("Acessar Contabilidade", "/condo/contabilidade")}
-                        className="flex items-center justify-between bg-emerald-600 hover:bg-emerald-700 py-3 px-4 rounded-xl transition-all group/btn shadow-lg shadow-emerald-600/20"
-                    >
-                        <div className="flex items-center gap-2">
-                            <UserCircle size={16} className="text-white" />
-                            <span className="text-white text-[10px] font-black uppercase tracking-widest">Acesso Restrito</span>
+                    <div className="relative z-10 w-full">
+                        <div className="flex items-center gap-4 mb-2">
+                            <div className="w-14 h-14 shrink-0 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20">
+                                <Star size={24} fill="white" />
+                            </div>
+                            <div>
+                                <p className="text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]">O Futuro do seu Prédio</p>
+                                <h4 className="font-bold text-white text-xl leading-tight">
+                                    {isLoggedIn ? "Área do condomínio" : "Gestão inteligente"}
+                                </h4>
+                            </div>
                         </div>
-                        <ArrowUpRight size={14} className="text-white/70 group-hover/btn:text-white transition-colors" />
-                    </a>
+                        <BotaoAcessoDinamico />
+                    </div>
                 </div>
-            </div>
 
-            {/* GRID DE DUAS LINHAS PARA OS RECURSOS + CARD DE EXPANSÃO (LAYOUT LATERALIZADO) */}
-            <div className="grid grid-cols-2 gap-4">
-                {[
-                    { id: "prestacao_visual", icon: <FileText size={20} />, title: "Prestações Visuais", text: "Acabe com planilhas confusas e pastas físicas." },
-                    { id: "agendamento_comum", icon: <CalendarDays size={20} />, title: "Reservas de Espaços", text: "Salão de festas e áreas comuns sem complicação." },
-                    { id: "decisoes_coletivas", icon: <Vote size={20} />, title: "Enquetes e Decisões", text: "Votações e avisos na tela de cada morador." },
-                    { id: "mais_recursos", icon: <Sparkles size={20} />, title: "E muito mais...", text: "Explore recursos avançados e navegue por tudo o que preparamos.", highlight: true }
-                ].map((item, idx) => (
+                {/* CARD 2: CONTABILIDADE (Com borda e sombreamento mais escuros) */}
+                <div className="bg-white border border-gray-300 p-8 rounded-[2.5rem] shadow-lg shadow-gray-200/50 hover:shadow-2xl transition-all group relative overflow-hidden flex flex-col justify-center">
+                    <div className="relative z-10 w-full">
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="w-14 h-14 shrink-0 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all duration-500 shadow-sm">
+                                <LockKeyhole size={24} />
+                            </div>
+                            <div>
+                                <p className="text-emerald-600 text-[10px] font-black uppercase tracking-[0.2em]">Empresa parceira</p>
+                                <h4 className="font-bold text-gray-900 text-xl leading-tight">
+                                    Contabilidade
+                                </h4>
+                            </div>
+                        </div>
+                        <a
+                            href="/condo/contabilidade"
+                            onClick={() => trackClick("Acessar Contabilidade", "/condo/contabilidade")}
+                            className="flex items-center justify-between bg-emerald-600 hover:bg-emerald-700 py-3 px-4 rounded-xl transition-all group/btn shadow-lg shadow-emerald-600/20"
+                        >
+                            <div className="flex items-center gap-2">
+                                <UserCircle size={16} className="text-white" />
+                                <span className="text-white text-[10px] font-black uppercase tracking-widest">Acesso Restrito</span>
+                            </div>
+                            <ArrowUpRight size={14} className="text-white/70 group-hover/btn:text-white transition-colors" />
+                        </a>
+                    </div>
+                </div>
+
+                {/* CARROSSEL VIVO DE RECURSOS (Apenas um card visível por vez, com paginação interativa) */}
+                <div
+                    className="relative"
+                    onMouseEnter={() => setIsPaused(true)}
+                    onMouseLeave={() => setIsPaused(false)}
+                >
                     <div
-                        key={idx}
-                        className={`p-4 rounded-[2rem] transition-all group flex items-center gap-3.5 ${item.highlight
-                                ? "bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-lg shadow-blue-600/20 hover:scale-[1.02]"
-                                : "bg-white border border-gray-100 shadow-sm hover:shadow-xl"
+                        key={cardAtivoIndex}
+                        className={`p-5 rounded-[2.2rem] transition-all duration-500 animate-in fade-in zoom-in-95 flex items-start gap-4 h-auto min-h-[110px] ${itemAtual.highlight
+                            ? "bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xl shadow-blue-600/25 border-2 border-blue-400"
+                            : "bg-white border-2 border-gray-200 shadow-lg"
                             }`}
                     >
-                        <div className={`w-11 h-11 shrink-0 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-sm ${item.highlight
-                                ? "bg-white/10 text-white"
-                                : "bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white"
+                        <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-sm mt-0.5 ${itemAtual.highlight
+                            ? "bg-white/15 text-white"
+                            : "bg-blue-50 text-blue-600"
                             }`}>
-                            {item.icon}
+                            {itemAtual.icon}
                         </div>
-                        <div className="min-w-0 flex-1">
-                            <h4 className={`font-black text-[13px] mb-0.5 tracking-tight truncate ${item.highlight ? "text-white" : "text-gray-900"}`}>
-                                {item.title}
+                        <div className="min-w-0 flex-1 flex flex-col justify-center">
+                            <h4 className={`font-black text-[14px] mb-1 tracking-tight leading-snug ${itemAtual.highlight ? "text-white" : "text-gray-900"}`}>
+                                {itemAtual.title}
                             </h4>
-                            <p className={`text-[11px] leading-tight font-medium line-clamp-2 ${item.highlight ? "text-blue-100" : "text-gray-500"}`}>
-                                {item.text}
+                            <p className={`text-[12px] leading-relaxed font-medium ${itemAtual.highlight ? "text-blue-100" : "text-gray-500"}`}>
+                                {itemAtual.text}
                             </p>
                         </div>
                     </div>
-                ))}
+
+                    {/* Indicadores / Paginação do Carrossel */}
+                    <div className="flex justify-center items-center gap-2 mt-3">
+                        {recursosDestaque.map((_, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => setCardAtivoIndex(idx)}
+                                className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${idx === cardAtivoIndex ? "w-6 bg-blue-600" : "w-2 bg-gray-300 hover:bg-gray-400"
+                                    }`}
+                                aria-label={`Ir para card ${idx + 1}`}
+                            />
+                        ))}
+                    </div>
+                </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     const LayoutDestaqueMobile = () => (
         <div className="my-10">
@@ -276,7 +310,7 @@ export default function NucleobaseCondo() {
                 </div>
 
                 {/* CARD 2 MOBILE: CONTABILIDADE */}
-                <div className="col-span-2 bg-white border border-gray-100 p-6 rounded-[2rem] shadow-sm relative overflow-hidden">
+                <div className="col-span-2 bg-white border border-gray-300 p-6 rounded-[2rem] shadow-md relative overflow-hidden">
                     <div className="flex items-center justify-between relative z-10 mb-4">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
@@ -409,21 +443,14 @@ export default function NucleobaseCondo() {
                         <div className="bg-blue-50/40 border-l-4 border-blue-600 p-6 md:p-10 my-12 rounded-2xl md:rounded-r-[3rem] relative overflow-hidden group transition-all hover:bg-blue-50/60">
                             <ShieldCheck className="absolute -right-6 -bottom-6 text-blue-600 opacity-5 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-700" size={180} />
                             <p className="font-medium text-blue-900 italic text-xl md:text-2xl leading-relaxed relative z-10 tracking-tight">
-                                "Nosso objetivo é transformar a prestação de contas mensal em um processo visual simples, devolvendo a harmonia e o controle aos moradores."
+                                "Nosso objetivo é transformar rotinas em processos visuais e simples, garantindo harmonia e integração com moradores."
                             </p>
                         </div>
 
                         <div className="block lg:hidden">
                             <LayoutDestaqueMobile />
                         </div>
-
-                        <p className="mb-8 text-gray-700 hidden md:block">
-                            Do planejamento orçamentário anual à reserva instantânea do salão de festas — oferecemos ao síndico o poder de uma gestão ágil e orientada a dados, enquanto o morador ganha a conveniência de acompanhar tudo de onde estiver.
-                        </p>
                     </div>
-                    <p className="text-gray-700 text-sm md:text-lg">
-                        Acreditamos que a <span className="text-gray-900 font-bold underline decoration-blue-200 underline-offset-4 decoration-2">gestão democrática</span> é o caminho para valorizar seu patrimônio. Nossos pilares trazem a estrutura perfeita que resolve as burocracias de convivência de forma ágil e segura.
-                    </p>
                 </div>
 
                 <div className="hidden lg:block lg:col-span-5">
@@ -435,6 +462,16 @@ export default function NucleobaseCondo() {
                 <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-4 flex items-center gap-4">
                     Nossos Pilares <div className="h-px bg-gray-300 flex-1"></div>
                 </h3>
+
+                <div className="mb-12">
+                    <p className="mb-6 text-gray-700 text-lg leading-[1.8]">
+                        Do planejamento orçamentário anual à reserva instantânea do salão de festas — oferecemos ao síndico o poder de uma gestão ágil e orientada a dados, enquanto o morador ganha a conveniência de acompanhar tudo de onde estiver.
+                    </p>
+                    <p className="text-gray-700 text-lg leading-[1.8]">
+                        Acreditamos que a <span className="text-gray-900 font-bold underline decoration-blue-200 underline-offset-4 decoration-2">gestão democrática</span> é o caminho para valorizar seu patrimônio. Nossos pilares trazem a estrutura perfeita que resolve as burocracias de convivência de forma ágil e segura.
+                    </p>
+                </div>
+
                 <div className="grid grid-cols-3 gap-8">
                     {pilares.map((pilar, i) => (
                         <div key={i} className="p-10 bg-white border border-gray-100 rounded-[3rem] shadow-sm flex flex-col items-start transition-all hover:shadow-md">

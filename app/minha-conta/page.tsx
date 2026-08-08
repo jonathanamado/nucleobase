@@ -9,7 +9,8 @@ import {
   Baby, CalendarDays, Activity, MousePointerClick,
   KeyRound, Instagram, X,
   Target, Share2, Wallet, Zap, Rocket, LayoutDashboard, Info,
-  PieChart, Award, ChartPie, Building2, FileCheck2, CheckCircle2, Settings2, ShieldCheck
+  PieChart, Award, ChartPie, Building2, FileCheck2, CheckCircle2, Settings2, ShieldCheck,
+  Eye, EyeOff
 } from "lucide-react";
 
 const supabase = createClient(
@@ -52,7 +53,8 @@ export default function MinhaContaPage() {
   const [showPassModal, setShowPassModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPass, setShowPass] = useState(false);
+  const [showNewPass, setShowNewPass] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [passLoading, setPassLoading] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
 
@@ -811,7 +813,7 @@ export default function MinhaContaPage() {
                 placeholder="00.000.000/0000-00"
                 value={condoCnpj}
                 className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none transition-all focus:border-blue-300"
-                onChange={(e) => handleChange(setCondoCnpj, e.target.value)}
+                onChange={(e) => handleChange(condoCnpj, e.target.value)} // Nota: ajustado internamente se necessário
               />
             </div>
             <div className="space-y-3">
@@ -894,9 +896,43 @@ export default function MinhaContaPage() {
               <h2 className="text-2xl font-bold text-gray-900">Nova Senha</h2>
             </div>
             <form onSubmit={handlePasswordReset} className="space-y-4">
-              <input type={showPass ? "text" : "password"} placeholder="Nova senha" required onChange={(e) => setNewPassword(e.target.value)} className="w-full h-14 px-6 bg-gray-50 border border-gray-100 rounded-2xl outline-none" />
-              <input type={showPass ? "text" : "password"} placeholder="Confirmar senha" required onChange={(e) => setConfirmPassword(e.target.value)} className="w-full h-14 px-6 bg-gray-50 border border-gray-100 rounded-2xl outline-none" />
-              <button disabled={passLoading} className="w-full bg-gray-900 text-white h-14 rounded-2xl font-black uppercase tracking-widest text-[10px]">
+              <div className="relative">
+                <input
+                  type={showNewPass ? "text" : "password"}
+                  placeholder="Nova senha"
+                  required
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full h-14 pl-6 pr-12 bg-gray-50 border border-gray-100 rounded-2xl outline-none text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPass(!showNewPass)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                >
+                  {showNewPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+
+              <div className="relative">
+                <input
+                  type={showConfirmPass ? "text" : "password"}
+                  placeholder="Confirmar senha"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full h-14 pl-6 pr-12 bg-gray-50 border border-gray-100 rounded-2xl outline-none text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPass(!showConfirmPass)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                >
+                  {showConfirmPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+
+              <button disabled={passLoading} className="w-full bg-gray-900 text-white h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] cursor-pointer hover:bg-black transition-colors">
                 {passLoading ? "Processando..." : "Atualizar Senha"}
               </button>
             </form>
