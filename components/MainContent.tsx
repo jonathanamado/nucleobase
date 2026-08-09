@@ -6,7 +6,7 @@ import {
   Zap, ArrowRight, Mail, Newspaper, ShieldCheck,
   BarChart3, MessageSquare, Lock,
   Users, Gift, X, Loader2, CheckCircle2, FileWarning,
-  LayoutDashboard, Instagram, Play
+  LayoutDashboard, Instagram, Play, Building2
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -209,7 +209,7 @@ export function MainContent() {
                   Painel de Resultados
                 </span>
                 <span className="text-[9px] text-gray-400 text-center font-medium uppercase tracking-wider">
-                  Análise em tempo real
+                  Análise financeira e residencial (Condo)
                 </span>
               </div>
             </div>
@@ -329,7 +329,7 @@ export function MainContent() {
           <div className="lg:col-span-6 flex flex-col justify-center">
             <div className="mb-0">
               <p className="text-base text-gray-600 leading-relaxed pr-6">
-                A <strong>nucleobase.app</strong> é uma plataforma digital, totalmente online, focada em organização de finanças e processos de maneira simples e consciente. Através do seu{" "}
+                A <strong>nucleobase.app</strong> é uma plataforma digital, totalmente online, focada em organização de finanças, processos e gestão residencial (Nucleo Condo) de maneira simples e consciente. Através do seu{" "}
                 <span className="inline-flex items-center justify-center bg-orange-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                   Acesso ao APP,
                 </span>{" "}
@@ -339,7 +339,7 @@ export function MainContent() {
                 </span>{" "}
                 , transformamos dados em informações{" "}
                 <span className="text-gray-900 underline decoration-2 decoration-orange-500/30 underline-offset-4 font-medium">
-                  que aceleram seus projetos pessoais ou profissionais.
+                  que aceleram seus projetos pessoais, profissionais e condominiais.
                 </span>
               </p>
 
@@ -363,28 +363,41 @@ export function MainContent() {
             </div>
           </div>
 
-          <div className="lg:col-span-3 flex">
+          <div className="lg:col-span-2 flex">
             <Link href="/lancamentos" className="flex-1 bg-white border border-gray-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
               <div className="bg-orange-50 p-3 rounded-2xl text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all duration-300 mb-4">
                 <LayoutDashboard size={24} />
               </div>
               <h4 className="font-bold text-gray-900 text-base mb-1">Acessar APP</h4>
-              <p className="text-[11px] text-gray-500 leading-tight mb-4">Gerencie seus lançamentos e controle seu fluxo de caixa.</p>
+              <p className="text-[11px] text-gray-500 leading-tight mb-4">Gerencie lançamentos financeiros e controle cadastros.</p>
               <div className="w-full mt-auto py-2.5 bg-orange-50/50 border border-orange-100 text-orange-600 rounded-xl font-bold text-[10px] uppercase tracking-widest group-hover:bg-orange-600 group-hover:text-white transition-all flex items-center justify-center gap-2">
                 Entrar agora <ArrowRight size={12} />
               </div>
             </Link>
           </div>
 
-          <div className="lg:col-span-3 flex">
+          <div className="lg:col-span-2 flex">
             <Link href="/resultados" className="flex-1 bg-blue-50/50 border border-blue-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
               <div className="bg-white p-3 rounded-2xl text-blue-600 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 mb-4">
                 <BarChart3 size={24} />
               </div>
               <h4 className="font-bold text-gray-900 text-base mb-1">Visão Resultados</h4>
-              <p className="text-[11px] text-gray-600 leading-tight mb-4">Analise sua performance financeira estratégica.</p>
+              <p className="text-[11px] text-gray-600 leading-tight mb-4">Analise sua performance financeira e dados de condomínios.</p>
               <div className="w-full mt-auto py-2.5 bg-white border border-blue-200 text-blue-600 rounded-xl font-bold text-[10px] uppercase tracking-widest group-hover:bg-blue-600 group-hover:text-white transition-all flex items-center justify-center gap-2">
                 Ver Painel <ArrowRight size={12} />
+              </div>
+            </Link>
+          </div>
+
+          <div className="lg:col-span-2 flex">
+            <Link href="/condo" className="flex-1 bg-emerald-50/50 border border-emerald-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
+              <div className="bg-white p-3 rounded-2xl text-emerald-600 shadow-sm group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 mb-4">
+                <Building2 size={24} />
+              </div>
+              <h4 className="font-bold text-gray-900 text-base mb-1">Nucleo Condo</h4>
+              <p className="text-[11px] text-gray-600 leading-tight mb-4">Gerencie seu condomínio e o cadastro de moradores.</p>
+              <div className="w-full mt-auto py-2.5 bg-white border border-emerald-200 text-emerald-600 rounded-xl font-bold text-[10px] uppercase tracking-widest group-hover:bg-emerald-600 group-hover:text-white transition-all flex items-center justify-center gap-2">
+                Acessar Condo <Building2 size={12} />
               </div>
             </Link>
           </div>
@@ -499,7 +512,7 @@ export function MainContent() {
 
         <div className="w-full mb-12">
           <p className="text-gray-600 text-base leading-[1.8]">
-            <span className="text-gray-900 font-semibold">Acreditamos que</span> a verdadeira inteligência financeira nasce da união entre clareza de dados e disciplina, transformando números isolados em um roteiro seguro. <span className="text-gray-900 font-semibold">Desenvolvemos uma tecnologia</span> que não apenas organiza estes números, mas traduz comportamentos. <span className="text-gray-900 font-semibold">Ao eliminar a complexidade de planilhas,</span> permitimos que você foque no que importa: entender e agir. Saiba mais sobre a Nucleo
+            <span className="text-gray-900 font-semibold">Acreditamos que</span> a verdadeira inteligência financeira e de gestão residencial nasce da união entre clareza de dados e disciplina, transformando números isolados em um roteiro seguro. <span className="text-gray-900 font-semibold">Desenvolvemos uma tecnologia</span> que não apenas organiza estes números, mas traduz comportamentos. <span className="text-gray-900 font-semibold">Ao eliminar a complexidade de planilhas e controles manuais,</span> permitimos que você foque no que importa: entender e agir. Saiba mais sobre a Nucleo
             <Link href="/sobre" className="inline-flex items-center ml-2 group">
               <span className="bg-blue-600 text-white px-2 pt-1 pb-0.5 rounded-md text-[10px] font-bold shadow-sm hover:bg-blue-700 transition-colors uppercase tracking-wider">
                 clicando aqui.
@@ -513,7 +526,7 @@ export function MainContent() {
             <div className="flex-1">
               <p className="text-blue-400 text-xs uppercase tracking-[0.3em] font-black mb-4">A ferramenta certa</p>
               <h4 className="text-2xl md:text-2xl font-bold leading-tight">
-                A Nucleobase é o seu centro de comando. Diferente de planilhas complexas, traduzimos controle financeiro em inteligência com foco em redução de custos.
+                A Nucleobase é o seu centro de comando. Diferente de planilhas complexas, traduzimos controle financeiro e gestão residencial (Condo) em inteligência prática.
               </h4>
             </div>
             <a href="/cadastro" className="shrink-0 inline-flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-full transition-all font-bold text-sm uppercase tracking-widest shadow-lg shadow-blue-900/20 group-hover:scale-105">
@@ -572,7 +585,7 @@ export function MainContent() {
               <div className="md:col-span-7 text-left flex flex-col justify-center">
                 <h4 className="text-3xl font-bold text-gray-900 mb-6 tracking-tight leading-[1.1]">Sua visão 360º diretamente no seu Painel</h4>
                 <p className="text-gray-600 text-base leading-relaxed mb-8">
-                  Mais do que números, entregamos inteligência financeira. O Dashboard da Nucleobase processa seus dados para oferecer diagnósticos precisos.
+                  Mais do que números, entregamos inteligência financeira e de condomínios. O Dashboard da Nucleobase processa seus dados e gerencia sua moradia (Condo) para oferecer diagnósticos precisos.
                 </p>
                 <Link href="/resultados" className="group w-fit">
                   <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest inline-flex items-center gap-2">
@@ -584,8 +597,8 @@ export function MainContent() {
                 <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
                   <BarChart3 size={32} />
                 </div>
-                <h5 className="font-bold text-gray-900 mb-2">Análise de Performance</h5>
-                <p className="text-gray-500 text-sm leading-relaxed">Visualize tendências e identifique gargalos.</p>
+                <h5 className="font-bold text-gray-900 mb-2">Análise de Performance e Condo</h5>
+                <p className="text-gray-500 text-sm leading-relaxed">Visualize tendências, identifique gargalos e controle sua residência.</p>
               </Link>
             </div>
           </section>

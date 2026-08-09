@@ -9,7 +9,7 @@ import {
   Eye, EyeOff, BarChart3, Sparkles, TrendingUp,
   Clock, Gem, ShieldCheck, Zap, Key, Database, FileSpreadsheet,
   PlusCircle, Upload, Shield, Target, Fingerprint, Globe, LayoutDashboard,
-  Instagram, KeyRound, UserCheck
+  Instagram, KeyRound, UserCheck, Building2, Users
 } from "lucide-react";
 import Link from "next/link";
 
@@ -22,15 +22,10 @@ export default function AcessoUsuarioPage() {
   const [userPlan, setUserPlan] = useState("Free");
   const [showPassword, setShowPassword] = useState(false);
 
-  // Modais de Recuperação e Primeiro Acesso
+  // Modais de Recuperação
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
-
-  // Estados do Novo Fluxo de Primeiro Acesso com ID/Slug
-  const [showFirstAccessModal, setShowFirstAccessModal] = useState(false);
-  const [firstAccessSlug, setFirstAccessSlug] = useState("");
-  const [firstAccessLoading, setFirstAccessLoading] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -176,53 +171,6 @@ export default function AcessoUsuarioPage() {
     setResetLoading(false);
   };
 
-  const handleFirstAccessSetup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFirstAccessLoading(true);
-
-    const inputSlug = firstAccessSlug.trim().toLowerCase();
-
-    try {
-      const { data: profileData, error: profileQueryError } = await supabase
-        .from('profiles')
-        .select('id, slug, email_contato')
-        .ilike('slug', inputSlug)
-        .maybeSingle();
-
-      if (profileQueryError) throw profileQueryError;
-
-      if (!profileData || !profileData.id) {
-        alert("ID de Usuário (slug) não localizado no sistema. Verifique a chave informada.");
-        setFirstAccessLoading(false);
-        return;
-      }
-
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: profileData.email_contato,
-        password: "Condo123!"
-      });
-
-      if (authError || !authData.session) {
-        alert(
-          `Conta localizada com sucesso!\n\n` +
-          `Para acessar pela primeira vez, utilize o seu ID (${profileData.slug}) na tela de login e a senha temporária fornecida.\n\n` +
-          `Após entrar, recomendamos alterar sua senha nas configurações.`
-        );
-        setSlug(profileData.slug);
-        setShowFirstAccessModal(false);
-        setFirstAccessSlug("");
-        setFirstAccessLoading(false);
-        return;
-      }
-
-      window.location.href = "/configuracoes";
-    } catch (err: any) {
-      console.error("Erro no primeiro acesso:", err);
-      alert(err?.message || "Houve uma falha interna ao processar sua solicitação.");
-      setFirstAccessLoading(false);
-    }
-  };
-
   return (
     <div className="w-full pr-0 md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
 
@@ -306,7 +254,7 @@ export default function AcessoUsuarioPage() {
                       <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
                       <input
                         type={showPassword ? "text" : "password"}
-                        placeholder="Senha de acesso ao @PP"
+                        placeholder="Senha de acesso ao @pp"
                         required
                         value={password}
                         className="w-full pl-11 pr-10 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900"
@@ -330,13 +278,6 @@ export default function AcessoUsuarioPage() {
                       className="text-[10px] text-gray-400 font-bold hover:text-orange-500 transition-colors"
                     >
                       Esqueceu a senha?
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowFirstAccessModal(true)}
-                      className="text-[10px] text-blue-600 font-black hover:text-blue-700 transition-colors"
-                    >
-                      Primeiro acesso com ID de usuário?
                     </button>
                   </div>
 
@@ -364,9 +305,13 @@ export default function AcessoUsuarioPage() {
           <p className="hidden md:block text-base text-gray-600 leading-relaxed">
             Através do{" "}
             <span className="inline-flex items-center justify-center bg-orange-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
-              Acesso ao APP
+              Controle Financeiro
             </span>{" "}
-            você centraliza sua vida financeira com total liberdade, de registros cotidianos a custos parcelados de longo prazo. Na consulta dos seus {" "}
+            você centraliza sua vida financeira com total liberdade, de registros cotidianos a custos parcelados de longo prazo, enquanto com o{" "}
+            <span className="inline-flex items-center justify-center bg-emerald-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
+              Nucleo Condo
+            </span>{" "}
+            você gerencia sua vida residencial e condomínios com eficiência. Na consulta dos seus {" "}
             <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
               Resultados
             </span>{" "}
@@ -382,7 +327,7 @@ export default function AcessoUsuarioPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-16">
-          <div className={`lg:col-span-12 grid gap-5 ${isLoggedIn ? "grid-cols-2 md:grid-cols-2" : "grid-cols-1 md:grid-cols-2"}`}>
+          <div className={`lg:col-span-12 grid gap-5 ${isLoggedIn ? "grid-cols-1 md:grid-cols-3" : "grid-cols-1 md:grid-cols-3"}`}>
 
             <div className="md:min-h-[480px] min-h-[200px] flex">
               <a
@@ -393,8 +338,8 @@ export default function AcessoUsuarioPage() {
                   <Rocket size={28} />
                 </div>
                 <h3 className="text-lg md:text-xl font-bold text-white mb-3">
-                  <span className="md:hidden">Acesso ao APP</span>
-                  <span className="hidden md:block">Acesso <br /> ao APP</span>
+                  <span className="md:hidden">Controle Financeiro</span>
+                  <span className="hidden md:block">Controle <br /> Financeiro</span>
                 </h3>
 
                 <p className="text-orange-50 text-[14px] md:text-[16px] leading-relaxed mb-6 font-medium md:block hidden">
@@ -445,6 +390,39 @@ export default function AcessoUsuarioPage() {
                 </div>
               </a>
             </div>
+
+            <div className="md:min-h-[480px] min-h-[200px] flex">
+              <a
+                href="/condo/adm"
+                className="group bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-gray-300 flex flex-col text-center md:text-left w-full h-full relative overflow-hidden"
+              >
+                <div className="absolute top-6 right-6 bg-emerald-600 text-white text-[9px] font-black px-2 py-1 rounded-full uppercase tracking-tighter animate-pulse text-center hidden md:block">
+                  Gestão <br /> residencial
+                </div>
+                <div className="bg-emerald-50 p-3 rounded-2xl mb-4 w-fit text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-500 shadow-sm mx-auto md:mx-0">
+                  <Building2 size={28} />
+                </div>
+                <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 tracking-tight">
+                  <span className="md:hidden">Nucleo Condo</span>
+                  <span className="hidden md:block">Nucleo <br /> Condo</span>
+                </h3>
+                <p className="text-gray-500 text-[14px] md:text-[16px] leading-relaxed font-medium mb-6 md:block hidden">
+                  Gerencie o condomínio, controle unidades e mantenha a comunicação com os moradores:
+                </p>
+
+                <div className="md:flex hidden flex-col gap-2 mb-6 text-left">
+                  <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-emerald-600 transition-colors"><Users size={14} className="text-emerald-500" /> Cadastro de moradores</div>
+                  <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-emerald-600 transition-colors"><ShieldCheck size={14} className="text-emerald-500" /> Controle de acesso</div>
+                  <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-emerald-600 transition-colors"><Building2 size={14} className="text-emerald-500" /> Gestão condominial</div>
+                </div>
+
+                <div className="mt-auto flex items-center justify-center gap-3 w-full bg-gray-900 text-white h-[48px] md:h-[56px] rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest shadow-lg group-hover:scale-[1.02]">
+                  Acessar <span className="md:inline hidden"> Condo</span>
+                  <Building2 size={16} className="text-emerald-400 group-hover:scale-110 transition-transform" />
+                </div>
+              </a>
+            </div>
+
           </div>
         </div>
 
@@ -586,52 +564,6 @@ export default function AcessoUsuarioPage() {
                 >
                   {resetLoading ? "Enviando..." : "Enviar Link de Acesso"}
                   <ArrowRight size={16} />
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL: PRIMEIRO ACESSO VIA ID/SLUG */}
-      {showFirstAccessModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 relative overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
-            <button
-              onClick={() => setShowFirstAccessModal(false)}
-              className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-colors cursor-pointer"
-            >
-              <X size={20} />
-            </button>
-
-            <div className="flex flex-col items-center text-center">
-              <div className="bg-orange-50 p-4 rounded-2xl text-orange-500 mb-4">
-                <KeyRound size={32} />
-              </div>
-              <h2 className="text-xl font-black text-gray-900 tracking-tight mb-2">Primeiro Acesso</h2>
-              <p className="text-gray-500 text-xs mb-6">
-                Insira a chave/slug gerada pelo síndico para validar seu cadastro e realizar o login com sua senha temporária.
-              </p>
-
-              <form onSubmit={handleFirstAccessSetup} className="w-full space-y-3">
-                <div className="relative group">
-                  <UserCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ex: condo-joao-xyz"
-                    value={firstAccessSlug}
-                    onChange={(e) => setFirstAccessSlug(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-100 outline-none text-xs font-mono font-bold text-gray-700 uppercase"
-                  />
-                </div>
-
-                <button
-                  disabled={firstAccessLoading}
-                  className="w-full bg-zinc-900 text-white py-3.5 rounded-xl font-bold hover:bg-black transition shadow-lg text-xs flex items-center justify-center gap-2 disabled:opacity-50 mt-2 uppercase tracking-widest text-[10px] cursor-pointer"
-                >
-                  {firstAccessLoading ? "Verificando Chave..." : "Validar e Acessar"}
-                  <ArrowRight size={14} />
                 </button>
               </form>
             </div>

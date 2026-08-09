@@ -10,7 +10,7 @@ import {
   KeyRound, Instagram, X,
   Target, Share2, Wallet, Zap, Rocket, LayoutDashboard, Info,
   PieChart, Award, ChartPie, Building2, FileCheck2, CheckCircle2, Settings2, ShieldCheck,
-  Eye, EyeOff
+  Eye, EyeOff, Sparkles, ArrowUpRight
 } from "lucide-react";
 
 const supabase = createClient(
@@ -813,7 +813,7 @@ export default function MinhaContaPage() {
                 placeholder="00.000.000/0000-00"
                 value={condoCnpj}
                 className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none transition-all focus:border-blue-300"
-                onChange={(e) => handleChange(setCondoCnpj, e.target.value)}
+                onChange={(e) => handleChange(condoCnpj, e.target.value)}
               />
             </div>
             <div className="space-y-3">
@@ -829,9 +829,36 @@ export default function MinhaContaPage() {
               />
             </div>
           </div>
-          <p className="text-[10px] text-zinc-400 italic font-medium">
+          <p className="text-[10px] text-zinc-400 italic font-medium mb-6">
             * Ao salvar estas informações, o seu perfil estará associado diretamente ao respectivo condomínio e unidade.
           </p>
+
+          {/* BANNER DE DESTAQUE - PLANO PRO & DEGUSTAÇÃO */}
+          <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white p-6 rounded-2xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden border border-blue-400/20">
+            <div className="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
+              <Sparkles size={160} />
+            </div>
+            <div className="flex items-center gap-4 relative z-10">
+              <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-blue-600/30">
+                <Sparkles size={24} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="bg-blue-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-md tracking-wider">Nucleo Condo</span>
+                  <span className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">• Plano Pro</span>
+                </div>
+                <h4 className="font-bold text-sm text-white leading-snug">
+                  Período de degustação de 45 dias ativos inclusos.
+                </h4>
+              </div>
+            </div>
+            <Link
+              href="/planos/pro"
+              className="relative z-10 flex items-center gap-2 bg-white text-blue-900 hover:bg-blue-50 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md transition-all shrink-0"
+            >
+              Conhecer Plano Pro <ArrowUpRight size={14} />
+            </Link>
+          </div>
         </section>
       </div>
 

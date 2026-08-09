@@ -30,6 +30,7 @@ import {
 interface Morador {
     id: string;
     unidade: string;
+    tipo_morador?: string;
     role: string;
     user_id: string;
     acesso_app: boolean;
@@ -81,9 +82,15 @@ export default function CadastroMoradorPage() {
     const [novoMoradorNome, setNovoMoradorNome] = useState("");
     const [novoMoradorEmail, setNovoMoradorEmail] = useState("");
     const [novoMoradorUnidade, setNovoMoradorUnidade] = useState("");
+    const [tipoMorador, setTipoMorador] = useState<string>("proprietario");
     const [autorizadoApp, setAutorizadoApp] = useState(true);
     const [formError, setFormError] = useState("");
     const [formSuccess, setFormSuccess] = useState("");
+
+    // Estado para Validação em Tempo Real do Nome/Slug Personalizado
+    const [slugCustomizado, setSlugCustomizado] = useState("");
+    const [slugDisponivel, setSlugDisponivel] = useState<boolean | null>(null);
+    const [verificandoSlug, setVerificandoSlug] = useState(false);
 
     // Estado para Controle de Edição de Morador
     const [editandoId, setEditandoId] = useState<string | null>(null);
@@ -102,12 +109,76 @@ export default function CadastroMoradorPage() {
         return `${partes[0]} ${partes[partes.length - 1]}`;
     };
 
+    // Função para gerar o slug baseado diretamente no nome completo informado (sem o prefixo obrigatório "condo-")
+    const gerarSlugBase = (nome: string) => {
+        const slugFormatado = nome.trim()
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]/g, "-")
+            .replace(/-+/g, "-")
+            .replace(/^-|-$/g, "");
+        return slugFormatado;
+    };
+
+    // Efeito para verificar disponibilidade do slug em tempo real ao digitar o nome
+    useEffect(() => {
+        if (editandoId) {
+            setSlugDisponivel(true);
+            return;
+        }
+
+        const base = gerarSlugBase(novoMoradorNome);
+        if (!base) {
+            setSlugCustomizado("");
+            setSlugDisponivel(null);
+            return;
+        }
+
+        const slugCompleto = base;
+        setSlugCustomizado(slugCompleto);
+
+        const verificarDisponibilidade = async () => {
+            setVerificandoSlug(true);
+            try {
+                const { data, error } = await supabase
+                    .from("profiles")
+                    .select("slug")
+                    .eq("slug", slugCompleto);
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    setSlugDisponivel(true);
+                } else {
+                    setSlugDisponivel(false);
+                }
+            } catch (err) {
+                console.error("Erro ao validar slug:", err);
+                setSlugDisponivel(true);
+            } finally {
+                setVerificandoSlug(false);
+            }
+        };
+
+        const timer = setTimeout(() => {
+            if (novoMoradorNome.trim().length > 0) {
+                verificarDisponibilidade();
+            } else {
+                setSlugDisponivel(null);
+            }
+        }, 400);
+
+        return () => clearTimeout(timer);
+    }, [novoMoradorNome, editandoId]);
+
     const loadMoradores = async (condoId: string) => {
         const { data, error } = await supabase
             .from("condominio_membros")
             .select(`
                 id,
                 unidade,
+                tipo_morador,
                 role,
                 user_id,
                 acesso_app,
@@ -141,7 +212,7 @@ export default function CadastroMoradorPage() {
 
             const { data: membroDataList, error: membroError } = await supabase
                 .from("condominio_membros")
-                .select("condominio_id, role, unidade, acesso_app, condominio_nome")
+                .select("condominio_id, role, unidade, tipo_morador, acesso_app, condominio_nome")
                 .eq("user_id", userId);
 
             if (membroError) {
@@ -393,7 +464,9 @@ export default function CadastroMoradorPage() {
             unidadeTratada = "Adm";
         }
         setNovoMoradorUnidade(unidadeTratada);
+        setTipoMorador(morador.tipo_morador || "proprietario");
         setAutorizadoApp(morador.acesso_app);
+        setSlugDisponivel(true);
     };
 
     const cancelarEdicao = () => {
@@ -402,11 +475,14 @@ export default function CadastroMoradorPage() {
         setNovoMoradorNome("");
         setNovoMoradorEmail("");
         setNovoMoradorUnidade("");
+        setTipoMorador("proprietario");
         setAutorizadoApp(true);
         setFormError("");
         setFormSuccess("");
         setResetPasswordSuccess("");
         setResetPasswordError("");
+        setSlugCustomizado("");
+        setSlugDisponivel(null);
     };
 
     const handleResetPasswordByAdmin = () => {
@@ -429,6 +505,11 @@ export default function CadastroMoradorPage() {
         e.preventDefault();
         if (!condominio) return;
 
+        if (!editandoId && slugDisponivel === false) {
+            setFormError("O ID (slug) gerado por este nome já está em uso. Por favor, adicione um sobrenome para revisão do identificador.");
+            return;
+        }
+
         setActionLoading(true);
         setFormError("");
         setFormSuccess("");
@@ -441,6 +522,7 @@ export default function CadastroMoradorPage() {
                     .from("condominio_membros")
                     .update({
                         unidade: unidadeFinal,
+                        tipo_morador: tipoMorador,
                         acesso_app: autorizadoApp
                     })
                     .eq("id", editandoId);
@@ -468,20 +550,11 @@ export default function CadastroMoradorPage() {
                 const nomeFormatado = novoMoradorNome.trim();
                 let emailFormatado = novoMoradorEmail.trim().toLowerCase();
                 let targetUserId = null;
-                let generatedSlug = "";
-
-                const primeiroNome = nomeFormatado.split(" ")[0]
-                    .toLowerCase()
-                    .normalize("NFD")
-                    .replace(/[\u0300-\u036f]/g, "")
-                    .replace(/[^a-z0-9]/g, "");
+                let generatedSlug = slugCustomizado || gerarSlugBase(nomeFormatado);
 
                 const uuidFalso = Math.random().toString(36).substring(2, 7);
                 if (!emailFormatado) {
                     emailFormatado = `pendente.morador.${uuidFalso}@nucleobase.app`;
-                    generatedSlug = `condo-${primeiroNome}-${uuidFalso}`;
-                } else {
-                    generatedSlug = `user-${Math.random().toString(36).substring(2, 10)}`;
                 }
 
                 if (!emailFormatado.startsWith("pendente.morador.")) {
@@ -523,7 +596,7 @@ export default function CadastroMoradorPage() {
                     if (!signUpData.user) throw new Error("Erro ao registrar credenciais de acesso.");
 
                     targetUserId = signUpData.user.id;
-                    if (novoMoradorEmail.trim()) {
+                    if (novoMoradorEmail.trim() && !slugCustomizado) {
                         generatedSlug = `user-${targetUserId.substring(0, 8)}`;
                     }
 
@@ -547,6 +620,7 @@ export default function CadastroMoradorPage() {
                             user_id: targetUserId,
                             role: "morador",
                             unidade: unidadeFinal,
+                            tipo_morador: tipoMorador,
                             acesso_app: autorizadoApp
                         }
                     ]);
@@ -565,7 +639,10 @@ export default function CadastroMoradorPage() {
                 setNovoMoradorNome("");
                 setNovoMoradorEmail("");
                 setNovoMoradorUnidade("");
+                setTipoMorador("proprietario");
                 setAutorizadoApp(true);
+                setSlugCustomizado("");
+                setSlugDisponivel(null);
                 setTimeout(() => {
                     setFormSuccess("");
                 }, 1500);
@@ -648,7 +725,6 @@ export default function CadastroMoradorPage() {
         setMoradorParaExcluir(null);
     };
 
-    // Função de Logout blindada e completa
     const handleLogout = async () => {
         setLoading(true);
         try {
@@ -839,10 +915,10 @@ export default function CadastroMoradorPage() {
                                         <input
                                             type="text"
                                             required
-                                            placeholder="Ex: condo-joao-xyz"
+                                            placeholder="Ex: antonio-trevas"
                                             value={firstAccessSlug}
                                             onChange={(e) => setFirstAccessSlug(e.target.value)}
-                                            className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-blue-100 outline-none text-xs font-mono font-bold text-gray-700 uppercase"
+                                            className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-blue-100 outline-none text-xs font-mono font-bold text-gray-700 lowercase"
                                         />
                                     </div>
 
@@ -947,12 +1023,28 @@ export default function CadastroMoradorPage() {
                                     <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Nome Completo</label>
                                     <input
                                         type="text"
-                                        placeholder="Ex: João da Silva"
+                                        placeholder="Ex: João Alberto"
                                         required
                                         value={novoMoradorNome}
                                         onChange={(e) => setNovoMoradorNome(e.target.value)}
                                         className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium"
                                     />
+                                    {/* Feedback de disponibilidade do ID gerado pelo nome */}
+                                    {!editandoId && novoMoradorNome.trim().length > 0 && (
+                                        <div className="mt-1 px-1 flex items-center gap-1.5 text-[10px] font-bold">
+                                            {verificandoSlug ? (
+                                                <span className="text-zinc-400 flex items-center gap-1">Verificando ID de usuário...</span>
+                                            ) : slugDisponivel ? (
+                                                <span className="text-emerald-600 flex items-center gap-1">
+                                                    <CheckCircle2 size={12} /> ID de usuário gerado ({slugCustomizado}) disponível
+                                                </span>
+                                            ) : (
+                                                <span className="text-amber-600 flex items-center gap-1">
+                                                    <ShieldAlert size={12} /> ID ({slugCustomizado}) em uso. Necessária revisão com sobrenome.
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="space-y-1">
@@ -984,6 +1076,20 @@ export default function CadastroMoradorPage() {
                                     />
                                 </div>
 
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Vínculo</label>
+                                    <select
+                                        value={tipoMorador}
+                                        onChange={(e) => setTipoMorador(e.target.value)}
+                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium cursor-pointer"
+                                    >
+                                        <option value="proprietario">Proprietário</option>
+                                        <option value="inquilino">Inquilino</option>
+                                        <option value="prestador_servico">Prestador de Serviço</option>
+                                        <option value="outros">Outros</option>
+                                    </select>
+                                </div>
+
                                 <div className="flex items-center justify-between bg-zinc-50 border border-zinc-200 p-3.5 rounded-xl">
                                     <div className="flex flex-col">
                                         <span className="text-xs font-bold text-zinc-800 uppercase tracking-wide">Acesso APP</span>
@@ -1008,8 +1114,8 @@ export default function CadastroMoradorPage() {
                                 <button
                                     type="submit"
                                     form="form-cadastro-morador"
-                                    disabled={actionLoading}
-                                    className={`flex-1 py-3.5 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 text-white cursor-pointer ${editandoId ? 'bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/10' : 'bg-blue-600 hover:bg-blue-700'}`}
+                                    disabled={actionLoading || (!editandoId && slugDisponivel === false)}
+                                    className={`flex-1 py-3.5 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 text-white cursor-pointer ${editandoId ? 'bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/10' : 'bg-blue-600 hover:bg-blue-700'} disabled:opacity-50`}
                                 >
                                     {actionLoading ? "Processando..." : editandoId ? "Salvar Alterações" : "Cadastrar Morador"}
                                 </button>
@@ -1063,7 +1169,7 @@ export default function CadastroMoradorPage() {
                                     <table className="w-full text-left border-collapse">
                                         <thead className="sticky top-0 bg-white z-10">
                                             <tr className="border-b border-zinc-100">
-                                                <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider bg-white">Apto</th>
+                                                <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider bg-white">Apto / Vínculo</th>
                                                 <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider bg-white">Nome / Contato</th>
                                                 <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider hidden md:table-cell bg-white">App</th>
                                                 <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider text-right bg-white">Ações</th>
@@ -1074,13 +1180,27 @@ export default function CadastroMoradorPage() {
                                                 const isSemEmail = morador.profile?.email_contato?.startsWith("pendente.morador.");
                                                 const nomeExibicaoOriginal = morador.profile?.nome_completo || "Sem Nome";
                                                 const unidadeOriginal = morador.unidade || "";
+                                                const tipoMoradorOriginal = morador.tipo_morador || "proprietario";
+
+                                                // Formatação amigável para exibição do vínculo
+                                                let tipoFormatado = tipoMoradorOriginal;
+                                                if (tipoMoradorOriginal === 'prestador_servico') tipoFormatado = 'Prestador de Serviço';
+                                                else if (tipoMoradorOriginal === 'inquilino') tipoFormatado = 'Inquilino';
+                                                else if (tipoMoradorOriginal === 'proprietario') tipoFormatado = 'Proprietário';
+                                                else if (tipoMoradorOriginal === 'outros') tipoFormatado = 'Outros';
+
                                                 const isAdm = unidadeOriginal.trim().toLowerCase() === "administração" || unidadeOriginal.trim().toLowerCase() === "adm";
                                                 const nomeExibicaoFinal = formatarNomePrimeiroEUltimo(nomeExibicaoOriginal);
 
                                                 return (
                                                     <tr key={morador.id} className={`group transition-colors ${editandoId === morador.id ? 'bg-indigo-50/30' : ''}`}>
-                                                        <td className="py-3.5 text-sm font-bold text-zinc-900 align-top">
-                                                            {isAdm ? "Adm" : unidadeOriginal}
+                                                        <td className="py-3.5 align-top">
+                                                            <div className="text-sm font-bold text-zinc-900">
+                                                                {isAdm ? "Adm" : unidadeOriginal}
+                                                            </div>
+                                                            <div className="text-[10px] font-medium text-zinc-400 capitalize mt-0.5">
+                                                                {tipoFormatado}
+                                                            </div>
                                                         </td>
                                                         <td className="py-3.5 align-top">
                                                             <div className="text-sm font-bold text-zinc-800 leading-tight">
@@ -1223,46 +1343,6 @@ export default function CadastroMoradorPage() {
                     </div>
                 </div>
             )}
-
-            <div>
-                <div className="mt-24 flex items-center gap-4 mb-12">
-                    <div className="h-px bg-gray-200 flex-1"></div>
-                    <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
-                    <div className="h-px bg-gray-200 flex-1"></div>
-                </div>
-
-                {/* BLOCO INSTAGRAM */}
-                <div className="flex flex-col items-center text-center">
-                    <div className="max-w-3xl mb-12">
-                        <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
-                            Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
-                        </h4>
-                        <p className="text-gray-500 font-medium text-sm md:text-base">
-                            Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
-                        </p>
-                    </div>
-
-                    <a
-                        href="https://www.instagram.com/nucleobase.app/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group relative flex flex-col items-center gap-6"
-                    >
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
-
-                            <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
-                                <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
-                            </div>
-                        </div>
-
-                        <div className="flex flex-col items-center">
-                            <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
-                            <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
-                        </div>
-                    </a>
-                </div>
-            </div>
         </div>
     );
 }

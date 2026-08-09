@@ -1,6 +1,7 @@
 // app/condo/page.tsx
 "use client";
 import React, { useState, useEffect } from "react";
+import Link from 'next/link';
 import { supabase } from "@/lib/supabase";
 import {
     ShieldCheck,
@@ -65,10 +66,10 @@ export default function NucleobaseCondo() {
     ];
 
     const recursosDestaque = [
+        { id: "criar_conta", icon: <UserPlus size={20} />, title: "Criação de Conta", text: "Configure sua gestão residencial com total autonomia.", highlight: true },
         { id: "prestacao_visual", icon: <FileText size={20} />, title: "Prestações Visuais", text: "Tenha relatórios 100% digitais e transparentes." },
         { id: "agendamento_comum", icon: <CalendarDays size={20} />, title: "Reservas de Espaços", text: "Reserve área comum ou salão de festas de maneira digital." },
-        { id: "decisoes_coletivas", icon: <Vote size={20} />, title: "Enquetes e Decisões", text: "Participe de votações e avisos importantes no dia a dia." },
-        { id: "mais_recursos", icon: <Sparkles size={20} />, title: "E muito mais...", text: "Explore ferramentas colaborativas para sua rotina e para os condôminos.", highlight: true }
+        { id: "decisoes_coletivas", icon: <Vote size={20} />, title: "Enquetes e Decisões", text: "Participe de votações e avisos importantes no dia a dia." }
     ];
 
     useEffect(() => {
@@ -175,7 +176,7 @@ export default function NucleobaseCondo() {
         const itemAtual = recursosDestaque[cardAtivoIndex];
 
         return (
-            <div className="flex flex-col gap-6 h-full">
+            <div className="flex flex-col gap-6 h-full justify-between">
                 {/* CARD 1: ÁREA DO CONDOMÍNIO */}
                 <div className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center">
                     <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
@@ -227,15 +228,16 @@ export default function NucleobaseCondo() {
 
                 {/* CARROSSEL VIVO DE RECURSOS (Apenas um card visível por vez, com paginação interativa) */}
                 <div
-                    className="relative"
+                    className="relative flex flex-col justify-center"
                     onMouseEnter={() => setIsPaused(true)}
                     onMouseLeave={() => setIsPaused(false)}
                 >
-                    <div
+                    <Link
+                        href="/cadastro"
                         key={cardAtivoIndex}
-                        className={`p-5 rounded-[2.2rem] transition-all duration-500 animate-in fade-in zoom-in-95 flex items-start gap-4 h-auto min-h-[110px] ${itemAtual.highlight
-                            ? "bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xl shadow-blue-600/25 border-2 border-blue-400"
-                            : "bg-white border-2 border-gray-200 shadow-lg"
+                        className={`p-5 rounded-[2.2rem] transition-all duration-500 animate-in fade-in zoom-in-95 flex items-start gap-4 h-auto min-h-[110px] block cursor-pointer ${itemAtual.highlight
+                            ? "bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xl shadow-blue-600/25 border-2 border-blue-400 hover:opacity-95"
+                            : "bg-white border-2 border-gray-200 shadow-lg hover:border-blue-300"
                             }`}
                     >
                         <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-sm mt-0.5 ${itemAtual.highlight
@@ -252,7 +254,7 @@ export default function NucleobaseCondo() {
                                 {itemAtual.text}
                             </p>
                         </div>
-                    </div>
+                    </Link>
 
                     {/* Indicadores / Paginação do Carrossel */}
                     <div className="flex justify-center items-center gap-2 mt-3">
@@ -349,15 +351,19 @@ export default function NucleobaseCondo() {
                 </div>
 
                 {[
+                    { icon: <UserPlus size={18} />, title: "Criação de Conta" },
                     { icon: <FileText size={18} />, title: "Finanças" },
                     { icon: <CalendarDays size={18} />, title: "Reservas" },
-                    { icon: <Vote size={18} />, title: "Enquetes" },
-                    { icon: <Sparkles size={18} />, title: "Muito mais" }
+                    { icon: <Vote size={18} />, title: "Enquetes" }
                 ].map((item, idx) => (
-                    <div key={idx} className="bg-white border border-gray-100 p-4 rounded-[1.5rem] flex flex-col items-center text-center gap-2">
-                        <div className="text-blue-600 bg-blue-50 p-2.5 rounded-xl">{item.icon}</div>
-                        <h4 className="font-bold text-gray-900 text-[10px] leading-tight uppercase tracking-tight">{item.title}</h4>
-                    </div>
+                    <Link
+                        key={idx}
+                        href="/cadastro"
+                        className={`bg-white border border-gray-100 p-4 rounded-[1.5rem] flex flex-col items-center text-center gap-2 block ${idx === 0 ? "col-span-2 bg-gradient-to-br from-blue-600 to-indigo-700 text-white border-blue-400 shadow-md" : ""}`}
+                    >
+                        <div className={`${idx === 0 ? "bg-white/15 text-white" : "text-blue-600 bg-blue-50"} p-2.5 rounded-xl`}>{item.icon}</div>
+                        <h4 className={`font-bold text-[10px] leading-tight uppercase tracking-tight ${idx === 0 ? "text-white" : "text-gray-900"}`}>{item.title}</h4>
+                    </Link>
                 ))}
             </div>
         </div>
@@ -416,11 +422,11 @@ export default function NucleobaseCondo() {
                 Gestão de acesso APP <div className="h-px bg-gray-300 flex-1"></div>
             </h3>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-                <div className="lg:col-span-7 text-gray-700 text-lg leading-[1.8] pr-0 lg:pr-10">
-                    <div>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
+                <div className="lg:col-span-7 text-gray-700 text-lg leading-[1.8] pr-0 lg:pr-10 flex flex-col justify-between">
+                    <div className="flex flex-col justify-between h-full">
                         <p className="mb-8 leading-relaxed text-gray-700 hidden md:block">
-                            A Nucleobase nasceu para permitir clareza aos fluxos financeiros, e agora trazemos o mesmo rigor tecnológico para a{" "}
+                            A Nucleo Condo nasceu para permitir clareza aos fluxos financeiros, e agora trazemos o mesmo rigor tecnológico para a{" "}
                             <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                                 Administração
                             </span>{" "}
@@ -440,10 +446,11 @@ export default function NucleobaseCondo() {
                             </button>
                         </div>
 
-                        <div className="bg-blue-50/40 border-l-4 border-blue-600 p-6 md:p-10 my-12 rounded-2xl md:rounded-r-[3rem] relative overflow-hidden group transition-all hover:bg-blue-50/60">
+                        <div className="bg-blue-50/40 border-l-4 border-blue-600 p-6 md:p-10 my-0 rounded-2xl md:rounded-r-[3rem] relative overflow-hidden group transition-all hover:bg-blue-50/60 flex flex-col justify-center">
                             <ShieldCheck className="absolute -right-6 -bottom-6 text-blue-600 opacity-5 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-700" size={180} />
-                            <p className="font-medium text-blue-900 italic text-xl md:text-2xl leading-relaxed relative z-10 tracking-tight">
-                                "Nosso objetivo é transformar rotinas em processos visuais e simples, garantindo harmonia e integração com moradores."
+                            <p className="font-medium text-blue-900 text-xl md:text-2xl leading-relaxed relative z-10 tracking-tight">
+                                "Nosso objetivo é transformar rotinas em processos visuais e simples, garantindo harmonia e integração com moradores."<br /><br />
+                                <Link href="/cadastro" className="text-blue-600 font-bold underline hover:text-blue-800 transition-colors">Não possui uma conta? Clique aqui</Link>
                             </p>
                         </div>
 
@@ -453,7 +460,7 @@ export default function NucleobaseCondo() {
                     </div>
                 </div>
 
-                <div className="hidden lg:block lg:col-span-5">
+                <div className="hidden lg:block lg:col-span-5 h-full">
                     <CardsDestaqueDesktop />
                 </div>
             </div>
