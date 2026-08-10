@@ -145,7 +145,7 @@ export default function ConfiguracoesPage() {
         <section className="lg:col-span-7 bg-white rounded-[2.5rem] p-8 md:p-10 border border-gray-100 shadow-sm relative overflow-hidden flex flex-col justify-between h-full">
           <div className="relative z-10">
             <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-3">
-              <Fingerprint size={16} className="text-blue-600" /> Credenciais de Acesso
+              <Fingerprint size={16} className="text-blue-600" /> Credenciais
             </h3>
 
             <div className="space-y-8">
@@ -166,7 +166,7 @@ export default function ConfiguracoesPage() {
 
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-blue-600 uppercase ml-1 tracking-[0.1em] flex items-center gap-2">
-                  <BellRing size={14} /> Canal de Alertas Críticos
+                  <BellRing size={14} /> E-mail
                 </label>
                 <input
                   type="email"
@@ -241,8 +241,8 @@ export default function ConfiguracoesPage() {
                     onClick={toggleMFA}
                     disabled={mfaLoading}
                     className={`w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${mfaEnabled
-                        ? 'bg-transparent border border-white/20 text-white hover:bg-white/10'
-                        : 'bg-blue-600 text-white hover:bg-blue-500 shadow-xl shadow-blue-600/20'
+                      ? 'bg-transparent border border-white/20 text-white hover:bg-white/10'
+                      : 'bg-blue-600 text-white hover:bg-blue-500 shadow-xl shadow-blue-600/20'
                       }`}
                   >
                     {mfaLoading ? "Processando..." : mfaEnabled ? "Configurar Novo Dispositivo" : "Ativar MFA Agora"}
@@ -276,7 +276,7 @@ export default function ConfiguracoesPage() {
         {/* PROTOCOLOS DE PROTEÇÃO */}
         <section className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm flex flex-col">
           <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-3">
-            <ShieldAlert size={16} className="text-orange-500" /> Protocolos de Proteção
+            <ShieldAlert size={16} className="text-orange-500" /> Proteção
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
             <div className="p-6 rounded-3xl bg-gray-50 flex flex-col gap-3 justify-center">
@@ -309,10 +309,10 @@ export default function ConfiguracoesPage() {
                 <Smartphone size={28} className="text-blue-600" />
               </div>
               <div className="flex flex-col h-full justify-center">
-                <h4 className="text-sm font-bold text-blue-900 mb-1 uppercase tracking-tight">Dispositivos Conectados</h4>
+                <h4 className="text-sm font-bold text-blue-900 mb-1 uppercase tracking-tight">Dispositivos</h4>
                 <p className="text-xs text-blue-700/60 leading-relaxed font-medium">Sua conta está ativa em 1 dispositivo no momento.</p>
                 <button className="mt-4 text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-2 hover:underline">
-                  Encerrar outras sessões <ExternalLink size={12} />
+                  Encerrar outras sessões <ExternalLink size={10} />
                 </button>
               </div>
             </div>

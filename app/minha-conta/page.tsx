@@ -428,7 +428,7 @@ export default function MinhaContaPage() {
       </div>
 
       <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4">
-        Perfil e Configurações <div className="h-px bg-gray-300 flex-1"></div>
+        Perfil <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
       {/* CARD DE AJUSTES DE CREDENCIAIS (EXCLUSIVO MOBILE LOGO ABAIXO DA LINHA DIVISÓRIA) */}
