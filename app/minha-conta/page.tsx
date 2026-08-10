@@ -432,9 +432,39 @@ export default function MinhaContaPage() {
         </div>
       </div>
 
-      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
+      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4">
         Perfil e Configurações <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
+
+      {/* CARD DE AJUSTES DE CREDENCIAIS (EXCLUSIVO MOBILE LOGO ABAIXO DA LINHA DIVISÓRIA) */}
+      <div className="block md:hidden mb-8">
+        <div className="w-full p-6 bg-gradient-to-br from-gray-900 to-black rounded-[2rem] shadow-xl text-center space-y-4 border border-gray-800">
+          <div className="flex items-center gap-4 text-left">
+            <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-blue-400 shrink-0">
+              <KeyRound size={24} />
+            </div>
+            <p className="text-white text-xs font-bold leading-relaxed">
+              Ajustes de credenciais
+            </p>
+          </div>
+          <div className="flex flex-col gap-2 pt-2">
+            <button
+              onClick={() => setShowPassModal(true)}
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+            >
+              <KeyRound size={14} />
+              <span>Alterar senha</span>
+            </button>
+            <Link
+              href="/configuracoes"
+              className="w-full py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              <Settings2 size={14} />
+              <span>Configurações</span>
+            </Link>
+          </div>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
 
@@ -534,7 +564,7 @@ export default function MinhaContaPage() {
         <div className="lg:col-span-5 flex flex-col gap-6 order-1 md:order-2">
           <section className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm flex-1 flex flex-col">
 
-            <div className="mb-10">
+            <div className="mb-10 hidden md:block">
               <div className="flex items-center gap-3 mb-4">
                 <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2">
                   <CalendarDays size={16} className="text-purple-600" /> Perfil de acesso
@@ -813,7 +843,7 @@ export default function MinhaContaPage() {
                 placeholder="00.000.000/0000-00"
                 value={condoCnpj}
                 className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none transition-all focus:border-blue-300"
-                onChange={(e) => handleChange(setCondoCnpj, e.target.value)}
+                onChange={(e) => handleChange(condoCnpj, e.target.value)}
               />
             </div>
             <div className="space-y-3">
@@ -825,7 +855,7 @@ export default function MinhaContaPage() {
                 placeholder="Ex: Apto 302 Bloco B"
                 value={unidadeSindico}
                 className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none transition-all focus:border-blue-300"
-                onChange={(e) => handleChange(setUnidadeSindico, e.target.value)}
+                onChange={(e) => handleChange(unidadeSindico, e.target.value)}
               />
             </div>
           </div>
