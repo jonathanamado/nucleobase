@@ -843,7 +843,7 @@ export default function MinhaContaPage() {
                 placeholder="00.000.000/0000-00"
                 value={condoCnpj}
                 className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none transition-all focus:border-blue-300"
-                onChange={(e) => handleChange(condoCnpj, e.target.value)}
+                onChange={(e) => handleChange(setCondoCnpj, e.target.value)}
               />
             </div>
             <div className="space-y-3">
