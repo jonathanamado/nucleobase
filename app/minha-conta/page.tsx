@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import {
   Save, MapPin, UserCircle, Camera, GraduationCap, Briefcase,
@@ -12,11 +12,6 @@ import {
   PieChart, Award, ChartPie, Building2, FileCheck2, CheckCircle2, Settings2, ShieldCheck,
   Eye, EyeOff, Sparkles, ArrowUpRight
 } from "lucide-react";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export default function MinhaContaPage() {
   // --- ESTADOS DE DADOS ---
@@ -855,7 +850,7 @@ export default function MinhaContaPage() {
                 placeholder="Ex: Apto 302 Bloco B"
                 value={unidadeSindico}
                 className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none transition-all focus:border-blue-300"
-                onChange={(e) => handleChange(unidadeSindico, e.target.value)}
+                onChange={(e) => handleChange(setUnidadeSindico, e.target.value)}
               />
             </div>
           </div>
