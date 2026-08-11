@@ -132,7 +132,7 @@ export default function PaginaPlanoPro() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-white rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl relative border border-amber-100">
             <div className="p-8 flex flex-col items-center text-center">
-              <button onClick={() => setIsModalOpen(false)} className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-900">
+              <button onClick={() => setIsModalOpen(false)} className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-900 cursor-pointer">
                 <X size={24} />
               </button>
               <div className="bg-amber-50 p-4 rounded-full text-amber-600 mb-6">
@@ -141,16 +141,16 @@ export default function PaginaPlanoPro() {
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Pagamento via PIX</h3>
               <p className="text-gray-500 mb-6 text-sm">Escaneie o código para o plano <span className="font-bold text-amber-600 uppercase">{selectedPlan?.name}</span></p>
 
-              <div className="bg-white p-4 rounded-3xl mb-6 shadow-inner border border-gray-100">
+              <div className="bg-white p-4 rounded-3xl mb-6 shadow-inner border border-gray-100 flex items-center justify-center">
                 <img src={`/${selectedPlan?.qrCode}`} alt="QR Code" className="w-48 h-48 object-contain" />
               </div>
 
               <div className="w-full space-y-3">
-                <button onClick={handleCopyPix} className="w-full py-4 bg-slate-50 border border-slate-200 text-slate-700 rounded-2xl font-mono text-sm flex items-center justify-center gap-3 hover:border-amber-400 transition-all">
+                <button onClick={handleCopyPix} className="w-full py-4 bg-slate-50 border border-slate-200 text-slate-700 rounded-2xl font-mono text-sm flex items-center justify-center gap-3 hover:border-amber-400 transition-all cursor-pointer">
                   {PIX_KEY}
                   {copied ? <Check size={18} className="text-emerald-500" /> : <Copy size={18} className="text-gray-400" />}
                 </button>
-                <button onClick={handleSendProof} className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-600 shadow-lg shadow-emerald-200 transition-all">
+                <button onClick={handleSendProof} className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-600 shadow-lg shadow-emerald-200 transition-all cursor-pointer">
                   <MessageCircle size={20} /> Enviar Comprovante
                 </button>
               </div>
@@ -229,7 +229,7 @@ function CardPrecoPro({ openPixModal, CheckoutForm }: any) {
         <div className="grid grid-cols-1 gap-2 pt-2">
           <CheckoutForm lookupKey="pro_trimestral" label="Trimestral - R$ 54,90" description="Trimestral" discount="-12%" className="py-2.5 bg-gray-50 text-gray-500 rounded-lg font-bold text-[9px] hover:bg-gray-100 transition-colors uppercase border border-gray-100" />
           <CheckoutForm lookupKey="pro_semestral" label="Semestral - R$ 99,90" description="Semestral" discount="-18%" className="py-2.5 bg-gray-50 text-gray-500 rounded-lg font-bold text-[9px] hover:bg-gray-100 transition-colors uppercase border border-gray-100" />
-          <CheckoutForm lookupKey="pro_anual" label="Anual - R$ 189,90" description="Anual" discount="-25%" className="py-2.5 bg-amber-50 text-amber-600 rounded-lg font-bold text-[9px] hover:bg-amber-100 transition-colors uppercase border border-amber-100" />
+          <CheckoutForm lookupKey="pro_anual" label="Anual - R$ 189,90" description="Anual" discount="-25%" className="py-2.5 bg-amber-50 text-amber-600 rounded-lg font-bold text-[9px] hover:bg-amber-100 transition-colors uppercase border border-gray-100" />
         </div>
 
         <div className="flex items-center gap-3 py-4">
@@ -239,11 +239,16 @@ function CardPrecoPro({ openPixModal, CheckoutForm }: any) {
         </div>
 
         <button
-          onClick={() => openPixModal("Pro Mensal", "R$ 19,90", "nucleo-qr-pro.png")}
-          className="w-full py-3 border border-amber-200 rounded-xl flex items-center justify-center gap-2 group hover:bg-amber-50 transition-all"
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openPixModal("Pro Mensal", "R$ 19,90", "nucleo-qr-pro.png");
+          }}
+          className="w-full py-3 border border-amber-200 rounded-xl flex items-center justify-center gap-2 group hover:bg-amber-50 transition-all cursor-pointer relative z-20"
         >
           <QrCode size={14} className="text-amber-500" />
-          <span className="text-[10px] font-black text-gray-550 group-hover:text-gray-900 uppercase tracking-widest transition-colors">Assinar via PIX</span>
+          <span className="text-[10px] font-black text-gray-700 group-hover:text-gray-900 uppercase tracking-widest transition-colors">Assinar via PIX</span>
         </button>
       </div>
     </div>

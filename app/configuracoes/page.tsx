@@ -149,24 +149,18 @@ export default function ConfiguracoesPage() {
             </h3>
 
             <div className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em]">ID de Auditoria</label>
+                  <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em]">ID Nucleo</label>
                   <div className="w-full h-14 px-5 bg-gray-50 border border-gray-100 rounded-2xl flex items-center text-[12px] md:text-[13px] font-bold text-gray-500 select-none overflow-hidden">
                     <span className="truncate">#{slug?.toLowerCase() || "---"}</span>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-[0.1em]">E-mail Proprietário</label>
-                  <div className="w-full h-14 px-5 bg-gray-50 border border-gray-100 rounded-2xl flex items-center text-[12px] md:text-[13px] font-bold text-gray-500 select-none overflow-hidden">
-                    <span className="truncate">{email.toLowerCase()}</span>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-blue-600 uppercase ml-1 tracking-[0.1em] flex items-center gap-2">
-                  <BellRing size={14} /> E-mail
+                  <BellRing size={14} /> E-mail (Edite, se desejável)
                 </label>
                 <input
                   type="email"
@@ -212,27 +206,26 @@ export default function ConfiguracoesPage() {
             Em desenvolvimento
           </div>
 
-          <div className="bg-gray-900 p-10 rounded-[3rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all flex flex-col h-full border border-white/5">
+          <div className="bg-gray-900 p-6 md:p-10 rounded-[3rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all flex flex-col h-full border border-white/5">
             <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
               <ShieldEllipsis size={200} strokeWidth={1} className="text-blue-500" />
             </div>
 
             <div className="relative z-10 flex flex-col h-full">
-              <h3 className="text-[12px] font-black text-blue-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-6">
-                <Smartphone size={18} /> Segundo Fator (MFA)
+              <h3 className="text-[12px] font-black text-blue-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-4 md:mb-6">
+                <Smartphone size={18} /> 2º Fator (MFA)
               </h3>
 
               <div className="flex-1">
-                <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6 h-full flex flex-col justify-between">
+                <div className="bg-white/5 border border-white/10 rounded-[2rem] p-4 md:p-6 h-full flex flex-col justify-between">
                   <div>
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex justify-center w-full mb-2 md:mb-4">
                       <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full ${mfaEnabled ? 'bg-emerald-500/20 text-emerald-400' : 'bg-orange-500/20 text-orange-400'}`}>
                         {mfaEnabled ? "Ativado" : "Desativado"}
                       </span>
-                      <Smartphone className="text-white/20" size={24} />
                     </div>
-                    <h4 className="text-white font-bold text-base mb-2">Autenticação por Aplicativo</h4>
-                    <p className="text-gray-400 text-[11px] md:text-xs leading-relaxed mb-6">
+                    <h4 className="text-white font-bold text-sm md:text-base mb-1 md:mb-2 text-center">Autenticação APP</h4>
+                    <p className="text-gray-400 text-[11px] md:text-xs leading-relaxed mb-4 md:mb-6 hidden md:block">
                       Adicione uma camada extra de segurança. Ao entrar, você precisará de um código gerado pelo Google ou Microsoft Authenticator.
                     </p>
                   </div>
@@ -240,7 +233,7 @@ export default function ConfiguracoesPage() {
                   <button
                     onClick={toggleMFA}
                     disabled={mfaLoading}
-                    className={`w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${mfaEnabled
+                    className={`w-full py-3 md:py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${mfaEnabled
                       ? 'bg-transparent border border-white/20 text-white hover:bg-white/10'
                       : 'bg-blue-600 text-white hover:bg-blue-500 shadow-xl shadow-blue-600/20'
                       }`}
@@ -250,7 +243,7 @@ export default function ConfiguracoesPage() {
                 </div>
               </div>
 
-              <div className="mt-8 pt-6 border-t border-white/10 text-center">
+              <div className="mt-4 md:mt-8 pt-4 md:pt-6 border-t border-white/10 text-center">
                 <Link
                   href="/seguranca_privacidade"
                   className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2 mx-auto hover:text-white transition-colors justify-center"
@@ -304,16 +297,22 @@ export default function ConfiguracoesPage() {
           </div>
 
           <div className="bg-blue-50/40 rounded-[2.5rem] p-8 border border-blue-100/50 flex flex-col justify-center h-full">
-            <div className="flex items-start gap-6">
-              <div className="bg-white p-5 rounded-[1.5rem] shadow-sm flex-shrink-0">
+            <div className="flex items-start md:items-center gap-4 md:gap-6 flex-row">
+              <div className="bg-white p-4 md:p-5 rounded-[1.5rem] shadow-sm flex-shrink-0">
                 <Smartphone size={28} className="text-blue-600" />
               </div>
-              <div className="flex flex-col h-full justify-center">
+              <div className="flex flex-col justify-center flex-1">
                 <h4 className="text-sm font-bold text-blue-900 mb-1 uppercase tracking-tight">Dispositivos</h4>
-                <p className="text-xs text-blue-700/60 leading-relaxed font-medium">Sua conta está ativa em 1 dispositivo no momento.</p>
-                <button className="mt-4 text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-2 hover:underline">
-                  Encerrar outras sessões <ExternalLink size={10} />
-                </button>
+                <div className="flex flex-col md:flex-row md:items-center md:gap-3">
+                  <p className="text-xs text-blue-700/60 leading-relaxed font-medium">
+                    <span className="block md:hidden">Conta ativa em 1 dispositivo no momento.</span>
+                    <span className="hidden md:block">Sua conta está ativa em 1 dispositivo no momento.</span>
+                  </p>
+                  <button className="text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-1 hover:underline mt-1 md:mt-0">
+                    <span className="block md:hidden">Encerrar</span>
+                    <span className="hidden md:flex items-center gap-2">Encerrar outras sessões <ExternalLink size={10} /></span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -404,8 +403,18 @@ export default function ConfiguracoesPage() {
                     required
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full h-14 pl-6 pr-14 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all font-bold"
+                    className="w-full h-14 pl-6 pr-14 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all font-bold md:placeholder:content-none"
                   />
+                  <style jsx>{`
+                    @media (max-width: 768px) {
+                      input::placeholder {
+                        color: transparent;
+                      }
+                      input::placeholder {
+                        content: "Confirmar senha";
+                      }
+                    }
+                  `}</style>
                   <button type="button" onClick={() => setShowConfirmPass(!showConfirmPass)} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700">
                     {showConfirmPass ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>

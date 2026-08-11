@@ -393,7 +393,7 @@ export default function AcessoUsuarioPage() {
 
             <div className="md:min-h-[480px] min-h-[200px] flex">
               <a
-                href="/condo/adm"
+                href="/condo"
                 className="group bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-gray-300 flex flex-col text-center md:text-left w-full h-full relative overflow-hidden"
               >
                 <div className="absolute top-6 right-6 bg-emerald-600 text-white text-[9px] font-black px-2 py-1 rounded-full uppercase tracking-tighter animate-pulse text-center hidden md:block">

@@ -669,7 +669,7 @@ export default function OcorrenciasSugestoesPage() {
                                         <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Solicitante</label>
                                         <input
                                             type="text"
-                                            placeholder="Nome (opcional)"
+                                            placeholder="Nome Completo"
                                             value={solicitanteInput}
                                             onChange={(e) => setSolicitanteInput(e.target.value)}
                                             className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-rose-400 text-xs font-medium"
@@ -757,7 +757,7 @@ export default function OcorrenciasSugestoesPage() {
                                         <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Solicitante</label>
                                         <input
                                             type="text"
-                                            placeholder="Nome (opcional)"
+                                            placeholder="Nome Completo"
                                             value={solicitanteInput}
                                             onChange={(e) => setSolicitanteInput(e.target.value)}
                                             className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-medium"

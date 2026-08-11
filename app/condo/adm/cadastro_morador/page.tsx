@@ -336,8 +336,8 @@ export default function CadastroMoradorPage() {
 
     const mascararEmail = (email: string) => {
         if (!email || !email.includes("@")) return email || "@user";
-        if (email.startsWith("pendente.morador.")) return "E-mail não cadastrado";
         const [usuario, dominio] = email.split("@");
+        if (dominio === "nucleobase.app" && !novoMoradorEmail) return "E-mail não cadastrado";
         if (usuario.length <= 1) return `*@${dominio}`;
         return `${usuario[0]}*****@${dominio}`;
     };
@@ -357,17 +357,17 @@ export default function CadastroMoradorPage() {
             } else {
                 const { data: profile, error: profileError } = await supabase
                     .from('profiles')
-                    .select('email_contato')
+                    .select('email_contato, slug')
                     .eq('slug', inputAcesso)
                     .maybeSingle();
 
                 if (profileError) throw profileError;
-                if (!profile || !profile.email_contato) {
+                if (!profile) {
                     setLoginError("ID de Síndico ou E-mail não localizado.");
                     setAuthLoading(false);
                     return;
                 }
-                emailParaLogin = profile.email_contato;
+                emailParaLogin = profile.email_contato || `${profile.slug}@nucleobase.app`;
             }
 
             const { data, error } = await supabase.auth.signInWithPassword({
@@ -454,7 +454,8 @@ export default function CadastroMoradorPage() {
         setNovoMoradorNome(morador.profile?.nome_completo || "");
 
         const emailContato = morador.profile?.email_contato || "";
-        const semEmail = emailContato.startsWith("pendente.morador.");
+        const slugPerfil = morador.profile?.slug || "";
+        const semEmail = !emailContato || emailContato === `${slugPerfil}@nucleobase.app` || emailContato.startsWith("pendente.morador.");
 
         setEditandoSemEmail(semEmail);
         setNovoMoradorEmail(semEmail ? "" : emailContato);
@@ -552,12 +553,11 @@ export default function CadastroMoradorPage() {
                 let targetUserId = null;
                 let generatedSlug = slugCustomizado || gerarSlugBase(nomeFormatado);
 
-                const uuidFalso = Math.random().toString(36).substring(2, 7);
                 if (!emailFormatado) {
-                    emailFormatado = `pendente.morador.${uuidFalso}@nucleobase.app`;
+                    emailFormatado = `${generatedSlug}@nucleobase.app`;
                 }
 
-                if (!emailFormatado.startsWith("pendente.morador.")) {
+                if (!emailFormatado.endsWith("@nucleobase.app")) {
                     const { data: existingProfile } = await supabase
                         .from("profiles")
                         .select("id")
@@ -596,9 +596,6 @@ export default function CadastroMoradorPage() {
                     if (!signUpData.user) throw new Error("Erro ao registrar credenciais de acesso.");
 
                     targetUserId = signUpData.user.id;
-                    if (novoMoradorEmail.trim() && !slugCustomizado) {
-                        generatedSlug = `user-${targetUserId.substring(0, 8)}`;
-                    }
 
                     await supabase
                         .from("profiles")
@@ -1060,7 +1057,7 @@ export default function CadastroMoradorPage() {
                                         className={`w-full px-4 py-3 border rounded-xl outline-none transition-all text-xs font-medium ${editandoSemEmail ? 'bg-zinc-100 border-zinc-200 text-zinc-400 cursor-not-allowed select-none' : 'bg-zinc-50 border-zinc-200 focus:bg-white focus:border-blue-400'}`}
                                     />
                                     <span className="text-[10px] text-zinc-400 block px-1">
-                                        Se preenchido, deve ser um e-mail válido. Se deixado em branco, será gerado acesso automático por ID de usuário.
+                                        Se preenchido, deve ser um e-mail válido. Se deixado em branco, será gerado acesso automático baseado no ID de usuário.
                                     </span>
                                 </div>
 
@@ -1177,12 +1174,13 @@ export default function CadastroMoradorPage() {
                                         </thead>
                                         <tbody className="divide-y divide-zinc-50">
                                             {moradores.map((morador) => {
-                                                const isSemEmail = morador.profile?.email_contato?.startsWith("pendente.morador.");
+                                                const emailContato = morador.profile?.email_contato || "";
+                                                const slugPerfil = morador.profile?.slug || "";
+                                                const isSemEmail = !emailContato || emailContato === `${slugPerfil}@nucleobase.app` || emailContato.startsWith("pendente.morador.");
                                                 const nomeExibicaoOriginal = morador.profile?.nome_completo || "Sem Nome";
                                                 const unidadeOriginal = morador.unidade || "";
                                                 const tipoMoradorOriginal = morador.tipo_morador || "proprietario";
 
-                                                // Formatação amigável para exibição do vínculo
                                                 let tipoFormatado = tipoMoradorOriginal;
                                                 if (tipoMoradorOriginal === 'prestador_servico') tipoFormatado = 'Prestador de Serviço';
                                                 else if (tipoMoradorOriginal === 'inquilino') tipoFormatado = 'Inquilino';
