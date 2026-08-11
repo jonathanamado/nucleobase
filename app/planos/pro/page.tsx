@@ -1,18 +1,18 @@
 "use client";
 import React, { useState } from "react";
-import { 
-  Gem, CheckCircle2, QrCode, X, Copy, Check, 
+import {
+  Gem, CheckCircle2, QrCode, X, Copy, Check,
   MessageCircle, Instagram, Gift, Star, RefreshCw,
   BarChart3, Headphones, Globe
 } from "lucide-react";
 
 export default function PaginaPlanoPro() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<{name: string, price: string, qrCode: string} | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<{ name: string, price: string, qrCode: string } | null>(null);
   const [copied, setCopied] = useState(false);
 
   const PIX_KEY = "contato@nucleobase.app";
-  const WHATSAPP_LINK_ID = "q46hkm"; 
+  const WHATSAPP_LINK_ID = "q46hkm";
 
   const openPixModal = (name: string, price: string, qrCode: string) => {
     setSelectedPlan({ name, price, qrCode });
@@ -46,7 +46,7 @@ export default function PaginaPlanoPro() {
 
   return (
     <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0 bg-white">
-      
+
       {/* HEADER PADRONIZADO */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
@@ -68,10 +68,10 @@ export default function PaginaPlanoPro() {
       {/* SEÇÃO PRINCIPAL */}
       <div className="max-w-4xl mx-auto px-2">
         <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 items-stretch">
-          
+
           {/* CONTAINER ESQUERDO: TEXTO + BENEFÍCIOS + EXPLICAÇÃO DESKTOP */}
           <div className="flex-1 flex flex-col justify-between w-full py-2">
-            
+
             <div className="flex flex-col gap-8">
               {/* TEXTO INICIAL */}
               <div className="space-y-4">
@@ -82,8 +82,8 @@ export default function PaginaPlanoPro() {
 
               {/* CARD EXIBIDO NO MOBILE */}
               <div className="block lg:hidden w-full">
-                <CardPrecoPro 
-                  openPixModal={openPixModal} 
+                <CardPrecoPro
+                  openPixModal={openPixModal}
                   CheckoutForm={CheckoutForm}
                 />
               </div>
@@ -91,10 +91,10 @@ export default function PaginaPlanoPro() {
               {/* GRID DE BENEFÍCIOS PRO */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  { icon: <RefreshCw size={18}/>, title: "Sincronização D-1", desc: "Transações automáticas." },
-                  { icon: <BarChart3 size={18}/>, title: "Relatórios Avançados", desc: "Patrimônio e Projeções." },
-                  { icon: <Headphones size={18}/>, title: "Suporte Prioritário", desc: "Fila exclusiva WhatsApp." },
-                  { icon: <Globe size={18}/>, title: "Multi-Cartões", desc: "Diferentes entradas e saídas." }
+                  { icon: <RefreshCw size={18} />, title: "Sincronização D-1", desc: "Transações automáticas." },
+                  { icon: <BarChart3 size={18} />, title: "Relatórios Avançados", desc: "Patrimônio e Projeções." },
+                  { icon: <Headphones size={18} />, title: "Suporte Prioritário", desc: "Fila exclusiva WhatsApp." },
+                  { icon: <Globe size={18} />, title: "Multi-Cartões", desc: "Diferentes entradas e saídas." }
                 ].map((item, i) => (
                   <div key={i} className="flex flex-col p-4 border border-gray-100 rounded-2xl bg-slate-50/50">
                     <div className="text-amber-600 mb-2">{item.icon}</div>
@@ -107,20 +107,20 @@ export default function PaginaPlanoPro() {
 
             {/* TEXTO EXPLICATIVO (APENAS DESKTOP) */}
             <div className="hidden lg:block mt-12 pt-8 border-t border-gray-300">
-               <div className="flex items-center gap-2 mb-3">
-                 <Star className="text-amber-400 fill-amber-400" size={14} />
-                 <span className="text-[11px] font-black uppercase text-gray-900 tracking-widest">Upgrade Pro</span>
-               </div>
-               <p className="text-[13px] text-gray-500 leading-relaxed font-light ">
+              <div className="flex items-center gap-2 mb-3">
+                <Star className="text-amber-400 fill-amber-400" size={14} />
+                <span className="text-[11px] font-black uppercase text-gray-900 tracking-widest">Upgrade Pro</span>
+              </div>
+              <p className="text-[13px] text-gray-500 leading-relaxed font-light ">
                 Tudo do Plano Essencial, mais: Conexão online com seus arquivos, atualização da fonte de dados em "1 clique", painel de resultados realtime com customizações e acesso antecipado a novas funções.
-               </p>
+              </p>
             </div>
           </div>
 
           {/* CONTAINER DIREITO: CARD (DESKTOP) */}
           <div className="hidden lg:block w-full lg:w-[380px] shrink-0">
-            <CardPrecoPro 
-              openPixModal={openPixModal} 
+            <CardPrecoPro
+              openPixModal={openPixModal}
               CheckoutForm={CheckoutForm}
             />
           </div>
@@ -140,9 +140,9 @@ export default function PaginaPlanoPro() {
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Pagamento via PIX</h3>
               <p className="text-gray-500 mb-6 text-sm">Escaneie o código para o plano <span className="font-bold text-amber-600 uppercase">{selectedPlan?.name}</span></p>
-              
+
               <div className="bg-white p-4 rounded-3xl mb-6 shadow-inner border border-gray-100">
-                 <img src={`/${selectedPlan?.qrCode}`} alt="QR Code" className="w-48 h-48 object-contain" />
+                <img src={`/${selectedPlan?.qrCode}`} alt="QR Code" className="w-48 h-48 object-contain" />
               </div>
 
               <div className="w-full space-y-3">
@@ -169,13 +169,13 @@ export default function PaginaPlanoPro() {
       <div className="flex flex-col items-center text-center">
         <div className="max-w-3xl mb-12">
           <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
-            Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+            Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
           </h4>
           <p className="text-gray-500 font-medium text-sm md:text-base">
             Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
           </p>
         </div>
-        
+
         <a href="https://www.instagram.com/nucleobase.app/" target="_blank" rel="noopener noreferrer" className="group relative flex flex-col items-center gap-6">
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
@@ -194,7 +194,7 @@ export default function PaginaPlanoPro() {
   );
 }
 
-{/* SUBCOMPONENTE CARD PRO PADRONIZADO */}
+{/* SUBCOMPONENTE CARD PRO PADRONIZADO */ }
 function CardPrecoPro({ openPixModal, CheckoutForm }: any) {
   return (
     <div className="bg-white border-2 border-amber-500 rounded-[2rem] p-8 shadow-2xl shadow-amber-100 transition-all duration-500 w-full h-full flex flex-col justify-center relative overflow-hidden">
@@ -214,14 +214,14 @@ function CardPrecoPro({ openPixModal, CheckoutForm }: any) {
 
       <div className="mb-4 bg-amber-50 p-3 rounded-xl border border-amber-100">
         <p className="text-[11px] text-center text-amber-900 leading-tight font-medium">
-          Aproveite <strong>3 meses de degustação</strong> antes da assinatura.
+          Aproveite <strong>45 dias de degustação</strong> antes da assinatura.
         </p>
       </div>
 
       <div className="space-y-3">
-        <CheckoutForm 
-          lookupKey="pro_mensal" 
-          label="Assinar Plano Pro" 
+        <CheckoutForm
+          lookupKey="pro_mensal"
+          label="Assinar Plano Pro"
           description="Plano Pro Mensal"
           className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold text-[11px] uppercase tracking-[0.2em] hover:bg-amber-600 transition-all shadow-sm"
         />
@@ -238,7 +238,7 @@ function CardPrecoPro({ openPixModal, CheckoutForm }: any) {
           <div className="h-px bg-gray-100 flex-1"></div>
         </div>
 
-        <button 
+        <button
           onClick={() => openPixModal("Pro Mensal", "R$ 19,90", "nucleo-qr-pro.png")}
           className="w-full py-3 border border-amber-200 rounded-xl flex items-center justify-center gap-2 group hover:bg-amber-50 transition-all"
         >

@@ -10,7 +10,7 @@ import {
   KeyRound, Instagram, X,
   Target, Share2, Wallet, Zap, Rocket, LayoutDashboard, Info,
   PieChart, Award, ChartPie, Building2, FileCheck2, CheckCircle2, Settings2, ShieldCheck,
-  Eye, EyeOff, Sparkles, ArrowUpRight
+  Eye, EyeOff, Sparkles, ArrowUpRight, Lock
 } from "lucide-react";
 
 export default function MinhaContaPage() {
@@ -39,6 +39,11 @@ export default function MinhaContaPage() {
   const [condoNome, setCondoNome] = useState("");
   const [condoCnpj, setCondoCnpj] = useState("");
   const [unidadeSindico, setUnidadeSindico] = useState("");
+
+  // --- ESTADOS INICIAIS ORIGINAIS (PARA VALIDAÇÃO DE BLOQUEIO) ---
+  const [initialCondoNome, setInitialCondoNome] = useState("");
+  const [initialCondoCnpj, setInitialCondoCnpj] = useState("");
+  const [initialUnidadeSindico, setInitialUnidadeSindico] = useState("");
 
   // --- ESTADOS DE SISTEMA ---
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -229,7 +234,8 @@ export default function MinhaContaPage() {
         setEmail(user.email || "");
         const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
         if (profile) {
-          setNome(profile.nome_completo || "");
+          const nomeProfile = profile.nome_completo || "";
+          setNome(nomeProfile);
           setSlug(profile.slug || "");
           setEmailContato(profile.email_contato || "");
           setTelefone(profile.telefone || "");
@@ -255,14 +261,20 @@ export default function MinhaContaPage() {
           .maybeSingle();
 
         if (membro) {
-          setUnidadeSindico(membro.unidade || "");
+          const unidadeVal = membro.unidade || "";
+          setUnidadeSindico(unidadeVal);
+          setInitialUnidadeSindico(unidadeVal);
           if (membro.condominio) {
             // @ts-ignore
             setCondoId(membro.condominio.id);
             // @ts-ignore
-            setCondoNome(membro.condominio.nome || "");
+            const nomeCondoVal = membro.condominio.nome || "";
+            setCondoNome(nomeCondoVal);
+            setInitialCondoNome(nomeCondoVal);
             // @ts-ignore
-            setCondoCnpj(membro.condominio.cnpj || "");
+            const cnpjCondoVal = membro.condominio.cnpj || "";
+            setCondoCnpj(cnpjCondoVal);
+            setInitialCondoCnpj(cnpjCondoVal);
           }
         }
 
@@ -274,6 +286,17 @@ export default function MinhaContaPage() {
   }, []);
 
   const handleUpdate = async () => {
+    // Validação de bloqueio: CNPJ e Unidade (e Nome do Edifício) não podem ser alterados pelo usuário comum
+    if (condoCnpj !== initialCondoCnpj || unidadeSindico !== initialUnidadeSindico || condoNome !== initialCondoNome) {
+      alert("Entre em contato com o Administrador de sua conta para realizar esta operação em 'Acesso Empresarial'.");
+      // Reverte os campos bloqueados para os valores originais
+      setCondoCnpj(initialCondoCnpj);
+      setUnidadeSindico(initialUnidadeSindico);
+      setCondoNome(initialCondoNome);
+      setUpdating(false);
+      return;
+    }
+
     setUpdating(true);
     setSuccessMessage("");
     const { data: { user } } = await supabase.auth.getUser();
@@ -292,69 +315,6 @@ export default function MinhaContaPage() {
         alert("Erro ao atualizar perfil: " + profileError.message);
         setUpdating(false);
         return;
-      }
-
-      // 2. Lógica de atualização/cadastro empresarial do condomínio com retorno em "condominio_nome"
-      if (condoNome.trim()) {
-        try {
-          let currentCondoId = condoId;
-          const nomeEdificioLimpo = condoNome.trim();
-
-          if (!currentCondoId) {
-            // Cria um novo condomínio
-            const { data: novoCondo, error: condoInsertError } = await supabase
-              .from("condominios")
-              .insert([{ nome: nomeEdificioLimpo, cnpj: condoCnpj.trim() }])
-              .select("id")
-              .single();
-
-            if (condoInsertError) throw condoInsertError;
-
-            if (novoCondo) {
-              currentCondoId = novoCondo.id;
-              setCondoId(novoCondo.id);
-
-              // Cria o vínculo como síndico na tabela condominio_membros preenchendo o condominio_nome
-              const { error: membroInsertError } = await supabase
-                .from("condominio_membros")
-                .insert([
-                  {
-                    condominio_id: novoCondo.id,
-                    user_id: user.id,
-                    role: "sindico",
-                    unidade: unidadeSindico.trim() || "Administração",
-                    condominio_nome: nomeEdificioLimpo
-                  }
-                ]);
-
-              if (membroInsertError) throw membroInsertError;
-            }
-          } else {
-            // Atualiza os dados do condomínio existente
-            const { error: condoUpdateError } = await supabase
-              .from("condominios")
-              .update({ nome: nomeEdificioLimpo, cnpj: condoCnpj.trim() })
-              .eq("id", currentCondoId);
-
-            if (condoUpdateError) throw condoUpdateError;
-
-            // Atualiza a unidade e o campo condominio_nome do vínculo do membro
-            const { error: membroUpdateError } = await supabase
-              .from("condominio_membros")
-              .update({
-                unidade: unidadeSindico.trim() || "Administração",
-                condominio_nome: nomeEdificioLimpo
-              })
-              .eq("user_id", user.id)
-              .eq("condominio_id", currentCondoId);
-
-            if (membroUpdateError) throw membroUpdateError;
-          }
-        } catch (condoError: any) {
-          alert("Erro ao salvar dados do condomínio: " + condoError.message);
-          setUpdating(false);
-          return;
-        }
       }
 
       setIsDirty(false);
@@ -433,26 +393,26 @@ export default function MinhaContaPage() {
 
       {/* CARD DE AJUSTES DE CREDENCIAIS (EXCLUSIVO MOBILE LOGO ABAIXO DA LINHA DIVISÓRIA) */}
       <div className="block md:hidden mb-8">
-        <div className="w-full p-6 bg-gradient-to-br from-gray-900 to-black rounded-[2rem] shadow-xl text-center space-y-4 border border-gray-800">
-          <div className="flex items-center gap-4 text-left">
-            <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-blue-400 shrink-0">
-              <KeyRound size={24} />
+        <div className="w-full p-4 bg-gradient-to-br from-gray-900 to-black rounded-2xl shadow-xl text-center space-y-3 border border-gray-800">
+          <div className="flex items-center gap-3 text-left">
+            <div className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center text-blue-400 shrink-0">
+              <ShieldCheck size={18} />
             </div>
-            <p className="text-white text-xs font-bold leading-relaxed">
-              Ajustes de credenciais
+            <p className="text-white text-[11px] font-bold leading-relaxed">
+              Ajustes credenciais de acesso
             </p>
           </div>
-          <div className="flex flex-col gap-2 pt-2">
+          <div className="flex flex-col gap-2 pt-1">
             <button
               onClick={() => setShowPassModal(true)}
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
             >
               <KeyRound size={14} />
               <span>Alterar senha</span>
             </button>
             <Link
               href="/configuracoes"
-              className="w-full py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2"
             >
               <Settings2 size={14} />
               <span>Configurações</span>
@@ -591,11 +551,11 @@ export default function MinhaContaPage() {
                   <div className="w-full p-6 bg-gradient-to-br from-gray-900 to-black rounded-[2rem] shadow-xl text-center space-y-4 border border-gray-800">
                     <div className="flex items-center gap-4 text-left">
                       <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-blue-400 shrink-0">
-                        <KeyRound size={24} />
+                        <ShieldCheck size={24} />
                       </div>
                       <p className="text-white text-xs font-bold leading-relaxed">
                         <span className="md:hidden">Ajustes de credenciais</span>
-                        <span className="hidden md:inline">Segurança e credenciais da conta. Redefina sua senha ou acesse as preferências completas.</span>
+                        <span className="hidden md:inline">Redefinição de senha e edição de configurações.</span>
                       </p>
                     </div>
                     <div className="flex flex-col gap-2 pt-2">
@@ -609,11 +569,11 @@ export default function MinhaContaPage() {
                       </button>
                       <Link
                         href="/configuracoes"
-                        className="w-full py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2"
+                        className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2"
                       >
                         <Settings2 size={14} />
                         <span className="md:hidden">Configurações</span>
-                        <span className="hidden md:inline">Ir para Configurações</span>
+                        <span className="hidden md:inline">Acessar Configurações</span>
                       </Link>
                     </div>
                   </div>
@@ -814,12 +774,13 @@ export default function MinhaContaPage() {
       <div className="mt-8">
         <section className="bg-blue-50/10 rounded-[2.5rem] p-6 md:p-10 border border-blue-100/30">
           <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-blue-600/70 mb-8 flex items-center gap-4">
-            Acesso Empresarial (Condomínio) <div className="h-px bg-blue-100/50 flex-1"></div>
+            Acesso Empresarial <div className="h-px bg-blue-100/50 flex-1"></div>
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
             <div className="space-y-3">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                <Building2 size={12} className="text-blue-500" /> Nome do Edifício
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
+                <span className="flex items-center gap-2"><Building2 size={12} className="text-blue-500" /> Nome | Razão Social </span>
+                <span className="text-orange-600 flex items-center"><Lock size={12} /></span>
               </label>
               <input
                 type="text"
@@ -830,8 +791,9 @@ export default function MinhaContaPage() {
               />
             </div>
             <div className="space-y-3">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                <FileCheck2 size={12} className="text-blue-500" /> CNPJ do Condomínio
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
+                <span className="flex items-center gap-2"><FileCheck2 size={12} className="text-blue-500" /> CNPJ | CCMEI</span>
+                <span className="text-orange-600 flex items-center"><Lock size={12} /></span>
               </label>
               <input
                 type="text"
@@ -842,8 +804,9 @@ export default function MinhaContaPage() {
               />
             </div>
             <div className="space-y-3">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                Unidade / Identificação
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
+                <span>Unidade | Identificação</span>
+                <span className="text-orange-600 flex items-center"><Lock size={12} /></span>
               </label>
               <input
                 type="text"
@@ -854,34 +817,40 @@ export default function MinhaContaPage() {
               />
             </div>
           </div>
-          <p className="text-[10px] text-zinc-400 italic font-medium mb-6">
-            * Ao salvar estas informações, o seu perfil estará associado diretamente ao respectivo condomínio e unidade.
+          <p className="text-[10px] text-orange-600 font-medium mb-6">
+            * Edição restrita ao Administrador: Caso precise alterar o Edifício ou sua Unidade, entre em contato com a Administração do Condomínio.
           </p>
 
           {/* BANNER DE DESTAQUE - PLANO PRO & DEGUSTAÇÃO */}
-          <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white p-6 rounded-2xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden border border-blue-400/20">
+          <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white p-4 md:p-6 rounded-2xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden border border-blue-400/20">
             <div className="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
               <Sparkles size={160} />
             </div>
-            <div className="flex items-center gap-4 relative z-10">
-              <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-blue-600/30">
-                <Sparkles size={24} />
+            <div className="flex items-center gap-4 relative z-10 w-full md:w-auto">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-blue-600/30">
+                <Sparkles size={20} />
               </div>
               <div>
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-1 hidden md:flex">
                   <span className="bg-blue-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-md tracking-wider">Nucleo Condo</span>
                   <span className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">• Plano Pro</span>
                 </div>
-                <h4 className="font-bold text-sm text-white leading-snug">
+                {/* VERSÃO DESKTOP */}
+                <h4 className="font-bold text-sm text-white leading-snug hidden md:block">
                   Período de degustação de 45 dias ativos inclusos.
+                </h4>
+                {/* VERSÃO MOBILE SIMPLIFICADA */}
+                <h4 className="font-bold text-xs text-white leading-snug md:hidden">
+                  Degustação de 45 dias para novos negócios. Indique-nos.
                 </h4>
               </div>
             </div>
             <Link
               href="/planos/pro"
-              className="relative z-10 flex items-center gap-2 bg-white text-blue-900 hover:bg-blue-50 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md transition-all shrink-0"
+              className="relative z-10 flex items-center justify-center gap-2 bg-white text-blue-900 hover:bg-blue-50 w-full md:w-auto px-6 py-2.5 md:py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md transition-all shrink-0"
             >
-              Conhecer Plano Pro <ArrowUpRight size={14} />
+              <span className="hidden md:inline">Conhecer Plano Pro</span>
+              <span className="md:hidden">Saiba Mais</span> <ArrowUpRight size={14} />
             </Link>
           </div>
         </section>

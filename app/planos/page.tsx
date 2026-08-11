@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
-import { 
-  Zap, ShieldCheck, BarChart3, ShoppingCart, 
+import {
+  Zap, ShieldCheck, BarChart3, ShoppingCart,
   CheckCircle2, Info, Star, TrendingUp, Gem,
   QrCode, X, Copy, Check, MessageCircle, Instagram,
   ChevronLeft, ChevronRight, Headphones, RefreshCcw, Rocket
@@ -9,14 +9,14 @@ import {
 
 export default function PaginaDePlanos() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<{name: string, price: string, qrCode: string} | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<{ name: string, price: string, qrCode: string } | null>(null);
   const [copied, setCopied] = useState(false);
-  
+
   const [currentCardMobile, setCurrentCardMobile] = useState(0);
   const [currentCardDesktop, setCurrentCardDesktop] = useState(0);
 
   const PIX_KEY = "contato@nucleobase.app";
-  const WHATSAPP_LINK_ID = "q46hkm"; 
+  const WHATSAPP_LINK_ID = "q46hkm";
 
   const diferenciais = [
     { icon: <ShieldCheck size={32} />, title: "Criptografia Base", desc: "Privacidade total dos seus dados." },
@@ -56,15 +56,15 @@ export default function PaginaDePlanos() {
     window.open(`https://wa.link/${WHATSAPP_LINK_ID}?text=${message}`, '_blank');
   };
 
-  const CheckoutForm = ({ 
-    lookupKey, 
-    label, 
-    className, 
+  const CheckoutForm = ({
+    lookupKey,
+    label,
+    className,
     description,
-    href 
-  }: { 
-    lookupKey: string, 
-    label: string, 
+    href
+  }: {
+    lookupKey: string,
+    label: string,
     className?: string,
     description: string,
     href?: string
@@ -83,8 +83,8 @@ export default function PaginaDePlanos() {
       <form action="/api/stripe" method="POST" className="w-full">
         <input type="hidden" name="lookup_key" value={lookupKey} />
         <a href={`#checkout-${lookupKey}`} title={description} className="block w-full cursor-pointer decoration-transparent">
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className={`${className} cursor-pointer transition-transform active:scale-[0.98]`}
           >
             {label}
@@ -96,13 +96,13 @@ export default function PaginaDePlanos() {
 
   return (
     <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
-      
+
       {/* MODAL PIX */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-white rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 relative">
             <div className="p-8 flex flex-col items-center text-center">
-              <button 
+              <button
                 onClick={() => setIsModalOpen(false)}
                 className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-900 transition-colors"
               >
@@ -116,15 +116,15 @@ export default function PaginaDePlanos() {
                 Plano <span className="font-bold text-blue-600">{selectedPlan?.name}</span> por <span className="font-bold text-gray-900">{selectedPlan?.price}</span>
               </p>
               <div className="bg-white p-4 rounded-3xl mb-6 shadow-inner border border-gray-100">
-                 <img src={`/${selectedPlan?.qrCode}`} alt="QR Code Pix" className="w-48 h-48 object-contain" />
+                <img src={`/${selectedPlan?.qrCode}`} alt="QR Code Pix" className="w-48 h-48 object-contain" />
               </div>
               <div className="w-full space-y-3">
                 <div className="relative group">
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">Chave E-mail:</p>
-                    <button onClick={handleCopyPix} className="w-full py-4 bg-gray-50 border-2 border-dashed border-gray-200 text-gray-700 rounded-2xl font-mono text-sm flex items-center justify-center gap-3 hover:border-blue-400 hover:bg-white transition-all active:scale-95">
-                        {PIX_KEY}
-                        {copied ? <Check size={18} className="text-emerald-500" /> : <Copy size={18} className="text-gray-400" />}
-                    </button>
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">Chave E-mail:</p>
+                  <button onClick={handleCopyPix} className="w-full py-4 bg-gray-50 border-2 border-dashed border-gray-200 text-gray-700 rounded-2xl font-mono text-sm flex items-center justify-center gap-3 hover:border-blue-400 hover:bg-white transition-all active:scale-95">
+                    {PIX_KEY}
+                    {copied ? <Check size={18} className="text-emerald-500" /> : <Copy size={18} className="text-gray-400" />}
+                  </button>
                 </div>
                 <button onClick={handleSendProof} className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-200 active:scale-95">
                   <MessageCircle size={20} /> Enviar Comprovante
@@ -154,15 +154,15 @@ export default function PaginaDePlanos() {
       </h3>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch mb-16">
-        
+
         {/* CARD EXPERIÊNCIA / GRATUITO */}
         <div className="bg-slate-50 border border-slate-200 rounded-[2.5rem] p-10 flex flex-col transition-all hover:border-blue-200 relative group overflow-hidden">
           <div className="relative z-10 flex-grow">
             <div className="flex items-center gap-2 text-blue-600 font-bold text-[10px] uppercase tracking-[0.2em] mb-8">
-              <Star size={18} className="fill-blue-600" /> Grátis
+              <Rocket size={18} className="text-blue-600" /> Uso pessoal
             </div>
             <h3 className="text-3xl font-bold text-slate-900 mb-2 leading-tight">90 Dias de Experiência</h3>
-            <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">Conheça e valide. Sem restrições. Período de degustação completo.</p>
+            <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">Conheça e valide. Período de degustação completo para seu controle financeiro.</p>
             <ul className="space-y-4 mb-10">
               {["Registros ilimitados", "Lançamentos online", "Painel de Resultados"].map((v, i) => (
                 <li key={i} className="flex items-center gap-3 text-slate-600 text-sm font-medium">
@@ -183,14 +183,14 @@ export default function PaginaDePlanos() {
         <div className="bg-white border border-slate-200 rounded-[2.5rem] p-10 shadow-sm hover:shadow-xl transition-all flex flex-col border-b-4 border-b-transparent hover:border-b-blue-600">
           <div className="flex-grow">
             <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mb-8">
-              <Rocket size={18} /> Uso Pessoal
+              <Star size={18} className="fill-blue-600 text-blue-600 animate-pulse scale-110" /> Uso Pessoal
             </div>
             <h3 className="text-3xl font-bold text-slate-900 mb-4">Essencial</h3>
             <div className="flex flex-col mb-8">
               <span className="text-4xl font-black text-slate-900 tracking-tighter">R$ 9,90</span>
               <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">/mês</span>
             </div>
-            
+
             <div className="grid grid-cols-3 gap-2 mb-10">
               <CheckoutForm lookupKey="essencial_trimestral" label="Trim." description="Trimestral" className="w-full py-2 bg-slate-50 border border-slate-100 text-slate-600 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white hover:border-slate-300 transition-all" />
               <CheckoutForm lookupKey="essencial_semestral" label="Semest." description="Semestral" className="w-full py-2 bg-slate-50 border border-slate-100 text-slate-600 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white hover:border-slate-300 transition-all" />
@@ -214,10 +214,10 @@ export default function PaginaDePlanos() {
         <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-10 shadow-2xl flex flex-col relative overflow-hidden group transition-all border-b-4 border-b-transparent hover:border-b-orange-500">
           <div className="relative z-10 flex-grow">
             <div className="flex items-center w-full mb-8">
-                <div className="px-3 py-1 rounded-full bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest">Recomendado</div>
-                <div className="flex-1 flex justify-center items-center">
-                  <Gem size={18} className="text-orange-500" />
-                </div>
+              <div className="px-3 py-1 rounded-full bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest">Empresarial</div>
+              <div className="flex-1 flex justify-center items-center">
+                <Gem size={18} className="text-orange-500" />
+              </div>
             </div>
             <h3 className="text-3xl font-bold text-white mb-4">Plano Pro</h3>
             <div className="flex flex-col mb-8">
@@ -232,7 +232,7 @@ export default function PaginaDePlanos() {
             </div>
 
             <ul className="space-y-4 mb-6">
-              {["Importação via arquivo", "Integração Contínua", "Suporte Prioritário"].map((v, i) => (
+              {["Importação via arquivo", "Integração Contínua", "+ Módulos Empresas"].map((v, i) => (
                 <li key={i} className="flex items-center gap-3 text-slate-300 text-sm font-medium">
                   <CheckCircle2 size={16} className="text-blue-400" /> {v}
                 </li>
@@ -247,7 +247,7 @@ export default function PaginaDePlanos() {
       </div>
 
       <div className="w-full h-px bg-gray-200 mt-20 mb-10"></div>
-      
+
       <div className="mb-12">
         <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 mb-2">Por que somos diferentes?</h4>
         <p className="text-lg text-gray-500 font-medium leading-relaxed max-w-3xl">Conheça os pilares que sustentam a segurança e a transparência da nossa plataforma para transformar sua gestão financeira.</p>
@@ -277,7 +277,7 @@ export default function PaginaDePlanos() {
           </div>
         </div>
       </div>
-      
+
       <div className="md:hidden">
         <div className="relative px-2">
           <div className="flex items-center justify-between absolute top-1/2 -translate-y-1/2 w-full left-0 z-10 px-1">
@@ -285,17 +285,17 @@ export default function PaginaDePlanos() {
             <button onClick={nextCardMobile} className="p-2 bg-white shadow-lg rounded-full text-gray-400 active:scale-90 transition-transform border border-gray-100"><ChevronRight size={20} /></button>
           </div>
           <div className="overflow-hidden">
-             <div className="flex transition-transform duration-500 ease-out" style={{ transform: `translateX(-${currentCardMobile * 100}%)` }}>
-                {diferenciais.map((item, idx) => (
-                  <div key={idx} className="min-w-full px-10">
-                    <div className="flex flex-col items-center text-center p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
-                      <div className="bg-white p-4 rounded-2xl shadow-sm text-blue-600 mb-4">{item.icon}</div>
-                      <h5 className="font-black text-gray-900 text-sm uppercase tracking-tight mb-1">{item.title}</h5>
-                      <p className="text-xs text-gray-500 font-medium">{item.desc}</p>
-                    </div>
+            <div className="flex transition-transform duration-500 ease-out" style={{ transform: `translateX(-${currentCardMobile * 100}%)` }}>
+              {diferenciais.map((item, idx) => (
+                <div key={idx} className="min-w-full px-10">
+                  <div className="flex flex-col items-center text-center p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
+                    <div className="bg-white p-4 rounded-2xl shadow-sm text-blue-600 mb-4">{item.icon}</div>
+                    <h5 className="font-black text-gray-900 text-sm uppercase tracking-tight mb-1">{item.title}</h5>
+                    <p className="text-xs text-gray-500 font-medium">{item.desc}</p>
                   </div>
-                ))}
-             </div>
+                </div>
+              ))}
+            </div>
           </div>
           <div className="flex justify-center gap-1.5 mt-6">
             {diferenciais.map((_, idx) => (
@@ -313,7 +313,7 @@ export default function PaginaDePlanos() {
 
       <div className="flex flex-col items-center text-center">
         <div className="max-w-3xl mb-12">
-          <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span></h4>
+          <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span></h4>
           <p className="text-gray-500 font-medium text-sm md:text-base">Insights, novidades e bastidores da Nucleobase diretamente no seu feed.</p>
         </div>
         <a href="https://www.instagram.com/nucleobase.app/" target="_blank" rel="noopener noreferrer" className="group relative flex flex-col items-center gap-6">

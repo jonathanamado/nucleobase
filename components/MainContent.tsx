@@ -368,10 +368,10 @@ export function MainContent() {
               <div className="bg-orange-50 p-3 rounded-2xl text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all duration-300 mb-4">
                 <LayoutDashboard size={24} />
               </div>
-              <h4 className="font-bold text-gray-900 text-base mb-1">Acessar APP</h4>
-              <p className="text-[11px] text-gray-500 leading-tight mb-4">Gerencie lançamentos financeiros e controle cadastros.</p>
+              <h4 className="font-bold text-gray-900 text-base mb-1">Controle Financeiro</h4>
+              <p className="text-[11px] text-gray-500 leading-tight mb-4">Gerencie lançamentos financeiros e projeções de gastos.</p>
               <div className="w-full mt-auto py-2.5 bg-orange-50/50 border border-orange-100 text-orange-600 rounded-xl font-bold text-[10px] uppercase tracking-widest group-hover:bg-orange-600 group-hover:text-white transition-all flex items-center justify-center gap-2">
-                Entrar agora <ArrowRight size={12} />
+                Acessar <ArrowRight size={12} />
               </div>
             </Link>
           </div>
@@ -381,10 +381,10 @@ export function MainContent() {
               <div className="bg-white p-3 rounded-2xl text-blue-600 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 mb-4">
                 <BarChart3 size={24} />
               </div>
-              <h4 className="font-bold text-gray-900 text-base mb-1">Visão Resultados</h4>
+              <h4 className="font-bold text-gray-900 text-base mb-1">Visão de Resultados</h4>
               <p className="text-[11px] text-gray-600 leading-tight mb-4">Analise sua performance financeira e dados de condomínios.</p>
               <div className="w-full mt-auto py-2.5 bg-white border border-blue-200 text-blue-600 rounded-xl font-bold text-[10px] uppercase tracking-widest group-hover:bg-blue-600 group-hover:text-white transition-all flex items-center justify-center gap-2">
-                Ver Painel <ArrowRight size={12} />
+                Acessar <ArrowRight size={12} />
               </div>
             </Link>
           </div>
@@ -397,7 +397,7 @@ export function MainContent() {
               <h4 className="font-bold text-gray-900 text-base mb-1">Nucleo Condo</h4>
               <p className="text-[11px] text-gray-600 leading-tight mb-4">Gerencie seu condomínio e o cadastro de moradores.</p>
               <div className="w-full mt-auto py-2.5 bg-white border border-emerald-200 text-emerald-600 rounded-xl font-bold text-[10px] uppercase tracking-widest group-hover:bg-emerald-600 group-hover:text-white transition-all flex items-center justify-center gap-2">
-                Acessar Condo <Building2 size={12} />
+                Acessar <Building2 size={12} />
               </div>
             </Link>
           </div>

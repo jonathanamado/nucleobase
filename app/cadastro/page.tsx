@@ -203,7 +203,7 @@ export default function CadastroPage() {
                 <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4">
                   {[
                     { icon: <Clock size={20} className="text-blue-400" />, text: "Plano particular (Controle Financeiro): 90 dias com acesso irrestrito em todas as funções e suporte em dúvidas de uso." },
-                    { icon: <Sparkles size={20} className="text-indigo-400" />, text: "Plano Empresarial (Condo): Experimente livremente com 45 dias de degustação, testarndo todo o potencial do APP." },
+                    { icon: <Sparkles size={20} className="text-indigo-400" />, text: "Plano Empresarial (Condo): Experimente livremente com 45 dias de degustação, testando todo o potencial do APP." },
                     { icon: <CheckCircle2 size={20} className="text-emerald-500" />, text: "Pós-período: Sua conta continua ativa. Consulta e métricas seguem livres." },
                     { icon: <ShieldCheck size={20} className="text-blue-500" />, text: "Segurança de dados e privacidade, garantindo personalizações exclusivamente para o seu perfil." }
                   ].map((item, i) => (

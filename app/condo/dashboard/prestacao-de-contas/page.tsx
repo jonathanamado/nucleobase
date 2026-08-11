@@ -41,6 +41,7 @@ export default function PrestacaoContasPage() {
     // Estados de Filtro de Período
     const mesVigentePadrao = new Date().toISOString().slice(0, 7);
     const [filtroPeriodo, setFiltroPeriodo] = useState<string>(mesVigentePadrao);
+    const [ultimoMesSelecionado, setUltimoMesSelecionado] = useState<string>(mesVigentePadrao);
 
     // Estados de Ordenação da Tabela Demonstrativo
     const [orderBy, setOrderBy] = useState<'tipo' | 'descricao'>('tipo');
@@ -63,9 +64,10 @@ export default function PrestacaoContasPage() {
     const [formSuccess, setFormSuccess] = useState('');
 
     const isMountedRef = useRef(true);
+    const inputMesRef = useRef<HTMLInputElement>(null);
 
     const formatarPeriodoExibicao = (valorPeriodo: string) => {
-        if (valorPeriodo === 'acumulado') return 'Acumulado';
+        if (valorPeriodo === 'acumulado') return '-';
         if (!valorPeriodo) return '';
         const [ano, mes] = valorPeriodo.split('-');
         if (!ano || !mes) return valorPeriodo;
@@ -82,7 +84,7 @@ export default function PrestacaoContasPage() {
     };
 
     const formatarPeriodoDesktop = (valorPeriodo: string) => {
-        if (valorPeriodo === 'acumulado') return 'Acumulado';
+        if (valorPeriodo === 'acumulado') return '-';
         if (!valorPeriodo) return '';
         const [ano, mes] = valorPeriodo.split('-');
         if (!ano || !mes) return valorPeriodo;
@@ -480,33 +482,71 @@ export default function PrestacaoContasPage() {
                     </div>
                 </div>
 
-                <div className="flex justify-center md:justify-end mb-5">
+                <div className="flex flex-col md:flex-row justify-center md:justify-end mb-5 gap-2">
                     <div className="w-full md:w-[calc(25%-12px)] flex items-center justify-between gap-2 bg-white border border-zinc-200 px-3.5 py-1.5 rounded-full shadow-sm">
-                        <div className="flex items-center gap-2 overflow-hidden relative">
-                            <Filter size={14} className="text-zinc-800 shrink-0" />
-                            <span className="text-[10px] font-bold text-zinc-800 uppercase whitespace-nowrap">Filtro:</span>
+                        <div
+                            className="flex items-center gap-2 overflow-hidden relative cursor-pointer w-full"
+                            onClick={() => {
+                                if (inputMesRef.current) {
+                                    if (typeof inputMesRef.current.showPicker === 'function') {
+                                        inputMesRef.current.showPicker();
+                                    } else {
+                                        inputMesRef.current.click();
+                                    }
+                                }
+                            }}
+                        >
+                            <Filter size={12} className="text-zinc-800 shrink-0" />
+                            <span className="text-xs font-bold text-zinc-800 uppercase whitespace-nowrap">Filtro:</span>
 
-                            <span className="md:hidden text-xs font-bold text-zinc-800 whitespace-nowrap cursor-pointer">
+                            <span className="md:hidden text-xs font-normal text-zinc-800 whitespace-nowrap">
                                 {formatarPeriodoExibicao(filtroPeriodo)}
                             </span>
 
-                            <span className="hidden md:inline text-xs font-bold text-zinc-800 whitespace-nowrap cursor-pointer">
+                            <span className="hidden md:inline text-xs font-normal text-zinc-800 whitespace-nowrap">
                                 {formatarPeriodoDesktop(filtroPeriodo)}
                             </span>
 
                             <input
+                                ref={inputMesRef}
                                 type="month"
                                 value={filtroPeriodo === 'acumulado' ? '' : filtroPeriodo}
-                                onChange={(e) => setFiltroPeriodo(e.target.value || mesVigentePadrao)}
-                                className={`text-xs font-bold text-zinc-800 bg-transparent outline-none cursor-pointer absolute inset-0 opacity-0`}
+                                onChange={(e) => {
+                                    const novoMes = e.target.value || mesVigentePadrao;
+                                    setUltimoMesSelecionado(novoMes);
+                                    setFiltroPeriodo(novoMes);
+                                }}
+                                className={`text-xs font-bold text-zinc-800 bg-transparent outline-none cursor-pointer absolute inset-0 opacity-0 pointer-events-none`}
                                 title="Filtrar por Mês"
                             />
                         </div>
                         <button
-                            onClick={() => setFiltroPeriodo('acumulado')}
-                            className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full transition-all shrink-0 cursor-pointer ${filtroPeriodo === 'acumulado' ? 'bg-blue-600 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}
+                            onClick={() => {
+                                if (filtroPeriodo === 'acumulado') {
+                                    setFiltroPeriodo(ultimoMesSelecionado);
+                                } else {
+                                    setUltimoMesSelecionado(filtroPeriodo);
+                                    setFiltroPeriodo('acumulado');
+                                }
+                            }}
+                            className={`md:hidden text-[9px] font-black uppercase px-2 py-0.5 rounded-full transition-all shrink-0 cursor-pointer ${filtroPeriodo === 'acumulado' ? 'bg-blue-600 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}
                         >
-                            Visão Acumulado
+                            Acumulado
+                        </button>
+                    </div>
+                    <div className="hidden md:flex w-full md:w-[calc(25%-12px)] justify-end">
+                        <button
+                            onClick={() => {
+                                if (filtroPeriodo === 'acumulado') {
+                                    setFiltroPeriodo(ultimoMesSelecionado);
+                                } else {
+                                    setUltimoMesSelecionado(filtroPeriodo);
+                                    setFiltroPeriodo('acumulado');
+                                }
+                            }}
+                            className={`w-full text-[9px] font-black uppercase px-3 py-1.5 rounded-full transition-all cursor-pointer text-center ${filtroPeriodo === 'acumulado' ? 'bg-blue-600 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}
+                        >
+                            Visão Acumulado (Meses totais)
                         </button>
                     </div>
                 </div>
@@ -692,7 +732,7 @@ export default function PrestacaoContasPage() {
                     <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-zinc-100 mb-6 gap-4">
                         <div className="flex items-center gap-2">
                             <BarChart3 className="text-blue-600" size={20} />
-                            <h3 className="font-bold text-base text-zinc-800">Evolução Mensal (Receitas, Despesas e Saldo Líquido)</h3>
+                            <h3 className="font-bold text-base text-zinc-800">Evolução Mensal (Receitas, Despesas e Saldo)</h3>
                         </div>
                         <div className="flex items-center gap-2 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-xl">
                             <span className="text-[10px] font-bold text-zinc-500 uppercase">Filtrar Descrição:</span>
@@ -765,7 +805,7 @@ export default function PrestacaoContasPage() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 bg-orange-500 rounded-sm"></div>
-                                <span className="text-orange-500 font-black">Saldo Líquido Mensal (abaixo de cada mês)</span>
+                                <span className="text-orange-500 font-black">Saldo</span>
                             </div>
                         </div>
                     </div>
