@@ -16,7 +16,8 @@ import {
     Sparkles,
     Trash2,
     Calendar,
-    Check
+    Check,
+    MessageCircle
 } from "lucide-react";
 
 interface UserMemberData {
@@ -61,23 +62,15 @@ export default function EnquetesDecisoesPage() {
     const [actionLoading, setActionLoading] = useState(false);
     const [memberData, setMemberData] = useState<UserMemberData | null>(null);
 
-    // Listas do Dashboard
     const [enquetesAtivas, setEnquetesAtivas] = useState<EnqueteOficial[]>([]);
     const [votosMorador, setVotosMorador] = useState<Record<string, string>>({});
     const [feedbackVoto, setFeedbackVoto] = useState<string>("");
-
-    // Estado para controlar a visão dos resultados parciais por enquete ('geral' ou 'apartamento')
     const [visoesResultados, setVisoesResultados] = useState<Record<string, 'geral' | 'apartamento'>>({});
-
-    // Mapeamento de membros para associar user_id à unidade caso necessário
     const [membrosCondominio, setMembrosCondominio] = useState<Record<string, string>>({});
-
-    // Lista unificada de propostas enviadas pelo morador
     const [propostasMorador, setPropostasMorador] = useState<PropostaEnquete[]>([]);
 
     const isMountedRef = useRef(true);
 
-    // Estados do Popup de Criação de Enquete Detalhada (+) gravando direto em condominio_enquetes
     const [isPopupOpen, setIsPopupOpen] = useState(false);
     const [detalheTitulo, setDetalheTitulo] = useState("");
     const [detalheDescricao, setDetalheDescricao] = useState("");
@@ -101,6 +94,8 @@ export default function EnquetesDecisoesPage() {
         setDetalheDescricao("");
         setDetalheGanho("");
         setOpcoes([{ id: "1", texto: "Sim" }, { id: "2", texto: "Não" }]);
+        setDetalhadaSucesso("");
+        setCriandoDetalhada(false);
     };
 
     useEffect(() => {
@@ -113,7 +108,6 @@ export default function EnquetesDecisoesPage() {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [isPopupOpen, detalheTitulo, detalheDescricao, detalheGanho]);
 
-    // Função Auxiliar: Formata nome completo para retornar apenas o primeiro e o último nome
     const formatarNomePrimeiroEUltimo = (nomeCompleto: string) => {
         if (!nomeCompleto) return "";
         const partes = nomeCompleto.trim().split(/\s+/);
@@ -123,7 +117,6 @@ export default function EnquetesDecisoesPage() {
 
     const loadDadosDashboard = async (condoId: string, userId: string) => {
         try {
-            // Carregar membros do condomínio para mapear unidades
             const { data: membrosData } = await supabase
                 .from("condominio_membros")
                 .select("user_id, unidade")
@@ -141,7 +134,6 @@ export default function EnquetesDecisoesPage() {
                 setMembrosCondominio(mapaUnidades);
             }
 
-            // 1. Carregar todas as enquetes oficiais do condomínio
             const { data: enquetesData, error: errEnquetes } = await supabase
                 .from("condominio_enquetes")
                 .select("*")
@@ -149,13 +141,11 @@ export default function EnquetesDecisoesPage() {
                 .order("criado_em", { ascending: false });
 
             if (!errEnquetes && enquetesData && isMountedRef.current) {
-                // Filtrar apenas as aprovadas pelo síndico (aprovacao_sindico === 'sim') para exibir na tela ativa
                 const aprovadas = enquetesData.filter((e: any) =>
                     (e.aprovacao_sindico || "").toLowerCase() === "sim"
                 );
                 setEnquetesAtivas(aprovadas as EnqueteOficial[]);
 
-                // Mapear votos do usuário logado a partir do objeto JSON centralizado na coluna 'votos'
                 const votosMap: Record<string, string> = {};
                 enquetesData.forEach((e: any) => {
                     let objVotos = e.votos;
@@ -170,7 +160,6 @@ export default function EnquetesDecisoesPage() {
                 });
                 setVotosMorador(votosMap);
 
-                // Mapear enquetes criadas pelo usuário para a tabela "Minhas sugestões/enquetes"
                 const listaEnquetesUser: PropostaEnquete[] = enquetesData
                     .filter((item: any) => item.criado_por === userId)
                     .map((item: any) => ({
@@ -182,7 +171,6 @@ export default function EnquetesDecisoesPage() {
                         status: (item.aprovacao_sindico || "").toLowerCase() === 'sim' ? 'ativa' : 'pendente'
                     }));
 
-                // 2. Carregar sugestões antigas caso existam na outra tabela
                 const { data: sugestoesData } = await supabase
                     .from("condominio_sugestoes_enquetes")
                     .select("id, titulo, descricao, status, criado_em")
@@ -242,20 +230,8 @@ export default function EnquetesDecisoesPage() {
                 data = res.data;
                 error = res.error;
 
-                if (error) {
-                    const errorMsg = error.message || JSON.stringify(error);
-                    if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
-                        console.error("Erro na consulta Supabase:", errorMsg);
-                    }
-                }
-
-                if (data && data.length > 0) {
-                    break;
-                }
-
-                if (i < retries) {
-                    await new Promise((resolve) => setTimeout(resolve, 300));
-                }
+                if (data && data.length > 0) break;
+                if (i < retries) await new Promise((resolve) => setTimeout(resolve, 300));
             }
 
             if (isMountedRef.current) {
@@ -270,17 +246,9 @@ export default function EnquetesDecisoesPage() {
                 }
             }
         } catch (e: any) {
-            const errString = e?.message || JSON.stringify(e);
-            if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
-                console.error("Erro ao verificar acesso:", errString);
-            }
-            if (isMountedRef.current) {
-                setMemberData(null);
-            }
+            if (isMountedRef.current) setMemberData(null);
         } finally {
-            if (isMountedRef.current) {
-                setLoading(false);
-            }
+            if (isMountedRef.current) setLoading(false);
         }
     };
 
@@ -289,17 +257,9 @@ export default function EnquetesDecisoesPage() {
 
         const initAuth = async () => {
             try {
-                const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-                if (sessionError && !currentSession) throw sessionError;
-
-                if (isMountedRef.current) {
-                    await verifyAccess(currentSession);
-                }
+                const { data: { session: currentSession } } = await supabase.auth.getSession();
+                if (isMountedRef.current) await verifyAccess(currentSession);
             } catch (err: any) {
-                const errString = err?.message || JSON.stringify(err);
-                if (!errString.includes("AbortError") && !errString.includes("Lock broken")) {
-                    console.error("Erro ao recuperar sessão inicial:", errString);
-                }
                 if (isMountedRef.current) setLoading(false);
             }
         };
@@ -308,11 +268,8 @@ export default function EnquetesDecisoesPage() {
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
             if (!isMountedRef.current) return;
-
             if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
-                if (currentSession) {
-                    await verifyAccess(currentSession);
-                }
+                if (currentSession) await verifyAccess(currentSession);
             } else if (event === 'SIGNED_OUT') {
                 setSession(null);
                 setMemberData(null);
@@ -328,40 +285,19 @@ export default function EnquetesDecisoesPage() {
 
     const handleLogout = async () => {
         setLoading(true);
-        try {
-            await supabase.auth.signOut({ scope: 'global' });
-        } catch (e) {
-            console.error("Erro ao deslogar no servidor:", e);
-        }
-
-        try {
-            const keysToRemove = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('nucleo'))) {
-                    keysToRemove.push(key);
-                }
-            }
-            keysToRemove.forEach(k => localStorage.removeItem(k));
-            localStorage.clear();
-            sessionStorage.clear();
-        } catch (e) {
-            console.error("Erro ao limpar storages locais:", e);
-        }
-
+        await supabase.auth.signOut({ scope: 'global' });
+        localStorage.clear();
+        sessionStorage.clear();
         setSession(null);
         setMemberData(null);
         setLoading(false);
-        window.dispatchEvent(new Event("storage"));
     };
 
-    // Computar Voto do Morador atualizando diretamente o JSON na coluna centralizada 'votos'
     const handleVotarEnquete = async (enqueteId: string, opcaoTexto: string) => {
         if (!memberData || !session) return;
         setActionLoading(true);
 
         try {
-            // Buscar enquete atual para atualizar o JSON de votos mantendo os demais condôminos
             const { data: enqueteAtual, error: fetchErr } = await supabase
                 .from("condominio_enquetes")
                 .select("votos")
@@ -386,7 +322,7 @@ export default function EnquetesDecisoesPage() {
 
             const { error: updateErr } = await supabase
                 .from("condominio_enquetes")
-                .update({ votos: novosVotos })
+                .update({ votos: JSON.stringify(novosVotos) })
                 .eq("id", enqueteId);
 
             if (updateErr) throw updateErr;
@@ -403,7 +339,6 @@ export default function EnquetesDecisoesPage() {
         }
     };
 
-    // Adicionar opção no popup detalhado
     const handleAdicionarOpcao = () => {
         if (!novoTextoOpcao.trim()) return;
         setOpcoes([...opcoes, { id: String(Date.now()), texto: novoTextoOpcao.trim() }]);
@@ -418,50 +353,106 @@ export default function EnquetesDecisoesPage() {
         setOpcoes(opcoes.filter((o) => o.id !== id));
     };
 
-    // Submissão da Enquete Detalhada (inicialmente não aprovada pelo síndico)
+    const handleWhatsAppFallback = () => {
+        const textoContexto = detalheDescricao ? `\n*Contexto:* ${detalheDescricao}` : '';
+        const textoGanho = detalheGanho ? `\n*Ganho Esperado:* ${detalheGanho}` : '';
+        const opcoesTexto = opcoes.map((op, idx) => `  ${idx + 1}. ${op.texto}`).join('\n');
+
+        const mensagem = `Olá! Gostaria de propor uma nova enquete para o condomínio, mas o sistema está bloqueando o envio na minha rede. Seguem os dados para registro:\n\n*Título:* ${detalheTitulo}${textoContexto}${textoGanho}\n\n*Opções de Votação:*\n${opcoesTexto}`;
+
+        const url = `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
+        window.open(url, '_blank');
+    };
+
     const handleCriarEnqueteDetalhada = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!detalheTitulo.trim() || !detalheDescricao.trim() || !memberData || !session) return;
 
         setCriandoDetalhada(true);
+        setDetalhadaSucesso("");
 
         try {
-            const descricaoCompleta = detalheGanho.trim()
-                ? `${detalheDescricao.trim()}\n\n[Ganho com a decisão a favor: ${detalheGanho.trim()}]`
-                : detalheDescricao.trim();
+            const sanitizarTexto = (texto: string) => {
+                if (!texto) return "";
+                return texto
+                    .replace(/\\/g, " - ")
+                    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+                    .trim();
+            };
 
-            const { error } = await supabase
-                .from("condominio_enquetes")
-                .insert([
-                    {
-                        condominio_id: memberData.condominio_id,
-                        titulo: detalheTitulo.trim(),
-                        descricao: descricaoCompleta,
-                        opcoes: opcoes,
-                        votos: {},
-                        status: 'ativa',
-                        aprovacao_sindico: 'não',
-                        criado_por: session.user.id
-                    }
-                ]);
+            const ganhoFormatado = sanitizarTexto(detalheGanho);
+            const descricaoCompleta = ganhoFormatado
+                ? `${sanitizarTexto(detalheDescricao)}\n\n[Ganho com a decisão a favor: ${ganhoFormatado}]`
+                : sanitizarTexto(detalheDescricao);
 
-            if (error) throw error;
+            const payload = {
+                condominio_id: memberData.condominio_id,
+                titulo: sanitizarTexto(detalheTitulo),
+                descricao: descricaoCompleta,
+                opcoes: JSON.stringify(opcoes),
+                votos: JSON.stringify({}),
+                status: 'ativa',
+                aprovacao_sindico: 'não',
+                criado_por: session.user.id
+            };
 
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+            const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+            if (!supabaseUrl || !supabaseAnonKey) {
+                throw new Error("Variáveis de ambiente do Supabase não configuradas no cliente.");
+            }
+
+            const insertReq = fetch(`${supabaseUrl}/rest/v1/condominio_enquetes`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': supabaseAnonKey,
+                    'Authorization': `Bearer ${session.access_token}`,
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify(payload)
+            }).then(async (res) => {
+                if (!res.ok) {
+                    let errText = "";
+                    try { errText = await res.text(); } catch (e) { }
+                    throw new Error(`Erro Real do Servidor (${res.status}): ${errText}`);
+                }
+                return { error: null };
+            }).catch(err => {
+                throw new Error(`Falha de Rede Nativa: ${err.message}`);
+            });
+
+            const timeoutReq = new Promise<{ error: any }>((_, reject) =>
+                setTimeout(() => reject(new Error("Timeout: A requisição de internet do seu navegador foi bloqueada.")), 8000)
+            );
+
+            const result = await Promise.race([insertReq, timeoutReq]);
+
+            if (result && result.error) throw result.error;
+
+            // Sucesso imediato na UI
             setDetalhadaSucesso("Enquete criada e enviada para validação do síndico!");
-            await loadDadosDashboard(memberData.condominio_id, session.user.id);
+            setCriandoDetalhada(false);
 
+            // Fecha o popup instantaneamente após 800ms para feedback visual fluido
             setTimeout(() => {
-                setCriandoDetalhada(false);
-                setDetalhadaSucesso("");
                 setIsPopupOpen(false);
                 setDetalheTitulo("");
                 setDetalheDescricao("");
                 setDetalheGanho("");
                 setOpcoes([{ id: "1", texto: "Sim" }, { id: "2", texto: "Não" }]);
-            }, 2000);
+                setDetalhadaSucesso("");
+            }, 800);
+
+            // Atualiza os dados em segundo plano sem travar a tela
+            loadDadosDashboard(memberData.condominio_id, session.user.id);
+
         } catch (err: any) {
-            console.error("Erro ao criar enquete detalhada:", err);
-            alert("Erro ao salvar enquete: " + (err?.message || "Erro desconhecido"));
+            console.error("Erro ao gravar:", err);
+            try {
+                alert(err?.message || JSON.stringify(err));
+            } catch (e) { }
             setCriandoDetalhada(false);
         }
     };
@@ -480,11 +471,8 @@ export default function EnquetesDecisoesPage() {
         if (!dataStr) return "";
         const data = new Date(dataStr);
         return data.toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
         });
     };
 
@@ -571,7 +559,6 @@ export default function EnquetesDecisoesPage() {
                         Participe das votações ativas aprovadas pela administração. Toda enquete criada passa pela validação do síndico.
                     </p>
 
-                    {/* Botão de Destaque para Criar Enquete na Lateral Direita */}
                     <button
                         onClick={() => setIsPopupOpen(true)}
                         className="group flex items-center justify-center md:justify-start gap-3 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3.5 rounded-2xl shadow-xl shadow-blue-600/25 transition-all hover:scale-[1.02] active:scale-95 cursor-pointer w-full md:w-auto shrink-0"
@@ -592,7 +579,6 @@ export default function EnquetesDecisoesPage() {
                     </div>
                 )}
 
-                {/* Seção Principal: Enquetes Ativas (Ocupando largura total) */}
                 <div className="space-y-6 mb-12">
                     <div className="flex items-center justify-between">
                         <h2 className="text-base font-bold text-zinc-900 flex items-center gap-2">
@@ -619,7 +605,6 @@ export default function EnquetesDecisoesPage() {
                                 const votoUsuario = votosMorador[eq.id];
                                 const tipoVisao = visoesResultados[eq.id] || 'geral';
 
-                                // Processar votos para exibição parcial
                                 let objVotos = eq.votos;
                                 if (typeof objVotos === 'string') {
                                     try { objVotos = JSON.parse(objVotos); } catch { objVotos = {}; }
@@ -629,7 +614,7 @@ export default function EnquetesDecisoesPage() {
                                 }
 
                                 const contagemGeral: Record<string, number> = {};
-                                const contagemApartamento: Record<string, Record<string, string>> = {}; // opcao -> { unidade: voto } ou somatorio
+                                const contagemApartamento: Record<string, Record<string, string>> = {};
 
                                 listaOpcoes.forEach((op: any) => {
                                     contagemGeral[op.texto] = 0;
@@ -660,7 +645,6 @@ export default function EnquetesDecisoesPage() {
                                         <h3 className="font-bold text-base md:text-lg text-zinc-900">{eq.titulo}</h3>
                                         <p className="text-xs text-zinc-600 leading-relaxed whitespace-pre-line">{eq.descricao}</p>
 
-                                        {/* Alternativas de Votação */}
                                         <div className="pt-2 space-y-2 border-t border-zinc-100 flex flex-col items-center md:items-stretch">
                                             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 w-full text-center md:text-left">Escolha sua alternativa:</span>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-md md:max-w-none">
@@ -688,7 +672,6 @@ export default function EnquetesDecisoesPage() {
                                                 </p>
                                             )}
 
-                                            {/* VISÃO DE RESULTADOS PARCIAIS */}
                                             <div className="mt-4 pt-4 border-t border-zinc-100 space-y-3">
                                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                                     <span className="text-[10px] font-black uppercase tracking-wider text-zinc-500">
@@ -764,7 +747,6 @@ export default function EnquetesDecisoesPage() {
                     )}
                 </div>
 
-                {/* Seção Inferior: Minhas sugestões/enquetes (Ocupando largura total) */}
                 <div className="space-y-4 pb-12">
                     <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400">Minhas sugestões/enquetes</h3>
                     {propostasMorador.length === 0 ? (
@@ -797,7 +779,7 @@ export default function EnquetesDecisoesPage() {
                 </div>
             </div>
 
-            {/* POPUP DE CRIAÇÃO DE ENQUETE DETALHADA (+) */}
+            {/* POPUP DE CRIAÇÃO */}
             {isPopupOpen && (
                 <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md z-[150] flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-250">
                     <div className="bg-white w-full max-w-xl rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-8 shadow-2xl relative animate-in zoom-in-95 duration-250 my-auto max-h-[90vh] overflow-y-auto">
@@ -858,7 +840,6 @@ export default function EnquetesDecisoesPage() {
                                 />
                             </div>
 
-                            {/* Opções de Resposta */}
                             <div className="space-y-1.5">
                                 <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Opções de Votação</label>
                                 <div className={`space-y-1.5 max-h-28 overflow-y-auto pr-1 ${opcoes.length === 2 && (opcoes[0].texto.toLowerCase() === 'sim' || opcoes[0].texto.toLowerCase() === 'não') && (opcoes[1].texto.toLowerCase() === 'sim' || opcoes[1].texto.toLowerCase() === 'não') ? 'flex space-y-0 gap-2 md:flex md:space-y-0 md:gap-2' : ''}`}>
@@ -900,13 +881,23 @@ export default function EnquetesDecisoesPage() {
                                 </p>
                             )}
 
-                            <div className="pt-2">
+                            <div className="pt-2 flex flex-col gap-2">
                                 <button
                                     type="submit"
                                     disabled={criandoDetalhada}
                                     className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                                 >
+                                    {criandoDetalhada && <Loader2 size={14} className="animate-spin" />}
                                     {criandoDetalhada ? "Salvando Enquete..." : "Enviar Enquete para Validação"}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={handleWhatsAppFallback}
+                                    className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md shadow-[#25D366]/20 flex items-center justify-center gap-2 cursor-pointer"
+                                >
+                                    <MessageCircle size={16} />
+                                    Encaminhar ao Administrador via WhatsApp
                                 </button>
                             </div>
                         </form>
@@ -922,7 +913,6 @@ export default function EnquetesDecisoesPage() {
                     <div className="h-px bg-gray-200 flex-1"></div>
                 </div>
 
-                {/* BLOCO INSTAGRAM */}
                 <div className="flex flex-col items-center text-center">
                     <div className="max-w-3xl mb-12">
                         <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">

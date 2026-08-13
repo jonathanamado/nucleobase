@@ -1,4 +1,4 @@
-// app/condo/dashboard/prestacao-de-contas/page.tsx
+// app/condo/dashboard/prestacao-de-contas/analises/page.tsx
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
@@ -8,6 +8,7 @@ import {
     Loader2,
     ArrowLeft,
     Instagram,
+    Flame,
     TrendingUp,
     TrendingDown,
     DollarSign,
@@ -16,61 +17,63 @@ import {
     Filter,
     ShieldAlert,
     ArrowUpDown,
-    Flame,
-    Utensils,
-    Hammer,
-    FileText,
-    ChevronLeft,
-    ChevronRight,
-    ArrowRight
+    PlusCircle,
+    CheckCircle2,
+    AlertTriangle,
+    Percent,
+    Scale
 } from "lucide-react";
 
-interface ContaCondominio {
+interface MedicaoGas {
     id: string;
     condominio_id: string;
-    tipo: 'receita' | 'despesa';
-    categoria: string;
-    descricao: string;
-    valor_previsto: number;
-    valor_realizado: number;
+    unidade: string;
+    leitura_anterior: number;
+    leitura_atual: number;
+    consumo_calculado: number;
     data_competencia: string;
-    data_vencimento: string;
-    status: 'pendente' | 'pago' | 'recebido' | 'cancelado';
+    valor_calculado: number;
 }
 
-export default function PrestacaoContasPage() {
+interface MetroCubicoGas {
+    id: string;
+    condominio_id: string;
+    valor_metro_cubico: number;
+    data_competencia: string;
+}
+
+interface CustoCilindroGas {
+    id: string;
+    condominio_id: string;
+    data_aquisicao: string;
+    quantidade_cilindros: number;
+    valor_unitario: number;
+    valor_total: number;
+}
+
+export default function AnaliseGasPage() {
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
     const [condominio, setCondominio] = useState<{ id: string; nome: string } | null>(null);
-    const [contas, setContas] = useState<ContaCondominio[]>([]);
+    const [medicoes, setMedicoes] = useState<MedicaoGas[]>([]);
+    const [metroCubicoList, setMetroCubicoList] = useState<MetroCubicoGas[]>([]);
+    const [custosCilindros, setCustosCilindros] = useState<CustoCilindroGas[]>([]);
 
     // Estados de Filtro de Período
     const mesVigentePadrao = new Date().toISOString().slice(0, 7);
     const [filtroPeriodo, setFiltroPeriodo] = useState<string>(mesVigentePadrao);
     const [ultimoMesSelecionado, setUltimoMesSelecionado] = useState<string>(mesVigentePadrao);
 
-    // Estados de Ordenação da Tabela Demonstrativo
-    const [orderBy, setOrderBy] = useState<'tipo' | 'descricao'>('tipo');
+    // Estados de Ordenação da Tabela de Rentabilidade
+    const [orderBy, setOrderBy] = useState<'unidade' | 'consumo_calculado'>('unidade');
     const [orderDirection, setOrderDirection] = useState<'asc' | 'desc'>('asc');
 
-    // Estados do Gráfico Acumulado / Mensal
-    const [filtroDescricaoGrafico, setFiltroDescricaoGrafico] = useState<string>('todas');
-
-    // Estado para o carrossel dos novos cards de "Outras análises"
-    const [scrollCardIndex, setScrollCardIndex] = useState(0);
-    const cardsContainerRef = useRef<HTMLDivElement>(null);
-
-    // Estados do Formulário de Cadastro / Importação
-    const [showModal, setShowModal] = useState(false);
-    const [tipo, setTipo] = useState<'receita' | 'despesa'>('despesa');
-    const [categoria, setCategoria] = useState('');
-    const [descricao, setDescricao] = useState('');
-    const [valorPrevisto, setValorPrevisto] = useState('');
-    const [valorRealizado, setValorRealizado] = useState('');
-    const [dataCompetencia, setDataCompetencia] = useState(new Date().toISOString().slice(0, 7) + '-01');
-    const [dataVencimento, setDataVencimento] = useState('');
-    const [status, setStatus] = useState<'pendente' | 'pago' | 'recebido'>('pendente');
+    // Estados do Formulário de Cadastro de Custo de Cilindro
+    const [showModalCilindro, setShowModalCilindro] = useState(false);
+    const [qtdCilindros, setQtdCilindros] = useState('');
+    const [valorUnitCilindro, setValorUnitCilindro] = useState('');
+    const [dataAquisicao, setDataAquisicao] = useState(new Date().toISOString().slice(0, 10));
     const [formError, setFormError] = useState('');
     const [formSuccess, setFormSuccess] = useState('');
 
@@ -118,15 +121,35 @@ export default function PrestacaoContasPage() {
         return `${partes[0]} ${partes[partes.length - 1]}`;
     };
 
-    const loadContas = async (condoId: string) => {
-        const { data, error } = await supabase
-            .from("condominio_contas")
+    const loadGasData = async (condoId: string) => {
+        const { data: dataMedicoes, error: errorMedicoes } = await supabase
+            .from("condominio_contas_gas_medicao")
             .select("*")
             .eq("condominio_id", condoId)
             .order("data_competencia", { ascending: false });
 
-        if (!error && data && isMountedRef.current) {
-            setContas(data as ContaCondominio[]);
+        if (!errorMedicoes && dataMedicoes && isMountedRef.current) {
+            setMedicoes(dataMedicoes as MedicaoGas[]);
+        }
+
+        const { data: dataMetroCubico, error: errorMetroCubico } = await supabase
+            .from("condominio_contas_gas_metro_cubico")
+            .select("*")
+            .eq("condominio_id", condoId)
+            .order("data_competencia", { ascending: false });
+
+        if (!errorMetroCubico && dataMetroCubico && isMountedRef.current) {
+            setMetroCubicoList(dataMetroCubico as MetroCubicoGas[]);
+        }
+
+        const { data: dataCilindros, error: errorCilindros } = await supabase
+            .from("condominio_custo_cilindros_gas")
+            .select("*")
+            .eq("condominio_id", condoId)
+            .order("data_aquisicao", { ascending: false });
+
+        if (!errorCilindros && dataCilindros && isMountedRef.current) {
+            setCustosCilindros(dataCilindros as CustoCilindroGas[]);
         }
     };
 
@@ -136,7 +159,9 @@ export default function PrestacaoContasPage() {
                 if (isMountedRef.current) {
                     setSession(null);
                     setCondominio(null);
-                    setContas([]);
+                    setMedicoes([]);
+                    setMetroCubicoList([]);
+                    setCustosCilindros([]);
                     setLoading(false);
                 }
                 return;
@@ -178,7 +203,9 @@ export default function PrestacaoContasPage() {
             if (!membroDataList || membroDataList.length === 0) {
                 if (isMountedRef.current) {
                     setCondominio(null);
-                    setContas([]);
+                    setMedicoes([]);
+                    setMetroCubicoList([]);
+                    setCustosCilindros([]);
                     setLoading(false);
                 }
                 return;
@@ -204,7 +231,7 @@ export default function PrestacaoContasPage() {
                     id: vinculo.condominio_id,
                     nome: nomeCondominioOficial
                 });
-                await loadContas(vinculo.condominio_id);
+                await loadGasData(vinculo.condominio_id);
             }
         } catch (e: any) {
             const errString = e?.message || JSON.stringify(e);
@@ -213,7 +240,9 @@ export default function PrestacaoContasPage() {
             }
             if (isMountedRef.current) {
                 setCondominio(null);
-                setContas([]);
+                setMedicoes([]);
+                setMetroCubicoList([]);
+                setCustosCilindros([]);
             }
         } finally {
             if (isMountedRef.current) {
@@ -228,7 +257,6 @@ export default function PrestacaoContasPage() {
         const initAuth = async () => {
             try {
                 const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-
                 if (sessionError && !currentSession) throw sessionError;
 
                 if (isMountedRef.current) {
@@ -255,7 +283,9 @@ export default function PrestacaoContasPage() {
             } else if (event === 'SIGNED_OUT') {
                 setSession(null);
                 setCondominio(null);
-                setContas([]);
+                setMedicoes([]);
+                setMetroCubicoList([]);
+                setCustosCilindros([]);
                 setLoading(false);
             }
         });
@@ -291,12 +321,14 @@ export default function PrestacaoContasPage() {
 
         setSession(null);
         setCondominio(null);
-        setContas([]);
+        setMedicoes([]);
+        setMetroCubicoList([]);
+        setCustosCilindros([]);
         setLoading(false);
         window.dispatchEvent(new Event("storage"));
     };
 
-    const handleSaveConta = async (e: React.FormEvent) => {
+    const handleSaveCustoCilindro = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!condominio || !session) return;
 
@@ -305,51 +337,93 @@ export default function PrestacaoContasPage() {
         setFormSuccess('');
 
         try {
+            const qtd = parseInt(qtdCilindros, 10) || 0;
+            const valorUnit = parseFloat(valorUnitCilindro) || 0;
+            const valorTotalCalculado = Number((qtd * valorUnit).toFixed(2));
+
+            const payload = {
+                condominio_id: condominio.id,
+                data_aquisicao: dataAquisicao,
+                quantidade_cilindros: qtd,
+                valor_unitario: valorUnit,
+                valor_total: valorTotalCalculado,
+                criado_por: session.user.id
+            };
+
             const { error } = await supabase
-                .from("condominio_contas")
-                .insert([
-                    {
-                        condominio_id: condominio.id,
-                        tipo,
-                        categoria: categoria.trim(),
-                        descricao: descricao.trim(),
-                        valor_previsto: parseFloat(valorPrevisto) || 0,
-                        valor_realizado: parseFloat(valorRealizado) || (parseFloat(valorPrevisto) || 0),
-                        data_competencia: dataCompetencia,
-                        data_vencimento: dataVencimento || null,
-                        status: tipo === 'receita' ? (status === 'pago' ? 'recebido' : status) : status,
-                        criado_por: session.user.id
-                    }
-                ]);
+                .from("condominio_custo_cilindros_gas")
+                .insert([payload]);
 
             if (error) throw error;
 
-            setFormSuccess("Lançamento adicionado com sucesso!");
-            setCategoria('');
-            setDescricao('');
-            setValorPrevisto('');
-            setValorRealizado('');
-            setDataVencimento('');
-            setShowModal(false);
-            await loadContas(condominio.id);
+            setFormSuccess("Custo de cilindro registrado com sucesso!");
+            setQtdCilindros('');
+            setValorUnitCilindro('');
+            setShowModalCilindro(false);
+            await loadGasData(condominio.id);
         } catch (err: any) {
-            console.error("Erro ao salvar conta:", err);
-            setFormError(err?.message || "Erro ao registrar lançamento.");
+            console.error("Erro ao salvar custo de cilindro:", err);
+            setFormError(err?.message || "Erro ao registrar custo de cilindro.");
         } finally {
             setActionLoading(false);
         }
     };
 
-    const contasFiltradas = contas.filter(c => {
+    // Filtragem de Medições
+    const medicoesFiltradas = medicoes.filter(m => {
         if (filtroPeriodo === 'acumulado') return true;
-        const compMes = c.data_competencia ? c.data_competencia.slice(0, 7) : '';
+        const compMes = m.data_competencia ? m.data_competencia.slice(0, 7) : '';
         return compMes === filtroPeriodo;
     });
 
-    // Ordenação da tabela Demonstrativo
-    const contasOrdenadas = [...contasFiltradas].sort((a, b) => {
-        let valA = a[orderBy] || '';
-        let valB = b[orderBy] || '';
+    // Filtragem de Custos de Cilindros
+    const custosCilindrosFiltrados = custosCilindros.filter(c => {
+        if (filtroPeriodo === 'acumulado') return true;
+        const compMes = c.data_aquisicao ? c.data_aquisicao.slice(0, 7) : '';
+        return compMes === filtroPeriodo;
+    });
+
+    // Métricas de Mercado & Rentabilidade do Negócio
+    const totalConsumoM3 = medicoesFiltradas.reduce((acc, curr) => acc + Number(curr.consumo_calculado), 0);
+    const receitaTotalGas = medicoesFiltradas.reduce((acc, curr) => acc + Number(curr.valor_calculado), 0);
+    const custoTotalAquisicao = custosCilindrosFiltrados.reduce((acc, curr) => acc + Number(curr.valor_total), 0);
+    const totalCilindrosComprados = custosCilindrosFiltrados.reduce((acc, curr) => acc + Number(curr.quantidade_cilindros), 0);
+
+    // Indicadores Chave (KPIs) de Viabilidade e Margem
+    const margemBrutaReais = receitaTotalGas - custoTotalAquisicao;
+    const margemPercentual = custoTotalAquisicao > 0
+        ? ((receitaTotalGas - custoTotalAquisicao) / custoTotalAquisicao) * 100
+        : (receitaTotalGas > 0 ? 100 : 0);
+
+    // Custo Médio por m³ cobrado dos condôminos vs Custo Estimado Real por m³
+    const precoMedioVendaM3 = totalConsumoM3 > 0 ? receitaTotalGas / totalConsumoM3 : 0;
+    const custoEfetivoPorM3 = totalConsumoM3 > 0 ? custoTotalAquisicao / totalConsumoM3 : 0;
+
+    // Status de Cobertura de Custo ("O Gás está se pagando?")
+    const gasAutossustentavel = receitaTotalGas >= custoTotalAquisicao;
+    const taxaCobertura = custoTotalAquisicao > 0 ? (receitaTotalGas / custoTotalAquisicao) * 100 : (receitaTotalGas > 0 ? 100 : 0);
+
+    // Agrupamento e Consolidação por Unidade (caso esteja em modo 'acumulado' ou com múltiplos registros por unidade)
+    const dadosAgrupadosPorUnidadeMap = medicoesFiltradas.reduce((acc: { [key: string]: { unidade: string; consumo_calculado: number; valor_calculado: number } }, curr) => {
+        const un = curr.unidade;
+        if (!acc[un]) {
+            acc[un] = {
+                unidade: un,
+                consumo_calculado: 0,
+                valor_calculado: 0
+            };
+        }
+        acc[un].consumo_calculado += Number(curr.consumo_calculado) || 0;
+        acc[un].valor_calculado += Number(curr.valor_calculado) || 0;
+        return acc;
+    }, {});
+
+    const listaUnidadesConsolidadas = Object.values(dadosAgrupadosPorUnidadeMap);
+
+    // Ordenação da Tabela de Rentabilidade por Unidade
+    const unidadesOrdenadas = [...listaUnidadesConsolidadas].sort((a, b) => {
+        let valA: any = a[orderBy] || '';
+        let valB: any = b[orderBy] || '';
         if (typeof valA === 'string') valA = valA.toLowerCase();
         if (typeof valB === 'string') valB = valB.toLowerCase();
 
@@ -358,7 +432,7 @@ export default function PrestacaoContasPage() {
         return 0;
     });
 
-    const toggleSort = (coluna: 'tipo' | 'descricao') => {
+    const toggleSort = (coluna: 'unidade' | 'consumo_calculado') => {
         if (orderBy === coluna) {
             setOrderDirection(orderDirection === 'asc' ? 'desc' : 'asc');
         } else {
@@ -367,34 +441,19 @@ export default function PrestacaoContasPage() {
         }
     };
 
-    const totalRealizadoReceitas = contasFiltradas.filter(c => c.tipo === 'receita').reduce((acc, curr) => acc + Number(curr.valor_realizado), 0);
-    const totalRealizadoDespesas = contasFiltradas.filter(c => c.tipo === 'despesa').reduce((acc, curr) => acc + Number(curr.valor_realizado), 0);
-    const saldoLiquido = totalRealizadoReceitas - totalRealizadoDespesas;
-
-    const maiorValorGrafico = Math.max(totalRealizadoReceitas, totalRealizadoDespesas, 1);
-    const larguraBarraReceita = Math.round((totalRealizadoReceitas / maiorValorGrafico) * 100);
-    const larguraBarraDespesa = Math.round((totalRealizadoDespesas / maiorValorGrafico) * 100);
-
-    // Listas de descrições únicas para o filtro do gráfico acumulado/mensal
-    const descricoesDisponiveis = Array.from(new Set(contas.map(c => c.descricao).filter(Boolean)));
-
-    // Preparação dos dados para o Gráfico Acumulado x Mês (até o mês atual)
+    // Dados para Gráfico de Evolução de Margem Mensal
     const anoAtualStr = new Date().getFullYear().toString();
     const mesesDoAno = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
-    const mesAtualIndex = new Date().getMonth(); // 0 a 11
+    const mesAtualIndex = new Date().getMonth();
 
-    const dadosMensaisGrafico = mesesDoAno.slice(0, mesAtualIndex + 1).map((mesNum) => {
+    const dadosEvolucaoMensal = mesesDoAno.slice(0, mesAtualIndex + 1).map((mesNum) => {
         const chaveMes = `${anoAtualStr}-${mesNum}`;
-        const contasDoMes = contas.filter(c => {
-            const comp = c.data_competencia ? c.data_competencia.slice(0, 7) : '';
-            const matchMes = comp === chaveMes;
-            const matchDesc = filtroDescricaoGrafico === 'todas' || c.descricao === filtroDescricaoGrafico;
-            return matchMes && matchDesc;
-        });
+        const medicoesMes = medicoes.filter(m => m.data_competencia && m.data_competencia.slice(0, 7) === chaveMes);
+        const cilindrosMes = custosCilindros.filter(c => c.data_aquisicao && c.data_aquisicao.slice(0, 7) === chaveMes);
 
-        const rec = contasDoMes.filter(c => c.tipo === 'receita').reduce((acc, curr) => acc + Number(curr.valor_realizado), 0);
-        const desp = contasDoMes.filter(c => c.tipo === 'despesa').reduce((acc, curr) => acc + Number(curr.valor_realizado), 0);
-        const saldo = rec - desp;
+        const rec = medicoesMes.reduce((acc, curr) => acc + Number(curr.valor_calculado), 0);
+        const cus = cilindrosMes.reduce((acc, curr) => acc + Number(curr.valor_total), 0);
+        const margemMes = rec - cus;
 
         const nomesMesesCurto: { [key: string]: string } = {
             '01': 'Jan', '02': 'Fev', '03': 'Mar', '04': 'Abr',
@@ -405,28 +464,18 @@ export default function PrestacaoContasPage() {
         return {
             mes: nomesMesesCurto[mesNum],
             receita: rec,
-            despesa: desp,
-            saldo: saldo
+            custo: cus,
+            margem: margemMes
         };
     });
 
-    const maiorValorColunaMensal = Math.max(...dadosMensaisGrafico.map(d => Math.max(d.receita, d.despesa)), 1);
-
-    const scrollCards = (direction: 'left' | 'right') => {
-        if (cardsContainerRef.current) {
-            const scrollAmount = 280;
-            cardsContainerRef.current.scrollBy({
-                left: direction === 'left' ? -scrollAmount : scrollAmount,
-                behavior: 'smooth'
-            });
-        }
-    };
+    const maiorValorEvolucao = Math.max(...dadosEvolucaoMensal.map(d => Math.max(d.receita, d.custo)), 1);
 
     if (loading) {
         return (
             <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
-                <Loader2 className="animate-spin text-blue-600 mb-4" size={32} />
-                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Carregando painel financeiro...</p>
+                <Loader2 className="animate-spin text-amber-600 mb-4" size={32} />
+                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Carregando inteligência de rentabilidade...</p>
             </div>
         );
     }
@@ -436,7 +485,7 @@ export default function PrestacaoContasPage() {
             <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
                 <div className="w-full max-w-sm bg-white border border-zinc-200 p-8 rounded-[2.5rem] text-center space-y-4 shadow-sm">
                     <h1 className="text-xl font-black text-zinc-900">Acesso restrito</h1>
-                    <p className="text-sm text-zinc-500">Faça login na plataforma para visualizar a prestação de contas.</p>
+                    <p className="text-sm text-zinc-500">Faça login na plataforma para visualizar a análise de rentabilidade.</p>
                     <Link href="/condo/dashboard" className="inline-block bg-zinc-900 hover:bg-black text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
                         Ir para Login
                     </Link>
@@ -472,14 +521,15 @@ export default function PrestacaoContasPage() {
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 pt-6 px-6 md:px-10 flex flex-col justify-between relative">
             <div>
+                {/* CABEÇALHO */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-5 mb-4">
                     <div className="flex items-center gap-4 w-full justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-sm shrink-0">
-                                <Building2 size={24} />
+                            <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center shadow-sm shrink-0">
+                                <Flame size={24} />
                             </div>
                             <div>
-                                <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Prestação de contas</span>
+                                <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">Inteligência Financeira • Gás</span>
                                 <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1 text-zinc-900">
                                     <span className="md:hidden text-black">{obterNomeCondominioMobile(condominio?.nome || "Condomínio")}</span>
                                     <span className="hidden md:inline">{condominio?.nome || "Condomínio"}</span>
@@ -489,10 +539,17 @@ export default function PrestacaoContasPage() {
 
                         <div className="flex items-center gap-3">
                             <button
+                                onClick={() => setShowModalCilindro(true)}
+                                className="group relative flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-amber-600 hover:bg-amber-700 text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-sm cursor-pointer shrink-0"
+                            >
+                                <PlusCircle size={12} />
+                                <span>Registrar Aquisição</span>
+                            </button>
+                            <button
                                 onClick={() => window.history.back()}
                                 className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 self-start md:self-auto overflow-hidden cursor-pointer shrink-0"
                             >
-                                <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
+                                <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-amber-600 to-orange-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
                                 <ArrowLeft
                                     size={12}
                                     className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out"
@@ -503,6 +560,7 @@ export default function PrestacaoContasPage() {
                     </div>
                 </div>
 
+                {/* FILTRO DE PERÍODO */}
                 <div className="flex flex-col md:flex-row justify-center md:justify-end mb-5 gap-2">
                     <div className="w-full md:w-[calc(25%-12px)] flex items-center justify-between gap-2 bg-white border border-zinc-200 px-3.5 py-1.5 rounded-full shadow-sm">
                         <div
@@ -550,7 +608,7 @@ export default function PrestacaoContasPage() {
                                     setFiltroPeriodo('acumulado');
                                 }
                             }}
-                            className={`md:hidden text-[9px] font-black uppercase px-2 py-0.5 rounded-full transition-all shrink-0 cursor-pointer ${filtroPeriodo === 'acumulado' ? 'bg-blue-600 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}
+                            className={`md:hidden text-[9px] font-black uppercase px-2 py-0.5 rounded-full transition-all shrink-0 cursor-pointer ${filtroPeriodo === 'acumulado' ? 'bg-amber-600 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}
                         >
                             Acumulado
                         </button>
@@ -565,80 +623,151 @@ export default function PrestacaoContasPage() {
                                     setFiltroPeriodo('acumulado');
                                 }
                             }}
-                            className={`w-full text-[9px] font-black uppercase px-3 py-1.5 rounded-full transition-all cursor-pointer text-center ${filtroPeriodo === 'acumulado' ? 'bg-blue-600 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}
+                            className={`w-full text-[9px] font-black uppercase px-3 py-1.5 rounded-full transition-all cursor-pointer text-center ${filtroPeriodo === 'acumulado' ? 'bg-amber-600 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}
                         >
                             Visão Acumulado (Meses totais)
                         </button>
                     </div>
                 </div>
 
+                {/* BANNER DE VALIDAÇÃO DE MERCADO: O GÁS ESTÁ SE PAGANDO? */}
+                <div className={`border p-5 md:p-6 rounded-[2rem] shadow-sm mb-6 flex flex-col md:flex-row items-center justify-between gap-4 transition-colors ${gasAutossustentavel
+                        ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900'
+                        : 'bg-amber-50/60 border-amber-200 text-amber-900'
+                    }`}>
+                    <div className="flex items-center gap-4">
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${gasAutossustentavel ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'
+                            }`}>
+                            {gasAutossustentavel ? <CheckCircle2 size={24} /> : <AlertTriangle size={24} />}
+                        </div>
+                        <div>
+                            <span className="text-[10px] font-black uppercase tracking-widest opacity-75">Validação de Sustentabilidade Operacional</span>
+                            <h2 className="text-lg md:text-xl font-black mt-0.5">
+                                {gasAutossustentavel
+                                    ? "Excelente! O investimento em gás está totalmente coberto."
+                                    : "Atenção: A receita cobrada está abaixo do custo de aquisição."}
+                            </h2>
+                            <p className="text-xs mt-1 opacity-90 font-medium">
+                                A taxa de cobertura atual da operação é de <strong className="font-bold">{taxaCobertura.toFixed(1)}%</strong> sobre os custos de reposição de cilindros.
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0 bg-white/80 backdrop-blur-sm px-4 py-2.5 rounded-2xl border border-black/5 shadow-xs">
+                        <Scale size={16} className={gasAutossustentavel ? 'text-emerald-600' : 'text-amber-600'} />
+                        <div className="text-right">
+                            <span className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Margem Líquida</span>
+                            <span className={`text-sm font-black ${margemBrutaReais >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                R$ {margemBrutaReais.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* CARDS DE KPIS DE RENTABILIDADE */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
                     <div className="bg-white border border-zinc-200 p-4 md:p-5 rounded-3xl shadow-sm flex flex-col justify-between">
                         <div className="flex items-center justify-between">
-                            <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Receitas</span>
+                            <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Receita Faturamento</span>
                             <div className="w-7 h-7 md:w-8 md:h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
                                 <TrendingUp size={14} />
                             </div>
                         </div>
                         <div className="mt-3 md:mt-4 whitespace-nowrap overflow-hidden">
-                            <h3 className="text-xs sm:text-base md:text-xl font-black text-emerald-600 truncate">R$ {totalRealizadoReceitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+                            <h3 className="text-xs sm:text-base md:text-xl font-black text-emerald-600 truncate">R$ {receitaTotalGas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
                         </div>
                     </div>
 
                     <div className="bg-white border border-zinc-200 p-4 md:p-5 rounded-3xl shadow-sm flex flex-col justify-between">
                         <div className="flex items-center justify-between">
-                            <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Despesas</span>
+                            <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Custo Reposição</span>
                             <div className="w-7 h-7 md:w-8 md:h-8 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center shrink-0">
                                 <TrendingDown size={14} />
                             </div>
                         </div>
                         <div className="mt-3 md:mt-4 whitespace-nowrap overflow-hidden">
-                            <h3 className="text-xs sm:text-base md:text-xl font-black text-rose-600 truncate">R$ {totalRealizadoDespesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+                            <h3 className="text-xs sm:text-base md:text-xl font-black text-rose-600 truncate">R$ {custoTotalAquisicao.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
                         </div>
                     </div>
 
                     <div className="bg-white border border-zinc-200 p-4 md:p-5 rounded-3xl shadow-sm flex flex-col justify-between">
                         <div className="flex items-center justify-between">
-                            <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Saldo Líquido</span>
-                            <div className={`w-7 h-7 md:w-8 md:h-8 rounded-xl flex items-center justify-center shrink-0 ${saldoLiquido >= 0 ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-600'}`}>
-                                <DollarSign size={14} />
+                            <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Margem Percentual</span>
+                            <div className="w-7 h-7 md:w-8 md:h-8 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
+                                <Percent size={14} />
                             </div>
                         </div>
                         <div className="mt-3 md:mt-4 whitespace-nowrap overflow-hidden">
-                            <h3 className={`text-xs sm:text-base md:text-xl font-black truncate ${saldoLiquido >= 0 ? 'text-zinc-900' : 'text-amber-600'}`}>
-                                R$ {saldoLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            <h3 className={`text-xs sm:text-base md:text-xl font-black truncate ${margemPercentual >= 0 ? 'text-amber-600' : 'text-rose-600'}`}>
+                                {margemPercentual.toFixed(1)}%
                             </h3>
                         </div>
                     </div>
 
                     <div className="bg-zinc-900 text-white p-4 md:p-5 rounded-3xl shadow-md flex flex-col justify-between relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-blue-600/20 rounded-full blur-2xl"></div>
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-amber-600/20 rounded-full blur-2xl"></div>
                         <div className="flex items-center justify-between relative z-10">
-                            <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Registros financeiros</span>
-                            <BarChart3 size={16} className="text-blue-400 shrink-0" />
+                            <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Cilindros Adquiridos</span>
+                            <Flame size={16} className="text-amber-400 shrink-0" />
                         </div>
                         <div className="mt-3 md:mt-4 relative z-10 whitespace-nowrap overflow-hidden">
-                            <h3 className="text-xs md:text-sm font-bold text-blue-400 truncate">{contasFiltradas.length} Lançamento(s)</h3>
+                            <h3 className="text-xs sm:text-base md:text-xl font-black text-amber-400 truncate">
+                                {totalCilindrosComprados} un.
+                            </h3>
                         </div>
                     </div>
                 </div>
 
-                {/* TABELA DEMONSTRATIVO */}
+                {/* ANÁLISE COMPARATIVA DE TARIFA (MERCADO) */}
                 <div className="bg-white border border-zinc-200 rounded-[2rem] shadow-sm p-6 mb-6">
                     <div className="flex items-center justify-between pb-4 border-b border-zinc-100 mb-4">
                         <div className="flex items-center gap-2">
-                            <FileSpreadsheet className="text-blue-600" size={20} />
-                            <h3 className="font-bold text-base text-zinc-800">Demonstrativo</h3>
+                            <Scale className="text-amber-600" size={20} />
+                            <h3 className="font-bold text-base text-zinc-800">Eficiência de Preço por m³ (Unitário Médio)</h3>
                         </div>
                         <span className="hidden md:inline-block text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1 rounded-full">
-                            {contasFiltradas.length} Registro(s)
+                            Preço x Custo Efetivo
                         </span>
                     </div>
 
-                    {contasFiltradas.length === 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                        <div className="bg-zinc-50 border border-zinc-200/80 p-5 rounded-2xl flex items-center justify-between">
+                            <div>
+                                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-wider block">Preço Médio Cobrado (Condôminos)</span>
+                                <h4 className="text-lg font-black text-zinc-900 mt-1">R$ {precoMedioVendaM3.toFixed(2)} <span className="text-xs font-normal text-zinc-500">/ m³</span></h4>
+                            </div>
+                            <div className="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center font-bold text-xs">
+                                Venda
+                            </div>
+                        </div>
+
+                        <div className="bg-zinc-50 border border-zinc-200/80 p-5 rounded-2xl flex items-center justify-between">
+                            <div>
+                                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-wider block">Custo Efetivo Real (Aquisição)</span>
+                                <h4 className="text-lg font-black text-zinc-900 mt-1">R$ {custoEfetivoPorM3.toFixed(2)} <span className="text-xs font-normal text-zinc-500">/ m³</span></h4>
+                            </div>
+                            <div className="w-10 h-10 bg-rose-100 text-rose-700 rounded-xl flex items-center justify-center font-bold text-xs">
+                                Custo
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* TABELA DE RENTABILIDADE POR UNIDADE */}
+                <div className="bg-white border border-zinc-200 rounded-[2rem] shadow-sm p-6 mb-6">
+                    <div className="flex items-center justify-between pb-4 border-b border-zinc-100 mb-4">
+                        <div className="flex items-center gap-2">
+                            <FileSpreadsheet className="text-amber-600" size={20} />
+                            <h3 className="font-bold text-base text-zinc-800">Rentabilidade e Contribuição por Unidade</h3>
+                        </div>
+                        <span className="hidden md:inline-block text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1 rounded-full">
+                            {unidadesOrdenadas.length} Unidade(s)
+                        </span>
+                    </div>
+
+                    {unidadesOrdenadas.length === 0 ? (
                         <div className="text-center py-12 space-y-2">
                             <FileSpreadsheet className="mx-auto text-zinc-300" size={36} />
-                            <p className="text-zinc-400 text-sm font-medium">Nenhum lançamento financeiro para o período selecionado.</p>
+                            <p className="text-zinc-400 text-sm font-medium">Nenhum dado de medição disponível para o período selecionado.</p>
                         </div>
                     ) : (
                         <div className="overflow-x-auto max-h-[640px] scrollbar-thin">
@@ -646,40 +775,36 @@ export default function PrestacaoContasPage() {
                                 <thead className="sticky top-0 bg-white z-10">
                                     <tr className="border-b border-zinc-100">
                                         <th className="pb-3 pr-6 text-[10px] font-black text-zinc-400 uppercase tracking-wider align-top text-left">
-                                            <button onClick={() => toggleSort('tipo')} className="flex items-center gap-1 hover:text-zinc-700 cursor-pointer">
-                                                Tipo <ArrowUpDown size={12} />
+                                            <button onClick={() => toggleSort('unidade')} className="flex items-center gap-1 hover:text-zinc-700 cursor-pointer">
+                                                Unidade <ArrowUpDown size={12} />
                                             </button>
                                         </th>
                                         <th className="pb-3 px-6 text-[10px] font-black text-zinc-400 uppercase tracking-wider align-top text-left">
-                                            <button onClick={() => toggleSort('descricao')} className="flex items-center gap-1 hover:text-zinc-700 cursor-pointer">
-                                                Descrição <ArrowUpDown size={12} />
+                                            <button onClick={() => toggleSort('consumo_calculado')} className="flex items-center gap-1 hover:text-zinc-700 cursor-pointer">
+                                                Consumo (m³) <ArrowUpDown size={12} />
                                             </button>
                                         </th>
-                                        <th className="pb-3 px-6 text-[10px] font-black text-zinc-400 uppercase tracking-wider align-top text-left">Competência</th>
-                                        <th className="pb-3 px-6 text-[10px] font-black text-zinc-400 uppercase tracking-wider align-top text-left">Realizado</th>
-                                        <th className="pb-3 pl-6 text-[10px] font-black text-zinc-400 uppercase tracking-wider align-top text-left">Status</th>
+                                        <th className="pb-3 px-6 text-[10px] font-black text-zinc-400 uppercase tracking-wider align-top text-left">Receita Gerada</th>
+                                        <th className="pb-3 px-6 text-[10px] font-black text-zinc-400 uppercase tracking-wider align-top text-left">% sobre Receita Total</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-zinc-50 text-sm">
-                                    {contasOrdenadas.map((conta) => {
-                                        const corLinha = conta.tipo === 'receita' ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold';
+                                    {unidadesOrdenadas.map((item, index) => {
+                                        const valorRec = Number(item.valor_calculado) || 0;
+                                        const participacao = receitaTotalGas > 0 ? (valorRec / receitaTotalGas) * 100 : 0;
                                         return (
-                                            <tr key={conta.id} className="hover:bg-zinc-50/50 transition-colors">
-                                                <td className={`py-3 pr-6 text-xs align-top text-left capitalize ${corLinha}`}>
-                                                    {conta.tipo}
+                                            <tr key={item.unidade || index} className="hover:bg-zinc-50/50 transition-colors">
+                                                <td className="py-3 pr-6 text-xs align-top text-left font-bold text-zinc-800">
+                                                    {item.unidade}
                                                 </td>
-                                                <td className={`py-3 px-6 text-xs align-top text-left ${corLinha}`}>
-                                                    <div>{conta.descricao}</div>
-                                                    <div className="text-[10px] text-zinc-400 max-w-xs hidden md:block font-normal mt-0.5">{conta.descricao || "Sem observações"}</div>
+                                                <td className="py-3 px-6 text-xs align-top text-left font-bold text-amber-600">
+                                                    {Number(item.consumo_calculado).toFixed(3)} m³
                                                 </td>
-                                                <td className={`py-3 px-6 text-xs align-top text-left ${corLinha}`}>
-                                                    {conta.data_competencia?.slice(0, 7)}
+                                                <td className="py-3 px-6 text-xs align-top text-left font-bold text-zinc-900">
+                                                    R$ {valorRec.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                 </td>
-                                                <td className={`py-3 px-6 text-xs align-top text-left ${corLinha}`}>
-                                                    R$ {Number(conta.valor_realizado).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                                </td>
-                                                <td className={`py-3 pl-6 text-xs align-top text-left capitalize ${corLinha}`}>
-                                                    {conta.status}
+                                                <td className="py-3 px-6 text-xs align-top text-left text-zinc-600 font-bold">
+                                                    {participacao.toFixed(1)}%
                                                 </td>
                                             </tr>
                                         );
@@ -690,123 +815,54 @@ export default function PrestacaoContasPage() {
                     )}
                 </div>
 
-                {/* GRÁFICO DEMONSTRATIVO */}
-                <div className="bg-white border border-zinc-200 rounded-[2rem] shadow-sm p-6 mb-10">
-                    <div className="flex items-center justify-between pb-4 border-b border-zinc-100 mb-6">
-                        <div className="flex items-center gap-2">
-                            <BarChart3 className="text-blue-600" size={20} />
-                            <h3 className="font-bold text-base text-zinc-800">Gráfico Demonstrativo</h3>
-                        </div>
-                        <span className="hidden md:inline-block text-[10px] font-black uppercase bg-blue-50 text-blue-600 px-3 py-1 rounded-full">
-                            Visão Comparativa Real
-                        </span>
-                    </div>
-
-                    <div className="space-y-6 w-full py-2">
-                        <div className="space-y-2">
-                            <div className="flex justify-between items-center text-xs font-bold whitespace-nowrap gap-4">
-                                <span className="flex items-center gap-1.5 text-emerald-600 uppercase tracking-wider overflow-hidden text-ellipsis">
-                                    <TrendingUp size={14} className="shrink-0" />
-                                    <span className="truncate">Receitas</span>
-                                </span>
-                                <span className="text-emerald-600 font-black shrink-0">
-                                    R$ {totalRealizadoReceitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                </span>
-                            </div>
-                            <div className="w-full bg-zinc-100 h-4 rounded-full overflow-hidden p-0.5">
-                                <div
-                                    className="bg-emerald-500 h-full rounded-full transition-all duration-700 ease-out"
-                                    style={{ width: `${Math.max(larguraBarraReceita, 3)}%` }}
-                                ></div>
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <div className="flex justify-between items-center text-xs font-bold whitespace-nowrap gap-4">
-                                <span className="flex items-center gap-1.5 text-rose-600 uppercase tracking-wider overflow-hidden text-ellipsis">
-                                    <TrendingDown size={14} className="shrink-0" />
-                                    <span className="truncate">Despesas</span>
-                                </span>
-                                <span className="text-rose-600 font-black shrink-0">
-                                    R$ {totalRealizadoDespesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                </span>
-                            </div>
-                            <div className="w-full bg-zinc-100 h-4 rounded-full overflow-hidden p-0.5">
-                                <div
-                                    className="bg-rose-500 h-full rounded-full transition-all duration-700 ease-out"
-                                    style={{ width: `${Math.max(larguraBarraDespesa, 3)}%` }}
-                                ></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* LINHA DIVISÓRIA: GRÁFICO ACUMULADO */}
+                {/* EVOLUÇÃO MENSAL DE MARGEM */}
                 <div className="mt-16 mb-8 flex items-center gap-4">
                     <div className="h-px bg-gray-200 flex-1"></div>
-                    <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Gráfico Acumulado</h3>
+                    <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Evolução da Margem</h3>
                     <div className="h-px bg-gray-200 flex-1"></div>
                 </div>
 
-                {/* GRÁFICO DE COLUNAS MÊS A MÊS COM VALORES DENTRO DAS COLUNAS NO TOPO E SALDO ABAIXO EM LARANJA */}
                 <div className="bg-white border border-zinc-200 rounded-[2rem] shadow-sm p-6 mb-12">
                     <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-zinc-100 mb-6 gap-4">
                         <div className="flex items-center gap-2">
-                            <BarChart3 className="text-blue-600" size={20} />
-                            <h3 className="font-bold text-base text-zinc-800">Evolução Mensal (Receitas, Despesas e Saldo)</h3>
-                        </div>
-                        <div className="flex items-center gap-2 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-xl">
-                            <span className="text-[10px] font-bold text-zinc-500 uppercase">Filtrar Descrição:</span>
-                            <select
-                                value={filtroDescricaoGrafico}
-                                onChange={(e) => setFiltroDescricaoGrafico(e.target.value)}
-                                className="bg-transparent text-xs font-bold text-zinc-800 outline-none cursor-pointer"
-                            >
-                                <option value="todas">Todas as descrições</option>
-                                {descricoesDisponiveis.map((desc, idx) => (
-                                    <option key={idx} value={desc}>{desc}</option>
-                                ))}
-                            </select>
+                            <BarChart3 className="text-amber-600" size={20} />
+                            <h3 className="font-bold text-base text-zinc-800">Desempenho Financeiro Mensal (Receita vs Custo de Cilindros)</h3>
                         </div>
                     </div>
 
-                    {/* Gráfico Visual Customizado em Colunas */}
                     <div className="pt-6 pb-2">
                         <div className="flex items-end justify-between gap-3 h-64 border-b border-zinc-200 pb-2 overflow-x-auto">
-                            {dadosMensaisGrafico.map((dado, i) => {
-                                const alturaReceita = Math.round((dado.receita / maiorValorColunaMensal) * 100);
-                                const alturaDespesa = Math.round((dado.despesa / maiorValorColunaMensal) * 100);
+                            {dadosEvolucaoMensal.map((dado, i) => {
+                                const altRec = Math.round((dado.receita / maiorValorEvolucao) * 100);
+                                const altCus = Math.round((dado.custo / maiorValorEvolucao) * 100);
 
                                 return (
                                     <div key={i} className="flex-1 flex flex-col items-center justify-end h-full min-w-[50px] relative">
                                         <div className="w-full flex items-end justify-center gap-1 h-full px-1">
-                                            {/* Coluna Receita */}
                                             <div
                                                 className="w-1/2 bg-emerald-500 rounded-t-lg transition-all duration-500 relative flex flex-col items-center justify-start pt-1.5"
-                                                style={{ height: `${Math.max(alturaReceita, 18)}%` }}
+                                                style={{ height: `${Math.max(altRec, 18)}%` }}
                                                 title={`Receita: R$ ${dado.receita.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
                                             >
                                                 <span className="text-[8px] font-black text-white whitespace-nowrap -rotate-90 md:rotate-0">
                                                     R$ {dado.receita.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                                                 </span>
                                             </div>
-                                            {/* Coluna Despesa */}
                                             <div
                                                 className="w-1/2 bg-rose-500 rounded-t-lg transition-all duration-500 relative flex flex-col items-center justify-start pt-1.5"
-                                                style={{ height: `${Math.max(alturaDespesa, 18)}%` }}
-                                                title={`Despesa: R$ ${dado.despesa.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                                                style={{ height: `${Math.max(altCus, 18)}%` }}
+                                                title={`Custo: R$ ${dado.custo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
                                             >
                                                 <span className="text-[8px] font-black text-white whitespace-nowrap -rotate-90 md:rotate-0">
-                                                    R$ {dado.despesa.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                                    R$ {dado.custo.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                                                 </span>
                                             </div>
                                         </div>
 
-                                        {/* Mês e Saldo Líquido abaixo da coluna em cor laranjado */}
                                         <div className="flex flex-col items-center mt-2">
                                             <span className="text-[10px] font-bold text-zinc-700">{dado.mes}</span>
-                                            <span className="text-[9px] font-black text-orange-500">
-                                                R$ {dado.saldo.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                            <span className={`text-[9px] font-black ${dado.margem >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                                R$ {dado.margem.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
                                             </span>
                                         </div>
                                     </div>
@@ -814,120 +870,83 @@ export default function PrestacaoContasPage() {
                             })}
                         </div>
 
-                        {/* Legenda */}
                         <div className="flex flex-wrap items-center justify-center gap-6 mt-4 pt-3 border-t border-zinc-100 text-xs font-bold">
                             <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 bg-emerald-500 rounded-sm"></div>
-                                <span className="text-zinc-600">Receitas</span>
+                                <span className="text-zinc-600">Receita de Gás</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 bg-rose-500 rounded-sm"></div>
-                                <span className="text-zinc-600">Despesas</span>
+                                <span className="text-zinc-600">Custo de Aquisição</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 bg-orange-500 rounded-sm"></div>
-                                <span className="text-orange-500 font-black">Saldo</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* LINHA DIVISÓRIA: OUTRAS ANÁLISES */}
-                <div className="mt-16 mb-8 flex items-center gap-4">
-                    <div className="h-px bg-gray-200 flex-1"></div>
-                    <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Outras análises</h3>
-                    <div className="h-px bg-gray-200 flex-1"></div>
-                </div>
-
-                {/* CARDS DE OUTRAS ANÁLISES COM CARROSSEL E SETAS */}
-                <div className="relative mb-12 group">
-                    <button
-                        onClick={() => scrollCards('left')}
-                        className="absolute -left-3 md:-left-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white border border-zinc-200 rounded-full shadow-lg flex items-center justify-center text-zinc-700 hover:bg-zinc-50 active:scale-95 transition-all cursor-pointer"
-                        title="Rolar para esquerda"
-                    >
-                        <ChevronLeft size={20} />
-                    </button>
-
-                    <button
-                        onClick={() => scrollCards('right')}
-                        className="absolute -right-3 md:-right-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white border border-zinc-200 rounded-full shadow-lg flex items-center justify-center text-zinc-700 hover:bg-zinc-50 active:scale-95 transition-all cursor-pointer"
-                        title="Rolar para direita"
-                    >
-                        <ChevronRight size={20} />
-                    </button>
-
-                    <div
-                        ref={cardsContainerRef}
-                        className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-none scroll-smooth pb-2 pt-1 px-1"
-                    >
-                        {/* Card 1 */}
-                        <div className="min-w-[240px] md:min-w-[calc(25%-12px)] flex-1 bg-white border border-zinc-200 p-4 md:p-5 rounded-3xl shadow-sm flex flex-col justify-between">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Módulo de Gestão</span>
-                                <div className="w-7 h-7 md:w-8 md:h-8 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
-                                    <Flame size={14} />
-                                </div>
-                            </div>
-                            <div className="mt-3 md:mt-4">
-                                <h3 className="text-xs sm:text-sm md:text-base font-black text-zinc-900">Análises Gás Canalizado</h3>
-                                <Link href="/condo/dashboard/prestacao-de-contas/analises-gas" className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-amber-600 hover:text-amber-700 transition-colors">
-                                    <span>Acessar Análise</span>
-                                    <ArrowRight size={12} />
-                                </Link>
-                            </div>
-                        </div>
-
-                        {/* Card 2 */}
-                        <div className="min-w-[240px] md:min-w-[calc(25%-12px)] flex-1 bg-white border border-zinc-200 p-4 md:p-5 rounded-3xl shadow-sm flex flex-col justify-between">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Lazer & Espaços</span>
-                                <div className="w-7 h-7 md:w-8 md:h-8 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center shrink-0">
-                                    <Utensils size={14} />
-                                </div>
-                            </div>
-                            <div className="mt-3 md:mt-4">
-                                <h3 className="text-xs sm:text-sm md:text-base font-black text-zinc-900">Melhorias Área Gourmet</h3>
-                                <span className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-zinc-400">
-                                    Em breve
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Card 3 */}
-                        <div className="min-w-[240px] md:min-w-[calc(25%-12px)] flex-1 bg-white border border-zinc-200 p-4 md:p-5 rounded-3xl shadow-sm flex flex-col justify-between">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Infraestrutura</span>
-                                <div className="w-7 h-7 md:w-8 md:h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
-                                    <Hammer size={14} />
-                                </div>
-                            </div>
-                            <div className="mt-3 md:mt-4">
-                                <h3 className="text-xs sm:text-sm md:text-base font-black text-zinc-900">Obras Aprovadas e Concluídas</h3>
-                                <span className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-zinc-400">
-                                    Em breve
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Card 4 */}
-                        <div className="min-w-[240px] md:min-w-[calc(25%-12px)] flex-1 bg-white border border-zinc-200 p-4 md:p-5 rounded-3xl shadow-sm flex flex-col justify-between">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Financeiro Extra</span>
-                                <div className="w-7 h-7 md:w-8 md:h-8 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shrink-0">
-                                    <FileText size={14} />
-                                </div>
-                            </div>
-                            <div className="mt-3 md:mt-4">
-                                <h3 className="text-xs sm:text-sm md:text-base font-black text-zinc-900">Outros custos não rateados</h3>
-                                <span className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-zinc-400">
-                                    Em breve
-                                </span>
+                                <div className="w-3 h-3 bg-amber-500 rounded-sm"></div>
+                                <span className="text-amber-600 font-black">Resultado Líquido</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* MODAL DE CADASTRO DE CUSTO DE CILINDRO */}
+            {showModalCilindro && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white border border-zinc-200 rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl space-y-6">
+                        <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
+                            <h3 className="font-bold text-lg text-zinc-900">Registrar Aquisição de Cilindros</h3>
+                            <button onClick={() => setShowModalCilindro(false)} className="text-zinc-400 hover:text-zinc-700 text-sm font-bold">Fechar</button>
+                        </div>
+
+                        {formError && <div className="bg-rose-50 text-rose-600 p-3 rounded-xl text-xs font-bold">{formError}</div>}
+                        {formSuccess && <div className="bg-emerald-50 text-emerald-600 p-3 rounded-xl text-xs font-bold">{formSuccess}</div>}
+
+                        <form onSubmit={handleSaveCustoCilindro} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">Data de Aquisição</label>
+                                <input
+                                    type="date"
+                                    value={dataAquisicao}
+                                    onChange={(e) => setDataAquisicao(e.target.value)}
+                                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-xs font-bold text-zinc-800 outline-none"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">Quantidade de Cilindros</label>
+                                <input
+                                    type="number"
+                                    value={qtdCilindros}
+                                    onChange={(e) => setQtdCilindros(e.target.value)}
+                                    placeholder="Ex: 4"
+                                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-xs font-bold text-zinc-800 outline-none"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">Valor Unitário por Cilindro (R$)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    value={valorUnitCilindro}
+                                    onChange={(e) => setValorUnitCilindro(e.target.value)}
+                                    placeholder="Ex: 120.00"
+                                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-xs font-bold text-zinc-800 outline-none"
+                                    required
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={actionLoading}
+                                className="w-full bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center justify-center gap-2"
+                            >
+                                {actionLoading && <Loader2 size={14} className="animate-spin" />}
+                                Salvar Aquisição
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             <div>
                 <div className="mt-24 flex items-center gap-4 mb-12">
