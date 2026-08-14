@@ -231,9 +231,12 @@ export default function ListaMoradoresCondomino() {
         return isNaN(numero) ? limpo : numero;
     };
 
-    // Filtra, normaliza a exibição e ordena de forma combinada (Unidade -> Nome)
+    // Filtra, exclui "Adm", normaliza a exibição e ordena de forma combinada (Unidade -> Nome)
     const moradoresProcessados = moradores
         .filter((morador) => {
+            const unidadeLower = (morador.unidade || "").toLowerCase().trim();
+            if (unidadeLower === "adm") return false;
+
             const termo = filtroBusca.toLowerCase().trim();
             if (!termo) return true;
 
@@ -312,7 +315,7 @@ export default function ListaMoradoresCondomino() {
                 <div className="space-y-4">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
                         <span className="text-xs text-zinc-500 font-medium">
-                            Consulte abaixo a lista atualizada de condôminos e unidades vinculadas:
+                            Consulte abaixo a lista atualizada de condôminos/proprietários e unidades vinculadas:
                         </span>
                     </div>
 

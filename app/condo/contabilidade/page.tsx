@@ -112,7 +112,9 @@ export default function ContabilidadeCondoPage() {
             (membrosData || []).forEach((m: any) => {
                 const u = m.unidade?.trim();
                 if (u) {
-                    unidadesSet.add(u);
+                    if (u.toLowerCase() !== "adm") {
+                        unidadesSet.add(u);
+                    }
                     const roleNormalizado = String(m.role || "").toLowerCase().trim();
                     if (roleNormalizado === 'sindico') {
                         unidadesSindicoSet.add(u);
@@ -132,7 +134,7 @@ export default function ContabilidadeCondoPage() {
                 }
             });
 
-            const unidadesUnicas = Array.from(unidadesSet).sort();
+            const unidadesUnicas = Array.from(unidadesSet).filter(u => u.toLowerCase() !== "adm").sort();
             const qtdUnidades = unidadesUnicas.length > 0 ? unidadesUnicas.length : 1;
 
             const { data: contasData } = await supabase

@@ -83,6 +83,7 @@ export default function CadastroMoradorPage() {
     const [novoMoradorEmail, setNovoMoradorEmail] = useState("");
     const [novoMoradorUnidade, setNovoMoradorUnidade] = useState("");
     const [tipoMorador, setTipoMorador] = useState<string>("proprietario");
+    const [roleMorador, setRoleMorador] = useState<string>("morador");
     const [autorizadoApp, setAutorizadoApp] = useState(true);
     const [formError, setFormError] = useState("");
     const [formSuccess, setFormSuccess] = useState("");
@@ -466,6 +467,7 @@ export default function CadastroMoradorPage() {
         }
         setNovoMoradorUnidade(unidadeTratada);
         setTipoMorador(morador.tipo_morador || "proprietario");
+        setRoleMorador(morador.role || "morador");
         setAutorizadoApp(morador.acesso_app);
         setSlugDisponivel(true);
     };
@@ -477,6 +479,7 @@ export default function CadastroMoradorPage() {
         setNovoMoradorEmail("");
         setNovoMoradorUnidade("");
         setTipoMorador("proprietario");
+        setRoleMorador("morador");
         setAutorizadoApp(true);
         setFormError("");
         setFormSuccess("");
@@ -524,6 +527,7 @@ export default function CadastroMoradorPage() {
                     .update({
                         unidade: unidadeFinal,
                         tipo_morador: tipoMorador,
+                        role: roleMorador,
                         acesso_app: autorizadoApp
                     })
                     .eq("id", editandoId);
@@ -615,7 +619,7 @@ export default function CadastroMoradorPage() {
                             condominio_id: condominio.id,
                             condominio_nome: condominio.nome,
                             user_id: targetUserId,
-                            role: "morador",
+                            role: roleMorador,
                             unidade: unidadeFinal,
                             tipo_morador: tipoMorador,
                             acesso_app: autorizadoApp
@@ -637,6 +641,7 @@ export default function CadastroMoradorPage() {
                 setNovoMoradorEmail("");
                 setNovoMoradorUnidade("");
                 setTipoMorador("proprietario");
+                setRoleMorador("morador");
                 setAutorizadoApp(true);
                 setSlugCustomizado("");
                 setSlugDisponivel(null);
@@ -1074,7 +1079,21 @@ export default function CadastroMoradorPage() {
                                 </div>
 
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Vínculo</label>
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Perfil de Acesso</label>
+                                    <select
+                                        value={roleMorador}
+                                        onChange={(e) => setRoleMorador(e.target.value)}
+                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium cursor-pointer"
+                                    >
+                                        <option value="morador">Morador</option>
+                                        <option value="sindico">Síndico</option>
+                                        <option value="conselho">Conselho</option>
+                                        <option value="contabilidade">Contabilidade</option>
+                                    </select>
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Vínculo Condomínio</label>
                                     <select
                                         value={tipoMorador}
                                         onChange={(e) => setTipoMorador(e.target.value)}

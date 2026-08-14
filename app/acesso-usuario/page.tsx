@@ -411,7 +411,7 @@ export default function AcessoUsuarioPage() {
                 </p>
 
                 <div className="md:flex hidden flex-col gap-2 mb-6 text-left">
-                  <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-emerald-600 transition-colors"><Users size={14} className="text-emerald-500" /> Cadastro de moradores</div>
+                  <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-emerald-600 transition-colors"><Users size={14} className="text-emerald-500" /> Integração de moradores</div>
                   <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-emerald-600 transition-colors"><ShieldCheck size={14} className="text-emerald-500" /> Controle de acesso</div>
                   <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-emerald-600 transition-colors"><Building2 size={14} className="text-emerald-500" /> Gestão condominial</div>
                 </div>

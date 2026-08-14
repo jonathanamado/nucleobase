@@ -28,7 +28,8 @@ import {
     Calendar,
     DollarSign,
     Users,
-    Save
+    Save,
+    BarChart3
 } from "lucide-react";
 
 interface SalaoUsoItem {
@@ -682,7 +683,7 @@ export default function PrestacaoContasPage() {
             const dataCompetenciaCompleta = `${competenciaSelecionada}-01`;
             const tarifaVal = converterParaFloat(valorMetroCubicoGas);
 
-            const payloads = unidadesCondominio.map((unidade) => {
+            const payloads = unidadesCondominio.filter(u => u.toLowerCase() !== 'adm').map((unidade) => {
                 const dadosUnidade = gasConsumoMap[unidade] || { anterior: '', atual: '' };
                 const antNum = converterParaFloat(dadosUnidade.anterior);
                 const atuNum = converterParaFloat(dadosUnidade.atual);
@@ -732,7 +733,9 @@ export default function PrestacaoContasPage() {
             const dataCompetenciaCompleta = `${competenciaSelecionada}-01`;
             const valorFundoNum = converterParaFloat(valorFundoReserva);
 
-            for (const unidade of unidadesCondominio) {
+            const unidadesFiltradas = unidadesCondominio.filter(u => u.toLowerCase() !== 'adm');
+
+            for (const unidade of unidadesFiltradas) {
                 const { data: fundoExistente } = await supabase
                     .from("condominio_contas_fundo_de_reservas")
                     .select("id")
@@ -1362,14 +1365,14 @@ export default function PrestacaoContasPage() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-zinc-50">
-                                        {unidadesCondominio.length === 0 ? (
+                                        {unidadesCondominio.filter(u => u.toLowerCase() !== 'adm').length === 0 ? (
                                             <tr>
                                                 <td colSpan={5} className="text-center py-8 text-xs text-zinc-400">
                                                     Nenhuma unidade cadastrada neste condomínio.
                                                 </td>
                                             </tr>
                                         ) : (
-                                            unidadesCondominio.map((unidade) => {
+                                            unidadesCondominio.filter(u => u.toLowerCase() !== 'adm').map((unidade) => {
                                                 const ant = converterParaFloat(gasConsumoMap[unidade]?.anterior);
                                                 const atu = converterParaFloat(gasConsumoMap[unidade]?.atual);
                                                 const consumo = Math.max(0, atu - ant);
@@ -1460,7 +1463,7 @@ export default function PrestacaoContasPage() {
                             </p>
                         )}
 
-                        <div className="pt-2">
+                        <div className="pt-2 space-y-3">
                             <button
                                 type="button"
                                 onClick={handleSalvarMedicaoGas}
@@ -1469,6 +1472,13 @@ export default function PrestacaoContasPage() {
                             >
                                 {loadingMedicaoGas ? "Salvando Todas as Medições..." : "Salvar Todas as Medições de Gás"}
                             </button>
+
+                            <Link
+                                href="/condo/adm/analise-gas"
+                                className="w-full bg-zinc-900 hover:bg-black text-white py-3.5 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-zinc-900/10 flex items-center justify-center gap-2 cursor-pointer text-center"
+                            >
+                                <BarChart3 size={14} /> Acessar análise de gás
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -1523,14 +1533,14 @@ export default function PrestacaoContasPage() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-zinc-50">
-                                        {unidadesCondominio.length === 0 ? (
+                                        {unidadesCondominio.filter(u => u.toLowerCase() !== 'adm').length === 0 ? (
                                             <tr>
                                                 <td colSpan={4} className="text-center py-8 text-xs text-zinc-400">
                                                     Nenhuma unidade cadastrada neste condomínio.
                                                 </td>
                                             </tr>
                                         ) : (
-                                            unidadesCondominio.map((unidade) => {
+                                            unidadesCondominio.filter(u => u.toLowerCase() !== 'adm').map((unidade) => {
                                                 const valorNumerico = converterParaFloat(valorFundoReserva);
                                                 return (
                                                     <tr key={unidade} className="hover:bg-zinc-50/50 transition-colors">
