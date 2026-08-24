@@ -1,3 +1,4 @@
+// app/condo/adm/prestacao_contas/page.tsx
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
@@ -125,7 +126,9 @@ export default function PrestacaoContasConsolidadoPage() {
             (membrosData || []).forEach((m: any) => {
                 const u = m.unidade?.trim();
                 if (u) {
-                    unidadesSet.add(u);
+                    if (u.toLowerCase() !== "adm") {
+                        unidadesSet.add(u);
+                    }
                     const roleNormalizado = String(m.role || "").toLowerCase().trim();
                     if (roleNormalizado === 'sindico') {
                         unidadesSindicoSet.add(u);
@@ -145,7 +148,7 @@ export default function PrestacaoContasConsolidadoPage() {
                 }
             });
 
-            const unidadesUnicas = Array.from(unidadesSet).sort();
+            const unidadesUnicas = Array.from(unidadesSet).filter(u => u.toLowerCase() !== "adm").sort();
             const qtdUnidades = unidadesUnicas.length > 0 ? unidadesUnicas.length : 1;
 
             // 2. Buscar Contas (Receitas e Despesas) do mês com normalização rigorosa do tipo

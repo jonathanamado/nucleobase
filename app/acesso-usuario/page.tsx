@@ -93,19 +93,17 @@ export default function AcessoUsuarioPage() {
       if (isEmail) {
         emailParaLogin = inputAcesso;
       } else {
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('email_contato')
-          .eq('slug', inputAcesso)
-          .maybeSingle();
+        // Chamada segura da função RPC que contorna o RLS apenas para buscar o email pelo slug
+        const { data: emailEncontrado, error: profileError } = await supabase
+          .rpc('get_email_by_slug', { p_slug: inputAcesso });
 
         if (profileError) throw profileError;
-        if (!profile || !profile.email_contato) {
+        if (!emailEncontrado) {
           alert("ID de usuário (Slug) não foi localizado.");
           setLoading(false);
           return;
         }
-        emailParaLogin = profile.email_contato;
+        emailParaLogin = emailEncontrado;
       }
 
       const { error: authError } = await supabase.auth.signInWithPassword({
