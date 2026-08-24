@@ -601,16 +601,20 @@ export default function CadastroMoradorPage() {
 
                     targetUserId = signUpData.user.id;
 
-                    await supabase
-                        .from("profiles")
-                        .upsert({
-                            id: targetUserId,
-                            nome_completo: nomeFormatado,
-                            email_contato: emailFormatado,
-                            slug: generatedSlug,
-                            plan_type: 'free'
-                        });
+                    // Chamada segura via RPC contornando o RLS do profiles para criação administrativa
+                    const { error: profileRpcError } = await supabase.rpc('admin_upsert_profile', {
+                        p_user_id: targetUserId,
+                        p_nome_completo: nomeFormatado,
+                        p_email_contato: emailFormatado,
+                        p_slug: generatedSlug,
+                        p_plan_type: 'free'
+                    });
+
+                    if (profileRpcError) throw profileRpcError;
                 }
+
+                // Pequeno respiro para garantir consistência da foreign key no Postgres
+                await new Promise((resolve) => setTimeout(resolve, 400));
 
                 const { error: insertError } = await supabase
                     .from("condominio_membros")
