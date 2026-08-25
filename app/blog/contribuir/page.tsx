@@ -1,9 +1,11 @@
+// app/blog/contribuir/page.tsx
 "use client";
 import React, { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { 
-  Send, CheckCircle2, Loader2, Sparkles, 
-  Unlock, Briefcase, Lock, Mail, Clock, FileText, 
+import { useLoginProtegido } from "@/hooks/useLoginProtegido";
+import {
+  Send, CheckCircle2, Loader2, Sparkles,
+  Unlock, Briefcase, Lock, Mail, Clock, FileText,
   ChevronRight, Eye, EyeOff, AtSign, Dna, PenTool,
   X, LifeBuoy, ArrowRight, Instagram,
   ShieldCheck, Zap, Globe, Key, UserPlus
@@ -15,21 +17,32 @@ const supabase = createClient(
 );
 
 export default function ContribuirBlog() {
+  const {
+    emailOrSlug: slug,
+    setEmailOrSlug: setSlug,
+    password: senha,
+    setPassword: setSenha,
+    authLoading,
+    setAuthLoading,
+    loginError,
+    setLoginError,
+    tempoBloqueio,
+    tratarErroLogin,
+    resetarBloqueio
+  } = useLoginProtegido();
+
   const [loading, setLoading] = useState(false);
-  const [authLoading, setAuthLoading] = useState(false);
   const [enviado, setEnviado] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [isMontado, setIsMontado] = useState(false);
-  
-  // Estados de Autenticação
-  const [slug, setSlug] = useState(""); 
-  const [senha, setSenha] = useState("");
-  const [nome, setNome] = useState(""); 
+
+  // Estados de Autenticação / Perfil adicionais
+  const [nome, setNome] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
-  
+
   const [enviarCopia, setEnviarCopia] = useState(true);
 
   useEffect(() => {
@@ -76,11 +89,14 @@ export default function ContribuirBlog() {
 
   const handleAuthRapido = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (tempoBloqueio > 0) return;
+
     if (!slug || !senha) {
       alert("Preencha o acesso e a senha para liberar.");
       return;
     }
     setAuthLoading(true);
+    setLoginError("");
 
     const inputAcesso = slug.trim().toLowerCase();
     const isEmail = inputAcesso.includes("@");
@@ -98,8 +114,7 @@ export default function ContribuirBlog() {
 
         if (profileError) throw profileError;
         if (!profile || !profile.email) {
-          alert("ID de usuário não encontrado.");
-          setAuthLoading(false);
+          tratarErroLogin("ID de usuário não encontrado.");
           return;
         }
         emailParaAuth = profile.email;
@@ -126,12 +141,15 @@ export default function ContribuirBlog() {
             }
             await supabase.from('profiles').upsert({ id: authData.user.id, email: emailParaAuth, nome_completo: nome, plan_type: 'free' });
           }
+          resetarBloqueio();
         } else {
-          alert("Acesso incorreto. Se você é novo, preencha também o seu nome completo.");
+          tratarErroLogin("Acesso incorreto. Se você é novo, preencha também o seu nome completo.");
         }
+      } else {
+        resetarBloqueio();
       }
     } catch (err: any) {
-      alert("Erro: " + err.message);
+      tratarErroLogin("Erro: " + err.message);
     } finally {
       setAuthLoading(false);
     }
@@ -158,7 +176,6 @@ export default function ContribuirBlog() {
     const formElement = e.currentTarget;
     const formData = new FormData(formElement);
 
-    // Lógica Sugerida: Validar Perfil do Autor
     const autorSocial = formData.get("Autor_Social");
     const autorWebsite = formData.get("Autor_Website");
     const autorAtuacao = formData.get("Autor_Atuacao");
@@ -172,7 +189,7 @@ export default function ContribuirBlog() {
 
     setLoading(true);
     formData.append("access_key", "9ef5a274-150a-4664-a885-0b052efd06f7");
-    formData.append("email_do_autor", user.email); 
+    formData.append("email_do_autor", user.email);
     formData.append("nome_do_autor", user.nome);
 
     try {
@@ -192,7 +209,7 @@ export default function ContribuirBlog() {
         body: JSON.stringify(Object.fromEntries(formData))
       });
       if (response.ok) {
-        formElement.reset(); 
+        formElement.reset();
         setEnviado(true);
       }
     } catch (error) {
@@ -226,7 +243,7 @@ export default function ContribuirBlog() {
 
   return (
     <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
-      
+
       {/* HEADER PADRONIZADO */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
@@ -245,96 +262,109 @@ export default function ContribuirBlog() {
       </h3>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-        
+
         {/* FORMULÁRIO / LOGIN (ESQUERDA) */}
         <div className="lg:col-span-7 h-full">
           {!user ? (
             <div className="h-full">
-                <div className="w-full bg-white p-6 md:p-4 rounded-[3rem] border border-gray-100 shadow-2xl shadow-blue-900/5 h-full flex flex-col">
-                  <h2 className="text-lg font-bold text-gray-900 mb-2 px-1">
-                    Realizar login<span className="text-orange-500">.</span>
-                  </h2>
-                  <form onSubmit={handleAuthRapido} className="flex flex-col gap-1 flex-grow">
-                      <div className="space-y-3">
-                        <div className="relative group">
-                          <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
-                          <input 
-                            type="text" 
-                            placeholder="ID de Usuário ou E-mail" 
-                            required
-                            value={slug}
-                            className="w-full pl-11 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900 font-medium"
-                            onChange={(e) => setSlug(e.target.value)}
-                          />
-                        </div>
-                        <div className="relative group">
-                          <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
-                          <input 
-                            type={showPassword ? "text" : "password"} 
-                            placeholder="Senha" 
-                            required
-                            value={senha}
-                            className="w-full pl-11 pr-10 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900"
-                            onChange={(e) => setSenha(e.target.value)}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition-colors"
-                          >
-                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                          </button>
-                        </div>
-                      </div>
-                      
-                      <button 
+              <div className="w-full bg-white p-6 md:p-4 rounded-[3rem] border border-gray-100 shadow-2xl shadow-blue-900/5 h-full flex flex-col">
+                <h2 className="text-lg font-bold text-gray-900 mb-2 px-1">
+                  Realizar login<span className="text-orange-500">.</span>
+                </h2>
+                <form onSubmit={handleAuthRapido} className="flex flex-col gap-1 flex-grow">
+                  <div className="space-y-3">
+                    <div className="relative group">
+                      <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
+                      <input
+                        type="text"
+                        placeholder="ID de Usuário ou E-mail"
+                        required
+                        value={slug}
+                        className="w-full pl-11 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900 font-medium"
+                        onChange={(e) => setSlug(e.target.value)}
+                      />
+                    </div>
+                    <div className="relative group">
+                      <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Senha"
+                        required
+                        value={senha}
+                        className="w-full pl-11 pr-10 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900"
+                        onChange={(e) => setSenha(e.target.value)}
+                      />
+                      <button
                         type="button"
-                        onClick={() => setShowForgotModal(true)}
-                        className="text-[10px] text-gray-400 font-bold hover:text-orange-500 transition-colors text-right pr-1"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition-colors"
                       >
-                        Esqueceu a senha?
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
-
-                      <button 
-                        disabled={authLoading}
-                        className="w-full bg-orange-500 text-white h-[56px] rounded-2xl font-bold hover:bg-orange-600 transition shadow-lg text-xs disabled:opacity-50 mt-2"
-                      >
-                        {authLoading ? "Verificando..." : "Acessar Plataforma"}
-                      </button>
-                  </form>
-
-                  <div className="mt-6 pt-2 border-t border-gray-100">
-                    <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2 text-center">Ainda não se cadastrou?</p>
-                    <a href="/cadastro" className="flex items-center justify-center gap-3 bg-white text-gray-900 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] border border-gray-200 shadow-sm hover:shadow-md hover:border-orange-200 hover:text-orange-600 transition-all active:scale-95">
-                      <UserPlus size={18} className="text-orange-500" /> Criar conta gratuita
-                    </a>
+                    </div>
                   </div>
+
+                  {/* Aviso visual de bloqueio regressivo */}
+                  {tempoBloqueio > 0 && (
+                    <div className="text-xs font-bold text-amber-600 bg-amber-50 p-3 rounded-xl text-center mt-2">
+                      Muitas tentativas. Tente novamente em {tempoBloqueio}s.
+                    </div>
+                  )}
+
+                  {loginError && tempoBloqueio === 0 && (
+                    <p className="text-xs font-bold text-red-600 bg-red-50 p-3 rounded-xl text-center mt-2">
+                      {loginError}
+                    </p>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotModal(true)}
+                    className="text-[10px] text-gray-400 font-bold hover:text-orange-500 transition-colors text-right pr-1 mt-1"
+                  >
+                    Esqueceu a senha?
+                  </button>
+
+                  <button
+                    disabled={authLoading || tempoBloqueio > 0}
+                    className="w-full bg-orange-500 text-white h-[56px] rounded-2xl font-bold hover:bg-orange-600 transition shadow-lg text-xs disabled:opacity-50 mt-2 cursor-pointer"
+                  >
+                    {authLoading ? "Verificando..." : tempoBloqueio > 0 ? `Aguarde (${tempoBloqueio}s)` : "Acessar Plataforma"}
+                  </button>
+                </form>
+
+                <div className="mt-6 pt-2 border-t border-gray-100">
+                  <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2 text-center">Ainda não se cadastrou?</p>
+                  <a href="/cadastro" className="flex items-center justify-center gap-3 bg-white text-gray-900 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] border border-gray-200 shadow-sm hover:shadow-md hover:border-orange-200 hover:text-orange-600 transition-all active:scale-95">
+                    <UserPlus size={18} className="text-orange-500" /> Criar conta gratuita
+                  </a>
+                </div>
               </div>
-            </div> 
+            </div>
           ) : (
             <form id="artigo-form" onSubmit={handleSubmit} className="bg-white rounded-[3rem] border border-gray-100 p-8 md:p-12 shadow-2xl shadow-blue-900/5 space-y-8 flex flex-col h-full">
-               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-gray-50">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-gray-50">
                 <div className="flex items-center gap-2 text-gray-400"><Mail size={18} /><h3 className="text-[11px] font-black uppercase tracking-widest">Editor de Conteúdo</h3></div>
                 <div className="flex items-center gap-3">
                   <label className="flex items-center gap-3 cursor-pointer group bg-gray-50 px-4 py-2 rounded-full text-[9px] font-black text-gray-400 uppercase">
-                      Receber cópia
-                      <input type="checkbox" checked={enviarCopia} onChange={() => setEnviarCopia(!enviarCopia)} className="sr-only peer" />
-                      <div className="w-7 h-4 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 transition-all peer-checked:after:translate-x-3"></div>
+                    Receber cópia
+                    <input type="checkbox" checked={enviarCopia} onChange={() => setEnviarCopia(!enviarCopia)} className="sr-only peer" />
+                    <div className="w-7 h-4 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 transition-all peer-checked:after:translate-x-3"></div>
                   </label>
                 </div>
               </div>
 
               <div className="space-y-6 flex-grow flex flex-col">
-                <input 
-                  name="Titulo_do_Artigo" 
-                  required 
-                  placeholder="Título do seu artigo..." 
-                  className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-gray-900 font-bold focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none text-2xl placeholder:text-gray-400" 
+                <input
+                  name="Titulo_do_Artigo"
+                  required
+                  placeholder="Título do seu artigo..."
+                  className="w-full bg-gray-50 border-none rounded-2xl py-5 px-8 text-gray-900 font-bold focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none text-2xl placeholder:text-gray-400"
                 />
-                
+
                 <div className="relative">
-                  <select 
-                    name="Categoria" 
+                  <select
+                    name="Categoria"
                     className="w-full bg-gray-50 border-none rounded-2xl py-5 pl-8 pr-14 text-sm font-bold text-gray-500 outline-none cursor-pointer focus:bg-white focus:ring-2 focus:ring-blue-100 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 20 20%27%3D%3Cpath stroke=%27%236b7280%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27m6 8 4 4 4-4%27/%3E%3C/svg%3E')] bg-[length:1.25rem_1.25rem] bg-[position:right_1.5rem_center] bg-no-repeat transition-all"
                   >
                     <option value="" disabled selected className="text-gray-400">Escolha uma categoria...</option>
@@ -346,10 +376,10 @@ export default function ContribuirBlog() {
                   </select>
                 </div>
 
-                <textarea 
-                  name="Conteudo_Completo" 
-                  required 
-                  placeholder="Desenvolva seu conhecimento aqui..." 
+                <textarea
+                  name="Conteudo_Completo"
+                  required
+                  placeholder="Desenvolva seu conhecimento aqui..."
                   className="w-full flex-grow bg-gray-50 border-none rounded-[2rem] p-8 text-lg focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none resize-none font-medium text-gray-700 shadow-inner min-h-[400px] placeholder:text-gray-400"
                 ></textarea>
               </div>
@@ -383,43 +413,43 @@ export default function ContribuirBlog() {
               </div>
             </div>
           )}
-          
+
           {/* CARD DIRETRIZES E IMPACTO */}
           {user && (
             <div className="bg-white border border-gray-100 p-8 rounded-[2.5rem] shadow-sm flex-grow flex flex-col justify-between">
-                <div>
+              <div>
                 <div className="flex items-center gap-3 mb-8">
-                    <ShieldCheck className="text-emerald-500" size={24} />
-                    <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-900">Diretrizes de Publicação</h4>
+                  <ShieldCheck className="text-emerald-500" size={24} />
+                  <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-900">Diretrizes de Publicação</h4>
                 </div>
                 <ul className="space-y-6">
-                    {[
+                  {[
                     { title: "Conteúdo Autoral", desc: "Artigos devem ser originais e inéditos." },
                     { title: "Tom Técnico-Executivo", desc: "Foco em clareza, dados e aplicabilidade." },
                     { title: "Revisão Nucleo", desc: "O texto passará por curadoria antes de ir ao ar." }
-                    ].map((item, i) => (
+                  ].map((item, i) => (
                     <li key={i} className="flex gap-4">
-                        <div className="mt-1.5 w-1.5 h-1.5 bg-blue-600 rounded-full shrink-0"></div>
-                        <div>
+                      <div className="mt-1.5 w-1.5 h-1.5 bg-blue-600 rounded-full shrink-0"></div>
+                      <div>
                         <p className="text-sm font-bold text-gray-800">{item.title}</p>
                         <p className="text-xs text-gray-400 font-medium leading-relaxed">{item.desc}</p>
-                        </div>
+                      </div>
                     </li>
-                    ))}
+                  ))}
                 </ul>
-                </div>
+              </div>
 
-                <div className="mt-10 pt-8 border-t border-gray-50">
+              <div className="mt-10 pt-8 border-t border-gray-50">
                 <div className="flex items-center gap-3 mb-4">
-                    <Sparkles className="text-blue-500" size={20} />
-                    <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-900">Impacto na Rede</h4>
+                  <Sparkles className="text-blue-500" size={20} />
+                  <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-900">Impacto na Rede</h4>
                 </div>
                 <div className="bg-blue-50/40 border-l-4 border-blue-600 p-6 rounded-r-3xl transition-all hover:bg-blue-50/60">
-                    <p className="text-blue-900 font-bold text-xs md:text-sm text-center leading-relaxed italic">
+                  <p className="text-blue-900 font-bold text-xs md:text-sm text-center leading-relaxed italic">
                     "Sua trajetória inspira pessoas, transformando conhecimento humano em um legado poderoso que conecta, guia e fortalece toda a nossa comunidade."
-                    </p>
+                  </p>
                 </div>
-                </div>
+              </div>
             </div>
           )}
         </div>
@@ -438,16 +468,16 @@ export default function ContribuirBlog() {
       <div className="flex flex-col items-center text-center">
         <div className="max-w-3xl mb-12">
           <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
-            Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+            Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
           </h4>
           <p className="text-gray-500 font-medium text-sm md:text-base">
             Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
           </p>
         </div>
-        
-        <a 
-          href="https://www.instagram.com/nucleobase.app/" 
-          target="_blank" 
+
+        <a
+          href="https://www.instagram.com/nucleobase.app/"
+          target="_blank"
           rel="noopener noreferrer"
           className="group relative flex flex-col items-center gap-6"
         >

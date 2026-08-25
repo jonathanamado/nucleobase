@@ -1,27 +1,40 @@
+// app/indique/page.tsx
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
-import { 
-  Share2, Users, Check, Megaphone, 
-  ArrowUpRight, Mail, Send, MessageCircle, 
+import {
+  Share2, Users, Check, Megaphone,
+  ArrowUpRight, Mail, Send, MessageCircle,
   Trophy, Gift, Stars, Heart, Eye, EyeOff, AtSign, Key,
   History, TrendingUp, ChevronLeft, ChevronRight,
   Instagram
 } from "lucide-react";
-import { supabase } from "@/lib/supabase"; 
+import { supabase } from "@/lib/supabase";
+import { useLoginProtegido } from "@/hooks/useLoginProtegido";
 import Link from "next/link";
 
 export default function IndiquePage() {
+  const {
+    emailOrSlug: slug,
+    setEmailOrSlug: setSlug,
+    password,
+    setPassword,
+    authLoading: loadingLogin,
+    setAuthLoading: setLoadingLogin,
+    loginError,
+    setLoginError,
+    tempoBloqueio,
+    tratarErroLogin,
+    resetarBloqueio
+  } = useLoginProtegido();
+
   // --- ESTADOS DE UI E NAVEGAÇÃO ---
   const [activeTab, setActiveTab] = useState<"comunidade" | "partner">("comunidade");
   const [loadingData, setLoadingData] = useState(true);
-  const [cardAtivo, setCardAtivo] = useState(0); 
-  const [recompensaAtiva, setRecompensaAtiva] = useState(0); 
+  const [cardAtivo, setCardAtivo] = useState(0);
+  const [recompensaAtiva, setRecompensaAtiva] = useState(0);
   const [isRecovering, setIsRecovering] = useState(false);
-  
+
   // --- ESTADOS DE AUTENTICAÇÃO ---
-  const [slug, setSlug] = useState(""); 
-  const [password, setPassword] = useState("");
-  const [loadingLogin, setLoadingLogin] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   // --- DADOS DO USUÁRIO ---
@@ -29,9 +42,9 @@ export default function IndiquePage() {
   const [userSlug, setUserSlug] = useState<string>("");
   const [userName, setUserName] = useState<string>("Um amigo");
   const [baseUrl, setBaseUrl] = useState("");
-  
+
   // --- MÉTRICAS ---
-  const [contagem, setContagem] = useState(0); 
+  const [contagem, setContagem] = useState(0);
   const [indicadosLista, setIndicadosLista] = useState<any[]>([]);
   const [copiado, setCopiado] = useState(false);
   const [emailInvite, setEmailInvite] = useState("");
@@ -91,27 +104,41 @@ export default function IndiquePage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (tempoBloqueio > 0) return;
+
     setLoadingLogin(true);
+    setLoginError("");
     const input = slug.trim().toLowerCase();
     const isEmail = input.includes("@");
     try {
       let email = isEmail ? input : "";
       if (!isEmail) {
         const { data: p } = await supabase.from('profiles').select('email').eq('slug', input).maybeSingle();
-        if (!p?.email) throw new Error("ID não encontrado.");
+        if (!p?.email) {
+          tratarErroLogin("ID não encontrado.");
+          return;
+        }
         email = p.email;
       }
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      if (error) {
+        tratarErroLogin("Credenciais incorretas.");
+        return;
+      }
+      resetarBloqueio();
       window.location.reload();
-    } catch (err: any) { alert(err.message); } finally { setLoadingLogin(false); }
+    } catch (err: any) {
+      tratarErroLogin("Ocorreu um erro inesperado.");
+    } finally {
+      setLoadingLogin(false);
+    }
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     const input = slug.trim().toLowerCase();
     if (!input) return alert("Por favor, insira seu ID ou E-mail para recuperar a senha.");
-    
+
     setLoadingLogin(true);
     try {
       let email = input.includes("@") ? input : "";
@@ -174,7 +201,7 @@ export default function IndiquePage() {
 
   return (
     <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
-      
+
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
@@ -193,7 +220,7 @@ export default function IndiquePage() {
       {!userId && (
         <div className="mb-8 animate-in fade-in slide-in-from-left-2 duration-500">
           <p className="text-sm md:text-base font-medium text-blue-900 leading-relaxed">
-            Para começar a indicar e garantir suas recompensas, você precisa estar autenticado em nossa plataforma. 
+            Para começar a indicar e garantir suas recompensas, você precisa estar autenticado em nossa plataforma.
             Caso ainda não possua uma conta, <Link href="/cadastro" className="text-blue-600 font-bold underline decoration-2 underline-offset-4 hover:text-blue-800 transition-colors">clique aqui</Link> para se cadastrar.
           </p>
         </div>
@@ -202,7 +229,7 @@ export default function IndiquePage() {
       {userId ? (
         <>
           <div className="block md:hidden mb-6">
-            <p className="font-medium text-blue-900 text-base leading-relaxed"> 
+            <p className="font-medium text-blue-900 text-base leading-relaxed">
               Olá <span className="font-bold text-blue-700">{userName.split(' ')[0]}</span>, compartilhe seu link e contribua com o nosso crescimento orgânico.
             </p>
           </div>
@@ -216,7 +243,7 @@ export default function IndiquePage() {
 
             <div className="relative">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-                
+
                 {/* CARD WHATSAPP */}
                 <div className={`bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm flex flex-col justify-between transition-all duration-300 min-h-[260px] ${cardAtivo === 0 ? "flex" : "hidden lg:flex"}`}>
                   <div>
@@ -226,12 +253,12 @@ export default function IndiquePage() {
                     </div>
                     <p className="text-xs text-gray-400 font-medium mb-4 leading-relaxed">Envie uma mensagem direta com seu link de indicação para seus contatos.</p>
                   </div>
-                  
+
                   <div className="flex flex-col gap-4">
                     <button onClick={handleWhatsAppInvite} className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all shadow-lg">
                       Enviar Agora <ArrowUpRight size={14} />
                     </button>
-                    
+
                     <div className="flex md:hidden items-center justify-center gap-3 pt-2">
                       <button onClick={() => setCardAtivo(1)} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-80 hover:opacity-100 transition-opacity">
                         <ChevronRight size={20} strokeWidth={3} />
@@ -278,16 +305,16 @@ export default function IndiquePage() {
                     </div>
                     <div className="relative mb-2">
                       <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                      <input 
-                        type="email" 
-                        value={emailInvite} 
-                        onChange={(e) => setEmailInvite(e.target.value)} 
-                        placeholder="E-mail do convidado..." 
-                        className="w-full bg-gray-50 border-none rounded-2xl pl-11 pr-4 py-4 text-xs font-bold outline-none focus:ring-1 focus:ring-blue-600" 
+                      <input
+                        type="email"
+                        value={emailInvite}
+                        onChange={(e) => setEmailInvite(e.target.value)}
+                        placeholder="E-mail do convidado..."
+                        className="w-full bg-gray-50 border-none rounded-2xl pl-11 pr-4 py-4 text-xs font-bold outline-none focus:ring-1 focus:ring-blue-600"
                       />
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-col gap-4">
                     <button onClick={handleSendInvite} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-lg">
                       {inviteEnviado ? "Enviado" : "Convidar"} <Send size={14} />
@@ -304,12 +331,12 @@ export default function IndiquePage() {
                   </div>
                 </div>
               </div>
-              
+
               {/* INDICADORES (DOTS) PARA OS CARDS DE CONVITE NO MOBILE */}
               <div className="flex lg:hidden justify-center gap-2 mt-6">
                 {[0, 1, 2].map((dot) => (
-                  <button 
-                    key={dot} 
+                  <button
+                    key={dot}
                     onClick={() => setCardAtivo(dot)}
                     className={`h-1.5 rounded-full transition-all duration-300 ${cardAtivo === dot ? "w-8 bg-blue-600" : "w-2 bg-gray-300"}`}
                   />
@@ -329,7 +356,7 @@ export default function IndiquePage() {
 
           <div className="mb-6 hidden md:block">
             <p className="font-medium text-blue-900 text-base leading-relaxed">
-              Além destas vantagens, é certo também que a sua influência transformará o controle financeiro de amigos e familiares. 
+              Além destas vantagens, é certo também que a sua influência transformará o controle financeiro de amigos e familiares.
               Para o seu acompanhamento, veja que, na aba <strong className="text-blue-700">Indicações</strong>, consta o histórico de convites enviados. Em <strong className="text-blue-700">Recompensas</strong>, você solicita o resgate do bônus por suas "Indicações ativadas".
             </p>
           </div>
@@ -377,7 +404,7 @@ export default function IndiquePage() {
 
                 <div className="hidden lg:flex lg:col-span-3 bg-blue-600 rounded-[2.5rem] p-10 text-white flex-col items-center justify-center relative overflow-hidden shadow-2xl min-h-[300px]">
                   <Users size={80} className="absolute -right-4 -bottom-4 opacity-10 rotate-12" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] mb-4 opacity-80 z-10 text-center">Total de<br/>Cadastros</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] mb-4 opacity-80 z-10 text-center">Total de<br />Cadastros</span>
                   <span className="text-7xl font-black z-10 tabular-nums">{contagem.toString().padStart(2, '0')}</span>
                 </div>
               </div>
@@ -449,21 +476,21 @@ export default function IndiquePage() {
               <form onSubmit={handleForgotPassword} className="w-full space-y-4">
                 <div className="relative">
                   <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                  <input 
-                    type="text" 
-                    placeholder="ID ou E-mail" 
-                    required 
-                    value={slug} 
-                    onChange={(e) => setSlug(e.target.value)} 
-                    className="w-full pl-11 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-1 focus:ring-blue-600 outline-none text-xs font-bold" 
+                  <input
+                    type="text"
+                    placeholder="ID ou E-mail"
+                    required
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value)}
+                    className="w-full pl-11 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-1 focus:ring-blue-600 outline-none text-xs font-bold"
                   />
                 </div>
                 <button disabled={loadingLogin} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700 transition shadow-lg text-[10px] disabled:opacity-50">
                   {loadingLogin ? "Enviando..." : "Receber link por e-mail"}
                 </button>
                 <div className="text-center">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => setIsRecovering(false)}
                     className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-blue-600 transition-colors"
                   >
@@ -475,33 +502,46 @@ export default function IndiquePage() {
               <form onSubmit={handleLogin} className="w-full space-y-3">
                 <div className="relative">
                   <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                  <input 
-                    type="text" 
-                    placeholder="ID ou E-mail" 
-                    required 
-                    value={slug} 
-                    onChange={(e) => setSlug(e.target.value)} 
-                    className="w-full pl-11 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-1 focus:ring-blue-600 outline-none text-xs font-bold" 
+                  <input
+                    type="text"
+                    placeholder="ID ou E-mail"
+                    required
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value)}
+                    className="w-full pl-11 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-1 focus:ring-blue-600 outline-none text-xs font-bold"
                   />
                 </div>
                 <div className="relative">
                   <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                  <input 
-                    type={showPassword ? "text" : "password"} 
-                    placeholder="Senha" 
-                    required 
-                    value={password} 
-                    onChange={(e) => setPassword(e.target.value)} 
-                    className="w-full pl-11 pr-12 py-4 bg-gray-50 border-none rounded-2xl focus:ring-1 focus:ring-blue-600 outline-none text-xs font-bold" 
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Senha"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-11 pr-12 py-4 bg-gray-50 border-none rounded-2xl focus:ring-1 focus:ring-blue-600 outline-none text-xs font-bold"
                   />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
-                
-                <div className="text-right px-1">
-                  <button 
-                    type="button" 
+
+                {/* Aviso visual de bloqueio regressivo */}
+                {tempoBloqueio > 0 && (
+                  <div className="text-xs font-bold text-amber-600 bg-amber-50 p-3 rounded-xl text-center mt-2">
+                    Muitas tentativas. Tente novamente em {tempoBloqueio}s.
+                  </div>
+                )}
+
+                {loginError && tempoBloqueio === 0 && (
+                  <p className="text-xs font-bold text-red-600 bg-red-50 p-3 rounded-xl text-center mt-2">
+                    {loginError}
+                  </p>
+                )}
+
+                <div className="text-right px-1 pt-1">
+                  <button
+                    type="button"
                     onClick={() => setIsRecovering(true)}
                     className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-blue-600 transition-colors"
                   >
@@ -509,8 +549,8 @@ export default function IndiquePage() {
                   </button>
                 </div>
 
-                <button disabled={loadingLogin} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700 transition shadow-lg text-[10px] disabled:opacity-50 mt-2">
-                  {loadingLogin ? "Autenticando..." : "Acessar Plataforma"}
+                <button disabled={loadingLogin || tempoBloqueio > 0} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700 transition shadow-lg text-[10px] disabled:opacity-50 mt-2 cursor-pointer">
+                  {loadingLogin ? "Autenticando..." : tempoBloqueio > 0 ? `Aguarde (${tempoBloqueio}s)` : "Acessar Plataforma"}
                 </button>
               </form>
             )}
@@ -523,7 +563,7 @@ export default function IndiquePage() {
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
           Níveis de Conquista <div className="h-px bg-gray-300 flex-1"></div>
         </h3>
-        
+
         <div className="relative md:hidden">
           <div className="w-full flex flex-col items-center justify-center">
             {cardsRecompensa.map((item, i) => (
@@ -532,7 +572,7 @@ export default function IndiquePage() {
                 <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] block mb-2">{item.meta}</span>
                 <h4 className="text-xl font-bold text-gray-900 mb-3 tracking-tight">{item.premio}</h4>
                 <p className="text-sm text-gray-500 font-medium italic leading-relaxed mb-8">{item.desc}</p>
-                
+
                 <div className="flex justify-center gap-4 mt-auto">
                   {i > 0 && (
                     <button onClick={() => setRecompensaAtiva(i - 1)} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-60 hover:opacity-100 transition-opacity">
@@ -555,8 +595,8 @@ export default function IndiquePage() {
 
             <div className="flex justify-center gap-2 mt-6">
               {cardsRecompensa.map((_, dot) => (
-                <button 
-                  key={dot} 
+                <button
+                  key={dot}
                   onClick={() => setRecompensaAtiva(dot)}
                   className={`h-1.5 rounded-full transition-all duration-300 ${recompensaAtiva === dot ? "w-8 bg-blue-600" : "w-2 bg-gray-300"}`}
                 />
@@ -587,27 +627,27 @@ export default function IndiquePage() {
       <div className="flex flex-col items-center text-center">
         <div className="max-w-3xl mb-12">
           <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
-            Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+            Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
           </h4>
           <p className="text-gray-500 font-medium text-sm md:text-base">
             Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
           </p>
         </div>
-        
-        <a 
-          href="https://www.instagram.com/nucleobase.app/" 
-          target="_blank" 
+
+        <a
+          href="https://www.instagram.com/nucleobase.app/"
+          target="_blank"
           rel="noopener noreferrer"
           className="group relative flex flex-col items-center gap-6"
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
-            
+
             <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
               <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
             </div>
           </div>
-          
+
           <div className="flex flex-col items-center">
             <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
             <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>

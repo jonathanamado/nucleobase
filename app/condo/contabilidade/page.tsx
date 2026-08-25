@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { useLoginProtegido } from "@/hooks/useLoginProtegido";
 import {
     Building2,
     CheckCircle2,
@@ -18,7 +19,9 @@ import {
     Building,
     BadgeInfo,
     Clock,
-    ArrowUpRight
+    ArrowUpRight,
+    Eye,
+    EyeOff
 } from "lucide-react";
 
 interface LinhaRelatorioConsolidado {
@@ -38,12 +41,23 @@ interface LinhaRelatorioConsolidado {
 export default function ContabilidadeCondoPage() {
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [authLoading, setAuthLoading] = useState(false);
 
-    // Controle de Login e Restrições para o perfil 'contabilidade'
-    const [emailOrSlug, setEmailOrSlug] = useState("");
-    const [password, setPassword] = useState("");
-    const [loginError, setLoginError] = useState("");
+    // Controle de Login via Hook de Segurança (`useLoginProtegido`)
+    const {
+        emailOrSlug,
+        setEmailOrSlug,
+        password,
+        setPassword,
+        authLoading,
+        setAuthLoading,
+        loginError,
+        setLoginError,
+        tempoBloqueio,
+        tratarErroLogin,
+        resetarBloqueio
+    } = useLoginProtegido();
+
+    const [showPassword, setShowPassword] = useState(false);
     const [isAcessoNegado, setIsAcessoNegado] = useState(false);
     const [condominio, setCondominio] = useState<{ id: string; nome: string } | null>(null);
 
@@ -347,8 +361,12 @@ export default function ContabilidadeCondoPage() {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (tempoBloqueio > 0) return;
+
         setAuthLoading(true);
         setLoginError("");
+
         try {
             const inputAcesso = emailOrSlug.trim().toLowerCase();
             let emailParaLogin = inputAcesso;
@@ -361,8 +379,7 @@ export default function ContabilidadeCondoPage() {
                     .maybeSingle();
 
                 if (!profile?.email_contato) {
-                    setLoginError("ID ou e-mail não localizado.");
-                    setAuthLoading(false);
+                    tratarErroLogin("ID ou e-mail não localizado.");
                     return;
                 }
                 emailParaLogin = profile.email_contato;
@@ -370,13 +387,14 @@ export default function ContabilidadeCondoPage() {
 
             const { data, error } = await supabase.auth.signInWithPassword({ email: emailParaLogin, password });
             if (error || !data.session) {
-                setLoginError("Credenciais incorretas.");
-                setAuthLoading(false);
+                tratarErroLogin("Credenciais incorretas.");
                 return;
             }
+
+            resetarBloqueio();
             await verifyContabilidadeAndLoadData(data.session);
         } catch {
-            setLoginError("Erro ao entrar.");
+            tratarErroLogin("Erro ao entrar.");
         } finally {
             setAuthLoading(false);
         }
@@ -385,7 +403,6 @@ export default function ContabilidadeCondoPage() {
     const exportarCSV = () => {
         if (linhasRelatorio.length === 0) return alert("Sem dados para exportar.");
 
-        // Adicionando o BOM (\uFEFF) para forçar o Excel a reconhecer a codificação UTF-8 corretamente
         let csvContent = "\uFEFFUnidade;Morador;Taxa Base;Fundo de Reservas;Salão de Festas;Receita - Despesa (Rateio);Rateio Síndico;Medição Gás (m³ / R$);Total a Pagar;Resumo Texto Boleto\n";
 
         linhasRelatorio.forEach(row => {
@@ -424,6 +441,7 @@ export default function ContabilidadeCondoPage() {
                         <h1 className="text-xl font-black tracking-tight">Portal da Contabilidade</h1>
                         <p className="text-xs text-zinc-500 font-medium">Insira as credenciais vinculadas ao papel de contabilidade para acessar as informações do condomínio.</p>
                     </div>
+
                     <form onSubmit={handleLogin} className="space-y-4 text-left">
                         <div>
                             <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">E-mail ou ID</label>
@@ -438,18 +456,43 @@ export default function ContabilidadeCondoPage() {
                         </div>
                         <div>
                             <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Senha</label>
-                            <input
-                                type="password"
-                                required
-                                placeholder="••••••••"
-                                className="w-full mt-1 px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl text-sm outline-none focus:border-emerald-400 font-medium"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
+                            <div className="relative mt-1">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    required
+                                    placeholder="••••••••"
+                                    className="w-full px-4 py-3 pr-12 bg-zinc-50 border border-zinc-200 rounded-2xl text-sm outline-none focus:border-emerald-400 font-medium"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 cursor-pointer"
+                                >
+                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
                         </div>
-                        {loginError && <p className="text-xs font-bold text-red-600 bg-red-50 p-3 rounded-xl text-center">{loginError}</p>}
-                        <button type="submit" disabled={authLoading} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest cursor-pointer transition-all shadow-lg shadow-emerald-600/20">
-                            {authLoading ? "Acessando..." : "Entrar no Portal"}
+
+                        {tempoBloqueio > 0 && (
+                            <div className="text-xs font-bold text-amber-600 bg-amber-50 p-3 rounded-xl text-center">
+                                Muitas tentativas. Tente novamente em {tempoBloqueio}s.
+                            </div>
+                        )}
+
+                        {loginError && tempoBloqueio === 0 && (
+                            <p className="text-xs font-bold text-red-600 bg-red-50 p-3 rounded-xl text-center">
+                                {loginError}
+                            </p>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={authLoading || tempoBloqueio > 0}
+                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest cursor-pointer transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50"
+                        >
+                            {authLoading ? "Acessando..." : tempoBloqueio > 0 ? `Aguarde (${tempoBloqueio}s)` : "Entrar no Portal"}
                         </button>
                     </form>
                 </div>

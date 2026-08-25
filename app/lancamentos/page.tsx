@@ -1,3 +1,4 @@
+// app/lancamentos/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -9,6 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
+import { useLoginProtegido } from "@/hooks/useLoginProtegido";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -24,10 +26,21 @@ export default function LancamentosPage() {
   const [ultimosLancamentos, setUltimosLancamentos] = useState<any[]>([]);
   const [activeCard, setActiveCard] = useState(0);
 
-  const [slug, setSlug] = useState("");
-  const [password, setPassword] = useState("");
+  const {
+    emailOrSlug: slug,
+    setEmailOrSlug: setSlug,
+    password,
+    setPassword,
+    authLoading,
+    setAuthLoading,
+    loginError,
+    setLoginError,
+    tempoBloqueio,
+    tratarErroLogin,
+    resetarBloqueio
+  } = useLoginProtegido();
+
   const [showPassword, setShowPassword] = useState(false);
-  const [authLoading, setAuthLoading] = useState(false);
 
   const getLocalDate = () => {
     const now = new Date();
@@ -161,20 +174,43 @@ export default function LancamentosPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (tempoBloqueio > 0) return;
+
     setAuthLoading(true);
-    const inputAcesso = slug.trim().toLowerCase();
+    setLoginError("");
+
     try {
-      let emailParaLogin = inputAcesso.includes("@") ? inputAcesso : "";
-      if (!emailParaLogin) {
-        const { data: profile } = await supabase.from('profiles').select('email').eq('slug', inputAcesso).maybeSingle();
-        if (!profile?.email) throw new Error("ID não encontrado.");
+      const inputAcesso = slug.trim().toLowerCase();
+      let emailParaLogin = inputAcesso;
+
+      if (!inputAcesso.includes("@")) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('slug', inputAcesso)
+          .maybeSingle();
+
+        if (!profile?.email) {
+          tratarErroLogin("E-mail ou ID não localizado.");
+          return;
+        }
         emailParaLogin = profile.email;
       }
-      const { error } = await supabase.auth.signInWithPassword({ email: emailParaLogin, password });
-      if (error) throw new Error("Senha incorreta.");
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: emailParaLogin,
+        password
+      });
+
+      if (error || !data.session) {
+        tratarErroLogin("Credenciais incorretas.");
+        return;
+      }
+
+      resetarBloqueio();
       window.location.reload();
-    } catch (err: any) {
-      alert(err.message);
+    } catch {
+      tratarErroLogin("Erro ao entrar.");
     } finally {
       setAuthLoading(false);
     }
@@ -243,6 +279,7 @@ export default function LancamentosPage() {
                 type="text"
                 placeholder="ID ou E-mail"
                 required
+                value={slug}
                 className="w-full pl-12 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100 text-gray-900 placeholder:text-gray-400"
                 onChange={(e) => setSlug(e.target.value)}
               />
@@ -253,12 +290,33 @@ export default function LancamentosPage() {
                 type={showPassword ? "text" : "password"}
                 placeholder="Senha"
                 required
+                value={password}
                 className="w-full pl-12 pr-12 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100 text-gray-900 placeholder:text-gray-400"
                 onChange={(e) => setPassword(e.target.value)}
               />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
             </div>
-            <button disabled={authLoading} className="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold shadow-lg shadow-orange-100 transition-transform active:scale-95 disabled:opacity-50">{authLoading ? "Verificando..." : "Entrar na Plataforma"}</button>
+
+            {/* Aviso visual de bloqueio regressivo */}
+            {tempoBloqueio > 0 && (
+              <div className="text-xs font-bold text-amber-600 bg-amber-50 p-3 rounded-xl text-center">
+                Muitas tentativas. Tente novamente em {tempoBloqueio}s.
+              </div>
+            )}
+
+            {loginError && tempoBloqueio === 0 && (
+              <p className="text-xs font-bold text-red-600 bg-red-50 p-3 rounded-xl text-center">
+                {loginError}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={authLoading || tempoBloqueio > 0}
+              className="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold shadow-lg shadow-orange-100 transition-transform active:scale-95 disabled:opacity-50 cursor-pointer"
+            >
+              {authLoading ? "Verificando..." : tempoBloqueio > 0 ? `Aguarde (${tempoBloqueio}s)` : "Entrar na Plataforma"}
+            </button>
           </form>
 
           <div className="mt-8 pt-8 border-t border-gray-100">

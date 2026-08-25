@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { useLoginProtegido } from "@/hooks/useLoginProtegido";
 import {
     FileText,
     CalendarDays,
@@ -42,12 +43,23 @@ interface UserMemberData {
 export default function CondoDashboard() {
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [authLoading, setAuthLoading] = useState(false);
 
-    const [emailOrSlug, setEmailOrSlug] = useState("");
-    const [password, setPassword] = useState("");
+    // Controle de Login via Hook de Segurança (`useLoginProtegido`)
+    const {
+        emailOrSlug,
+        setEmailOrSlug,
+        password,
+        setPassword,
+        authLoading,
+        setAuthLoading,
+        loginError,
+        setLoginError,
+        tempoBloqueio,
+        tratarErroLogin,
+        resetarBloqueio
+    } = useLoginProtegido();
+
     const [showPassword, setShowPassword] = useState(false);
-    const [loginError, setLoginError] = useState("");
 
     // Modal de Recuperação de Senha ("Esqueceu a senha")
     const [showForgotModal, setShowForgotModal] = useState(false);
@@ -170,6 +182,10 @@ export default function CondoDashboard() {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Impede envio se estiver bloqueado pelo tempo de espera
+        if (tempoBloqueio > 0) return;
+
         setAuthLoading(true);
         setLoginError("");
 
@@ -189,8 +205,7 @@ export default function CondoDashboard() {
 
                 if (profileError) throw profileError;
                 if (!profile || !profile.email_contato) {
-                    setLoginError("ID de usuário ou e-mail não foi localizado.");
-                    setAuthLoading(false);
+                    tratarErroLogin("ID de usuário ou e-mail não foi localizado.");
                     return;
                 }
                 emailParaLogin = profile.email_contato;
@@ -202,17 +217,19 @@ export default function CondoDashboard() {
             });
 
             if (error || !data.session) {
-                setLoginError("Credenciais inválidas. Verifique seu ID de usuário/e-mail e senha.");
-                setAuthLoading(false);
+                tratarErroLogin("Credenciais inválidas. Verifique seu ID de usuário/e-mail e senha.");
                 return;
             }
+
+            // Sucesso: reseta o contador de erros
+            resetarBloqueio();
 
             if (data.session) {
                 window.dispatchEvent(new Event("storage"));
                 await fetchMemberPermissionsAndSession(data.session);
             }
         } catch (err) {
-            setLoginError("Ocorreu um erro inesperado ao realizar login.");
+            tratarErroLogin("Ocorreu um erro inesperado ao realizar login.");
         } finally {
             setAuthLoading(false);
         }
@@ -375,7 +392,14 @@ export default function CondoDashboard() {
                             </button>
                         </div>
 
-                        {loginError && (
+                        {/* Aviso visual de bloqueio regressivo */}
+                        {tempoBloqueio > 0 && (
+                            <div className="text-xs font-bold text-amber-600 bg-amber-50 p-3 rounded-xl text-center">
+                                Muitas tentativas. Tente novamente em {tempoBloqueio}s.
+                            </div>
+                        )}
+
+                        {loginError && tempoBloqueio === 0 && (
                             <p className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 p-3 rounded-xl text-center">
                                 {loginError}
                             </p>
@@ -383,10 +407,10 @@ export default function CondoDashboard() {
 
                         <button
                             type="submit"
-                            disabled={authLoading}
-                            className="w-full bg-zinc-900 text-white py-4 rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 cursor-pointer"
+                            disabled={authLoading || tempoBloqueio > 0}
+                            className="w-full bg-zinc-900 text-white py-4 rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                         >
-                            {authLoading ? "Acessando..." : "Entrar no Painel"}
+                            {authLoading ? "Acessando..." : tempoBloqueio > 0 ? `Aguarde (${tempoBloqueio}s)` : "Entrar no Painel"}
                         </button>
                     </form>
                 </div>

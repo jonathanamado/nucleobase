@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { useLoginProtegido } from "@/hooks/useLoginProtegido";
 import {
     Users,
     UserPlus,
@@ -61,13 +62,23 @@ export default function CondoAdm() {
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
-    const [authLoading, setAuthLoading] = useState(false);
 
-    // Controle de Login
-    const [emailOrSlug, setEmailOrSlug] = useState("");
-    const [password, setPassword] = useState("");
+    // Controle de Login via Hook de Segurança
+    const {
+        emailOrSlug,
+        setEmailOrSlug,
+        password,
+        setPassword,
+        authLoading,
+        setAuthLoading,
+        loginError,
+        setLoginError,
+        tempoBloqueio,
+        tratarErroLogin,
+        resetarBloqueio
+    } = useLoginProtegido();
+
     const [showPassword, setShowPassword] = useState(false);
-    const [loginError, setLoginError] = useState("");
 
     // Modal de Recuperação de Senha ("Esqueceu a senha")
     const [showForgotModal, setShowForgotModal] = useState(false);
@@ -293,17 +304,18 @@ export default function CondoAdm() {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Impede envio se estiver bloqueado pelo tempo de espera
+        if (tempoBloqueio > 0) return;
+
         setAuthLoading(true);
         setLoginError("");
 
-        const inputAcesso = emailOrSlug.trim().toLowerCase();
-        const isEmail = inputAcesso.includes("@");
-
         try {
-            let emailParaLogin = "";
-            if (isEmail) {
-                emailParaLogin = inputAcesso;
-            } else {
+            const inputAcesso = emailOrSlug.trim().toLowerCase();
+            let emailParaLogin = inputAcesso;
+
+            if (!inputAcesso.includes("@")) {
                 const { data: profile, error: profileError } = await supabase
                     .from('profiles')
                     .select('email_contato')
@@ -311,9 +323,8 @@ export default function CondoAdm() {
                     .maybeSingle();
 
                 if (profileError) throw profileError;
-                if (!profile || !profile.email_contato) {
-                    setLoginError("ID de Síndico ou E-mail não localizado.");
-                    setAuthLoading(false);
+                if (!profile?.email_contato) {
+                    tratarErroLogin("ID de Síndico ou E-mail não localizado.");
                     return;
                 }
                 emailParaLogin = profile.email_contato;
@@ -325,17 +336,19 @@ export default function CondoAdm() {
             });
 
             if (error || !data.session) {
-                setLoginError("Acesso negado. Credenciais incorretas.");
-                setAuthLoading(false);
+                tratarErroLogin("Acesso negado. Credenciais incorretas.");
                 return;
             }
+
+            // Sucesso: reseta o contador de erros
+            resetarBloqueio();
 
             if (data.session) {
                 window.dispatchEvent(new Event("storage"));
                 await verifySindicoAndLoadData(data.session);
             }
-        } catch (err) {
-            setLoginError("Ocorreu um erro inesperado ao entrar.");
+        } catch {
+            tratarErroLogin("Ocorreu um erro inesperado ao entrar.");
         } finally {
             setAuthLoading(false);
         }
@@ -744,7 +757,14 @@ export default function CondoAdm() {
                             </button>
                         </div>
 
-                        {loginError && (
+                        {/* Aviso visual de bloqueio regressivo */}
+                        {tempoBloqueio > 0 && (
+                            <div className="text-xs font-bold text-amber-600 bg-amber-50 p-3 rounded-xl text-center">
+                                Muitas tentativas. Tente novamente em {tempoBloqueio}s.
+                            </div>
+                        )}
+
+                        {loginError && tempoBloqueio === 0 && (
                             <p className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 p-3 rounded-xl text-center">
                                 {loginError}
                             </p>
@@ -752,10 +772,10 @@ export default function CondoAdm() {
 
                         <button
                             type="submit"
-                            disabled={authLoading}
-                            className="w-full bg-zinc-900 text-white py-4 rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 cursor-pointer"
+                            disabled={authLoading || tempoBloqueio > 0}
+                            className="w-full bg-zinc-900 text-white py-4 rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                         >
-                            {authLoading ? "Acessando..." : "Entrar como Síndico"}
+                            {authLoading ? "Acessando..." : tempoBloqueio > 0 ? `Aguarde (${tempoBloqueio}s)` : "Entrar como Síndico"}
                         </button>
                     </form>
                 </div>

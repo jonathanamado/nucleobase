@@ -3,6 +3,7 @@
 
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { useLoginProtegido } from "@/hooks/useLoginProtegido";
 import {
   UserCog, Rocket, ArrowRight,
   CheckCircle2, LogOut, X, Mail, LifeBuoy, AtSign,
@@ -14,9 +15,20 @@ import {
 import Link from "next/link";
 
 export default function AcessoUsuarioPage() {
-  const [slug, setSlug] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const {
+    emailOrSlug,
+    setEmailOrSlug,
+    password,
+    setPassword,
+    authLoading,
+    setAuthLoading,
+    loginError,
+    setLoginError,
+    tempoBloqueio,
+    tratarErroLogin,
+    resetarBloqueio
+  } = useLoginProtegido();
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
   const [userPlan, setUserPlan] = useState("Free");
@@ -91,8 +103,11 @@ export default function AcessoUsuarioPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    const inputAcesso = slug.trim().toLowerCase();
+    if (tempoBloqueio > 0) return;
+
+    setAuthLoading(true);
+    setLoginError("");
+    const inputAcesso = emailOrSlug.trim().toLowerCase();
     const isEmail = inputAcesso.includes("@");
 
     try {
@@ -106,8 +121,7 @@ export default function AcessoUsuarioPage() {
 
         if (profileError) throw profileError;
         if (!emailEncontrado) {
-          alert("ID de usuário (Slug) não foi localizado.");
-          setLoading(false);
+          tratarErroLogin("ID de usuário (Slug) não foi localizado.");
           return;
         }
         emailParaLogin = emailEncontrado;
@@ -119,21 +133,22 @@ export default function AcessoUsuarioPage() {
       });
 
       if (authError) {
-        alert("Erro ao acessar: Verifique suas credenciais de acesso.");
+        tratarErroLogin("Erro ao acessar: Verifique suas credenciais de acesso.");
       } else {
+        resetarBloqueio();
         window.dispatchEvent(new Event("storage"));
         window.location.href = "/minha-conta";
       }
     } catch (err) {
-      alert("Ocorreu um erro inesperado.");
+      tratarErroLogin("Ocorreu um erro inesperado.");
     } finally {
-      setLoading(false);
+      setAuthLoading(false);
     }
   };
 
   // Função de Logout blindada contra sessões fantasmas/residuais
   const handleLogout = async () => {
-    setLoading(true);
+    setAuthLoading(true);
     try {
       await supabase.auth.signOut({ scope: 'global' });
     } catch (e) {
@@ -157,7 +172,7 @@ export default function AcessoUsuarioPage() {
 
     setIsLoggedIn(false);
     setUserName("");
-    setLoading(false);
+    setAuthLoading(false);
     window.location.href = "/acesso-usuario";
   };
 
@@ -250,9 +265,9 @@ export default function AcessoUsuarioPage() {
                         type="text"
                         placeholder="ID de Usuário ou E-mail"
                         required
-                        value={slug}
+                        value={emailOrSlug}
                         className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900"
-                        onChange={(e) => setSlug(e.target.value)}
+                        onChange={(e) => setEmailOrSlug(e.target.value)}
                       />
                     </div>
                     <div className="relative group">
@@ -275,6 +290,19 @@ export default function AcessoUsuarioPage() {
                     </div>
                   </div>
 
+                  {/* Aviso visual de bloqueio regressivo */}
+                  {tempoBloqueio > 0 && (
+                    <div className="text-xs font-bold text-amber-600 bg-amber-50 p-3 rounded-xl text-center mt-1">
+                      Muitas tentativas. Tente novamente em {tempoBloqueio}s.
+                    </div>
+                  )}
+
+                  {loginError && tempoBloqueio === 0 && (
+                    <p className="text-xs font-bold text-red-600 bg-red-50 p-3 rounded-xl text-center mt-1">
+                      {loginError}
+                    </p>
+                  )}
+
                   {/* Bloco de Links de Recuperação Alinhados à Direita */}
                   <div className="flex flex-col items-end gap-1.5 mt-1 pr-1">
                     <button
@@ -287,10 +315,10 @@ export default function AcessoUsuarioPage() {
                   </div>
 
                   <button
-                    disabled={loading}
+                    disabled={authLoading || tempoBloqueio > 0}
                     className="w-full bg-orange-500 text-white h-[48px] rounded-xl font-bold hover:bg-orange-600 transition shadow-lg text-xs disabled:opacity-50 mt-2 cursor-pointer"
                   >
-                    {loading ? "Verificando..." : "Acessar Plataforma"}
+                    {authLoading ? "Verificando..." : tempoBloqueio > 0 ? `Aguarde (${tempoBloqueio}s)` : "Acessar Plataforma"}
                   </button>
                 </form>
               </div>

@@ -108,7 +108,7 @@ export function MainContent() {
             <div className="relative bg-white border border-gray-100 p-7 rounded-[2.5rem] shadow-xl shadow-blue-900/5">
               <div className="mb-6">
                 <p className="text-gray-700 text-base leading-snug font-medium text-center">
-                  Você está no APP em que números brutos tornam-se <span className="text-gray-900 font-bold not-italic">decisões inteligentes e práticas</span> para o seu dia a dia. Clique na <span className="text-blue-600 font-bold">Logo</span> <LayoutDashboard size={14} strokeWidth={3} className="inline-block text-blue-600 mb-1" />, acesse seu <span className="text-gray-900 font-bold not-italic">Painel</span> e profissionalize processos de maneira simples.
+                  Você está no APP em que números brutos tornam-se <span className="text-gray-900 font-bold not-italic">decisões inteligentes e práticas</span> em seu dia a dia. Clique na <span className="text-blue-600 font-bold">Logo</span> <LayoutDashboard size={14} strokeWidth={3} className="inline-block text-blue-600 mb-1" />, acesse seu <span className="text-gray-900 font-bold not-italic">Painel</span> e profissionalize processos de maneira simples.
                 </p>
               </div>
 
@@ -156,10 +156,10 @@ export function MainContent() {
 
             <div className="space-y-3 px-2">
               <p className="text-gray-600 text-base leading-relaxed font-medium py-1">
-                Assista ao nosso vídeo institucional e entenda como a <span className="text-gray-900 font-bold">Nucleobase</span> transforma sua gestão financeira em poucos cliques.
+                Assista ao nosso vídeo institucional e entenda como a <span className="text-gray-900 font-bold">Nucleobase</span> transforma sua gestão em poucos cliques.
               </p>
               <Link href="/demonstracao" className="group flex items-center gap-2 mb-8">
-                <span className="text-gray-600 text-base font-bold underline hover:text-blue-600 transition-colors">
+                <span className="text-gray-600 text-sm font-bold underline hover:text-blue-600 transition-colors">
                   <u>Explore as dicas que criamos e aproveite ao máximo a plataforma.</u>
                 </span>
               </Link>
@@ -182,7 +182,7 @@ export function MainContent() {
             Informativos e acessos <div className="h-px bg-gray-300 flex-1"></div>
           </h3>
           <p className="text-gray-600 text-base leading-relaxed font-medium py-1">
-            A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos controle financeiro em inteligência com foco em redução de custos. Conheça a nossa história e a nossa missão <Link href="/sobre" className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
+            A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos controles com inteligência e foco em redução de custos. Conheça a nossa história e a nossa missão <Link href="/sobre" className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
           </p>
         </div>
 
