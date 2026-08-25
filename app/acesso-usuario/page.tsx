@@ -214,7 +214,7 @@ export default function AcessoUsuarioPage() {
                   Substitua controles manuais pela inteligência da Nucleo para obter total visibilidade
                   de suas finanças.
                 </span>
-                <span className="md:hidden inline">Explore o APP para lançamentos e gestão condominial.</span>
+                <span className="md:hidden inline">Explore a Nucleo em diferentes visões.</span>
               </>
             ) : (
               <span>
