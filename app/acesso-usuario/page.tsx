@@ -78,7 +78,14 @@ export default function AcessoUsuarioPage() {
     }
 
     if (profile?.plan_type) {
-      setUserPlan(profile.plan_type.charAt(0).toUpperCase() + profile.plan_type.slice(1));
+      const pLower = profile.plan_type.toLowerCase();
+      if (pLower.includes("pro")) {
+        setUserPlan("Pro");
+      } else if (pLower.includes("essencial")) {
+        setUserPlan("Essencial");
+      } else {
+        setUserPlan(profile.plan_type.charAt(0).toUpperCase() + profile.plan_type.slice(1));
+      }
     }
   };
 
@@ -184,7 +191,7 @@ export default function AcessoUsuarioPage() {
 
           </div>
 
-          <div className="text-xl md:text-3xl text-gray-900 max-w-none leading-tight mb-4 flex items-center flex-wrap">
+          <div className="text-xl md:text-3xl text-gray-900 max-w-none leading-tight mb-4 flex items-center flex-wrap whitespace-nowrap">
             <span className="font-bold tracking-tight">
               {isLoggedIn ? userName.split(" ")[0] : <>ao APP da <span className="text-orange-500">Nucleobase!</span></>}
             </span>
@@ -313,7 +320,7 @@ export default function AcessoUsuarioPage() {
           </p>
 
           <p className="md:hidden text-sm text-gray-600 leading-relaxed">
-            Acesse aqui o módulo de <span className="font-bold text-orange-600">Finanças</span> ou o painel <span className="font-bold text-emerald-600">Nucleo Condo</span>. Seu perfil, sua experiência.
+            Acesse aqui os módulos de <span className="font-bold text-orange-600">Finanças</span> ou <span className="font-bold text-emerald-600">Nucleo Condo</span>. Seu perfil, sua experiência.
           </p>
         </div>
 
