@@ -303,12 +303,12 @@ export default function LancamentosPage() {
 
       <div className="mb-6">
         <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2 tracking-tight flex items-center flex-wrap">
-          <span>Gestão de Lançamentos<span className="text-orange-500">.</span></span>
+          <span>Gestão Fin<span className="text-orange-500">.</span></span>
           <Activity size={32} className="text-orange-500 skew-x-12 ml-4" strokeWidth={1.5} />
         </h1>
         <h2 className="text-base text-gray-600 w-full font-bold leading-tight">
           <span className="hidden md:inline">Realize seus registros via tela ou importação (múltiplos registros).</span>
-          <span className="inline md:hidden">Registros por tela ou via arquivos</span>
+          <span className="inline md:hidden">Lançamentos via tela ou arquivo</span>
         </h2>
       </div>
 
@@ -350,8 +350,8 @@ export default function LancamentosPage() {
                 <a href="/lancamentos/integrar">
                   <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
                     Cloud
-                  </span> ,
-                </a>em caso de múltiplos registros.
+                  </span>, em caso de múltiplos registros.
+                </a>
               </div>
             </div>
           </div>
@@ -429,7 +429,7 @@ export default function LancamentosPage() {
                 </button>
               </div>
               <input required type="text" placeholder="Instituição (Ex: Nubank)" value={formData.origem}
-                className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm mt-auto text-gray-900 placeholder:text-gray-600"
+                className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm mt-auto text-gray-900 placeholder:text-gray-600"
                 onChange={(e) => setFormData({ ...formData, origem: e.target.value })} />
             </section>
 
@@ -438,8 +438,8 @@ export default function LancamentosPage() {
                 <span className="w-8 h-px bg-gray-200"></span> 02. Detalhes Financeiros
               </h3>
               <div className="space-y-4">
-                <input required type="text" placeholder="Descrição do Lançamento" value={formData.descricao}
-                  className="w-full px-6 py-5 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm text-gray-900 placeholder:text-gray-600"
+                <input required type="text" placeholder="Descrição registro" value={formData.descricao}
+                  className="w-full px-4 py-5 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm text-gray-900 placeholder:text-gray-600"
                   onChange={(e) => setFormData({ ...formData, descricao: e.target.value })} />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

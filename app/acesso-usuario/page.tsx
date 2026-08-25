@@ -214,7 +214,7 @@ export default function AcessoUsuarioPage() {
                   Substitua controles manuais pela inteligência da Nucleo para obter total visibilidade
                   de suas finanças.
                 </span>
-                <span className="md:hidden inline">Explore o APP para lançamentos e análise de resultados.</span>
+                <span className="md:hidden inline">Explore o APP para lançamentos e gestão condominial.</span>
               </>
             ) : (
               <span>
@@ -309,33 +309,26 @@ export default function AcessoUsuarioPage() {
             <span className="inline-flex items-center justify-center bg-emerald-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
               Nucleo Condo
             </span>{" "}
-            você gerencia sua vida residencial e condomínios com eficiência. Na consulta dos seus {" "}
-            <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
-              Resultados
-            </span>{" "}
-            , transformamos dados em clareza estratégica, {" "}
-            <span className="text-gray-900 underline decoration-2 decoration-orange-500/30 underline-offset-4 font-medium">
-              permitindo seu entendimento sobre onde economizar e como acelerar objetivos.
-            </span>{" "}
+            você gerencia sua vida residencial e condomínios com eficiência.
           </p>
 
           <p className="md:hidden text-sm text-gray-600 leading-relaxed">
-            Acesse o <span className="font-bold text-orange-600">APP</span> para novos lançamentos ou o <span className="font-bold text-blue-600">Painel</span> para análise estratégica de seus resultados em tempo real.
+            Acesse nesta página o Módulo de <span className="font-bold text-orange-600">Finanças</span> ou o painel <span className="font-bold text-emerald-600">Nucleo Condo</span> , desenvolvido para gestão residencial. Seu perfil, sua experiência.
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-16">
-          <div className={`lg:col-span-12 grid gap-5 ${isLoggedIn ? "grid-cols-1 md:grid-cols-3" : "grid-cols-1 md:grid-cols-3"}`}>
+          <div className="lg:col-span-12 grid grid-cols-2 md:grid-cols-2 gap-3 md:gap-5">
 
-            <div className="md:min-h-[480px] min-h-[200px] flex">
+            <div className="md:min-h-[480px] min-h-[160px] flex">
               <a
                 href="/lancamentos"
-                className={`p-6 md:p-8 rounded-[2.5rem] shadow-lg transition-all border flex flex-col text-center md:text-left bg-orange-500 border-orange-400 hover:bg-orange-600 group w-full h-full relative overflow-hidden ${!isLoggedIn && "pointer-events-none opacity-50"}`}
+                className={`p-4 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-lg transition-all border flex flex-col text-center md:text-left bg-orange-500 border-orange-400 hover:bg-orange-600 group w-full h-full relative overflow-hidden ${!isLoggedIn && "pointer-events-none opacity-50"}`}
               >
-                <div className="p-3 rounded-2xl mb-4 w-fit bg-white/20 text-white group-hover:scale-110 transition-transform mx-auto md:mx-0">
-                  <Rocket size={28} />
+                <div className="p-2 md:p-3 rounded-xl md:rounded-2xl mb-2 md:mb-4 w-fit bg-white/20 text-white group-hover:scale-110 transition-transform mx-auto md:mx-0">
+                  <Rocket size={20} className="md:w-7 md:h-7" />
                 </div>
-                <h3 className="text-lg md:text-xl font-bold text-white mb-3">
+                <h3 className="text-xs md:text-xl font-bold text-white mb-2 md:mb-3">
                   <span className="md:hidden">Controle Financeiro</span>
                   <span className="hidden md:block">Controle <br /> Financeiro</span>
                 </h3>
@@ -350,58 +343,26 @@ export default function AcessoUsuarioPage() {
                   <div className="flex items-center gap-2 text-[14px] text-white font-bold opacity-90"><Database size={14} /> Integração D-1</div>
                 </div>
 
-                <div className="mt-auto flex items-center justify-center gap-3 bg-white text-orange-500 h-[48px] md:h-[56px] rounded-2xl font-black shadow-md text-[10px] uppercase tracking-widest group-hover:shadow-xl transition-all">
+                <div className="mt-auto flex items-center justify-center gap-1.5 md:gap-3 bg-white text-orange-500 h-[36px] md:h-[56px] rounded-xl md:rounded-2xl font-black shadow-md text-[9px] md:text-[10px] uppercase tracking-widest group-hover:shadow-xl transition-all">
                   Acessar <span className="md:inline hidden">APP</span>
-                  <Zap size={16} className="fill-orange-500 group-hover:scale-125 group-hover:translate-x-1 transition-transform" />
+                  <Zap size={14} className="md:w-4 md:h-4 fill-orange-500 group-hover:scale-125 group-hover:translate-x-1 transition-transform" />
                 </div>
               </a>
             </div>
 
-            <div className="md:min-h-[480px] min-h-[200px] flex">
-              <a
-                href="/resultados"
-                className="group bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-gray-300 flex flex-col text-center md:text-left w-full h-full relative overflow-hidden"
-              >
-                <div className="absolute top-6 right-6 bg-blue-600 text-white text-[9px] font-black px-2 py-1 rounded-full uppercase tracking-tighter animate-pulse text-center hidden md:block">
-                  Visualização <br /> realtime
-                </div>
-                <div className="bg-blue-50 p-3 rounded-2xl mb-4 w-fit text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm mx-auto md:mx-0">
-                  <BarChart3 size={28} />
-                </div>
-                <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 tracking-tight">
-                  <span className="md:hidden">Painel de Resultados</span>
-                  <span className="hidden md:block">Painel de <br /> Resultados</span>
-                </h3>
-                <p className="text-gray-500 text-[14px] md:text-[16px] leading-relaxed font-medium mb-6 md:block hidden">
-                  Acompanhe a evolução da sua saúde financeira com relatórios e insights poderosos:
-                </p>
-
-                <div className="md:flex hidden flex-col gap-2 mb-6 text-left">
-                  <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-blue-600 transition-colors"><TrendingUp size={14} className="text-blue-500" /> Dashboards exclusivos</div>
-                  <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-blue-600 transition-colors"><Target size={14} className="text-blue-500" /> Metas e orçamentos</div>
-                  <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-blue-600 transition-colors"><Sparkles size={14} className="text-blue-500" /> Relatórios analíticos</div>
-                </div>
-
-                <div className="mt-auto flex items-center justify-center gap-3 w-full bg-gray-900 text-white h-[48px] md:h-[56px] rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest shadow-lg group-hover:scale-[1.02]">
-                  Acessar <span className="md:inline hidden"> Dashboard</span>
-                  <LayoutDashboard size={16} className="text-blue-400 group-hover:rotate-6 transition-transform" />
-                </div>
-              </a>
-            </div>
-
-            <div className="md:min-h-[480px] min-h-[200px] flex">
+            <div className="md:min-h-[480px] min-h-[160px] flex">
               <a
                 href="/condo"
-                className="group bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-gray-300 flex flex-col text-center md:text-left w-full h-full relative overflow-hidden"
+                className="group bg-white p-4 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-gray-300 flex flex-col text-center md:text-left w-full h-full relative overflow-hidden"
               >
                 <div className="absolute top-6 right-6 bg-emerald-600 text-white text-[9px] font-black px-2 py-1 rounded-full uppercase tracking-tighter animate-pulse text-center hidden md:block">
                   Gestão <br /> residencial
                 </div>
-                <div className="bg-emerald-50 p-3 rounded-2xl mb-4 w-fit text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-500 shadow-sm mx-auto md:mx-0">
-                  <Building2 size={28} />
+                <div className="bg-emerald-50 p-2 md:p-3 rounded-xl md:rounded-2xl mb-2 md:mb-4 w-fit text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-500 shadow-sm mx-auto md:mx-0">
+                  <Building2 size={20} className="md:w-7 md:h-7" />
                 </div>
-                <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 tracking-tight">
-                  <span className="md:hidden">Nucleo Condo</span>
+                <h3 className="text-xs md:text-xl font-bold text-gray-900 mb-2 md:mb-3 tracking-tight">
+                  <span className="md:hidden">Painel Nucleo Condo</span>
                   <span className="hidden md:block">Nucleo <br /> Condo</span>
                 </h3>
                 <p className="text-gray-500 text-[14px] md:text-[16px] leading-relaxed font-medium mb-6 md:block hidden">
@@ -414,9 +375,9 @@ export default function AcessoUsuarioPage() {
                   <div className="flex items-center gap-2 text-[14px] text-gray-400 font-bold group-hover:text-emerald-600 transition-colors"><Building2 size={14} className="text-emerald-500" /> Gestão condominial</div>
                 </div>
 
-                <div className="mt-auto flex items-center justify-center gap-3 w-full bg-gray-900 text-white h-[48px] md:h-[56px] rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest shadow-lg group-hover:scale-[1.02]">
+                <div className="mt-auto flex items-center justify-center gap-1.5 md:gap-3 w-full bg-gray-900 text-white h-[36px] md:h-[56px] rounded-xl md:rounded-2xl hover:bg-black transition-all font-black text-[9px] md:text-[10px] uppercase tracking-widest shadow-lg group-hover:scale-[1.02]">
                   Acessar <span className="md:inline hidden"> Condo</span>
-                  <Building2 size={16} className="text-emerald-400 group-hover:scale-110 transition-transform" />
+                  <Building2 size={14} className="md:w-4 md:h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
                 </div>
               </a>
             </div>
