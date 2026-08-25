@@ -313,7 +313,7 @@ export default function AcessoUsuarioPage() {
           </p>
 
           <p className="md:hidden text-sm text-gray-600 leading-relaxed">
-            Acesse nesta página o módulo de <span className="font-bold text-orange-600">Finanças</span> ou o painel da <span className="font-bold text-emerald-600">Nucleo Condo</span>. Seu perfil, sua experiência.
+            Acesse aqui o módulo de <span className="font-bold text-orange-600">Finanças</span> ou o painel <span className="font-bold text-emerald-600">Nucleo Condo</span>. Seu perfil, sua experiência.
           </p>
         </div>
 
