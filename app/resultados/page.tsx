@@ -9,7 +9,7 @@ import {
   Wallet, CreditCard, Calendar, Mail, Send,
   LineChart, Instagram,
   ChevronLeft, ChevronRight, Edit3, UserPlus,
-  Clock, Receipt, BarChart, Activity
+  Clock, Receipt, BarChart, Activity, AtSign, KeyRound
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -310,16 +310,35 @@ export default function DashboardResultados() {
   if (!isLoggedIn) {
     return (
       <div className="w-full min-h-screen flex flex-col items-center bg-[#FAFAFA] px-4 pt-6 md:pt-10">
-        <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl max-w-md w-full text-center">
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <div className="bg-blue-50 w-12 h-12 rounded-2xl flex items-center justify-center text-blue-600"><Lock size={24} /></div>
-            <h1 className="text-2xl font-bold text-gray-900">Área Restrita</h1>
+        <div className="bg-white p-6 md:p-8 rounded-[3rem] border border-gray-100 shadow-xl max-w-md w-full text-center">
+          <div className="flex items-center justify-center gap-1.5 mb-3">
+            <Lock size={12} className="text-blue-600" />
+            <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.25em]">Acesso restrito</span>
           </div>
+          <p className="text-gray-500 text-xs mb-5">Valide sua identidade para acessar o Painel de resultados.</p>
           <form onSubmit={handleLogin} className="space-y-4">
-            <input type="text" placeholder="ID ou E-mail" required value={slug} className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-100 text-gray-900" onChange={(e) => setSlug(e.target.value)} />
             <div className="relative">
-              <input type={showPassword ? "text" : "password"} placeholder="Senha" required value={password} className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-100 text-gray-900" onChange={(e) => setPassword(e.target.value)} />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+              <AtSign className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input
+                type="text"
+                placeholder="ID ou E-mail"
+                required
+                value={slug}
+                className="w-full pl-12 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-normal outline-none focus:ring-2 focus:ring-blue-100 text-gray-900 placeholder:text-gray-400"
+                onChange={(e) => setSlug(e.target.value)}
+              />
+            </div>
+            <div className="relative">
+              <KeyRound className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Senha"
+                required
+                value={password}
+                className="w-full pl-12 pr-12 py-4 bg-gray-50 border-none rounded-2xl text-sm font-normal outline-none focus:ring-2 focus:ring-blue-100 text-gray-900 placeholder:text-gray-400"
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
             </div>
 
             {/* Aviso visual de bloqueio regressivo */}
@@ -338,14 +357,16 @@ export default function DashboardResultados() {
             <button
               type="submit"
               disabled={authLoading || tempoBloqueio > 0}
-              className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-100 transition-transform active:scale-95 disabled:opacity-50 cursor-pointer"
+              className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-100 transition-transform active:scale-95 disabled:opacity-50 cursor-pointer text-[10px] uppercase tracking-widest"
             >
               {authLoading ? "Verificando..." : tempoBloqueio > 0 ? `Aguarde (${tempoBloqueio}s)` : "Entrar na Plataforma"}
             </button>
           </form>
-          <div className="mt-8 pt-8 border-t border-gray-100">
-            <a href="/cadastro" className="flex items-center justify-center gap-2 bg-emerald-50 text-emerald-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest border border-emerald-100 hover:bg-emerald-100 transition-all">
-              <UserPlus size={18} /> Criar conta gratuita agora
+
+          <div className="mt-6 pt-6 border-t border-gray-100 text-center">
+            <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-3">Ainda não se cadastrou?</p>
+            <a href="/cadastro" className="flex items-center justify-center gap-3 bg-white text-gray-900 py-4 rounded-2xl font-black text-[9px] uppercase tracking-[0.2em] border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-200 hover:text-blue-600 transition-all active:scale-95">
+              <UserPlus size={16} className="text-blue-600" /> Criar conta
             </a>
           </div>
         </div>

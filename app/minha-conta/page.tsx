@@ -699,8 +699,8 @@ export default function MinhaContaPage() {
               <Link href="/lancamentos" className="block w-full p-4 bg-orange-500 rounded-xl group hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/10">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1 text-center">
-                    <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Novos Lançamentos</p>
-                    <p className="text-white text-xs font-bold leading-tight">Atualize seus registros. Clique aqui.</p>
+                    <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">+ Lançamentos</p>
+                    <p className="text-white text-xs font-bold leading-tight">Atualize sua conta hoje mesmo.</p>
                   </div>
                   <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform shrink-0">
                     <Rocket size={20} fill="currentColor" className="text-orange-100" />
@@ -711,7 +711,7 @@ export default function MinhaContaPage() {
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1 text-center">
                     <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Performance</p>
-                    <p className="text-white text-xs font-bold leading-tight">Painel de Resultados. Acesse.</p>
+                    <p className="text-white text-xs font-bold leading-tight">Acompanhe resultados online.</p>
                   </div>
                   <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform shrink-0">
                     <LayoutDashboard size={20} fill="currentColor" className="text-blue-100" />

@@ -174,7 +174,6 @@ export function Header() {
     { name: "Indique e ganhe", href: "/indique", icon: <Gift size={18} /> },
     { name: "Blog da Nucleo", href: "/blog", icon: <Newspaper size={18} /> },
     { name: "Assinatura digital", href: "/planos", icon: <CreditCard size={18} /> },
-    { name: "Administração Condo", href: "/condo", icon: <Building2 size={18} /> },
     { name: "Depoimentos", href: "/depoimentos", icon: <Star size={18} /> },
     { name: "Segurança", href: "/seguranca_privacidade", icon: <Shield size={18} /> },
   ];

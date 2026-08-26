@@ -19,7 +19,7 @@ import {
   Sparkles,
   Users,
   ArrowUpRight,
-  Dna
+  UserPlus
 } from "lucide-react";
 
 export default function CadastroPage() {
@@ -243,11 +243,11 @@ export default function CadastroPage() {
         {/* LADO DIREITO: FORMULÁRIO */}
         <div className="flex-1 flex flex-col p-2 lg:px-16 justify-start bg-white">
           <div className="w-full max-w-md mx-auto pt-0 lg:pt-0 pb-12">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-8">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0 lg:mt-8">
               <div className="order-2 md:order-1">
                 <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
                   <span>Cadastre-se<span className="text-blue-600">.</span></span>
-                  <Dna size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
+                  <UserPlus size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
                 </h1>
                 <h2 className="text-gray-500 text-base md:text-lg font-medium max-w-2xl leading-relaxed mt-0">
                   Inicie sua história com a Nucleo.
@@ -255,9 +255,18 @@ export default function CadastroPage() {
               </div>
             </div>
 
-            <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
+            <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4">
               Credenciais <div className="h-px bg-gray-300 flex-1"></div>
             </h3>
+
+            <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 mb-6 text-center">
+              <p className="text-xs text-blue-900 font-medium leading-relaxed block md:hidden">
+                Automatize processos e gerencie dados com segurança e simplicidade. Crie sua conta.
+              </p>
+              <p className="text-xs text-blue-900 font-medium leading-relaxed hidden md:block">
+                Ao criar sua conta, você avança rumo à digitalização e automação completa dos seus processos. Gerencie dados, garanta segurança de ponta e otimize sua rotina de forma simples e intuitiva.
+              </p>
+            </div>
 
             <form onSubmit={handleCadastro} className="space-y-3">
               <div className="group">

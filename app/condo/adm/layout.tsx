@@ -2,7 +2,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Loader2, ShieldAlert, Lock } from "lucide-react";
+import { Loader2, ShieldAlert, Lock, UserPlus, KeyRound, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 export default function AdmLayout({ children }: { children: React.ReactNode }) {
@@ -63,18 +63,31 @@ export default function AdmLayout({ children }: { children: React.ReactNode }) {
     if (!autorizado) {
         return (
             <div className="min-h-screen bg-zinc-50 flex flex-col justify-start items-center p-6 pt-12 md:pt-20">
-                <div className="w-full max-w-sm bg-white border border-zinc-200 p-8 rounded-[2.5rem] text-center space-y-4 shadow-sm">
-                    <div className="flex items-center justify-center gap-3 mb-4">
-                        <div className="bg-orange-50 w-10 h-10 rounded-xl flex items-center justify-center text-orange-600"><Lock size={20} /></div>
-                        <h1 className="text-xl md:text-2xl font-black text-gray-900">Área restrita</h1>
+                <div className="w-full max-w-md bg-white border border-zinc-200 p-8 rounded-[2.5rem] text-center space-y-4 shadow-sm">
+                    <div className="flex items-center justify-center gap-1.5 mb-1">
+                        <Lock size={12} className="text-blue-600" />
+                        <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.25em]">Área restrita</span>
                     </div>
-                    <p className="text-sm text-zinc-500">
+                    <br />
+                    <p className="text-xs text-zinc-500">
                         Esta área administrativa é restrita aos gestores do condomínio.
                     </p>
                     <div className="pt-2">
-                        <Link href="/condo" className="inline-block bg-zinc-900 hover:bg-black text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
+                        <Link href="/condo" className="inline-block bg-zinc-900 hover:bg-black text-white px-6 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-colors">
                             Voltar
                         </Link>
+                    </div>
+
+                    <div className="mt-6 pt-6 border-t border-gray-100 text-center">
+                        <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-3">Ambiente seguro</p>
+                        <div className="flex flex-col gap-2">
+                            <a href="/cadastro" className="flex items-center justify-center gap-2 bg-white text-gray-900 py-3 rounded-xl font-black text-[9px] uppercase tracking-[0.2em] border border-gray-200 shadow-sm hover:border-blue-200 hover:text-blue-600 transition-all">
+                                <UserPlus size={14} className="text-blue-600" /> Criar conta
+                            </a>
+                            <a href="/acesso-usuario" className="flex items-center justify-center gap-2 bg-white text-gray-900 py-3 rounded-xl font-black text-[9px] uppercase tracking-[0.2em] border border-gray-200 shadow-sm hover:border-blue-200 hover:text-blue-600 transition-all">
+                                <KeyRound size={14} className="text-blue-600" /> Realizar login
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

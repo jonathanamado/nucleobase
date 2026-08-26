@@ -179,7 +179,7 @@ export default function ConfiguracoesPage() {
                 onClick={() => setShowPassModal(true)}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-4 bg-gray-900 text-white rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all active:scale-95 shadow-lg"
               >
-                <KeyRound size={14} className="hidden sm:block" /> Nova Senha
+                <KeyRound size={10} className="hidden sm:block" /> Nova Senha
               </button>
               <button
                 onClick={handleUpdate}
@@ -363,16 +363,16 @@ export default function ConfiguracoesPage() {
       {/* MODAL DE SENHA */}
       {showPassModal && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-xl z-[100] flex items-center justify-center p-6">
-          <div className="bg-white w-full max-w-md rounded-[3.5rem] p-12 shadow-2xl relative border border-gray-100 animate-in zoom-in-95 duration-300">
-            <button onClick={() => setShowPassModal(false)} className="absolute right-10 top-10 text-gray-300 hover:text-gray-900 transition-colors">
+          <div className="bg-white w-full max-w-md rounded-[3.5rem] p-6 md:p-12 shadow-2xl relative border border-gray-100 animate-in zoom-in-95 duration-300">
+            <button onClick={() => setShowPassModal(false)} className="absolute right-6 top-6 md:right-10 md:top-10 text-gray-300 hover:text-gray-900 transition-colors">
               <X size={28} strokeWidth={1.5} />
             </button>
-            <div className="text-center mb-10">
-              <div className="bg-blue-50 w-20 h-20 rounded-[2rem] flex items-center justify-center text-blue-600 mx-auto mb-6 border border-blue-100 shadow-sm">
-                <KeyRound size={36} strokeWidth={1.5} />
+            <div className="text-center mb-4 md:mb-10">
+              <div className="bg-blue-50 w-10 h-10 md:w-20 md:h-20 rounded-2xl md:rounded-[2rem] flex items-center justify-center text-blue-600 mx-auto mb-3 md:mb-6 border border-blue-100 shadow-sm">
+                <KeyRound size={18} className="md:w-9 md:h-9" strokeWidth={1.5} />
               </div>
-              <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Nova Senha</h2>
-              <p className="text-gray-400 text-sm mt-2 font-medium">Requisito: Mínimo 8 caracteres e símbolos.</p>
+              <h2 className="text-xl md:text-3xl font-bold text-gray-900 tracking-tight">Nova Senha</h2>
+              <p className="text-gray-400 text-xs md:text-sm mt-1 md:mt-2 font-medium">Requisito: Mínimo 8 caracteres e símbolos.</p>
             </div>
 
             {passSuccessMessage ? (
@@ -382,7 +382,7 @@ export default function ConfiguracoesPage() {
                 <p className="text-emerald-600 text-xs">Atualizando painel...</p>
               </div>
             ) : (
-              <form onSubmit={handlePasswordReset} className="space-y-5">
+              <form onSubmit={handlePasswordReset} className="space-y-3 md:space-y-5">
                 <div className="relative">
                   <input
                     type={showNewPass ? "text" : "password"}
@@ -390,36 +390,26 @@ export default function ConfiguracoesPage() {
                     required
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full h-14 pl-6 pr-14 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all font-bold"
+                    className="w-full h-11 md:h-14 pl-5 md:pl-6 pr-12 md:pr-14 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all font-bold text-xs md:text-base placeholder:text-xs md:placeholder:text-sm"
                   />
-                  <button type="button" onClick={() => setShowNewPass(!showNewPass)} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700">
-                    {showNewPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                  <button type="button" onClick={() => setShowNewPass(!showNewPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700">
+                    {showNewPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
                 <div className="relative">
                   <input
                     type={showConfirmPass ? "text" : "password"}
-                    placeholder="Confirmar nova senha"
+                    placeholder="Confirmar senha"
                     required
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full h-14 pl-6 pr-14 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all font-bold md:placeholder:content-none"
+                    className="w-full h-11 md:h-14 pl-5 md:pl-6 pr-12 md:pr-14 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all font-bold text-xs md:text-base placeholder:text-xs md:placeholder:text-sm"
                   />
-                  <style jsx>{`
-                    @media (max-width: 768px) {
-                      input::placeholder {
-                        color: transparent;
-                      }
-                      input::placeholder {
-                        content: "Confirmar senha";
-                      }
-                    }
-                  `}</style>
-                  <button type="button" onClick={() => setShowConfirmPass(!showConfirmPass)} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700">
-                    {showConfirmPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                  <button type="button" onClick={() => setShowConfirmPass(!showConfirmPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700">
+                    {showConfirmPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
-                <button disabled={passLoading} className="w-full bg-gray-900 text-white h-16 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-lg mt-4 active:scale-95 transition-all disabled:opacity-50">
+                <button disabled={passLoading} className="w-full bg-gray-900 text-white h-12 md:h-16 rounded-2xl md:rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-lg mt-2 md:mt-4 active:scale-95 transition-all disabled:opacity-50">
                   {passLoading ? "Validando..." : "Confirmar Alteração"}
                 </button>
               </form>

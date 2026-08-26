@@ -697,7 +697,10 @@ export default function CondoAdm() {
             <div className="min-h-screen bg-zinc-50/50 text-zinc-900 flex flex-col items-center justify-center p-6">
                 <div className="w-full max-w-md bg-white border border-zinc-200 p-8 md:p-10 rounded-[2.5rem] shadow-sm space-y-6">
                     <div className="text-center space-y-2">
-                        <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.25em]">Área da Administração</span>
+                        <div className="flex items-center justify-center gap-1.5 mb-3">
+                            <Lock size={12} className="text-blue-600" />
+                            <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.25em]">Área restrita</span>
+                        </div>
                         <h1 className="text-2xl font-black tracking-tight">Login do Síndico</h1>
                         <p className="text-xs text-zinc-500">Faça login com suas credenciais de síndico cadastradas.</p>
                     </div>
@@ -711,7 +714,7 @@ export default function CondoAdm() {
                                     type="text"
                                     placeholder="Exemplo: joao-sindico"
                                     required
-                                    className="w-full pl-11 pr-5 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-sm font-medium"
+                                    className="w-full pl-11 pr-5 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-sm font-normal"
                                     value={emailOrSlug}
                                     onChange={(e) => setEmailOrSlug(e.target.value)}
                                 />
@@ -726,7 +729,7 @@ export default function CondoAdm() {
                                     type={showPassword ? "text" : "password"}
                                     placeholder="••••••••"
                                     required
-                                    className="w-full pl-11 pr-12 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-sm font-medium"
+                                    className="w-full pl-11 pr-12 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-sm font-normal"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                 />
@@ -778,6 +781,18 @@ export default function CondoAdm() {
                             {authLoading ? "Acessando..." : tempoBloqueio > 0 ? `Aguarde (${tempoBloqueio}s)` : "Entrar como Síndico"}
                         </button>
                     </form>
+
+                    <div className="mt-8 pt-8 border-t border-gray-100 text-center">
+                        <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-4">Ainda não se cadastrou ou quer gerenciar suas contas?</p>
+                        <div className="flex flex-col gap-2.5">
+                            <a href="/cadastro" className="flex items-center justify-center gap-3 bg-white text-gray-900 py-3.5 rounded-2xl font-black text-[9px] uppercase tracking-[0.2em] border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-200 hover:text-blue-600 transition-all active:scale-95">
+                                <UserPlus size={16} className="text-blue-600" /> Criar conta (/cadastro)
+                            </a>
+                            <a href="/acesso-usuario" className="flex items-center justify-center gap-3 bg-white text-gray-900 py-3.5 rounded-2xl font-black text-[9px] uppercase tracking-[0.2em] border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-200 hover:text-blue-600 transition-all active:scale-95">
+                                <KeyRound size={16} className="text-blue-600" /> Acessar com ID (/acesso-usuario)
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
                 {/* MODAL: RECOVERY PASSWORD */}

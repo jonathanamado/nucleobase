@@ -17,12 +17,6 @@ export function MobileTabBar() {
     avatar: null,
   });
 
-  const [showPassModal, setShowPassModal] = useState(false);
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPass, setShowPass] = useState(false);
-  const [passLoading, setPassLoading] = useState(false);
-
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -124,19 +118,6 @@ export function MobileTabBar() {
     router.push("/");
   };
 
-  const handlePasswordReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) return alert("As senhas não coincidem!");
-    setPassLoading(true);
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    if (error) alert("Erro: " + error.message);
-    else {
-      alert("Senha alterada com sucesso!");
-      setShowPassModal(false);
-    }
-    setPassLoading(false);
-  };
-
   const handleProfileClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsSearchOpen(false);
@@ -164,42 +145,12 @@ export function MobileTabBar() {
 
   const isCondoActive = !isSearchOpen && !isMenuOpen && (pathname === "/condo" || pathname?.startsWith("/condo/"));
 
-  const isProfileActive = isMenuOpen || (showPassModal && !isSearchOpen) ||
+  const isProfileActive = isMenuOpen ||
     (!isSearchOpen && !isMenuOpen &&
       (pathname === "/minha-conta" || pathname === "/configuracoes" || pathname === "/cadastro" || pathname === "/acesso-usuario" || pathname === "/demonstracao" || pathname === "/sobre"));
 
   return (
     <div ref={menuRef}>
-      {/* Modal de Alteração de Senha */}
-      {showPassModal && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-xl z-[150] flex items-center justify-center p-6">
-          <div className="bg-white w-full max-w-md rounded-[3.5rem] p-12 shadow-2xl relative border border-gray-100 animate-in zoom-in-95 duration-300">
-            <button onClick={() => setShowPassModal(false)} className="absolute right-10 top-10 text-gray-300 hover:text-gray-900 transition-colors cursor-pointer">
-              <X size={28} strokeWidth={1.5} />
-            </button>
-            <div className="text-center mb-10">
-              <div className="bg-blue-50 w-20 h-20 rounded-[2rem] flex items-center justify-center text-blue-600 mx-auto mb-6 border border-blue-100 shadow-sm">
-                <KeyRound size={36} strokeWidth={1.5} />
-              </div>
-              <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Nova Senha</h2>
-              <p className="text-gray-400 text-sm mt-2 font-medium">Redefina seu acesso com segurança.</p>
-            </div>
-            <form onSubmit={handlePasswordReset} className="space-y-5">
-              <div className="relative">
-                <input type={showPass ? "text" : "password"} placeholder="Nova senha" required onChange={(e) => setNewPassword(e.target.value)} className="w-full h-14 px-6 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-gray-900" />
-                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer">
-                  {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-              <input type={showPass ? "text" : "password"} placeholder="Confirmar nova senha" required onChange={(e) => setConfirmPassword(e.target.value)} className="w-full h-14 px-6 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-gray-900" />
-              <button disabled={passLoading} className="w-full bg-gray-900 text-white h-16 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-lg mt-4 active:scale-95 transition-all disabled:opacity-50 cursor-pointer">
-                {passLoading ? "Atualizando..." : "Confirmar Alteração"}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
       {/* Menu Adicional */}
       {isMenuOpen && (
         <div className="md:hidden fixed bottom-[60px] left-0 right-0 z-[95] animate-in slide-in-from-bottom-2 fade-in duration-300">
@@ -209,7 +160,7 @@ export function MobileTabBar() {
                 <div className="flex items-center w-full h-full">
                   <MenuItem icon={User} label="Conta" onClick={() => { router.push("/minha-conta"); setIsMenuOpen(false); }} />
                   <MenuItem icon={Settings} label="Ajustes" onClick={() => { router.push("/configuracoes"); setIsMenuOpen(false); }} />
-                  <MenuItem icon={Key} label="Senha" onClick={() => { setIsMenuOpen(false); setShowPassModal(true); }} />
+                  <MenuItem icon={PlayCircle} label="Demo" onClick={() => { router.push("/demonstracao"); setIsMenuOpen(false); }} />
                   <MenuItem icon={Power} label="Sair" color="text-red-500" onClick={handleLogout} />
                 </div>
               ) : (
