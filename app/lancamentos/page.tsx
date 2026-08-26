@@ -265,13 +265,13 @@ export default function LancamentosPage() {
 
   if (!isLoggedIn) {
     return (
-      <div className="w-full min-h-screen flex flex-col items-center bg-white px-4 pt-6 md:pt-10">
-        <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl max-w-md w-full text-center">
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <div className="bg-orange-50 w-12 h-12 rounded-2xl flex items-center justify-center text-orange-600"><Lock size={24} /></div>
-            <h1 className="text-2xl font-bold text-gray-900">Área Restrita</h1>
+      <div className="w-full min-h-screen flex flex-col items-center bg-white px-4 pt-2 md:pt-4">
+        <div className="bg-white p-8 md:p-10 rounded-[3rem] border border-gray-100 shadow-xl max-w-md w-full text-center">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="bg-orange-50 w-10 h-10 rounded-xl flex items-center justify-center text-orange-600"><Lock size={20} /></div>
+            <h1 className="text-lg md:text-xl font-bold text-gray-900">Área restrita</h1>
           </div>
-          <p className="text-gray-500 text-sm mb-8">Esta é uma área segura para gestão de dados. Por favor, valide sua identidade para realizar lançamentos.</p>
+          <p className="text-gray-500 text-xs mb-6">Valide sua identidade para gerenciar dados e lançamentos.</p>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="relative">
               <AtSign className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -322,7 +322,7 @@ export default function LancamentosPage() {
           <div className="mt-8 pt-8 border-t border-gray-100">
             <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Ainda não se cadastrou?</p>
             <a href="/cadastro" className="flex items-center justify-center gap-3 bg-white text-gray-900 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] border border-gray-200 shadow-sm hover:shadow-md hover:border-orange-200 hover:text-orange-600 transition-all active:scale-95">
-              <UserPlus size={18} className="text-orange-500" /> Criar conta gratuita agora
+              <UserPlus size={18} className="text-orange-500" /> Criar conta
             </a>
           </div>
         </div>
