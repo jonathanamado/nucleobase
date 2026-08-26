@@ -271,7 +271,7 @@ export default function LancamentosPage() {
             <div className="bg-orange-50 w-10 h-10 rounded-xl flex items-center justify-center text-orange-600">
               <Lock size={12} />
             </div>
-            <h1 className="text-sm md:text-base font-bold text-gray-900">Área restrita</h1>
+            <h1 className="text-sm md:text-base font-bold text-gray-900">Acesso restrito</h1>
           </div>
           <p className="text-gray-500 text-xs mb-6">Valide sua identidade para gerenciar dados e lançamentos.</p>
           <form onSubmit={handleLogin} className="space-y-4">
