@@ -365,8 +365,8 @@ export default function LancamentosPage() {
           <Activity size={32} className="text-orange-500 skew-x-12 ml-4" strokeWidth={1.5} />
         </h1>
         <h2 className="text-base text-gray-600 w-full font-bold leading-tight">
-          <span className="hidden md:inline">Realize seus registros via tela ou importação (múltiplos registros).</span>
-          <span className="inline md:hidden">Lançamentos via tela ou arquivo</span>
+          <span className="hidden md:inline">Digitalize seu controle de orçamentos doméstico ou empresarial de maneira integrada.</span>
+          <span className="inline md:hidden">Digitalize seu orçamento doméstico ou empresarial</span>
         </h2>
       </div>
 
