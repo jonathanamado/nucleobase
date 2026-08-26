@@ -2,7 +2,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Loader2, ShieldAlert } from "lucide-react";
+import { Loader2, ShieldAlert, Lock } from "lucide-react";
 import Link from "next/link";
 
 export default function AdmLayout({ children }: { children: React.ReactNode }) {
@@ -62,18 +62,18 @@ export default function AdmLayout({ children }: { children: React.ReactNode }) {
 
     if (!autorizado) {
         return (
-            <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
+            <div className="min-h-screen bg-zinc-50 flex flex-col justify-start items-center p-6 pt-12 md:pt-20">
                 <div className="w-full max-w-sm bg-white border border-zinc-200 p-8 rounded-[2.5rem] text-center space-y-4 shadow-sm">
-                    <div className="mx-auto w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500 mb-2">
-                        <ShieldAlert size={24} />
+                    <div className="flex items-center justify-center gap-3 mb-4">
+                        <div className="bg-orange-50 w-10 h-10 rounded-xl flex items-center justify-center text-orange-600"><Lock size={20} /></div>
+                        <h1 className="text-xl md:text-2xl font-black text-gray-900">Área restrita</h1>
                     </div>
-                    <h1 className="text-xl font-black text-zinc-900">Área Restrita</h1>
                     <p className="text-sm text-zinc-500">
-                        Seu perfil possui acesso restrito ao painel de condômino / dashboard e não possui permissão para acessar o painel administrativo (`/adm`).
+                        Esta área administrativa é restrita aos gestores do condomínio.
                     </p>
                     <div className="pt-2">
-                        <Link href="/condo/dashboard" className="inline-block bg-zinc-900 hover:bg-black text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
-                            Voltar ao Dashboard
+                        <Link href="/condo" className="inline-block bg-zinc-900 hover:bg-black text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
+                            Voltar
                         </Link>
                     </div>
                 </div>

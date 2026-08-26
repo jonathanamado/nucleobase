@@ -28,7 +28,8 @@ import {
     Instagram,
     ArrowLeft,
     BookOpen,
-    PhoneCall
+    PhoneCall,
+    Lock
 } from "lucide-react";
 
 interface UserMemberData {
@@ -329,12 +330,15 @@ export default function CondoDashboard() {
 
     if (!session) {
         return (
-            <div className="min-h-screen bg-zinc-50/50 text-zinc-900 flex flex-col items-center justify-center p-6">
+            <div className="min-h-screen bg-zinc-50/50 text-zinc-900 flex flex-col justify-start items-center p-6 pt-0 md:pt-0">
                 <div className="w-full max-w-md bg-white border border-zinc-200 p-8 md:p-10 rounded-[2.5rem] shadow-sm space-y-6">
-                    <div className="text-center space-y-2">
-                        <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.25em]">Acesso restrito</span>
-                        <h1 className="text-2xl font-black tracking-tight">Painel do Condomínio</h1>
-                        <p className="text-xs text-zinc-500">Insira suas credenciais cadastradas pelo seu síndico para acessar.</p>
+                    <div className="text-center space-y-1">
+                        <div className="flex items-center justify-center gap-1.5 mb-1">
+                            <Lock size={12} className="text-blue-600" />
+                            <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.25em]">Acesso restrito</span>
+                        </div>
+                        <br />
+                        <p className="text-xs text-zinc-500">Insira suas credenciais para acessar o Dashboard.</p>
                     </div>
 
                     <form onSubmit={handleLogin} className="space-y-4">
@@ -382,13 +386,6 @@ export default function CondoDashboard() {
                                 className="text-[10px] text-zinc-400 font-bold hover:text-blue-600 transition-colors cursor-pointer"
                             >
                                 Esqueceu a senha?
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setShowFirstAccessModal(true)}
-                                className="text-[10px] text-blue-600 font-black hover:text-blue-700 transition-colors cursor-pointer"
-                            >
-                                Primeiro acesso com ID de usuário?
                             </button>
                         </div>
 

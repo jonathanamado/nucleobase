@@ -882,9 +882,9 @@ export default function CondoAdm() {
                         <Lock size={30} />
                     </div>
                     <div className="space-y-2">
-                        <h1 className="text-xl font-black tracking-tight">Área Restrita</h1>
+                        <h1 className="text-lg md:text-xl font-black tracking-tight">Área restrita</h1>
                         <p className="text-xs text-zinc-500 leading-relaxed max-w-sm mx-auto">
-                            Olá! O seu perfil possui acesso restrito. Esta página de administração é destinada apenas aos gestores com perfil de síndico autorizado.
+                            Esta página é exclusiva para a gestão do administrador. Acesse a Nucleo com base no seu perfil de cadastro (<code className="bg-zinc-100 px-1 py-0.5 rounded text-zinc-700">/adm</code>).
                         </p>
                     </div>
 

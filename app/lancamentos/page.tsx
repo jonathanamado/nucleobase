@@ -268,8 +268,10 @@ export default function LancamentosPage() {
       <div className="w-full min-h-screen flex flex-col items-center bg-white px-4 pt-2 md:pt-4">
         <div className="bg-white p-8 md:p-10 rounded-[3rem] border border-gray-100 shadow-xl max-w-md w-full text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="bg-orange-50 w-10 h-10 rounded-xl flex items-center justify-center text-orange-600"><Lock size={20} /></div>
-            <h1 className="text-lg md:text-xl font-bold text-gray-900">Área restrita</h1>
+            <div className="bg-orange-50 w-10 h-10 rounded-xl flex items-center justify-center text-orange-600">
+              <Lock size={12} />
+            </div>
+            <h1 className="text-sm md:text-base font-bold text-gray-900">Área restrita</h1>
           </div>
           <p className="text-gray-500 text-xs mb-6">Valide sua identidade para gerenciar dados e lançamentos.</p>
           <form onSubmit={handleLogin} className="space-y-4">
@@ -280,7 +282,7 @@ export default function LancamentosPage() {
                 placeholder="ID ou E-mail"
                 required
                 value={slug}
-                className="w-full pl-12 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100 text-gray-900 placeholder:text-gray-400"
+                className="w-full pl-12 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-normal outline-none focus:ring-2 focus:ring-orange-100 text-gray-900 placeholder:text-gray-400"
                 onChange={(e) => setSlug(e.target.value)}
               />
             </div>
@@ -291,7 +293,7 @@ export default function LancamentosPage() {
                 placeholder="Senha"
                 required
                 value={password}
-                className="w-full pl-12 pr-12 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100 text-gray-900 placeholder:text-gray-400"
+                className="w-full pl-12 pr-12 py-4 bg-gray-50 border-none rounded-2xl text-sm font-normal outline-none focus:ring-2 focus:ring-orange-100 text-gray-900 placeholder:text-gray-400"
                 onChange={(e) => setPassword(e.target.value)}
               />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
