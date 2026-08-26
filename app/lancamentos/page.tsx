@@ -663,7 +663,17 @@ export default function LancamentosPage() {
           </h3>
 
           <div className="hidden lg:grid grid-cols-12 gap-6 mb-10">
-            <div className="lg:col-span-6">
+            <div className="lg:col-span-4">
+              <Link href="/resultados" className="flex flex-col h-full bg-blue-600 text-white rounded-[2rem] p-8 hover:bg-blue-700 transition-all group relative overflow-hidden shadow-sm">
+                <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center text-white mb-6">
+                  <BarChart3 size={24} />
+                </div>
+                <span className="text-[11px] font-black uppercase tracking-widest text-blue-100 mb-2">Painel de Resultados</span>
+                <p className="text-xs font-bold text-blue-50">Acompanhe seus lançamentos em tempo real.</p>
+              </Link>
+            </div>
+
+            <div className="lg:col-span-4">
               <Link href="/lancamentos/integrar" className="flex flex-col h-full bg-gray-50 border border-gray-200 rounded-[2rem] p-8 hover:bg-emerald-50 hover:border-emerald-200 transition-all group relative overflow-hidden">
                 <div className="absolute top-6 right-6 bg-blue-600 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase">Em desenvolvimento</div>
                 <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-gray-400 group-hover:text-emerald-500 mb-6 shadow-sm">
@@ -674,7 +684,7 @@ export default function LancamentosPage() {
               </Link>
             </div>
 
-            <div className="lg:col-span-6">
+            <div className="lg:col-span-4">
               <Link href="/lancamentos/importar" className="flex flex-col h-full bg-orange-50/30 border-2 border-orange-200 rounded-[2rem] p-8 hover:bg-orange-50 hover:border-orange-300 transition-all group relative overflow-hidden">
                 <div className="absolute top-6 right-6 bg-orange-500 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase animate-bounce">Recomendado</div>
                 <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-orange-500 mb-6 shadow-sm">
@@ -688,6 +698,19 @@ export default function LancamentosPage() {
 
           <div className="lg:hidden relative mb-10 overflow-hidden px-2">
             <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${activeCard * 100}%)` }}>
+
+              <div className="w-full flex-shrink-0 px-2">
+                <div className="bg-blue-600 rounded-[2rem] p-8 text-white h-[250px] relative overflow-hidden flex flex-col justify-between shadow-sm">
+                  <div>
+                    <BarChart3 className="mb-4 text-white/80" size={32} />
+                    <h4 className="text-lg font-bold mb-1">Painel de Resultados</h4>
+                    <p className="text-blue-100 text-xs font-medium opacity-90 leading-relaxed">Acompanhe seus lançamentos em tempo real.</p>
+                  </div>
+                  <Link href="/resultados" className="bg-white text-blue-600 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest text-center shadow-lg">
+                    Acessar agora
+                  </Link>
+                </div>
+              </div>
 
               <div className="w-full flex-shrink-0 px-2">
                 <Link href="/lancamentos/importar" className="flex flex-col bg-orange-50/30 border-2 border-orange-200 rounded-[2rem] p-8 h-[250px] relative overflow-hidden">
@@ -709,19 +732,6 @@ export default function LancamentosPage() {
                   <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 mb-2">Automação Cloud</span>
                   <p className="text-xs font-bold text-gray-500">Integração direta em nuvem para seus registros.</p>
                 </Link>
-              </div>
-
-              <div className="w-full flex-shrink-0 px-2">
-                <div className="bg-blue-600 rounded-[2rem] p-8 text-white h-[250px] relative overflow-hidden flex flex-col justify-between">
-                  <div>
-                    <BarChart3 className="mb-4 text-white/80" size={32} />
-                    <h4 className="text-lg font-bold mb-1">Painel de Resultados</h4>
-                    <p className="text-blue-100 text-xs font-medium opacity-90 leading-relaxed">Acompanhe seus lançamentos em tempo real.</p>
-                  </div>
-                  <Link href="/resultados" className="bg-white text-blue-600 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest text-center shadow-lg">
-                    Acessar agora
-                  </Link>
-                </div>
               </div>
 
             </div>

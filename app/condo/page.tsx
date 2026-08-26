@@ -571,10 +571,12 @@ export default function NucleobaseCondo() {
                         </button>
 
                         <div className="text-center mb-8 space-y-2">
-                            <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 mx-auto mb-2">
-                                <Users size={28} />
-                            </div>
-                            <h2 className="text-2xl font-black tracking-tight text-gray-900">Solicitar Inclusão</h2>
+                            <div className="flex items-center justify-center gap-3 mb-2">
+                                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                                    <Users size={20} />
+                                </div>
+                                <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Gestão Condominial</span>                            </div>
+                            <h2 className="text-xl font-black tracking-tight text-gray-900">Solicitar Inclusão</h2>
                             <p className="text-xs text-gray-500 max-w-xs mx-auto">
                                 Insira seus dados para enviar a solicitação diretamente para o suporte e administração do seu condomínio.
                             </p>
@@ -611,10 +613,10 @@ export default function NucleobaseCondo() {
                                     <input
                                         type="text"
                                         required
-                                        placeholder="Ex: Ed. Guimarães Rosa"
+                                        placeholder="Ed. G. Rosa"
                                         value={solicitanteCondo}
                                         onChange={(e) => setSolicitanteCondo(e.target.value)}
-                                        className="w-full h-12 px-4 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
+                                        className="w-full h-12 px-4 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium placeholder:text-xs"
                                     />
                                 </div>
                                 <div className="space-y-1">
@@ -622,10 +624,10 @@ export default function NucleobaseCondo() {
                                     <input
                                         type="text"
                                         required
-                                        placeholder="Ex: Apto 302"
+                                        placeholder="Apto 302"
                                         value={solicitanteUnidade}
                                         onChange={(e) => setSolicitanteUnidade(e.target.value)}
-                                        className="w-full h-12 px-4 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
+                                        className="w-full h-12 px-4 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium placeholder:text-xs"
                                     />
                                 </div>
                             </div>
