@@ -433,49 +433,46 @@ export function Header() {
               ref={mobileMenuRef}
               className="absolute top-[85px] right-4 left-4 bg-white rounded-[2rem] shadow-2xl border border-gray-100 z-[100] overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300 md:hidden"
             >
-              <div className="max-h-[70vh] overflow-y-auto p-6 bg-white">
-                <nav className="space-y-1 bg-white">
+              <div className="max-h-[70vh] overflow-y-auto p-4 bg-white">
+                <nav className="space-y-0.5 bg-white">
                   {menuLinks.map((link) => (
                     <a
                       key={link.name}
                       href={link.href}
                       onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center justify-between p-3 rounded-2xl text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition-all group bg-white"
+                      className="flex items-center justify-between p-2 rounded-2xl text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition-all group bg-white"
                     >
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-3">
                         <span className="text-gray-400 group-hover:text-blue-600 transition-colors">
                           {link.icon}
                         </span>
-                        <span className="text-sm font-bold tracking-tight">{link.name}</span>
+                        <span className="text-xs font-bold tracking-tight">{link.name}</span>
                       </div>
                       <ChevronRight size={14} className="text-gray-300 opacity-50 group-hover:translate-x-1 transition-transform" />
                     </a>
                   ))}
                 </nav>
 
-                <div className="mt-6 pt-6 border-t border-gray-100 space-y-3 bg-white">
+                <div className="mt-2 pt-2 border-t border-gray-100 space-y-2 bg-white">
                   {!isLoggedIn ? (
-                    <div className="grid grid-cols-2 gap-4 bg-white">
-                      <a href="/acesso-usuario" className="py-4 bg-orange-500 text-white text-center rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+                    <div className="grid grid-cols-2 gap-3 bg-white">
+                      <a href="/acesso-usuario" className="py-3 bg-orange-500 text-white text-center rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all">
                         Acessar
                       </a>
-                      <a href="/cadastro" className="py-4 bg-blue-600 text-white text-center rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+                      <a href="/cadastro" className="py-3 bg-blue-600 text-white text-center rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all">
                         Criar Conta
                       </a>
                     </div>
                   ) : (
-                    <div className="flex flex-col gap-3 bg-white">
+                    <div className="flex flex-col gap-2 bg-white">
                       {pathname !== "/acesso-usuario" && (
-                        <a href="/acesso-usuario" className="flex items-center justify-center gap-2 w-full py-4 bg-orange-500 text-white rounded-2xl font-bold text-sm shadow-lg active:scale-95 transition-all">
-                          <LayoutDashboard size={18} /> Painel Acesso APP
+                        <a href="/lancamentos" className="flex items-center justify-center gap-2 w-full py-2.5 bg-orange-500 text-white rounded-xl font-bold text-xs shadow-lg active:scale-95 transition-all">
+                          <LayoutDashboard size={15} /> Gestão Financeira
                         </a>
                       )}
-                      <a href="/resultados" className="flex items-center justify-center gap-2 w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-sm shadow-lg active:scale-95 transition-all">
-                        <BarChart3 size={18} /> Visão de Resultados
+                      <a href="/condo" className="flex items-center justify-center gap-2 w-full py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-xs shadow-lg active:scale-95 transition-all">
+                        <Building2 size={15} /> Administração Condo
                       </a>
-                      <button onClick={handleLogout} className="flex items-center justify-center gap-2 w-full py-4 bg-red-50 text-red-600 rounded-2xl font-bold text-sm border border-red-100 active:scale-95 transition-all cursor-pointer">
-                        <Power size={18} /> Sair da conta
-                      </button>
                     </div>
                   )}
                 </div>

@@ -338,7 +338,7 @@ export default function AcessoUsuarioPage() {
           <p className="hidden md:block text-base text-gray-600 leading-relaxed">
             Através do{" "}
             <span className="inline-flex items-center justify-center bg-orange-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
-              Controle Financeiro
+              Gestão Financeira
             </span>{" "}
             você centraliza sua vida financeira com total liberdade, de registros cotidianos a custos parcelados de longo prazo, enquanto com o{" "}
             <span className="inline-flex items-center justify-center bg-emerald-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
@@ -364,8 +364,8 @@ export default function AcessoUsuarioPage() {
                   <Rocket size={20} className="md:w-7 md:h-7" />
                 </div>
                 <h3 className="text-xs md:text-xl font-bold text-white mb-2 md:mb-3">
-                  <span className="md:hidden">Controle Financeiro</span>
-                  <span className="hidden md:block">Controle <br /> Financeiro</span>
+                  <span className="md:hidden">Gestão Financeira</span>
+                  <span className="hidden md:block">Gestão <br /> Financeira</span>
                 </h3>
 
                 <p className="text-orange-50 text-[14px] md:text-[16px] leading-relaxed mb-6 font-medium md:block hidden">
