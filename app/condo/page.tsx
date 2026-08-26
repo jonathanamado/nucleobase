@@ -390,7 +390,7 @@ export default function NucleobaseCondo() {
                         <Building2 size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
                     </h1>
                     <h2 className="text-gray-500 text-base md:text-lg font-medium max-w-2xl leading-relaxed mt-0">
-                        <span className="md:hidden">Gestão de convivência descomplicada</span>
+                        <span className="md:hidden">Convivência descomplicada</span>
                         <span className="hidden md:block">Gestão financeira e de convivência de forma descomplicada.</span>
                     </h2>
                 </div>
@@ -447,7 +447,7 @@ export default function NucleobaseCondo() {
 
                         <div className="mb-6 md:hidden">
                             <p className="text-sm leading-relaxed text-gray-600 font-medium mb-6">
-                                A Nucleobase Condo centraliza controles financeiros, apoio em boletos e processos internos de maneira prática e funcional.
+                                A Nucleo é a melhor opção em gestão de processos condominiais, unindo tecnologia e praticidade no dia a dia.
                             </p>
 
                             <button
