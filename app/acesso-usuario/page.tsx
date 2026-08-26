@@ -192,10 +192,10 @@ export default function AcessoUsuarioPage() {
   };
 
   return (
-    <div className="w-full pr-0 md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
+    <div className="w-full pr-0 md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0 pt-0">
 
       {/* Cabeçalho */}
-      <div className="mb-6 mt-2 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
+      <div className="mb-6 mt-0 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
         <div className="lg:col-span-12 text-left">
           <div className="flex items-center justify-between w-full">
             <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
@@ -254,7 +254,7 @@ export default function AcessoUsuarioPage() {
           {!isLoggedIn && (
             <div className="max-w-md mt-6">
               <div className="w-full bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
-                <h2 className="text-lg font-bold text-gray-900 mb-4 px-1">
+                <h2 className="text-base md:text-lg font-bold text-gray-900 mb-4 px-1">
                   Realizar login<span className="text-orange-500">.</span>
                 </h2>
                 <form onSubmit={handleLogin} className="flex flex-col gap-2">
