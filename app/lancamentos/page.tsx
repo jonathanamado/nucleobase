@@ -26,6 +26,24 @@ export default function LancamentosPage() {
   const [ultimosLancamentos, setUltimosLancamentos] = useState<any[]>([]);
   const [activeCard, setActiveCard] = useState(0);
 
+  const [cooldownTime, setCooldownTime] = useState(0);
+
+  useEffect(() => {
+    let timer: any;
+    if (cooldownTime > 0) {
+      timer = setInterval(() => {
+        setCooldownTime((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [cooldownTime]);
+
+  // Função de Sanitização contra XSS / Injeção de Tags HTML
+  const sanitizarTexto = (texto: any) => {
+    if (!texto) return "";
+    return String(texto).replace(/<[^>]*>?/gm, '').trim();
+  };
+
   const {
     emailOrSlug: slug,
     setEmailOrSlug: setSlug,
@@ -220,15 +238,30 @@ export default function LancamentosPage() {
     e.preventDefault();
     if (loading || !userId) return;
 
+    if (cooldownTime > 0) {
+      alert(`Por favor, aguarde ${cooldownTime} segundos antes de realizar um novo lançamento.`);
+      return;
+    }
+
     const valorBase = typeof formData.valorTotal === "string" ? parseFloat(formData.valorTotal) : formData.valorTotal;
     const valorFinal = formData.natureza === "Despesa"
       ? -Math.abs(valorBase)
       : Math.abs(valorBase);
 
+    // Sanitização preventiva de campos textuais preenchidos em tela
     const payload = {
       ...formData,
+      origem: sanitizarTexto(formData.origem),
+      cartao_nome: sanitizarTexto(formData.cartao_nome),
+      descricao: sanitizarTexto(formData.descricao),
+      categoria: sanitizarTexto(formData.categoria),
+      sub_categoria: sanitizarTexto(formData.sub_categoria),
+      projeto: sanitizarTexto(formData.projeto),
+      natureza: sanitizarTexto(formData.natureza),
+      tipo_de_custo: sanitizarTexto(formData.tipo_de_custo),
+      tipo_origem: sanitizarTexto(formData.tipo_origem),
+      fatura_mes: formData.tipo_origem === "CONTA_CORRENTE" ? "" : sanitizarTexto(formData.fatura_mes),
       valorTotal: valorFinal,
-      fatura_mes: formData.tipo_origem === "CONTA_CORRENTE" ? "" : formData.fatura_mes,
       user_id: userId
     };
 
@@ -252,6 +285,7 @@ export default function LancamentosPage() {
       setSucesso(true);
       setFormData(initialFormState);
       fetchUltimos(userId);
+      setCooldownTime(3); // Cooldown de 3 segundos após sucesso
       window.scrollTo({ top: 0, behavior: 'smooth' });
       setTimeout(() => setSucesso(false), 5000);
     } catch (err: any) {
@@ -511,7 +545,12 @@ export default function LancamentosPage() {
                     <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
                     <input required type="date" value={formData.dataCompetencia}
                       className="w-full pl-14 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm text-gray-800"
-                      onChange={(e) => setFormData({ ...formData, dataCompetencia: e.target.value })} />
+                      onChange={(e) => {
+                        const novaData = e.target.value;
+                        const [ano, mes] = novaData.split("-");
+                        const faturaSugerida = ano && mes ? `${ano}-${mes}` : formData.fatura_mes;
+                        setFormData({ ...formData, dataCompetencia: novaData, fatura_mes: faturaSugerida });
+                      }} />
                   </div>
                 </div>
               </div>
@@ -639,9 +678,9 @@ export default function LancamentosPage() {
               </div>
 
               <div className="flex flex-col gap-3 mt-8">
-                <button type="submit" disabled={loading}
-                  className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-xl flex items-center justify-center gap-3 text-white ${isReceita ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-900/20' : 'bg-orange-500 hover:bg-orange-600 shadow-orange-900/20'}`}>
-                  {loading ? "Processando..." : <><Save size={18} /> {isReceita ? 'Confirmar Receita' : 'Salvar Despesa'}</>}
+                <button type="submit" disabled={loading || cooldownTime > 0}
+                  className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-xl flex items-center justify-center gap-3 text-white disabled:opacity-50 ${isReceita ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-900/20' : 'bg-orange-500 hover:bg-orange-600 shadow-orange-900/20'}`}>
+                  {loading ? "Processando..." : cooldownTime > 0 ? `Aguarde (${cooldownTime}s)` : <><Save size={18} /> {isReceita ? 'Confirmar Receita' : 'Salvar Despesa'}</>}
                 </button>
 
                 <Link

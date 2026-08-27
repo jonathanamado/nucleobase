@@ -426,14 +426,14 @@ export default function DashboardResultados() {
   ];
 
   const footerItems = [
-    <FooterItem key="bench" icon={<LineChart size={20} />} title="Benchmarking" desc="Sua performance" href="#" isLocked />,
-    <FooterItem key="obj" icon={<Target size={20} />} title="Objetivos" desc="Metas de economia" href="#" isLocked />,
-    <FooterItem key="ia" icon={<Microscope size={20} />} title="IA Predict" desc="Suas tendências" href="#" isLocked />,
-    <a key="cons" href="/consultoria" className="flex items-center gap-4 group cursor-pointer w-full justify-center md:justify-start">
+    <FooterItem key="bench" icon={<LineChart size={20} />} title="Benchmarking" desc="Sua performance" href="/ecossistema" />,
+    <FooterItem key="obj" icon={<Target size={20} />} title="Objetivos" desc="Metas de economia" href="/ecossistema" />,
+    <FooterItem key="ia" icon={<Microscope size={20} />} title="IA Predict" desc="Suas tendências" href="/ecossistema" />,
+    <a key="cons" href="/consultoria" className="flex items-center gap-4 group cursor-pointer w-full justify-start md:justify-center">
       <div className="p-4 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-100 transition-all hover:scale-105"><Mail size={20} /></div>
-      <div className="text-left">
+      <div className="text-left md:text-center">
         <p className="text-sm font-bold text-gray-900">Consultoria</p>
-        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">Falar com specialist</p>
+        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">Fale conosco</p>
       </div>
     </a>
   ];
@@ -499,7 +499,7 @@ export default function DashboardResultados() {
               <BarChart3 size={18} className="text-blue-600" /> Fluxo de Caixa Comparativo
             </h3>
 
-            <div className="flex flex-wrap items-center gap-3 w-full justify-start md:justify-end">
+            <div className="flex flex-wrap items-center gap-3 w-full justify-center md:justify-end">
               <div className="flex bg-gray-50 p-1.5 rounded-2xl flex-1 md:flex-none">
                 <button
                   onClick={() => setViewMode('CAIXA')}
@@ -698,11 +698,11 @@ function KPICard({ title, value, icon, color, onNext, onPrev, showArrows, index 
   );
 }
 
-function FooterItem({ icon, title, desc, href, isLocked }: any) {
+function FooterItem({ icon, title, desc, href }: any) {
   return (
-    <a href={href} className={`flex items-center gap-4 transition-all ${isLocked ? 'opacity-40 cursor-not-allowed' : 'hover:translate-x-1'}`}>
-      <div className="p-4 bg-gray-100 text-gray-500 rounded-2xl">{icon}</div>
-      <div className="text-left">
+    <a href={href} className="flex items-center gap-4 group cursor-pointer w-full justify-start md:justify-center hover:translate-x-1 transition-all">
+      <div className="p-4 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-100 transition-all group-hover:scale-105">{icon}</div>
+      <div className="text-left md:text-center">
         <p className="text-sm font-bold text-gray-900">{title}</p>
         <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">{desc}</p>
       </div>
