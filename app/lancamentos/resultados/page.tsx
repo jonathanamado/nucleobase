@@ -1,4 +1,4 @@
-// app/lancamentos/resultados/page.tsx
+// app/resultados/financeiro/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -16,8 +16,8 @@ import {
   Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
 import { createClient } from "@supabase/supabase-js";
-import VisionOfensora from "@/app/lancamentos/resultados/_components/VisionOfensora";
-import VisionYoY from "@/app/lancamentos/resultados/_components/VisionYoY";
+import VisionOfensora from "@/app/resultados/_components/VisionOfensora";
+import VisionYoY from "@/app/resultados/_components/VisionYoY";
 import { useLoginProtegido } from "@/hooks/useLoginProtegido";
 
 const supabase = createClient(
@@ -25,7 +25,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default function DashboardResultados() {
+export default function DashboardResultadosFinanceiro() {
   const [activeTab, setActiveTab] = useState("TODOS");
   const [viewMode, setViewMode] = useState<'COMPETENCIA' | 'CAIXA'>('CAIXA');
   const [loading, setLoading] = useState(true);
@@ -315,7 +315,7 @@ export default function DashboardResultados() {
             <Lock size={12} className="text-blue-600" />
             <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.25em]">Acesso restrito</span>
           </div>
-          <p className="text-gray-500 text-xs mb-5">Valide sua identidade para acessar o Painel de resultados.</p>
+          <p className="text-gray-500 text-xs mb-5">Valide sua identidade para acessar o Painel Financeiro.</p>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="relative">
               <AtSign className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -341,7 +341,6 @@ export default function DashboardResultados() {
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
             </div>
 
-            {/* Aviso visual de bloqueio regressivo */}
             {tempoBloqueio > 0 && (
               <div className="text-xs font-bold text-amber-600 bg-amber-50 p-3 rounded-xl text-center">
                 Muitas tentativas. Tente novamente em {tempoBloqueio}s.
@@ -457,7 +456,7 @@ export default function DashboardResultados() {
           </div>
           <div className="mb-4">
             <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
-              <span>Dashboard<span className="text-blue-600">.</span></span>
+              <span>Dashboard Financeiro<span className="text-blue-600">.</span></span>
               <Sparkles size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
             </h1>
           </div>
