@@ -337,9 +337,9 @@ export function MainContent() {
                 <span className="inline-flex items-center justify-center bg-emerald-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                   Gestão Residencial
                 </span>{" "}
-                de maneira simples e consciente. Através de ferramentas integradas, você profissionaliza sua gestão reduzindo dependência em planilhas manuais. Na consulta de{" "}
+                de maneira simples e consciente. Através de ferramentas integradas, você profissionaliza sua gestão reduzindo dependência em planilhas manuais. No módulo de{" "}
                 <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
-                  Visão de Resultados
+                  Resultados & Consultoria
                 </span>{" "}
                 , transformamos dados em informações{" "}
                 <span className="text-gray-900 underline decoration-2 decoration-orange-500/30 underline-offset-4 font-medium">
@@ -516,10 +516,10 @@ export function MainContent() {
 
         <div className="w-full mb-12">
           <p className="text-gray-600 text-base leading-[1.8]">
-            <span className="text-gray-900 font-semibold">Acreditamos que</span> a verdadeira inteligência financeira e de gestão residencial nasce da união entre clareza de dados e disciplina, transformando números isolados em roteiro seguro. <span className="text-gray-900 font-semibold">Desenvolvemos uma tecnologia</span> que não apenas organiza estes números, mas traduz comportamentos. <span className="text-gray-900 font-semibold">Ao eliminar complexidade e controles manuais,</span> permitimos que você foque no que importa: entender e agir. Saiba mais
+            <span className="text-gray-900 font-semibold">Acreditamos que</span> a verdadeira inteligência financeira e de gestão nasce da união entre clareza de dados e disciplina. <span className="text-gray-900 font-semibold">Desenvolvemos uma tecnologia</span> que não apenas organiza isto, mas traduz comportamentos. <span className="text-gray-900 font-semibold">Ao eliminar complexidade e controles manuais,</span> permitimos o seu foco no que importa: entender e agir.
             <Link href="/sobre" className="inline-flex items-center ml-2 group">
               <span className="bg-blue-600 text-white px-2 pt-1 pb-0.5 rounded-md text-[10px] font-bold shadow-sm hover:bg-blue-700 transition-colors uppercase tracking-wider">
-                clicando aqui.
+                Saiba mais clicando aqui.
               </span>
             </Link>
           </p>
@@ -574,7 +574,7 @@ export function MainContent() {
                 </p>
                 <Link href="/depoimentos" className="group w-fit ml-auto">
                   <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest inline-flex items-center gap-2">
-                    CLIQUE AQUI <ArrowRight size={12} />
+                    Veja Depoimentos <ArrowRight size={12} />
                   </span>
                 </Link>
               </div>
@@ -583,17 +583,17 @@ export function MainContent() {
 
           <section>
             <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4">
-              Painel de Resultados <div className="h-px bg-gray-300 flex-1"></div>
+              Resultados & Consultoria <div className="h-px bg-gray-300 flex-1"></div>
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-stretch">
               <div className="md:col-span-7 text-left flex flex-col justify-center">
-                <h4 className="text-3xl font-bold text-gray-900 mb-6 tracking-tight leading-[1.1]">Sua visão 360º diretamente no seu Painel</h4>
+                <h4 className="text-3xl font-bold text-gray-900 mb-6 tracking-tight leading-[1.1]">Sua visão 360º na palma da mão</h4>
                 <p className="text-gray-600 text-base leading-relaxed mb-8">
                   Mais do que números, entregamos inteligência em processos. O Dashboard da Nucleobase processa seus dados e os gerencia para oferecer a você diagnósticos precisos na palma da mão.
                 </p>
                 <Link href="/resultados-consultoria" className="group w-fit">
                   <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest inline-flex items-center gap-2">
-                    CLIQUE AQUI <ArrowRight size={12} />
+                    Entenda Resultados & Consultorias <ArrowRight size={12} />
                   </span>
                 </Link>
               </div>
@@ -601,7 +601,7 @@ export function MainContent() {
                 <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
                   <BarChart3 size={32} />
                 </div>
-                <h5 className="font-bold text-gray-900 mb-2">Resultados & Consultoria</h5>
+                <h5 className="font-bold text-gray-900 mb-2">Especialize-se no APP</h5>
                 <p className="text-gray-500 text-sm leading-relaxed">Obtenha suporte especializado contra grandes dificuldades e para obter insights.</p>
               </Link>
             </div>

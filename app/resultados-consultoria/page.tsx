@@ -1,7 +1,7 @@
 // app/lancamentos/resultados/page.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   Sparkles,
@@ -11,15 +11,27 @@ import {
   Wallet,
   Users,
   Instagram,
-  ChevronLeft,
-  ChevronRight,
   Zap
 } from "lucide-react";
 
 export default function ResultadosGeraisPage() {
   const [cardAtivo, setCardAtivo] = useState(0);
+  const touchStartX = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
 
   const beneficiosModulos = [
+    {
+      title: "Consultoria Especializada",
+      desc: "Benefício estratégico: conte com a experiência do nosso time para desenhar soluções sob medida, entendendo a dor do seu processo e otimizando resultados.",
+      icon: <Users size={16} />,
+      badgeDesktop: "Suporte Dedicado",
+      badgeMobile: "Suporte",
+      color: "text-purple-600",
+      bg: "bg-purple-50",
+      link: "/resultados-consultoria/consultoria-especializada",
+      metric: "VIP",
+      metricLabel: "Acompanhamento"
+    },
     {
       title: "Gestão Financeira",
       desc: "Benefício direto para parceiros e usuários: ganhe clareza absoluta sobre fluxo de caixa, despesas e receitas com automações inteligentes e relatórios executivos.",
@@ -43,27 +55,35 @@ export default function ResultadosGeraisPage() {
       link: "/condo",
       metric: "24h",
       metricLabel: "Agilidade"
-    },
-    {
-      title: "Consultoria Especializada",
-      desc: "Benefício estratégico: conte com a experiência do nosso time para desenhar soluções sob medida, entendendo a dor do seu processo e otimizando resultados.",
-      icon: <Users size={16} />,
-      badgeDesktop: "Suporte Dedicado",
-      badgeMobile: "Suporte",
-      color: "text-purple-600",
-      bg: "bg-purple-50",
-      link: "/resultados-consultoria/consultoria",
-      metric: "VIP",
-      metricLabel: "Acompanhamento"
     }
   ];
 
-  const proximoCard = () => {
-    if (cardAtivo < beneficiosModulos.length - 1) setCardAtivo(cardAtivo + 1);
+  // Passar automaticamente de 6 em 6 segundos
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCardAtivo((prev) => (prev + 1) % beneficiosModulos.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [beneficiosModulos.length]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
   };
 
-  const anteriorCard = () => {
-    if (cardAtivo > 0) setCardAtivo(cardAtivo - 1);
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current;
+    const threshold = 50; // sensibilidade do arrastar
+    if (diff > threshold) {
+      // Arrastou para a esquerda -> Próximo card
+      setCardAtivo((prev) => (prev < beneficiosModulos.length - 1 ? prev + 1 : 0));
+    } else if (diff < -threshold) {
+      // Arrastou para a direita -> Card anterior
+      setCardAtivo((prev) => (prev > 0 ? prev - 1 : beneficiosModulos.length - 1));
+    }
   };
 
   return (
@@ -84,7 +104,7 @@ export default function ResultadosGeraisPage() {
           </h1>
           <h2 className="text-gray-500 text-xs md:text-sm font-medium leading-relaxed mt-0 w-full">
             <span className="md:hidden">Simplificamos processos para a sua rotina.</span>
-            <span className="hidden md:inline">Nossos especialistas entendem a dor do processo e simplificam o dia a dia dos usuários com processos modulares e práticos.</span>
+            <span className="hidden md:inline">Nosso time entende a dor do processo e simplifica a rotina dos usuários com entregas modulares.</span>
           </h2>
         </div>
 
@@ -108,16 +128,15 @@ export default function ResultadosGeraisPage() {
         <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
-      <div className="relative flex items-center justify-center mb-16 px-8 md:px-0">
-        {cardAtivo > 0 && (
-          <button onClick={anteriorCard} className="md:hidden absolute left-1 z-20 bg-white shadow-lg border border-gray-100 text-blue-600 p-2 rounded-full active:scale-90 transition-all">
-            <ChevronLeft size={20} />
-          </button>
-        )}
-
+      <div
+        className="relative flex items-center justify-center mb-16 w-full"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <div className="w-full md:grid md:grid-cols-3 gap-6 flex items-stretch justify-center">
           {beneficiosModulos.map((beneficio, idx) => (
-            <div key={idx} className={`h-auto md:h-full flex-1 ${cardAtivo === idx ? 'flex animate-in fade-in zoom-in-95 duration-300' : 'hidden'} md:flex md:animate-none`}>
+            <div key={idx} className={`h-auto md:h-full w-full flex-1 ${cardAtivo === idx ? 'flex animate-in fade-in zoom-in-95 duration-300' : 'hidden'} md:flex md:animate-none`}>
               <Link href={beneficio.link} className="block w-full group bg-white p-6 md:p-8 rounded-[2rem] border border-gray-100 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-500 relative overflow-hidden flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-4">
@@ -159,12 +178,6 @@ export default function ResultadosGeraisPage() {
             </div>
           ))}
         </div>
-
-        {cardAtivo < beneficiosModulos.length - 1 && (
-          <button onClick={proximoCard} className="md:hidden absolute right-1 z-20 bg-white shadow-lg border border-gray-100 text-blue-600 p-2 rounded-full active:scale-90 transition-all">
-            <ChevronRight size={20} />
-          </button>
-        )}
       </div>
 
       {/* BLOCO DE DESTAQUE / VISÃO DO ECOSSISTEMA */}

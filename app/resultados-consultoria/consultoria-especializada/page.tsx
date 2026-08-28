@@ -1,4 +1,4 @@
-// app/consultoria/page.tsx
+// app/consultoria/consultoria-especializada/page.tsx
 "use client";
 
 import React from "react";
@@ -14,7 +14,8 @@ import {
   Headphones,
   Target,
   MessageCircle,
-  Instagram
+  Instagram,
+  Dna
 } from "lucide-react";
 
 export default function ConsultoriaPage() {
@@ -25,7 +26,7 @@ export default function ConsultoriaPage() {
     {
       tag: "Estratégia Premium",
       title: "Gestão Financeira Avançada",
-      desc: "Consultoria individual para estruturação de fluxo de caixa, análise de DRE, projeções e planejamento tributário estratégico para seu negócio ou patrimônio.",
+      desc: "Consultoria individualizada e especializada para estruturação completa de fluxo de caixa, uso avançado e suporte dedicado à ferramenta e análise profunda do painel de resultados.",
       icon: <Wallet size={24} className="stroke-[1.5]" />,
       color: "text-blue-600",
       bg: "bg-blue-50",
@@ -33,7 +34,7 @@ export default function ConsultoriaPage() {
     },
     {
       tag: "Governança de Excelência",
-      title: "Síndico Profissional & Compliance",
+      title: "Adm Profissional & Compliance",
       desc: "Assessoria de alto nível para gestão condominial, focada em transparência, legalidade, otimização de custos operacionais e valorização dos ativos imobiliários.",
       icon: <Building2 size={24} className="stroke-[1.5]" />,
       color: "text-emerald-600",
@@ -56,6 +57,19 @@ export default function ConsultoriaPage() {
       {/* --- CONTAINER PRINCIPAL COM ESPAÇAMENTO LATERAL PADRÃO --- */}
       <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0 text-xs md:text-sm">
 
+        {/* --- CABEÇALHO PADRÃO DA PÁGINA --- */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
+          <div>
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
+              <span>Consultoria Especializada<span className="text-blue-600">.</span></span>
+              <Dna size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
+            </h1>
+            <h2 className="text-gray-500 text-base md:text-lg font-medium max-w-2xl leading-relaxed mt-0">
+              Potencialize o uso da Nucleo, otimizando ainda mais seu dia a dia.
+            </h2>
+          </div>
+        </div>
+
         {/* --- HERO SECTION DIFERENCIADA --- */}
         <section className="relative mb-12 bg-white p-6 md:p-10 rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
           {/* Elemento gráfico de fundo */}
@@ -68,9 +82,9 @@ export default function ConsultoriaPage() {
                 <span className="text-[9px] font-bold uppercase tracking-[0.2em]">Nucleobase Advisory</span>
               </div>
 
-              <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-3 tracking-tight leading-tight">
+              <h2 className="text-xl md:text-3xl font-bold text-gray-900 mb-3 tracking-tight leading-tight">
                 Consultoria <span className="text-blue-600">Especializada</span> para Decisões Críticas.
-              </h1>
+              </h2>
 
               <p className="text-gray-500 text-xs md:text-sm font-medium leading-relaxed max-w-2xl mb-6">
                 Transponha barreiras com a inteligência de dados da Nucleobase aliada à{" "}
@@ -105,9 +119,14 @@ export default function ConsultoriaPage() {
         <section className="mb-16">
           <header className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <h2 className="text-base md:text-xl font-bold tracking-tight text-gray-900">Nossas Frentes de Consultoria</h2>
-            <div className="flex items-center gap-2 text-xs font-medium text-gray-500 px-4 py-2 bg-white rounded-xl border border-gray-100 shadow-sm">
-              <Zap size={14} className="text-blue-500" />
-              <span>Resultados tangíveis e implantação assistida exclusiva para assinantes Pro</span>
+            <div className="text-xs font-medium text-gray-500 px-0 md:px-4 py-0 md:py-2 bg-transparent md:bg-white rounded-none md:rounded-xl border-0 md:border border-gray-100 shadow-none md:shadow-sm">
+              <span className="hidden md:inline-flex items-center gap-2">
+                <Zap size={14} className="text-blue-500 shrink-0" />
+                Resultados tangíveis e implantação assistida exclusiva para assinantes Pro
+              </span>
+              <span className="md:hidden">
+                Resultados tangíveis e implantação assistida exclusiva para assinantes Pro
+              </span>
             </div>
           </header>
 
@@ -148,30 +167,30 @@ export default function ConsultoriaPage() {
           </div>
         </section>
 
-        {/* --- BLOCO DE CHAMADA PARA AÇÃO / CONTATO (DIMINUÍDO E COMPACTO) --- */}
-        <section id="contato" className="bg-gray-900 rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 text-white relative overflow-hidden shadow-xl shadow-blue-900/10 mb-16">
+        {/* --- BLOCO DE CHAMADA PARA AÇÃO / CONTATO (COMPACTO E COMPATÍVEL) --- */}
+        <section id="contato" className="bg-gray-900 rounded-[2rem] md:rounded-[3rem] p-6 md:p-8 text-white relative overflow-hidden shadow-xl shadow-blue-900/10 mb-16">
           <div className="absolute top-0 right-0 w-1/3 h-full bg-blue-600/10 blur-[100px] pointer-events-none"></div>
 
-          <div className="relative z-10 grid md:grid-cols-[1fr,auto] gap-8 items-center">
-            <div className="space-y-3">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-2">
               <div className="inline-flex items-center gap-2 text-blue-400 px-3 py-1 bg-white/5 rounded-full border border-white/10 w-fit">
                 <Headphones size={14} />
                 <span className="text-[9px] font-bold uppercase tracking-[0.2em]">Suporte Premium</span>
               </div>
 
-              <h2 className="text-lg md:text-2xl font-bold tracking-tight leading-tight">
+              <h2 className="text-lg md:text-xl font-bold tracking-tight leading-tight max-w-lg">
                 Pronto para <span className="text-blue-400">elevar o nível</span> da sua gestão?
               </h2>
 
               <p className="text-gray-300 text-xs md:text-sm font-medium leading-relaxed max-w-xl">
-                Nossa equipe está preparada para direcionar você aos consultores especialistas Nucleobase. <span className="font-semibold text-white">Garanta seu acesso Pro e fale conosco.</span>
+                Estamos preparados para direcionar você aos consultores especialistas. <span className="font-semibold text-white">Garanta seu acesso Pro e fale conosco.</span>
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 shrink-0">
               <Link
                 href="/planos"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md text-center"
               >
                 Verificar Acesso Pro <ArrowRight size={14} />
               </Link>
@@ -179,7 +198,7 @@ export default function ConsultoriaPage() {
                 href={whatsappLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all border border-white/10 font-black text-[10px] uppercase tracking-widest"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all border border-white/10 font-black text-[10px] uppercase tracking-widest text-center"
               >
                 Contacte a Nucleo <MessageCircle size={14} className="text-blue-400" />
               </a>
