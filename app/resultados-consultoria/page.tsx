@@ -108,9 +108,9 @@ export default function ResultadosGeraisPage() {
         <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
-      <div className="relative flex items-center justify-center mb-16">
+      <div className="relative flex items-center justify-center mb-16 px-8 md:px-0">
         {cardAtivo > 0 && (
-          <button onClick={anteriorCard} className="md:hidden absolute left-0 z-20 bg-white shadow-lg border border-gray-100 text-blue-600 p-2 rounded-full active:scale-90 transition-all">
+          <button onClick={anteriorCard} className="md:hidden absolute left-1 z-20 bg-white shadow-lg border border-gray-100 text-blue-600 p-2 rounded-full active:scale-90 transition-all">
             <ChevronLeft size={20} />
           </button>
         )}
@@ -161,7 +161,7 @@ export default function ResultadosGeraisPage() {
         </div>
 
         {cardAtivo < beneficiosModulos.length - 1 && (
-          <button onClick={proximoCard} className="md:hidden absolute right-0 z-20 bg-white shadow-lg border border-gray-100 text-blue-600 p-2 rounded-full active:scale-90 transition-all">
+          <button onClick={proximoCard} className="md:hidden absolute right-1 z-20 bg-white shadow-lg border border-gray-100 text-blue-600 p-2 rounded-full active:scale-90 transition-all">
             <ChevronRight size={20} />
           </button>
         )}
