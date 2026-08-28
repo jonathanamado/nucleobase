@@ -703,7 +703,7 @@ export default function LancamentosPage() {
 
           <div className="hidden lg:grid grid-cols-12 gap-6 mb-10">
             <div className="lg:col-span-4">
-              <Link href="/resultados" className="flex flex-col h-full bg-blue-600 text-white rounded-[2rem] p-8 hover:bg-blue-700 transition-all group relative overflow-hidden shadow-sm">
+              <Link href="/lancamentos/resultados" className="flex flex-col h-full bg-blue-600 text-white rounded-[2rem] p-8 hover:bg-blue-700 transition-all group relative overflow-hidden shadow-sm">
                 <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center text-white mb-6">
                   <BarChart3 size={24} />
                 </div>
@@ -745,7 +745,7 @@ export default function LancamentosPage() {
                     <h4 className="text-lg font-bold mb-1">Painel de Resultados</h4>
                     <p className="text-blue-100 text-xs font-medium opacity-90 leading-relaxed">Acompanhe seus lançamentos em tempo real.</p>
                   </div>
-                  <Link href="/resultados" className="bg-white text-blue-600 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest text-center shadow-lg">
+                  <Link href="/lancamentos/resultados" className="bg-white text-blue-600 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest text-center shadow-lg">
                     Acessar agora
                   </Link>
                 </div>

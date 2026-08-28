@@ -329,17 +329,21 @@ export function MainContent() {
           <div className="lg:col-span-6 flex flex-col justify-center">
             <div className="mb-0">
               <p className="text-base text-gray-600 leading-relaxed pr-6">
-                A <strong>nucleobase.app</strong> é uma plataforma digital, totalmente online, focada em organização de finanças, processos e gestão residencial (Nucleo Condo) de maneira simples e consciente. Através do seu{" "}
+                A <strong>nucleobase.app</strong> é uma plataforma digital, totalmente online, focada em organização de finanças, processos e{" "}
                 <span className="inline-flex items-center justify-center bg-orange-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
-                  Acesso ao APP,
+                  Controle Financeiro,
                 </span>{" "}
-                você profissionaliza sua gestão reduzindo dependência em planilhas manuais. Na consulta de{" "}
+                além da{" "}
+                <span className="inline-flex items-center justify-center bg-emerald-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
+                  Gestão Residencial
+                </span>{" "}
+                de maneira simples e consciente. Através de ferramentas integradas, você profissionaliza sua gestão reduzindo dependência em planilhas manuais. Na consulta de{" "}
                 <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
-                  Resultados
+                  Visão de Resultados
                 </span>{" "}
                 , transformamos dados em informações{" "}
                 <span className="text-gray-900 underline decoration-2 decoration-orange-500/30 underline-offset-4 font-medium">
-                  que aceleram seus projetos pessoais, profissionais e condominiais.
+                  que aceleram seus projetos pessoais e profissionais.
                 </span>
               </p>
 
@@ -377,19 +381,6 @@ export function MainContent() {
           </div>
 
           <div className="lg:col-span-2 flex">
-            <Link href="/resultados" className="flex-1 bg-blue-50/50 border border-blue-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
-              <div className="bg-white p-3 rounded-2xl text-blue-600 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 mb-4">
-                <BarChart3 size={24} />
-              </div>
-              <h4 className="font-bold text-gray-900 text-base mb-1">Visão de Resultados</h4>
-              <p className="text-[11px] text-gray-600 leading-tight mb-4">Analise sua performance financeira e dados de condomínios.</p>
-              <div className="w-full mt-auto py-2.5 bg-white border border-blue-200 text-blue-600 rounded-xl font-bold text-[10px] uppercase tracking-widest group-hover:bg-blue-600 group-hover:text-white transition-all flex items-center justify-center gap-2">
-                Acessar <ArrowRight size={12} />
-              </div>
-            </Link>
-          </div>
-
-          <div className="lg:col-span-2 flex">
             <Link href="/condo" className="flex-1 bg-emerald-50/50 border border-emerald-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
               <div className="bg-white p-3 rounded-2xl text-emerald-600 shadow-sm group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 mb-4">
                 <Building2 size={24} />
@@ -398,6 +389,19 @@ export function MainContent() {
               <p className="text-[11px] text-gray-600 leading-tight mb-4">Gerencie seu condomínio e o cadastro de moradores.</p>
               <div className="w-full mt-auto py-2.5 bg-white border border-emerald-200 text-emerald-600 rounded-xl font-bold text-[10px] uppercase tracking-widest group-hover:bg-emerald-600 group-hover:text-white transition-all flex items-center justify-center gap-2">
                 Acessar <Building2 size={12} />
+              </div>
+            </Link>
+          </div>
+
+          <div className="lg:col-span-2 flex">
+            <Link href="resultados" className="flex-1 bg-blue-50/50 border border-blue-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
+              <div className="bg-white p-3 rounded-2xl text-blue-600 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 mb-4">
+                <BarChart3 size={24} />
+              </div>
+              <h4 className="font-bold text-gray-900 text-base mb-1">Resultado Consultoria</h4>
+              <p className="text-[11px] text-gray-600 leading-tight mb-4">Conheça a expertise digital e de processos com foco em consultoria.</p>
+              <div className="w-full mt-auto py-2.5 bg-white border border-blue-200 text-blue-600 rounded-xl font-bold text-[10px] uppercase tracking-widest group-hover:bg-blue-600 group-hover:text-white transition-all flex items-center justify-center gap-2">
+                Acessar <ArrowRight size={12} />
               </div>
             </Link>
           </div>
@@ -587,13 +591,13 @@ export function MainContent() {
                 <p className="text-gray-600 text-base leading-relaxed mb-8">
                   Mais do que números, entregamos inteligência financeira e de condomínios. O Dashboard da Nucleobase processa seus dados e gerencia sua moradia (Condo) para oferecer diagnósticos precisos.
                 </p>
-                <Link href="/resultados" className="group w-fit">
+                <Link href="/lancamentos/resultados" className="group w-fit">
                   <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest inline-flex items-center gap-2">
                     CLIQUE AQUI <ArrowRight size={12} />
                   </span>
                 </Link>
               </div>
-              <Link href="/resultados" className="md:col-span-5 bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl group hover:border-blue-100 transition-all flex flex-col justify-center min-h-[280px]">
+              <Link href="/lancamentos/resultados" className="md:col-span-5 bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl group hover:border-blue-100 transition-all flex flex-col justify-center min-h-[280px]">
                 <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
                   <BarChart3 size={32} />
                 </div>

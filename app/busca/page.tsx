@@ -20,7 +20,7 @@ const siteMap = [
   { term: "gerenciar lancamentos editar excluir", title: "Gerenciar Lançamentos", desc: "Visualize e edite seus registros financeiros.", href: "/lancamentos/gerenciar", category: "Operacional" },
   { term: "importar csv excel planilha", title: "Importar Dados", desc: "Suba suas planilhas de bancos ou plataformas.", href: "/lancamentos/importar", category: "Operacional" },
   { term: "integrar api webhook hotmart kiwify", title: "Integrações", desc: "Conecte a Nucleobase com suas ferramentas.", href: "/lancamentos/integrar", category: "Operacional" },
-  { term: "resultados dashboard bi gráficos lucro", title: "Painel de Resultados", desc: "Visualize a saúde do seu negócio em tempo real.", href: "/resultados", category: "Estratégico" },
+  { term: "resultados dashboard bi gráficos lucro", title: "Painel de Resultados", desc: "Visualize a saúde do seu negócio em tempo real.", href: "/lancamentos/resultados", category: "Estratégico" },
 
   // Módulo Condomínio (Condo)
   { term: "condominio morador sindico predio", title: "Módulo Condomínio", desc: "Gestão completa e livro digital para condomínios.", href: "/condo", category: "Condomínio" },

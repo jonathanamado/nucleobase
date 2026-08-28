@@ -194,7 +194,7 @@ export function Header() {
     const btnBase = "flex items-center gap-2 px-5 py-2 rounded-md transition font-bold shadow-sm text-white";
 
     const btnResultados = (
-      <a key="res" href="/resultados" className={`${btnBase} bg-blue-600 hover:bg-blue-700`}>
+      <a key="res" href="/lancamentos/resultados" className={`${btnBase} bg-blue-600 hover:bg-blue-700`}>
         <BarChart3 size={18} /> Painel de Resultados
       </a>
     );
@@ -222,7 +222,7 @@ export function Header() {
       return [btnResultados, btnEdicao];
     } else if (pathname === "/lancamentos/gerenciar") {
       return [btnResultados, btnNovos];
-    } else if (pathname === "/resultados") {
+    } else if (pathname === "/lancamentos/resultados") {
       return [btnNovos, btnEdicao];
     }
 
