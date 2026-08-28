@@ -16,8 +16,8 @@ import {
   Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
 import { createClient } from "@supabase/supabase-js";
-import VisionOfensora from "./_components/VisionOfensora";
-import VisionYoY from "./_components/VisionYoY";
+import VisionOfensora from "@/app/lancamentos/resultados/_components/VisionOfensora";
+import VisionYoY from "@/app/lancamentos/resultados/_components/VisionYoY";
 import { useLoginProtegido } from "@/hooks/useLoginProtegido";
 
 const supabase = createClient(
