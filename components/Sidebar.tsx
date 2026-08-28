@@ -48,7 +48,7 @@ export function Sidebar() {
                 <div className="flex flex-col gap-[0.6vh] pl-0 items-center text-[clamp(14px,0.85vw,16px)] font-medium text-gray-700 w-full">
                   <Link href="/lancamentos" className="transition-all hover:text-blue-600 hover:scale-[1.02] text-center w-full">Controle financeiro</Link>
                   <Link href="/condo" className="transition-all hover:text-blue-600 hover:scale-[1.02] text-center w-full">Administração Condo</Link>
-                  <Link href="/resultados" className="transition-all hover:text-blue-600 hover:scale-[1.02] text-center w-full">Resultado Consultoria</Link>
+                  <Link href="/resultados-consultoria" className="transition-all hover:text-blue-600 hover:scale-[1.02] text-center w-full">Resultados Consultoria</Link>
 
                 </div>
               </section>

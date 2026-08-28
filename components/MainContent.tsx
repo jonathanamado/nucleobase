@@ -196,7 +196,7 @@ export function MainContent() {
             <span className="font-bold text-[10px] uppercase tracking-widest text-gray-800">Blog da <br /> Nucleobase</span>
           </Link>
 
-          <Link href="/resultados" className="col-span-2 bg-white p-5 rounded-[2rem] border border-gray-100 flex items-center justify-between shadow-lg shadow-gray-200/50 active:scale-[0.98] transition-all">
+          <Link href="/resultados-consultoria" className="col-span-2 bg-white p-5 rounded-[2rem] border border-gray-100 flex items-center justify-between shadow-lg shadow-gray-200/50 active:scale-[0.98] transition-all">
             <div className="flex items-center gap-4">
               <div className="relative">
                 <div className="absolute inset-0 bg-blue-400 blur-lg opacity-20"></div>
@@ -206,10 +206,10 @@ export function MainContent() {
               </div>
               <div className="flex flex-col">
                 <span className="font-black text-[11px] uppercase tracking-[0.15em] text-gray-900">
-                  Painel de Resultados
+                  Resultados & Consultoria
                 </span>
                 <span className="text-[9px] text-gray-400 text-center font-medium uppercase tracking-wider">
-                  Análise financeira e residencial (Condo)
+                  Contato especializado Nucleo
                 </span>
               </div>
             </div>
@@ -394,7 +394,7 @@ export function MainContent() {
           </div>
 
           <div className="lg:col-span-2 flex">
-            <Link href="resultados" className="flex-1 bg-blue-50/50 border border-blue-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
+            <Link href="resultados-consultoria" className="flex-1 bg-blue-50/50 border border-blue-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
               <div className="bg-white p-3 rounded-2xl text-blue-600 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 mb-4">
                 <BarChart3 size={24} />
               </div>
@@ -589,20 +589,20 @@ export function MainContent() {
               <div className="md:col-span-7 text-left flex flex-col justify-center">
                 <h4 className="text-3xl font-bold text-gray-900 mb-6 tracking-tight leading-[1.1]">Sua visão 360º diretamente no seu Painel</h4>
                 <p className="text-gray-600 text-base leading-relaxed mb-8">
-                  Mais do que números, entregamos inteligência financeira e de condomínios. O Dashboard da Nucleobase processa seus dados e gerencia sua moradia (Condo) para oferecer diagnósticos precisos.
+                  Mais do que números, entregamos inteligência em processos. O Dashboard da Nucleobase processa seus dados e os gerencia para oferecer a você diagnósticos precisos na palma da mão.
                 </p>
-                <Link href="/lancamentos/resultados" className="group w-fit">
+                <Link href="/resultados-consultoria" className="group w-fit">
                   <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest inline-flex items-center gap-2">
                     CLIQUE AQUI <ArrowRight size={12} />
                   </span>
                 </Link>
               </div>
-              <Link href="/lancamentos/resultados" className="md:col-span-5 bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl group hover:border-blue-100 transition-all flex flex-col justify-center min-h-[280px]">
+              <Link href="/resultados-consultoria" className="md:col-span-5 bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl group hover:border-blue-100 transition-all flex flex-col justify-center min-h-[280px]">
                 <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
                   <BarChart3 size={32} />
                 </div>
-                <h5 className="font-bold text-gray-900 mb-2">Análise de Performance e Condo</h5>
-                <p className="text-gray-500 text-sm leading-relaxed">Visualize tendências, identifique gargalos e controle sua residência.</p>
+                <h5 className="font-bold text-gray-900 mb-2">Resultados & Consultoria</h5>
+                <p className="text-gray-500 text-sm leading-relaxed">Obtenha suporte especializado contra grandes dificuldades e para obter insights.</p>
               </Link>
             </div>
           </section>

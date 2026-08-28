@@ -379,7 +379,7 @@ export default function AcessoUsuarioPage() {
                 </div>
 
                 <div className="mt-auto flex items-center justify-center gap-1.5 md:gap-3 bg-white text-orange-500 h-[36px] md:h-[56px] rounded-xl md:rounded-2xl font-black shadow-md text-[9px] md:text-[10px] uppercase tracking-widest group-hover:shadow-xl transition-all">
-                  Acessar <span className="md:inline hidden">APP</span>
+                  Acessar <span className="md:inline hidden">Lançamentos</span>
                   <Zap size={14} className="md:w-4 md:h-4 fill-orange-500 group-hover:scale-125 group-hover:translate-x-1 transition-transform" />
                 </div>
               </a>
