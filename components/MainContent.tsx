@@ -516,7 +516,7 @@ export function MainContent() {
 
         <div className="w-full mb-12">
           <p className="text-gray-600 text-base leading-[1.8]">
-            <span className="text-gray-900 font-semibold">Acreditamos que</span> a verdadeira inteligência financeira e de gestão residencial nasce da união entre clareza de dados e disciplina, transformando números isolados em um roteiro seguro. <span className="text-gray-900 font-semibold">Desenvolvemos uma tecnologia</span> que não apenas organiza estes números, mas traduz comportamentos. <span className="text-gray-900 font-semibold">Ao eliminar a complexidade de planilhas e controles manuais,</span> permitimos que você foque no que importa: entender e agir. Saiba mais sobre a Nucleo
+            <span className="text-gray-900 font-semibold">Acreditamos que</span> a verdadeira inteligência financeira e de gestão residencial nasce da união entre clareza de dados e disciplina, transformando números isolados em roteiro seguro. <span className="text-gray-900 font-semibold">Desenvolvemos uma tecnologia</span> que não apenas organiza estes números, mas traduz comportamentos. <span className="text-gray-900 font-semibold">Ao eliminar complexidade e controles manuais,</span> permitimos que você foque no que importa: entender e agir. Saiba mais
             <Link href="/sobre" className="inline-flex items-center ml-2 group">
               <span className="bg-blue-600 text-white px-2 pt-1 pb-0.5 rounded-md text-[10px] font-bold shadow-sm hover:bg-blue-700 transition-colors uppercase tracking-wider">
                 clicando aqui.
