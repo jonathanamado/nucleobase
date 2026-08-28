@@ -1,4 +1,4 @@
-// app/resultados/financeiro/page.tsx
+// app/lancamentos/resultados/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -16,8 +16,8 @@ import {
   Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
 import { createClient } from "@supabase/supabase-js";
-import VisionOfensora from "@/app/resultados/_components/VisionOfensora";
-import VisionYoY from "@/app/resultados/_components/VisionYoY";
+import VisionOfensora from "@/app/lancamentos/resultados/_components/VisionOfensora";
+import VisionYoY from "@/app/lancamentos/resultados/_components/VisionYoY";
 import { useLoginProtegido } from "@/hooks/useLoginProtegido";
 
 const supabase = createClient(
@@ -25,7 +25,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default function DashboardResultadosFinanceiro() {
+export default function DashboardResultados() {
   const [activeTab, setActiveTab] = useState("TODOS");
   const [viewMode, setViewMode] = useState<'COMPETENCIA' | 'CAIXA'>('CAIXA');
   const [loading, setLoading] = useState(true);
@@ -315,7 +315,7 @@ export default function DashboardResultadosFinanceiro() {
             <Lock size={12} className="text-blue-600" />
             <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.25em]">Acesso restrito</span>
           </div>
-          <p className="text-gray-500 text-xs mb-5">Valide sua identidade para acessar o Painel Financeiro.</p>
+          <p className="text-gray-500 text-xs mb-5">Valide sua identidade para acessar o Painel de resultados.</p>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="relative">
               <AtSign className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -456,7 +456,7 @@ export default function DashboardResultadosFinanceiro() {
           </div>
           <div className="mb-4">
             <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
-              <span>Dashboard Financeiro<span className="text-blue-600">.</span></span>
+              <span>Dashboard<span className="text-blue-600">.</span></span>
               <Sparkles size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
             </h1>
           </div>
