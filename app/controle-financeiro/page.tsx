@@ -359,7 +359,7 @@ export default function ControleFinanceiroHome() {
             <div className="relative z-10 py-1.5 border-y border-white/5 mb-1">
               {currentMobileCard.type === "pilares" ? (
                 <p className="text-orange-100 text-[11px] font-medium italic opacity-80 leading-relaxed">
-                  "{currentMobileCard.content[pilarAtivo].fullDesc}"
+                  "{currentMobileCard.content?.[pilarAtivo]?.fullDesc}"
                 </p>
               ) : (
                 <p className="text-orange-100 text-[11px] font-medium italic opacity-80 leading-relaxed">
