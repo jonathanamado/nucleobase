@@ -139,7 +139,7 @@ export function MainContent() {
                 </div>
                 <Link href="/cadastro" className="group flex items-center gap-2">
                   <p className="text-gray-500 text-[12px] font-bold leading-tight group-hover:text-gray-900 transition-colors">
-                    Junte-se ao time da Nucleo
+                    Junte-se ao nosso time
                   </p>
                   <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-white group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
                     <ArrowRight size={12} />
@@ -177,7 +177,7 @@ export function MainContent() {
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-1">
           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-0 flex items-center gap-4">
             Informativos e acessos <div className="h-px bg-gray-300 flex-1"></div>
           </h3>
@@ -186,7 +186,40 @@ export function MainContent() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 mt-4">
+        <div className="grid grid-cols-2 gap-3 -mt-4">
+          <div className="col-span-2 py-4 px-2 flex flex-col">
+            <h4 className="text-gray-600 text-base leading-relaxed font-bold">Módulos da Nucleo:</h4>
+            <div className="space-y-1 mt-4">
+              <Link href="/lancamentos" className="text-base font-medium text-gray-600 leading-relaxed hover:text-orange-600 transition-colors flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-600"></span>
+                Gestão Financeira
+              </Link>
+              <p className="text-xs text-gray-500 pl-3.5 leading-relaxed">
+                Controle completo de fluxo de caixa, lançamentos e projeções orçamentárias.
+              </p>
+            </div>
+
+            <div className="space-y-1 mt-2.5">
+              <Link href="/condo" className="text-base font-medium text-gray-600 leading-relaxed hover:text-emerald-600 transition-colors flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                Nucleo Condo
+              </Link>
+              <p className="text-xs text-gray-500 pl-3.5 leading-relaxed">
+                Governança, transparência e otimização de custos para condomínios.
+              </p>
+            </div>
+
+            <div className="space-y-1 mt-2.5">
+              <Link href="/resultados-consultoria" className="text-base font-medium text-gray-600 leading-relaxed hover:text-blue-600 transition-colors flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                Resultados & Consultoria
+              </Link>
+              <p className="text-xs text-gray-500 pl-3.5 leading-relaxed">
+                Suporte especializado e painéis analíticos para decisões críticas.
+              </p>
+            </div>
+          </div>
+
           <button onClick={() => setIsModalOpen(true)} className="col-span-1 bg-blue-50 p-6 rounded-3xl flex flex-col gap-4 border border-blue-100 text-left relative overflow-hidden active:scale-95 transition-transform cursor-pointer">
             <Mail className="text-blue-600" size={24} />
             <span className="font-bold text-[10px] uppercase tracking-widest text-gray-800">Assinar <br /> Newsletter</span>
@@ -195,52 +228,41 @@ export function MainContent() {
             <Newspaper className="text-gray-400" size={24} />
             <span className="font-bold text-[10px] uppercase tracking-widest text-gray-800">Blog da <br /> Nucleobase</span>
           </Link>
-
-          <Link href="/resultados-consultoria" className="col-span-2 bg-white p-5 rounded-[2rem] border border-gray-100 flex items-center justify-between shadow-lg shadow-gray-200/50 active:scale-[0.98] transition-all">
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="absolute inset-0 bg-blue-400 blur-lg opacity-20"></div>
-                <div className="relative p-3 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200">
-                  <BarChart3 size={22} strokeWidth={2.5} />
-                </div>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-black text-[11px] uppercase tracking-[0.15em] text-gray-900">
-                  Resultados & Consultoria
-                </span>
-                <span className="text-[9px] text-gray-400 text-center font-medium uppercase tracking-wider">
-                  Contato especializado Nucleo
-                </span>
-              </div>
-            </div>
-          </Link>
-        </div>
-
-        <div className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl">
-          <div className="relative z-10 space-y-4">
-            <p className="text-blue-400 text-[10px] uppercase font-black tracking-widest">O seu controle</p>
-            <h4 className="text-base font-bold">Pronto para o próximo nível?</h4>
-            <Link href="/cadastro" className="flex items-center justify-center gap-2 w-full py-4 bg-blue-600 rounded-xl font-bold text-xs uppercase tracking-widest active:scale-95 transition-transform">
-              Criar conta gratuita <ArrowRight size={16} />
-            </Link>
-          </div>
-          <ShieldCheck size={120} className="absolute -right-8 -bottom-8 text-white opacity-5" />
         </div>
 
         <section>
-          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-4">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4 flex items-center gap-4">
             Segurança <div className="h-px bg-gray-300 flex-1"></div>
           </h3>
-          <Link href="/seguranca_privacidade" className="block bg-emerald-50/50 border border-emerald-100 p-8 rounded-[2.5rem] relative overflow-hidden active:bg-emerald-50 transition-colors">
-            <div className="relative z-10">
-              <div className="w-12 h-12 bg-white text-emerald-600 rounded-2xl flex items-center justify-center shadow-sm mb-4">
-                <Lock size={24} />
+          <p className="text-gray-500 text-xs font-bold tracking-wider mb-3">Proteção e criptografia de ponta</p>
+          <Link href="/seguranca_privacidade" className="group block bg-gray-900 border border-gray-800 p-8 rounded-[2.5rem] relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-emerald-500/10 hover:border-emerald-500/30">
+            {/* Elemento gráfico de fundo estilo radar/criptografia */}
+            <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all duration-700 pointer-events-none" />
+            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all duration-700 pointer-events-none text-emerald-400">
+              <Lock size={140} strokeWidth={1} />
+            </div>
+
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center border border-emerald-500/20 shadow-inner group-hover:bg-emerald-500 group-hover:text-gray-900 transition-all duration-500">
+                    <Lock size={22} />
+                  </div>
+                  <span className="text-[9px] font-black uppercase tracking-[0.25em] text-emerald-400 px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
+                    Criptografia Avançada
+                  </span>
+                </div>
+                <h4 className="text-xl md:text-2xl font-bold text-white mb-2 tracking-tight">Privacidade e Dados</h4>
+                <p className="text-gray-400 text-xs md:text-sm font-medium leading-relaxed max-w-xl">
+                  Sua soberania digital protegida por arquitetura de sigilo total. Seus dados financeiros pertencem exclusivamente a você.
+                </p>
               </div>
-              <h4 className="text-lg font-bold text-gray-900 mb-1">Privacidade e Dados</h4>
-              <p className="text-gray-500 text-xs font-medium mb-4">Sua soberania digital é nossa prioridade.</p>
-              <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-2 w-fit">
-                Acesse aqui <ArrowRight size={10} />
-              </span>
+
+              <div className="shrink-0">
+                <span className="bg-emerald-500 hover:bg-emerald-400 text-gray-900 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all duration-300 group-hover:scale-105 shadow-lg shadow-emerald-500/20">
+                  Acesse aqui <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                </span>
+              </div>
             </div>
           </Link>
         </section>
@@ -249,6 +271,7 @@ export function MainContent() {
           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4 flex items-center gap-4">
             Canais e Contato <div className="h-px bg-gray-300 flex-1"></div>
           </h3>
+          <p className="text-gray-500 text-xs font-bold tracking-wider mb-3">Atendimento e Oportunidades</p>
           <div className="grid grid-cols-2 gap-3">
             <Link href="/suporte" className="bg-gray-50 p-6 rounded-3xl flex flex-col gap-2 border border-gray-100 active:bg-gray-100 transition-colors">
               <FileWarning size={20} className="text-amber-500" />
