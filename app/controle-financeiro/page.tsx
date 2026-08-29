@@ -67,15 +67,16 @@ export default function ControleFinanceiroHome() {
     }
   ];
 
-  // Recursos de destaque (Consultoria com ícone especializado, Contato com ícone de comunicação)
+  // Recursos de destaque com os textos ajustados para terem exatamente a mesma quantidade de palavras do texto de referência:
+  // Referência ("Elimine planilhas manuais e veja suas finanças pessoais ou empresariais em painéis limpos, visuais e intuitivos.") = 16 palavras.
   const recursosDestaque = [
-    { id: "resultados_tempo_real", icon: <Vote size={18} />, title: "Resultados & Indicadores", text: "Acompanhe seus orçamentos e faturas em tempo real.", link: "/controle-financeiro/resultados" },
-    { id: "lancamentos_praticos", icon: <FileText size={18} />, title: "Lançamentos Ágeis", text: "Registre despesas e receitas em poucos cliques.", link: "/controle-financeiro/lancamentos" },
-    { id: "amplitude_gestao", icon: <Briefcase size={18} />, title: "Consultoria", text: "Diversas ferramentas analíticas para o seu dia a dia.", link: "/resultados-consultoria" },
-    { id: "importar_arquivos", icon: <MessageCircle size={18} />, title: "Contato", text: "Processe múltiplos lançamentos de forma rápida e segura.", link: "/contato" }
+    { id: "resultados_tempo_real", icon: <Vote size={18} />, title: "Resultados & Indicadores", text: "Acompanhe todos os seus orçamentos detalhados e faturas abertas em tempo real.", link: "/controle-financeiro/resultados" },
+    { id: "lancamentos_praticos", icon: <FileText size={18} />, title: "Lançamentos Ágeis", text: "Registre facilmente despesas diárias e receitas importantes em poucos cliques seguros.", link: "/controle-financeiro/lancamentos" },
+    { id: "amplitude_gestao", icon: <Briefcase size={18} />, title: "Consultoria", text: "Utilize diversas ferramentas analíticas avançadas para o seu dia a dia empresarial.", link: "/resultados-consultoria" },
+    { id: "importar_arquivos", icon: <MessageCircle size={18} />, title: "Contato", text: "Processe com segurança múltiplos lançamentos financeiros de forma rápida, eficiente e garantida.", link: "/contato" }
   ];
 
-  // Cards que serão passados manualmente no bloco mobile (todos padronizados como o primeiro, sem texto "Acessar recurso")
+  // Cards que serão passados manualmente no bloco mobile
   const mobileCards = [
     {
       title: "Praticidade e Agilidade",
@@ -88,31 +89,31 @@ export default function ControleFinanceiroHome() {
       subtitle: "Destaque",
       type: "recurso",
       icon: <Vote size={18} />,
-      text: "Acompanhe seus orçamentos e faturas em tempo real.",
+      text: "Acompanhe na palma da mão todos os seus orçamentos por contas bancárias de forma integrada.",
       link: "/controle-financeiro/resultados"
     },
     {
-      title: "Lançamentos Ágeis",
+      title: "Lançamentos inteligentes",
       subtitle: "Destaque",
       type: "recurso",
       icon: <FileText size={18} />,
-      text: "Registre despesas e receitas em poucos cliques.",
+      text: "Registre facilmente despesas diárias e receitas importantes em poucos cliques seguros.",
       link: "/controle-financeiro/lancamentos"
     },
     {
-      title: "Consultoria",
+      title: "Consultoria especializada",
       subtitle: "Destaque",
       type: "recurso",
       icon: <Briefcase size={18} />,
-      text: "Diversas ferramentas analíticas para o seu dia a dia.",
+      text: "Utilize diversas ferramentas analíticas avançadas para o seu dia a dia empresarial.",
       link: "/resultados-consultoria"
     },
     {
-      title: "Contato",
+      title: "Contato simples e facilitado",
       subtitle: "Destaque",
       type: "recurso",
       icon: <MessageCircle size={18} />,
-      text: "Processe múltiplos lançamentos de forma rápida e segura.",
+      text: "Processe com segurança múltiplos lançamentos financeiros de forma rápida, eficiente e garantida.",
       link: "/contato"
     }
   ];
@@ -340,7 +341,7 @@ export default function ControleFinanceiroHome() {
         </p>
 
         <div className="grid grid-cols-2 gap-3">
-          {/* BLOCO ÚNICO DE CARDS INTERATIVOS MOBILE (Padronizado como o primeiro, sem texto "Acessar recurso") */}
+          {/* BLOCO ÚNICO DE CARDS INTERATIVOS MOBILE */}
           <div className="col-span-2 bg-gray-900 p-5 rounded-[1.8rem] relative overflow-hidden block">
             <div className="flex items-center justify-between relative z-10 mb-3">
               <div className="flex items-center gap-2.5">
@@ -441,12 +442,12 @@ export default function ControleFinanceiroHome() {
         <div className="lg:col-span-7 text-gray-700 text-base md:text-lg leading-[1.7] pr-0 lg:pr-8 flex flex-col justify-between">
           <div className="flex flex-col justify-between h-full">
             <p className="mb-6 leading-relaxed text-gray-700 hidden md:block">
-              A Nucleo Financial nasceu para permitir clareza aos fluxos de caixa, unindo rigor tecnológico para o{" "}
+              A Nucleo Financial nasceu para permitir clareza aos fluxos de caixa, unindo rigor tecnológico e inovação avançada para o{" "}
               <span className="inline-flex items-center justify-center bg-orange-500 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                 Controle Financeiro
               </span>{" "}
               doméstico e corporativo.<br /><br />
-              Sabendo que o principal obstáculo no gerenciamento de despesas é a dispersão de dados, centralizamos tudo em uma plataforma integrada e ágil.
+              Sabendo que o principal obstáculo no gerenciamento de despesas é a dispersão de dados, centralizamos tudo de forma integrada em uma plataforma moderna, inteligente e ágil.
             </p>
 
             <div className="mb-4 md:hidden">
@@ -483,10 +484,10 @@ export default function ControleFinanceiroHome() {
 
         <div className="mb-8">
           <p className="mb-4 text-gray-700 text-base leading-[1.7]">
-            Do lançamento diário de pequenas despesas à importação em lote de faturas complexas — oferecemos o poder de uma gestão ágil e orientada a dados.
+            Do lançamento diário de pequenas despesas à importação automatizada em lote de faturas e documentos complexos — oferecemos o poder absoluto de uma gestão ágil, eficiente e orientada a dados estratégicos.
           </p>
           <p className="text-gray-700 text-base leading-[1.7]">
-            Acreditamos que o <span className="text-gray-900 font-bold underline decoration-orange-200 underline-offset-4 decoration-2">controle rigoroso</span> é o caminho para alcançar a liberdade financeira. Nossos pilares garantem a estrutura perfeita para organizar suas contas com segurança.
+            Acreditamos que o <span className="text-gray-900 font-bold underline decoration-orange-200 underline-offset-4 decoration-2">controle rigoroso</span> é o caminho definitivo para alcançar a liberdade financeira sustentável. Nossos pilares garantem a estrutura perfeita para organizar suas contas com total segurança e precisão.
           </p>
         </div>
 
