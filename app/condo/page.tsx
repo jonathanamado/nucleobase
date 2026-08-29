@@ -203,7 +203,7 @@ export default function NucleobaseCondo() {
                                 <Star size={24} fill="currentColor" />
                             </div>
                             <div>
-                                <p className="text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]">O Futuro do seu Prédio</p>
+                                <p className="text-blue-400 text-[9px] font-black uppercase tracking-[0.2em]">O Futuro do seu Prédio</p>
                                 <h4 className="font-bold text-white text-xl leading-tight">
                                     {isLoggedIn ? "Área do condomínio" : "Gestão inteligente"}
                                 </h4>
@@ -225,7 +225,7 @@ export default function NucleobaseCondo() {
                                 <LockKeyhole size={24} />
                             </div>
                             <div>
-                                <p className="text-emerald-600 text-[10px] font-black uppercase tracking-[0.2em]">Empresa parceira</p>
+                                <p className="text-emerald-600 text-[9px] font-black uppercase tracking-[0.2em]">Empresa parceira</p>
                                 <h4 className="font-bold text-gray-900 text-xl leading-tight">
                                     Contabilidade
                                 </h4>
@@ -389,8 +389,8 @@ export default function NucleobaseCondo() {
                         <span>Nucleo Condo<span className="text-blue-600">.</span></span>
                         <Building2 size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
                     </h1>
-                    <h2 className="text-gray-500 text-base md:text-lg font-medium max-w-2xl leading-relaxed mt-0">
-                        <span className="md:hidden">Convivência descomplicada</span>
+                    <h2 className="text-gray-500 text-sm md:text-base font-medium max-w-2xl leading-relaxed mt-0">
+                        <span className="md:hidden">Convivência integrada e funcional</span>
                         <span className="hidden md:block">Gestão financeira e de convivência de forma descomplicada.</span>
                     </h2>
                 </div>
@@ -426,11 +426,11 @@ export default function NucleobaseCondo() {
                 </a>
                 <a href="/condo/dashboard" onClick={() => trackClick("Acessar Dashboard", "/condo/dashboard")} className="flex items-center justify-between flex-1 bg-blue-600 hover:bg-blue-700 text-white py-4 px-6 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest shadow-lg">
                     <div className="flex items-center gap-2"><UserPlus size={15} className="text-white" /> Acessar Dashboard</div>
-                    <ArrowUpRight size={15} />
+                    <ArrowUpRight size={11} />
                 </a>
             </div>
 
-            <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
+            <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4">
                 Gestão de acesso APP <div className="h-px bg-gray-300 flex-1"></div>
             </h3>
 
