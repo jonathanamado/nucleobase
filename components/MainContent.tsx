@@ -150,7 +150,7 @@ export function MainContent() {
           </div>
 
           <div className="space-y-0">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-4">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-4 mb-3">
               Tour Rápido <div className="h-px bg-gray-200 flex-1"></div>
             </h3>
 
@@ -178,43 +178,44 @@ export function MainContent() {
         </div>
 
         <div className="space-y-1">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-0 flex items-center gap-4">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-3 flex items-center gap-4">
             Informativos e acessos <div className="h-px bg-gray-300 flex-1"></div>
           </h3>
           <p className="text-gray-600 text-base leading-relaxed font-medium py-1">
             A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos controles com inteligência e foco em redução de custos. Conheça a nossa história e a nossa missão <Link href="/sobre" className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
+            <br /><br />
+            Nossa plataforma oferece controle de orçamentos financeiros e gestão condominial, e em ambos consultoria especializada. Saiba mais:
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3 -mt-4">
           <div className="col-span-2 py-4 px-2 flex flex-col">
-            <h4 className="text-gray-600 text-base leading-relaxed font-bold">Módulos da Nucleo:</h4>
-            <div className="space-y-1 mt-4">
+            <div className="space-y-1 -mt-6">
               <Link href="/lancamentos" className="text-base font-medium text-gray-600 leading-relaxed hover:text-orange-600 transition-colors flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-orange-600"></span>
+                <span className="w-1.5 h-1.5 rounded-full font-bold bg-orange-600"></span>
                 Gestão Financeira
               </Link>
-              <p className="text-xs text-gray-500 pl-3.5 leading-relaxed">
+              <p className="text-xs text-gray-500 font-bold pl-3.5 leading-relaxed">
                 Controle completo de fluxo de caixa, lançamentos e projeções orçamentárias.
               </p>
             </div>
 
             <div className="space-y-1 mt-2.5">
               <Link href="/condo" className="text-base font-medium text-gray-600 leading-relaxed hover:text-emerald-600 transition-colors flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                <span className="w-1.5 h-1.5 rounded-full font-bold bg-emerald-600"></span>
                 Nucleo Condo
               </Link>
-              <p className="text-xs text-gray-500 pl-3.5 leading-relaxed">
+              <p className="text-xs text-gray-500 font-bold pl-3.5 leading-relaxed">
                 Governança, transparência e otimização de custos para condomínios.
               </p>
             </div>
 
             <div className="space-y-1 mt-2.5">
               <Link href="/resultados-consultoria" className="text-base font-medium text-gray-600 leading-relaxed hover:text-blue-600 transition-colors flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                <span className="w-1.5 h-1.5 rounded-full font-bold bg-blue-600"></span>
                 Resultados & Consultoria
               </Link>
-              <p className="text-xs text-gray-500 pl-3.5 leading-relaxed">
+              <p className="text-xs text-gray-500 font-bold pl-3.5 leading-relaxed">
                 Suporte especializado e painéis analíticos para decisões críticas.
               </p>
             </div>
@@ -231,10 +232,14 @@ export function MainContent() {
         </div>
 
         <section>
-          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4 flex items-center gap-4">
-            Segurança <div className="h-px bg-gray-300 flex-1"></div>
-          </h3>
-          <p className="text-gray-500 text-xs font-bold tracking-wider mb-3">Proteção e criptografia de ponta</p>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="h-px bg-gray-300 flex-1"></div>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 whitespace-nowrap">
+              Segurança
+            </h3>
+            <div className="h-px bg-gray-300 flex-1"></div>
+          </div>
+          <p className="text-gray-400 text-xs text-center font-bold tracking-wider mb-3">Proteção e criptografia de ponta</p>
           <Link href="/seguranca_privacidade" className="group block bg-gray-900 border border-gray-800 p-8 rounded-[2.5rem] relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-emerald-500/10 hover:border-emerald-500/30">
             {/* Elemento gráfico de fundo estilo radar/criptografia */}
             <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all duration-700 pointer-events-none" />
@@ -268,10 +273,14 @@ export function MainContent() {
         </section>
 
         <section>
-          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4 flex items-center gap-4">
-            Canais e Contato <div className="h-px bg-gray-300 flex-1"></div>
-          </h3>
-          <p className="text-gray-500 text-xs font-bold tracking-wider mb-3">Atendimento e Oportunidades</p>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="h-px bg-gray-300 flex-1"></div>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 whitespace-nowrap">
+              Canais e Contato
+            </h3>
+            <div className="h-px bg-gray-300 flex-1"></div>
+          </div>
+          <p className="text-gray-400 text-xs text-center font-bold tracking-wider mb-3">Atendimento e Oportunidades</p>
           <div className="grid grid-cols-2 gap-3">
             <Link href="/suporte" className="bg-gray-50 p-6 rounded-3xl flex flex-col gap-2 border border-gray-100 active:bg-gray-100 transition-colors">
               <FileWarning size={20} className="text-amber-500" />
