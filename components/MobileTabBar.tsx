@@ -224,8 +224,8 @@ export function MobileTabBar() {
           <Home size={22} strokeWidth={!isSearchOpen && !isMenuOpen && pathname === "/" ? 2.5 : 2} />
         </button>
 
-        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); router.push("/lancamentos"); }} className={`p-2 transition-colors cursor-pointer ${!isSearchOpen && !isMenuOpen && pathname === "/lancamentos" ? "text-orange-500" : "text-gray-400"}`}>
-          <Rocket size={22} className="-rotate-45" strokeWidth={!isSearchOpen && !isMenuOpen && pathname === "/lancamentos" ? 2.5 : 2} />
+        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); router.push("/controle-financeiro"); }} className={`p-2 transition-colors cursor-pointer ${!isSearchOpen && !isMenuOpen && pathname === "/controle-financeiro" ? "text-orange-500" : "text-gray-400"}`}>
+          <Rocket size={22} className="-rotate-45" strokeWidth={!isSearchOpen && !isMenuOpen && pathname === "/controle-financeiro" ? 2.5 : 2} />
         </button>
 
         <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); router.push("/condo"); }} className={`p-2 transition-colors cursor-pointer ${isCondoActive ? "text-blue-600" : "text-gray-400"}`}>

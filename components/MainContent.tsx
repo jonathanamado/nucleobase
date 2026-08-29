@@ -191,7 +191,7 @@ export function MainContent() {
         <div className="grid grid-cols-2 gap-3 -mt-4">
           <div className="col-span-2 py-4 px-2 flex flex-col">
             <div className="space-y-1 -mt-6">
-              <Link href="/lancamentos" className="text-base font-medium text-gray-600 leading-relaxed hover:text-orange-600 transition-colors flex items-center gap-2">
+              <Link href="/controle-financeiro" className="text-base font-medium text-gray-600 leading-relaxed hover:text-orange-600 transition-colors flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full font-bold bg-orange-600"></span>
                 Gestão Financeira
               </Link>
@@ -400,7 +400,7 @@ export function MainContent() {
           </div>
 
           <div className="lg:col-span-2 flex">
-            <Link href="/lancamentos" className="flex-1 bg-white border border-gray-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
+            <Link href="/controle-financeiro" className="flex-1 bg-white border border-gray-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
               <div className="bg-orange-50 p-3 rounded-2xl text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all duration-300 mb-4">
                 <LayoutDashboard size={24} />
               </div>

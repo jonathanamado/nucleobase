@@ -1,0 +1,894 @@
+// app/lancamentos/page.tsx
+"use client";
+
+import React, { useState, useEffect } from "react";
+import {
+  Save, CreditCard, Wallet, Calendar,
+  Tag, DollarSign, CheckCircle2, Layers, Repeat,
+  Rocket, Activity, Clock, AlertCircle, BarChart3, ArrowRight, LineChart, Zap, X, Instagram, Edit3,
+  Lock, Eye, EyeOff, UserPlus, FileUp, Cpu, ChevronLeft, ChevronRight, Briefcase, Building2, User, AtSign, KeyRound, Mail
+} from "lucide-react";
+import Link from "next/link";
+import { createClient } from '@supabase/supabase-js';
+import { useLoginProtegido } from "@/hooks/useLoginProtegido";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+export default function LancamentosPage() {
+  const [userId, setUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [sucesso, setSucesso] = useState(false);
+  const [showAviso, setShowAviso] = useState(false);
+  const [ultimosLancamentos, setUltimosLancamentos] = useState<any[]>([]);
+  const [activeCard, setActiveCard] = useState(0);
+
+  const [cooldownTime, setCooldownTime] = useState(0);
+
+  useEffect(() => {
+    let timer: any;
+    if (cooldownTime > 0) {
+      timer = setInterval(() => {
+        setCooldownTime((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [cooldownTime]);
+
+  // Função de Sanitização contra XSS / Injeção de Tags HTML
+  const sanitizarTexto = (texto: any) => {
+    if (!texto) return "";
+    return String(texto).replace(/<[^>]*>?/gm, '').trim();
+  };
+
+  const {
+    emailOrSlug: slug,
+    setEmailOrSlug: setSlug,
+    password,
+    setPassword,
+    authLoading,
+    setAuthLoading,
+    loginError,
+    setLoginError,
+    tempoBloqueio,
+    tratarErroLogin,
+    resetarBloqueio
+  } = useLoginProtegido();
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const getLocalDate = () => {
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    return new Date(now.getTime() - offset).toISOString().split('T')[0];
+  };
+
+  const getNextMonth = () => {
+    const now = new Date();
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    return nextMonth.toISOString().slice(0, 7);
+  };
+
+  const getMaxRecurrenceDate = () => {
+    const now = new Date();
+    const nextYear = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate());
+    return nextYear.toISOString().split('T')[0];
+  };
+
+  const maxDate = getMaxRecurrenceDate();
+
+  const baseCategorias: any = {
+    "Pessoal": {
+      "Despesa": {
+        "Alimentação": ["Mercado", "Feira", "Padaria", "Suplementos", "Outros"],
+        "Assinaturas e Serviços": ["Streaming", "Software/SaaS", "Internet", "Telefone", "Outros"],
+        "Bem estar": ["Salão de beleza", "Barbearia", "Estética", "Spa/Massagem", "Outros"],
+        "Compras": ["Roupas", "Eletrônicos", "Casa", "Beleza", "Pet Shop", "Outros"],
+        "Doações": ["Instituições de caridade", "Dízimos e Ofertas", "Ajuda a Terceiros", "Causas Ambientais/Animais", "Outros"],
+        "Educação": ["Curso/Treinamento", "Faculdade", "Livros", "Outros"],
+        "Investimentos": ["Ações/FIIs", "Cripto", "Renda Fixa", "Outros"],
+        "Lazer": ["Viagem", "Hospedagem", "Cinema", "Bares/Festas", "Outros"],
+        "Moradia": ["Prestação", "Aluguel", "Condomínio", "Reforma", "Energia", "Água", "Gás", "Outros"],
+        "Saúde": ["Farmácia", "Consulta", "Plano de Saúde", "Outros"],
+        "Transporte": ["Combustível", "Uber/99", "Manutenção", "Outros"],
+        "Outros": ["Imprevistos", "Taxas Bancárias", "Outros"]
+      },
+      "Receita": {
+        "Salário": ["Salário Base", "13º Salário", "Férias", "Bônus/PLR", "Outros"],
+        "Proventos": ["Dividendos", "Juros S/ Capital", "Rendimentos FII", "Outros"],
+        "Freelance": ["Projetos", "Consultoria", "Outros"],
+        "Vendas": ["Comissões", "Venda de Ativos", "Outros"],
+        "Reembolso": ["Empresa", "Saúde", "Outros"],
+        "Outros": ["Presentes", "Restituição IR", "Prêmios", "Outros"]
+      }
+    },
+    "Empresarial": {
+      "Despesa": {
+        "Operacional": ["Matéria-prima", "Insumos", "Fretes", "Embalagens", "Outros"],
+        "Pessoal": ["Salários", "Pró-labore", "Encargos Sociais", "Benefícios", "Outros"],
+        "Marketing": ["Anúncios", "Software", "Eventos", "Outros"],
+        "Infraestrutura": ["Aluguel Oficina/Escritório", "Energia", "Internet", "Manutenção", "Outros"],
+        "Impostos": ["DAS/Simples", "ISS", "ICMS", "Outros"],
+        "Financeiro": ["Taxas Maquininha", "Juros Empréstimo", "Tarifas", "Outros"],
+        "Outros": ["Diversos", "Outros"]
+      },
+      "Receita": {
+        "Vendas": ["Produtos", "Serviços", "Licenciamento", "Outros"],
+        "Investimentos": ["Aplicações", "Aportes", "Outros"],
+        "Outros": ["Recuperação de Crédito", "Outros"]
+      }
+    },
+    "Condomínio": {
+      "Despesa": {
+        "Folha de Pagamento": ["Salários", "Encargos", "Terceirizados", "Outros"],
+        "Manutenção": ["Elevadores", "Piscinas", "Jardim", "Pintura", "Outros"],
+        "Utilidades": ["Água Coletiva", "Energia Comum", "Gás Coletivo", "Outros"],
+        "Administrativo": ["Honorários Síndico", "Seguro Predial", "Material Escritório", "Outros"],
+        "Outros": ["Fundo de Reserva", "Benfeitorias", "Outros"]
+      },
+      "Receita": {
+        "Cotas Condominiais": ["Mensalidade", "Acordos", "Multas/Juros", "Outros"],
+        "Aluguéis": ["Espaço Gourmet", "Salão Festas", "Antenas", "Outros"],
+        "Outros": ["Rendimentos Fundo", "Outros"]
+      }
+    }
+  };
+
+  const initialFormState = {
+    tipo_origem: "CONTA_CORRENTE",
+    origem: "",
+    cartao_nome: "",
+    descricao: "",
+    valorTotal: 0,
+    dataCompetencia: getLocalDate(),
+    natureza: "Despesa",
+    categoria: "",
+    sub_categoria: "",
+    projeto: "Pessoal",
+    tipo_de_custo: "Variável",
+    parcelado: false,
+    parcelasTotais: 1,
+    fatura_mes: getNextMonth(),
+    fixo_ate: ""
+  };
+
+  const [formData, setFormData] = useState(initialFormState);
+
+  const fetchUltimos = async (id: string) => {
+    const { data } = await supabase
+      .from("lancamentos_financeiros")
+      .select("*")
+      .eq("user_id", id)
+      .order("created_at", { ascending: false })
+      .limit(5);
+    if (data) setUltimosLancamentos(data);
+  };
+
+  useEffect(() => {
+    const checkUser = async () => {
+      setLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setIsLoggedIn(true);
+        setUserId(session.user.id);
+        fetchUltimos(session.user.id);
+      }
+      setLoading(false);
+    };
+    checkUser();
+
+    const avisoVisto = localStorage.getItem("aviso-eficiencia-visto");
+    if (!avisoVisto) {
+      const timer = setTimeout(() => {
+        setShowAviso(true);
+        localStorage.setItem("aviso-eficiencia-visto", "true");
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (tempoBloqueio > 0) return;
+
+    setAuthLoading(true);
+    setLoginError("");
+
+    try {
+      const inputAcesso = slug.trim().toLowerCase();
+      let emailParaLogin = inputAcesso;
+
+      if (!inputAcesso.includes("@")) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('slug', inputAcesso)
+          .maybeSingle();
+
+        if (!profile?.email) {
+          tratarErroLogin("E-mail ou ID não localizado.");
+          return;
+        }
+        emailParaLogin = profile.email;
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: emailParaLogin,
+        password
+      });
+
+      if (error || !data.session) {
+        tratarErroLogin("Credenciais incorretas.");
+        return;
+      }
+
+      resetarBloqueio();
+      window.location.reload();
+    } catch {
+      tratarErroLogin("Erro ao entrar.");
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (loading || !userId) return;
+
+    if (cooldownTime > 0) {
+      alert(`Por favor, aguarde ${cooldownTime} segundos antes de realizar um novo lançamento.`);
+      return;
+    }
+
+    const valorBase = typeof formData.valorTotal === "string" ? parseFloat(formData.valorTotal) : formData.valorTotal;
+    const valorFinal = formData.natureza === "Despesa"
+      ? -Math.abs(valorBase)
+      : Math.abs(valorBase);
+
+    // Sanitização preventiva de campos textuais preenchidos em tela
+    const payload = {
+      ...formData,
+      origem: sanitizarTexto(formData.origem),
+      cartao_nome: sanitizarTexto(formData.cartao_nome),
+      descricao: sanitizarTexto(formData.descricao),
+      categoria: sanitizarTexto(formData.categoria),
+      sub_categoria: sanitizarTexto(formData.sub_categoria),
+      projeto: sanitizarTexto(formData.projeto),
+      natureza: sanitizarTexto(formData.natureza),
+      tipo_de_custo: sanitizarTexto(formData.tipo_de_custo),
+      tipo_origem: sanitizarTexto(formData.tipo_origem),
+      fatura_mes: formData.tipo_origem === "CONTA_CORRENTE" ? "" : sanitizarTexto(formData.fatura_mes),
+      valorTotal: valorFinal,
+      user_id: userId
+    };
+
+    setLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch("/api/lancamentos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${session?.access_token}` },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({}));
+        if (response.status === 409 || errorBody.message?.includes("duplicate") || errorBody.error?.includes("unique_constraint")) {
+          throw new Error("Registro duplicado: Este lançamento já existe com a mesma descrição, valor, data e origem.");
+        }
+        throw new Error(errorBody.message || "Erro ao salvar");
+      }
+
+      setSucesso(true);
+      setFormData(initialFormState);
+      fetchUltimos(userId);
+      setCooldownTime(3); // Cooldown de 3 segundos após sucesso
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => setSucesso(false), 5000);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <div className="w-full h-screen flex items-center justify-center bg-white"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div></div>;
+
+  if (!isLoggedIn) {
+    return (
+      <div className="w-full min-h-screen flex flex-col items-center bg-white px-4 pt-2 md:pt-4">
+        <div className="bg-white p-6 md:p-8 rounded-[3rem] border border-gray-100 shadow-xl max-w-md w-full text-center">
+          <div className="flex items-center justify-center gap-1.5 mb-3">
+            <Lock size={12} className="text-orange-600" />
+            <span className="text-[10px] font-black text-orange-600 uppercase tracking-[0.25em]">Acesso restrito</span>
+          </div>
+          <p className="text-gray-500 text-xs mb-5">Valide sua identidade para gerenciar dados e lançamentos.</p>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="relative">
+              <AtSign className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input
+                type="text"
+                placeholder="ID ou E-mail"
+                required
+                value={slug}
+                className="w-full pl-12 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-normal outline-none focus:ring-2 focus:ring-orange-100 text-gray-900 placeholder:text-gray-400"
+                onChange={(e) => setSlug(e.target.value)}
+              />
+            </div>
+            <div className="relative">
+              <KeyRound className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Senha"
+                required
+                value={password}
+                className="w-full pl-12 pr-12 py-4 bg-gray-50 border-none rounded-2xl text-sm font-normal outline-none focus:ring-2 focus:ring-orange-100 text-gray-900 placeholder:text-gray-400"
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+            </div>
+
+            {/* Aviso visual de bloqueio regressivo */}
+            {tempoBloqueio > 0 && (
+              <div className="text-xs font-bold text-amber-600 bg-amber-50 p-3 rounded-xl text-center">
+                Muitas tentativas. Tente novamente em {tempoBloqueio}s.
+              </div>
+            )}
+
+            {loginError && tempoBloqueio === 0 && (
+              <p className="text-xs font-bold text-red-600 bg-red-50 p-3 rounded-xl text-center">
+                {loginError}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={authLoading || tempoBloqueio > 0}
+              className="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold shadow-lg shadow-orange-100 transition-transform active:scale-95 disabled:opacity-50 cursor-pointer text-[10px] uppercase tracking-widest"
+            >
+              {authLoading ? "Verificando..." : tempoBloqueio > 0 ? `Aguarde (${tempoBloqueio}s)` : "Entrar na Plataforma"}
+            </button>
+          </form>
+
+          <div className="mt-6 pt-6 border-t border-gray-100">
+            <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-3">Ainda não se cadastrou?</p>
+            <a href="/cadastro" className="flex items-center justify-center gap-3 bg-white text-gray-900 py-4 rounded-2xl font-black text-[9px] uppercase tracking-[0.2em] border border-gray-200 shadow-sm hover:shadow-md hover:border-orange-200 hover:text-orange-600 transition-all active:scale-95">
+              <UserPlus size={16} className="text-orange-500" /> Criar conta
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const isReceita = formData.natureza === "Receita";
+  const categoriasFiltradas = baseCategorias[formData.projeto][formData.natureza];
+
+  const nextCard = () => setActiveCard((prev) => (prev + 1) % 3);
+  const prevCard = () => setActiveCard((prev) => (prev - 1 + 3) % 3);
+
+  return (
+    <div className="w-full min-h-screen animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative bg-white px-4 md:px-8">
+
+      {showAviso && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl border border-gray-100 flex flex-col items-center text-center animate-in zoom-in-95 duration-300">
+            <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mb-6">
+              <Zap size={32} className="text-orange-500 fill-orange-500 animate-pulse" />
+            </div>
+            <h4 className="text-lg font-bold text-gray-900 mb-3 tracking-tight">Nota de Eficiência</h4>
+            <p className="text-sm text-gray-500 font-medium leading-relaxed mb-8">
+              A importação via "Upload arquivo" é a solução <span className="text-orange-600 font-bold">mais rápida</span> no seu processo de múltiplos lançamentos.
+            </p>
+            <button
+              onClick={() => setShowAviso(false)}
+              className="w-full py-4 bg-gray-900 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-gray-800 transition-all shadow-lg shadow-gray-200"
+            >
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="mb-6">
+        <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2 tracking-tight flex items-center flex-wrap">
+          <span>Gestão Fin<span className="text-orange-500">.</span></span>
+          <Activity size={32} className="text-orange-500 skew-x-12 ml-4" strokeWidth={1.5} />
+        </h1>
+        <h2 className="text-base text-gray-600 w-full font-bold leading-tight">
+          <span className="hidden md:inline">Digitalize seu controle de orçamentos doméstico ou empresarial de maneira integrada.</span>
+          <span className="inline md:hidden">Digitalize seu orçamento doméstico ou empresarial</span>
+        </h2>
+      </div>
+
+      <div>
+        <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-gray-400 mb-4 flex items-center gap-4">
+          <span className="whitespace-nowrap">Registros em 3 etapas</span>
+          <div className="h-px bg-gray-100 flex-1"></div>
+        </h3>
+
+        <div className="mb-7">
+          <div className="inline-flex items-center gap-3 p-4 bg-orange-50 rounded-2xl border border-orange-100 w-full md:w-auto">
+            <Zap size={16} className="text-orange-500 fill-orange-500" />
+
+            <div className="text-xs font-bold text-orange-700 flex items-center flex-wrap gap-2">
+              <div className="hidden md:flex items-center flex-wrap gap-2">
+                Precisa de mais agilidade? Utilize a
+                <a href="/lancamentos/importar" className="hover:opacity-80 transition-opacity">
+                  <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
+                    Importação via arquivo
+                  </span>
+                </a>
+                ou também a
+                <a href="/lancamentos/integrar" className="hover:opacity-80 transition-opacity">
+                  <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
+                    Automação em cloud
+                  </span>,
+                </a>
+                ambos para múltiplos registros.
+              </div>
+
+              <div className="md:hidden flex items-center flex-wrap gap-1">
+                Importe dados via
+                <a href="/lancamentos/importar">
+                  <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
+                    Arquivo
+                  </span>
+                </a>
+                ou
+                <a href="/lancamentos/integrar">
+                  <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
+                    Cloud
+                  </span>, para múltiplos registros.
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {sucesso && (
+          <div className="mb-8 p-6 bg-emerald-500 text-white rounded-[2rem] flex items-center gap-4 animate-in fade-in slide-in-from-left-4 shadow-lg border-l-8 border-emerald-600">
+            <CheckCircle2 size={24} />
+            <div>
+              <p className="font-bold text-sm uppercase">Sucesso no Processamento</p>
+              <p className="text-xs opacity-90">O valor foi contabilizado corretamente na sua base.</p>
+            </div>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-stretch">
+          <div className="lg:col-span-7 flex flex-col h-full space-y-10">
+            <section className="flex-1 flex flex-col bg-white rounded-[2.5rem] p-8 border border-gray-100 border-t-4 border-t-blue-600 shadow-sm transition-all">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-3">
+                <span className="w-8 h-px bg-gray-200"></span> 01. Origem dos Lançamentos
+              </h3>
+
+              <div className="grid grid-cols-3 gap-3 mb-8">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, projeto: "Pessoal", categoria: "", sub_categoria: "" })}
+                  className={`p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${formData.projeto === "Pessoal" ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-gray-100 text-gray-400'}`}
+                >
+                  <User size={18} />
+                  <span className="font-black text-[9px] uppercase tracking-tighter">Orçamento <br /> Pessoal</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, projeto: "Empresarial", categoria: "", sub_categoria: "" })}
+                  className={`p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${formData.projeto === "Empresarial" ? 'border-amber-500 bg-amber-50 text-amber-600' : 'border-gray-100 text-gray-400'}`}
+                >
+                  <Briefcase size={18} />
+                  <span className="font-black text-[9px] uppercase tracking-tighter">Orçamento <br /> Empresarial</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, projeto: "Condomínio", categoria: "", sub_categoria: "" })}
+                  className={`p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${formData.projeto === "Condomínio" ? 'border-rose-600 bg-rose-50 text-rose-600' : 'border-gray-100 text-gray-400'}`}
+                >
+                  <Building2 size={18} />
+                  <span className="font-black text-[9px] uppercase tracking-tighter">Orçamento <br /> Condomínio</span>
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, tipo_origem: "CONTA_CORRENTE", parcelado: false })}
+                  className={`p-3 sm:p-4 rounded-2xl border-2 transition-all flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 sm:gap-4 min-w-0 w-full ${formData.tipo_origem === "CONTA_CORRENTE" ? 'border-blue-600 bg-blue-50/30 shadow-md' : 'border-gray-100 bg-white'}`}
+                >
+                  <div className={`p-2 sm:p-3 rounded-xl flex-shrink-0 flex items-center justify-center w-8 h-8 sm:w-11 sm:h-11 ${formData.tipo_origem === "CONTA_CORRENTE" ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-400'}`}>
+                    <Wallet className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                  </div>
+                  <span className="font-bold text-[9px] sm:text-xs text-gray-900 uppercase leading-tight text-center sm:text-left break-words min-w-0">
+                    Conta Corrente
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isReceita}
+                  onClick={() => setFormData({ ...formData, tipo_origem: "CARTAO" })}
+                  className={`p-3 sm:p-4 rounded-2xl border-2 transition-all flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 sm:gap-4 min-w-0 w-full ${formData.tipo_origem === "CARTAO" ? 'border-blue-600 bg-blue-50/30 shadow-md' : 'border-gray-100 bg-white'} disabled:opacity-40 disabled:grayscale`}
+                >
+                  <div className={`p-2 sm:p-3 rounded-xl flex-shrink-0 flex items-center justify-center w-8 h-8 sm:w-11 sm:h-11 ${formData.tipo_origem === "CARTAO" ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-400'}`}>
+                    <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                  </div>
+                  <span className="font-bold text-[9px] sm:text-xs text-gray-900 uppercase leading-tight text-center sm:text-left break-words min-w-0">
+                    Cartão de Crédito
+                  </span>
+                </button>
+              </div>
+              <input required type="text" placeholder="Instituição (Ex: Nubank)" value={formData.origem}
+                className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm mt-auto text-gray-900 placeholder:text-gray-600"
+                onChange={(e) => setFormData({ ...formData, origem: e.target.value })} />
+            </section>
+
+            <section className="flex-1 flex flex-col bg-white rounded-[2.5rem] p-8 border border-gray-100 border-t-4 border-t-blue-600 shadow-sm transition-all">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-3">
+                <span className="w-8 h-px bg-gray-200"></span> 02. Detalhes Financeiros
+              </h3>
+              <div className="space-y-4">
+                <input required type="text" placeholder="Descrição registro" value={formData.descricao}
+                  className="w-full px-4 py-5 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm text-gray-900 placeholder:text-gray-600"
+                  onChange={(e) => setFormData({ ...formData, descricao: e.target.value })} />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="relative">
+                    <DollarSign className={`absolute left-5 top-1/2 -translate-y-1/2 ${isReceita ? 'text-emerald-500' : 'text-red-500'}`} size={18} />
+                    <input required type="number" step="0.01" placeholder="Valor Total (R$)" value={formData.valorTotal || ""}
+                      className="w-full pl-14 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm text-gray-900 placeholder:text-gray-600"
+                      onChange={(e) => setFormData({ ...formData, valorTotal: parseFloat(e.target.value) || 0 })} />
+                  </div>
+                  <div className="relative">
+                    <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                    <input required type="date" value={formData.dataCompetencia}
+                      className="w-full pl-14 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm shadow-sm text-gray-800"
+                      onChange={(e) => {
+                        const novaData = e.target.value;
+                        const [ano, mes] = novaData.split("-");
+                        const faturaSugerida = ano && mes ? `${ano}-${mes}` : formData.fatura_mes;
+                        setFormData({ ...formData, dataCompetencia: novaData, fatura_mes: faturaSugerida });
+                      }} />
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div className="lg:col-span-5 h-full">
+            <div className={`rounded-[2.5rem] p-8 shadow-2xl transition-all duration-500 border-t-4 h-full flex flex-col ${isReceita ? 'bg-emerald-950 border-emerald-500' : 'bg-gray-900 border-orange-500'}`}>
+              <div className="space-y-8 flex-1">
+                <div>
+                  <h3 className={`text-[10px] font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-3 ${isReceita ? 'text-emerald-400' : 'text-orange-400'}`}>
+                    <span className={`w-8 h-px ${isReceita ? 'bg-emerald-400/30' : 'bg-orange-400/30'}`}></span> 03. Classificação - {formData.projeto}
+                  </h3>
+
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-2">Natureza</label>
+                      <select required className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                        value={formData.natureza}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setFormData({
+                            ...formData,
+                            natureza: val,
+                            tipo_de_custo: val === "Receita" ? "Fixo" : "Variável",
+                            tipo_origem: val === "Receita" ? "CONTA_CORRENTE" : formData.tipo_origem,
+                            categoria: "",
+                            sub_categoria: "",
+                            fixo_ate: "",
+                            parcelado: false
+                          });
+                        }}>
+                        <option value="Despesa" className="bg-gray-900">Despesa</option>
+                        <option value="Receita" className="bg-gray-900">Receita</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-2">Tipo de Custo</label>
+                      <select required className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none disabled:opacity-50 cursor-pointer"
+                        value={isReceita ? "Fixo" : formData.tipo_de_custo}
+                        disabled={isReceita}
+                        onChange={(e) => setFormData({ ...formData, tipo_de_custo: e.target.value, parcelado: e.target.value === "Fixo" ? false : formData.parcelado })}>
+                        {isReceita ? <option value="Fixo">Fixo (Receita)</option> : (
+                          <>
+                            <option value="Variável" className="bg-gray-900">Variável</option>
+                            <option value="Fixo" className="bg-gray-900">Fixo</option>
+                          </>
+                        )}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-2">Categoria</label>
+                      <input list="cat-list" required placeholder="Escolha..."
+                        className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none placeholder:text-gray-400"
+                        value={formData.categoria}
+                        onChange={(e) => setFormData({ ...formData, categoria: e.target.value, sub_categoria: "" })} />
+                      <datalist id="cat-list">
+                        {Object.keys(categoriasFiltradas).map((c, i) => <option key={i} value={c} />)}
+                        <option value="Indefinido" />
+                      </datalist>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-2">Sub-categoria</label>
+                      <input list="sub-list" placeholder="Escolha..."
+                        className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white outline-none placeholder:text-gray-400"
+                        value={formData.sub_categoria}
+                        onChange={(e) => setFormData({ ...formData, sub_categoria: e.target.value })} />
+                      <datalist id="sub-list">
+                        {categoriasFiltradas[formData.categoria]?.map((s: string, i: number) => <option key={i} value={s} />)}
+                        <option value="Indefinido" />
+                      </datalist>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="animate-in fade-in slide-in-from-top-2">
+                  {(formData.tipo_de_custo === "Fixo" || isReceita) && (
+                    <div className="p-4 bg-blue-500/10 rounded-xl border border-blue-500/20 mb-4">
+                      <p className="text-[10px] text-blue-400 font-bold uppercase mb-2">Recorrência mensal até:</p>
+                      <input
+                        type="date"
+                        max={maxDate}
+                        className="w-full bg-white/5 text-white text-xs p-2 rounded cursor-pointer"
+                        value={formData.fixo_ate}
+                        onChange={(e) => setFormData({ ...formData, fixo_ate: e.target.value })}
+                      />
+                    </div>
+                  )}
+
+                  {!isReceita && formData.tipo_origem === "CARTAO" && formData.tipo_de_custo !== "Fixo" && (
+                    <div className="p-4 bg-orange-500/10 rounded-xl border border-orange-500/20">
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-[10px] text-orange-400 font-bold uppercase">Pagamento parcelado?</span>
+                        <input type="checkbox" checked={formData.parcelado} onChange={(e) => setFormData({ ...formData, parcelado: e.target.checked })} className="accent-orange-500" />
+                      </div>
+                      {formData.parcelado && (
+                        <div className="flex gap-2">
+                          <div className="w-1/2 space-y-1">
+                            <label className="text-[9px] text-orange-400/70 uppercase font-bold ml-1">Parcelas</label>
+                            <input
+                              type="number"
+                              placeholder="Ex: 12"
+                              className="w-full bg-white/5 text-white p-2 rounded text-xs outline-none focus:bg-white/10 transition-colors placeholder:text-gray-400"
+                              onChange={(e) => setFormData({ ...formData, parcelasTotais: parseInt(e.target.value) })}
+                            />
+                          </div>
+                          <div className="w-1/2 space-y-1">
+                            <label className="text-[9px] text-orange-400/70 uppercase font-bold ml-1">Fatura 1º pag.</label>
+                            <input
+                              type="month"
+                              value={formData.fatura_mes}
+                              className="w-full bg-white/5 text-white p-2 rounded text-xs outline-none focus:bg-white/10 transition-colors cursor-pointer"
+                              onChange={(e) => setFormData({ ...formData, fatura_mes: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 mt-8">
+                <button type="submit" disabled={loading || cooldownTime > 0}
+                  className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-xl flex items-center justify-center gap-3 text-white disabled:opacity-50 ${isReceita ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-900/20' : 'bg-orange-500 hover:bg-orange-600 shadow-orange-900/20'}`}>
+                  {loading ? "Processando..." : cooldownTime > 0 ? `Aguarde (${cooldownTime}s)` : <><Save size={18} /> {isReceita ? 'Confirmar Receita' : 'Salvar Despesa'}</>}
+                </button>
+
+                <Link
+                  href="/lancamentos/gerenciar"
+                  className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-3 text-amber-400 bg-amber-400/5 border border-amber-400/20 hover:bg-amber-400/10 hover:border-amber-400/40 hover:text-amber-300 shadow-lg shadow-black/20"
+                >
+                  <Edit3 size={16} className="animate-pulse" />
+                  Editar lançamentos
+                </Link>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <div id="painel-controle" className="mt-20">
+          <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
+            <span className="whitespace-nowrap">Painel de Controle</span>
+            <div className="h-px bg-gray-100 flex-1"></div>
+          </h3>
+
+          <div className="hidden lg:grid grid-cols-12 gap-6 mb-10">
+            <div className="lg:col-span-4">
+              <Link href="/lancamentos/resultados" className="flex flex-col h-full bg-blue-600 text-white rounded-[2rem] p-8 hover:bg-blue-700 transition-all group relative overflow-hidden shadow-sm">
+                <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center text-white mb-6">
+                  <BarChart3 size={24} />
+                </div>
+                <span className="text-[11px] font-black uppercase tracking-widest text-blue-100 mb-2">Painel de Resultados</span>
+                <p className="text-xs font-bold text-blue-50">Acompanhe seus lançamentos em tempo real.</p>
+              </Link>
+            </div>
+
+            <div className="lg:col-span-4">
+              <Link href="/lancamentos/integrar" className="flex flex-col h-full bg-gray-50 border border-gray-200 rounded-[2rem] p-8 hover:bg-emerald-50 hover:border-emerald-200 transition-all group relative overflow-hidden">
+                <div className="absolute top-6 right-6 bg-blue-600 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase">Em desenvolvimento</div>
+                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-gray-400 group-hover:text-emerald-500 mb-6 shadow-sm">
+                  <Cpu size={24} />
+                </div>
+                <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 group-hover:text-emerald-500 mb-2">Automação Cloud</span>
+                <p className="text-xs font-bold text-gray-500">Integração direta em nuvem para seus registros financeiros.</p>
+              </Link>
+            </div>
+
+            <div className="lg:col-span-4">
+              <Link href="/lancamentos/importar" className="flex flex-col h-full bg-orange-50/30 border-2 border-orange-200 rounded-[2rem] p-8 hover:bg-orange-50 hover:border-orange-300 transition-all group relative overflow-hidden">
+                <div className="absolute top-6 right-6 bg-orange-500 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase animate-bounce">Recomendado</div>
+                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-orange-500 mb-6 shadow-sm">
+                  <FileUp size={24} />
+                </div>
+                <span className="text-[11px] font-black uppercase tracking-widest text-orange-600 mb-2">Upload via Arquivo</span>
+                <p className="text-xs font-bold text-gray-500">A forma mais rápida de processar múltiplos lançamentos de uma vez.</p>
+              </Link>
+            </div>
+          </div>
+
+          <div className="lg:hidden relative mb-10 overflow-hidden px-2">
+            <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${activeCard * 100}%)` }}>
+
+              <div className="w-full flex-shrink-0 px-2">
+                <div className="bg-blue-600 rounded-[2rem] p-8 text-white h-[250px] relative overflow-hidden flex flex-col justify-between shadow-sm">
+                  <div>
+                    <BarChart3 className="mb-4 text-white/80" size={32} />
+                    <h4 className="text-lg font-bold mb-1">Painel de Resultados</h4>
+                    <p className="text-blue-100 text-xs font-medium opacity-90 leading-relaxed">Acompanhe seus lançamentos em tempo real.</p>
+                  </div>
+                  <Link href="/lancamentos/resultados" className="bg-white text-blue-600 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest text-center shadow-lg">
+                    Acessar agora
+                  </Link>
+                </div>
+              </div>
+
+              <div className="w-full flex-shrink-0 px-2">
+                <Link href="/lancamentos/importar" className="flex flex-col bg-orange-50/30 border-2 border-orange-200 rounded-[2rem] p-8 h-[250px] relative overflow-hidden">
+                  <div className="absolute top-6 right-6 bg-orange-500 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase">Recomendado</div>
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-orange-500 mb-6 shadow-sm">
+                    <FileUp size={24} />
+                  </div>
+                  <span className="text-[11px] font-black uppercase tracking-widest text-orange-600 mb-2">Upload via Arquivo</span>
+                  <p className="text-xs font-bold text-gray-500">A forma mais rápida de processar múltiplos lançamentos.</p>
+                </Link>
+              </div>
+
+              <div className="w-full flex-shrink-0 px-2">
+                <Link href="/lancamentos/integrar" className="flex flex-col bg-gray-50 border border-gray-200 rounded-[2rem] p-8 h-[250px] relative overflow-hidden">
+                  <div className="absolute top-6 right-6 bg-blue-600 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase">Desenvolvimento</div>
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-gray-400 mb-6 shadow-sm">
+                    <Cpu size={24} />
+                  </div>
+                  <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 mb-2">Automação Cloud</span>
+                  <p className="text-xs font-bold text-gray-500">Integração direta em nuvem para seus registros.</p>
+                </Link>
+              </div>
+
+            </div>
+
+            <div className="flex justify-center items-center gap-6 mt-6">
+              <button onClick={prevCard} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 active:bg-gray-100">
+                <ChevronLeft size={20} />
+              </button>
+              <div className="flex gap-2">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className={`h-1.5 rounded-full transition-all ${activeCard === i ? 'w-6 bg-orange-500' : 'w-1.5 bg-gray-200'}`} />
+                ))}
+              </div>
+              <button onClick={nextCard} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 active:bg-gray-100">
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          </div>
+
+          <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-4 flex items-center gap-4">
+            <span className="whitespace-nowrap">Registros Recentes</span>
+            <div className="h-px bg-gray-100 flex-1"></div>
+          </h3>
+
+          <div className="bg-white border border-gray-100 rounded-[2rem] md:rounded-[2.5rem] shadow-sm mb-20 overflow-hidden">
+            <div className="md:hidden divide-y divide-gray-50">
+              {ultimosLancamentos.map((l) => (
+                <div key={l.id} className="p-5 flex flex-col gap-2">
+                  <div className="flex justify-between items-start">
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                      {new Date(l.data_competencia).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                    </span>
+                    <span className={`font-black text-sm ${l.valor < 0 ? 'text-red-500' : 'text-emerald-600'}`}>
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(l.valor)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-sm font-bold text-gray-900 block">{l.descricao}</span>
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-[9px] text-gray-400 uppercase font-black">{l.origem}</span>
+                      <span className="text-[9px] font-bold text-blue-500 uppercase bg-blue-50 px-2 py-0.5 rounded-md">{l.categoria}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[800px]">
+                <thead className="bg-gray-50/50">
+                  <tr>
+                    <th className="p-6 text-[10px] font-black uppercase text-gray-400 tracking-widest">Data</th>
+                    <th className="p-6 text-[10px] font-black uppercase text-gray-400 tracking-widest">Descrição</th>
+                    <th className="p-6 text-[10px] font-black uppercase text-gray-400 tracking-widest">Categoria</th>
+                    <th className="p-6 text-[10px] font-black uppercase text-gray-400 text-right tracking-widest">Valor</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {ultimosLancamentos.map((l) => (
+                    <tr key={l.id} className="hover:bg-gray-50/50 transition-colors group">
+                      <td className="p-6 text-xs font-bold text-gray-900">{new Date(l.data_competencia).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</td>
+                      <td className="p-6">
+                        <span className="text-sm font-bold text-gray-900 block">{l.descricao}</span>
+                        <span className="text-[10px] text-gray-400 uppercase font-black">{l.origem}</span>
+                      </td>
+                      <td className="p-6 text-xs font-bold text-gray-500 uppercase">{l.categoria}</td>
+                      <td className={`p-6 font-black text-sm text-right ${l.valor < 0 ? 'text-red-500' : 'text-emerald-600'}`}>
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(l.valor)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-24 flex items-center gap-4 mb-12">
+          <div className="h-px bg-gray-200 flex-1"></div>
+          <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
+            Conecte-se
+          </h3>
+          <div className="h-px bg-gray-200 flex-1"></div>
+        </div>
+
+        <div className="flex flex-col items-center text-center">
+          <div className="max-w-3xl mb-12">
+            <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
+              Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+            </h4>
+            <p className="text-gray-500 font-medium text-sm md:text-base">
+              Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
+            </p>
+          </div>
+
+          <a
+            href="https://www.instagram.com/nucleobase.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative flex flex-col items-center gap-6"
+          >
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+
+              <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+                <span className="flex items-center justify-center">
+                  <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center">
+              <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+              <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
