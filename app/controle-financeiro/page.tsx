@@ -22,7 +22,9 @@ import {
   Activity,
   Wallet,
   Briefcase,
-  MessageCircle
+  MessageCircle,
+  LayoutDashboard,
+  BarChart3
 } from "lucide-react";
 
 export default function ControleFinanceiroHome() {
@@ -70,8 +72,8 @@ export default function ControleFinanceiroHome() {
   // Recursos de destaque com os textos ajustados para terem exatamente a mesma quantidade de palavras do texto de referência:
   // Referência ("Elimine planilhas manuais e veja suas finanças pessoais ou empresariais em painéis limpos, visuais e intuitivos.") = 16 palavras.
   const recursosDestaque = [
-    { id: "resultados_tempo_real", icon: <Vote size={18} />, title: "Resultados & Indicadores", text: "Acompanhe todos os seus orçamentos detalhados e faturas abertas em tempo real.", link: "/controle-financeiro/resultados" },
-    { id: "lancamentos_praticos", icon: <FileText size={18} />, title: "Lançamentos Ágeis", text: "Registre facilmente despesas diárias e receitas importantes em poucos cliques seguros.", link: "/controle-financeiro/lancamentos" },
+    { id: "resultados_tempo_real", icon: <BarChart3 size={18} />, title: "Resultados & Indicadores", text: "Acompanhe todos os seus orçamentos detalhados e faturas abertas em tempo real.", link: "/controle-financeiro/resultados" },
+    { id: "lancamentos_praticos", icon: <LayoutDashboard size={18} />, title: "Lançamentos Ágeis", text: "Registre facilmente despesas diárias e receitas importantes em poucos cliques seguros.", link: "/controle-financeiro/lancamentos" },
     { id: "amplitude_gestao", icon: <Briefcase size={18} />, title: "Consultoria", text: "Utilize diversas ferramentas analíticas avançadas para o seu dia a dia empresarial.", link: "/resultados-consultoria" },
     { id: "importar_arquivos", icon: <MessageCircle size={18} />, title: "Contato", text: "Processe com segurança múltiplos lançamentos de forma rápida e eficiente.", link: "/contato" }
   ];
@@ -88,7 +90,7 @@ export default function ControleFinanceiroHome() {
       title: "Resultados & Indicadores",
       subtitle: "Destaque",
       type: "recurso",
-      icon: <Vote size={18} />,
+      icon: <BarChart3 size={18} />,
       text: "Acompanhe na palma da mão todos os seus orçamentos por contas bancárias de forma integrada.",
       link: "/controle-financeiro/resultados"
     },
@@ -96,7 +98,7 @@ export default function ControleFinanceiroHome() {
       title: "Lançamentos inteligentes",
       subtitle: "Destaque",
       type: "recurso",
-      icon: <FileText size={18} />,
+      icon: <LayoutDashboard size={18} />,
       text: "Registre facilmente despesas diárias e receitas importantes em poucos cliques seguros.",
       link: "/controle-financeiro/lancamentos"
     },
@@ -201,7 +203,7 @@ export default function ControleFinanceiroHome() {
           {isLoggedIn ? (
             <UserCircle size={14} className="text-white" />
           ) : (
-            <UserPlus size={14} className="text-orange-400" />
+            <LayoutDashboard size={14} className="text-orange-400" />
           )}
           <span className="text-white text-[9px] font-black uppercase tracking-widest">
             {isLoggedIn ? "Minha conta" : "Acessar Dashboard"}
@@ -242,7 +244,7 @@ export default function ControleFinanceiroHome() {
           <div className="relative z-10 w-full">
             <div className="flex items-center gap-3 mb-1">
               <div className="w-11 h-11 shrink-0 bg-orange-500 text-white rounded-xl flex items-center justify-center shadow-md shadow-orange-500/20 group-hover:bg-white group-hover:text-orange-500 transition-all duration-500">
-                <Star size={20} fill="currentColor" />
+                <LayoutDashboard size={20} />
               </div>
               <div>
                 <p className="text-orange-400 text-[9px] font-black uppercase tracking-[0.2em]">Controle Absoluto</p>
@@ -264,7 +266,7 @@ export default function ControleFinanceiroHome() {
           <div className="relative z-10 w-full">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-11 h-11 shrink-0 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm">
-                <Activity size={20} />
+                <BarChart3 size={20} />
               </div>
               <div>
                 <p className="text-blue-600 text-[9px] font-black uppercase tracking-[0.2em]">Painel Analítico</p>
@@ -389,8 +391,8 @@ export default function ControleFinanceiroHome() {
           </div>
 
           {[
-            { icon: <Vote size={16} />, title: "Resultados", link: "/controle-financeiro/resultados" },
-            { icon: <FileText size={16} />, title: "Lançamentos", link: "/controle-financeiro/lancamentos" },
+            { icon: <BarChart3 size={16} />, title: "Resultados", link: "/controle-financeiro/resultados" },
+            { icon: <LayoutDashboard size={16} />, title: "Lançamentos", link: "/controle-financeiro/lancamentos" },
             { icon: <Briefcase size={16} />, title: "Consultoria", link: "/resultados-consultoria" },
             { icon: <MessageCircle size={16} />, title: "Contato", link: "/contato" }
           ].map((item, idx) => (
@@ -425,11 +427,11 @@ export default function ControleFinanceiroHome() {
 
       <div className="flex flex-col sm:flex-row gap-3 w-full mb-6 mt-3 md:hidden">
         <a href="/controle-financeiro/lancamentos" onClick={() => trackClick("Acessar Dashboard", "/controle-financeiro/lancamentos")} className="flex items-center justify-between flex-1 bg-orange-500 hover:bg-orange-600 text-white py-3.5 px-5 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md">
-          <div className="flex items-center gap-2"><UserPlus size={14} className="text-white" /> Acessar Dashboard</div>
+          <div className="flex items-center gap-2"><LayoutDashboard size={14} className="text-white" /> Acessar Dashboard</div>
           <ArrowUpRight size={14} />
         </a>
         <a href="/controle-financeiro/resultados" className="flex items-center justify-between flex-1 bg-gray-900 text-white py-3.5 px-5 rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest shadow-md">
-          <div className="flex items-center gap-2"><Wallet size={14} className="text-orange-500" /> Painel de Resultados</div>
+          <div className="flex items-center gap-2"><BarChart3 size={14} className="text-orange-500" /> Painel de Resultados</div>
           <ArrowUpRight size={14} />
         </a>
       </div>
@@ -521,18 +523,18 @@ export default function ControleFinanceiroHome() {
         </div>
       </div>
 
-      <div className="mt-16 flex items-center gap-4 mb-8">
+      <div className="mt-24 flex items-center gap-4 mb-12">
         <div className="h-px bg-gray-200 flex-1"></div>
-        <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
         <div className="h-px bg-gray-200 flex-1"></div>
       </div>
 
       <div className="flex flex-col items-center text-center">
-        <div className="max-w-xl mb-8">
-          <h4 className="text-xl md:text-3xl font-bold text-gray-900 tracking-tighter mb-1.5">
-            Fique por dentro <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+        <div className="max-w-3xl mb-12">
+          <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
+            Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
           </h4>
-          <p className="text-gray-500 font-medium text-xs md:text-sm">
+          <p className="text-gray-500 font-medium text-sm md:text-base">
             Dicas de controle financeiro, novidades do sistema e conteúdos exclusivos no nosso Instagram.
           </p>
         </div>
@@ -541,19 +543,19 @@ export default function ControleFinanceiroHome() {
           href="https://www.instagram.com/nucleobase.app/"
           target="_blank"
           rel="noopener noreferrer"
-          className="group relative flex flex-col items-center gap-4"
+          className="group relative flex flex-col items-center gap-6"
         >
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2rem] blur-xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
 
-            <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[1.8rem] md:rounded-[2rem] flex items-center justify-center text-white shadow-lg relative z-10 group-hover:rotate-6 transition-all duration-500">
-              <Instagram className="w-10 h-10 md:w-12 md:h-12" strokeWidth={1.5} />
+            <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+              <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
             </div>
           </div>
 
           <div className="flex flex-col items-center">
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
-            <div className="h-1 w-0 bg-pink-500 mt-1.5 group-hover:w-full transition-all duration-500 rounded-full"></div>
+            <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+            <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
           </div>
         </a>
       </div>

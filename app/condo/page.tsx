@@ -430,13 +430,13 @@ export default function NucleobaseCondo() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 w-full mb-6 mt-3 md:hidden">
-                <a href="/condo/adm" className="flex items-center justify-between flex-1 bg-gray-900 text-white py-4 px-6 rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest shadow-lg">
-                    <div className="flex items-center gap-2"><Building2 size={15} className="text-blue-500" /> Área do Síndico</div>
-                    <ArrowUpRight size={15} />
+                <a href="/condo/adm" className="flex items-center justify-between flex-1 bg-gray-900 text-white py-3.5 px-5 rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest shadow-md">
+                    <div className="flex items-center gap-2"><Building2 size={14} className="text-blue-500" /> Área do Síndico</div>
+                    <ArrowUpRight size={14} />
                 </a>
-                <a href="/condo/dashboard" onClick={() => trackClick("Acessar Dashboard", "/condo/dashboard")} className="flex items-center justify-between flex-1 bg-blue-600 hover:bg-blue-700 text-white py-4 px-6 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest shadow-lg">
-                    <div className="flex items-center gap-2"><Users size={15} className="text-white" /> Acessar Dashboard</div>
-                    <ArrowUpRight size={15} />
+                <a href="/condo/dashboard" onClick={() => trackClick("Acessar Dashboard", "/condo/dashboard")} className="flex items-center justify-between flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3.5 px-5 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md">
+                    <div className="flex items-center gap-2"><Users size={14} className="text-white" /> Acessar Dashboard</div>
+                    <ArrowUpRight size={14} />
                 </a>
             </div>
 
