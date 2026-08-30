@@ -357,7 +357,7 @@ export default function AcessoUsuarioPage() {
 
             <div className="md:min-h-[480px] min-h-[160px] flex">
               <a
-                href="/lancamentos"
+                href="/controle-financeiro"
                 className={`p-4 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-lg transition-all border flex flex-col text-center md:text-left bg-orange-500 border-orange-400 hover:bg-orange-600 group w-full h-full relative overflow-hidden ${!isLoggedIn && "pointer-events-none opacity-50"}`}
               >
                 <div className="p-2 md:p-3 rounded-xl md:rounded-2xl mb-2 md:mb-4 w-fit bg-white/20 text-white group-hover:scale-110 transition-transform mx-auto md:mx-0">
