@@ -194,17 +194,17 @@ export function Header() {
     const btnBase = "flex items-center gap-2 px-5 py-2 rounded-md transition font-bold shadow-sm text-white";
 
     const btnResultados = (
-      <a key="res" href="/lancamentos/resultados" className={`${btnBase} bg-blue-600 hover:bg-blue-700`}>
+      <a key="res" href="/controle-financeiro/resultados" className={`${btnBase} bg-blue-600 hover:bg-blue-700`}>
         <BarChart3 size={18} /> Painel de Resultados
       </a>
     );
     const btnEdicao = (
-      <a key="edit" href="/lancamentos/gerenciar" className={`${btnBase} bg-orange-500 hover:bg-orange-600`}>
+      <a key="edit" href="/controle-financeiro/gerenciar" className={`${btnBase} bg-orange-500 hover:bg-orange-600`}>
         <Pencil size={18} /> Edição de lançamentos
       </a>
     );
     const btnNovos = (
-      <a key="new" href="/lancamentos" className={`${btnBase} bg-orange-500 hover:bg-orange-600`}>
+      <a key="new" href="/controle-financeiro/lancamentos" className={`${btnBase} bg-orange-500 hover:bg-orange-600`}>
         <Rocket size={18} /> Novos lançamentos
       </a>
     );
@@ -218,11 +218,11 @@ export function Header() {
       return null;
     }
 
-    if (pathname === "/lancamentos" || pathname === "/lancamentos/importar" || pathname === "/lancamentos/integrar") {
+    if (pathname === "/controle-financeiro/lancamentos" || pathname === "/controle-financeiro/importar" || pathname === "/controle-financeiro/integrar") {
       return [btnResultados, btnEdicao];
-    } else if (pathname === "/lancamentos/gerenciar") {
+    } else if (pathname === "/controle-financeiro/gerenciar") {
       return [btnResultados, btnNovos];
-    } else if (pathname === "/lancamentos/resultados") {
+    } else if (pathname === "/controle-financeiro/resultados") {
       return [btnNovos, btnEdicao];
     }
 
@@ -466,7 +466,7 @@ export function Header() {
                   ) : (
                     <div className="flex flex-col gap-2 bg-white">
                       {pathname !== "/acesso-usuario" && (
-                        <a href="/lancamentos" className="flex items-center justify-center gap-2 w-full py-2.5 bg-orange-500 text-white rounded-xl font-bold text-xs shadow-lg active:scale-95 transition-all">
+                        <a href="/controle-financeiro/lancamentos" className="flex items-center justify-center gap-2 w-full py-2.5 bg-orange-500 text-white rounded-xl font-bold text-xs shadow-lg active:scale-95 transition-all">
                           <LayoutDashboard size={15} /> Gestão Financeira
                         </a>
                       )}

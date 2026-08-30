@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
-  ArrowLeft, RefreshCw, Settings2, Link2, 
+import {
+  ArrowLeft, RefreshCw, Settings2, Link2,
   Database, Cloud, HardHat, Instagram
 } from "lucide-react";
 import Link from "next/link";
@@ -74,11 +74,11 @@ export default function IntegrarPage() {
   useEffect(() => {
     setMounted(true);
     setLogs([
-      { 
-        horario: new Date().toLocaleString('pt-BR'), 
-        acao: "Sistema Pronto", 
-        fonte: "Nucleo IA", 
-        resultado: "Aguardando" 
+      {
+        horario: new Date().toLocaleString('pt-BR'),
+        acao: "Sistema Pronto",
+        fonte: "Nucleo IA",
+        resultado: "Aguardando"
       }
     ]);
   }, []);
@@ -103,8 +103,8 @@ export default function IntegrarPage() {
 
       const { error } = await supabase
         .from("configuracoes_integracao")
-        .upsert({ 
-          user_id: user.id, 
+        .upsert({
+          user_id: user.id,
           nome_fonte: selectedFonte.nome,
           endpoint_url: urlTratada,
           tipo_fonte: selectedFonte.tipo,
@@ -126,15 +126,15 @@ export default function IntegrarPage() {
     if (syncing) return;
     setSyncing(true);
     const agoraStr = new Date().toLocaleString('pt-BR');
-    
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       const { data: config, error: fetchError } = await supabase
-          .from("configuracoes_integracao")
-          .select("endpoint_url")
-          .eq("user_id", user?.id)
-          .eq("nome_fonte", "Planilha Principal")
-          .maybeSingle();
+        .from("configuracoes_integracao")
+        .select("endpoint_url")
+        .eq("user_id", user?.id)
+        .eq("nome_fonte", "Planilha Principal")
+        .maybeSingle();
 
       if (fetchError || !config?.endpoint_url) throw new Error("Configure a URL da planilha antes de sincronizar.");
 
@@ -152,7 +152,7 @@ export default function IntegrarPage() {
         });
       });
 
-      const dadosValidos = parsedData.filter((linha) => 
+      const dadosValidos = parsedData.filter((linha) =>
         (linha.descricao) && (linha.valor)
       );
 
@@ -184,30 +184,30 @@ export default function IntegrarPage() {
       });
 
       const { error: insertError } = await supabase
-          .from("lancamentos_financeiros")
-          .upsert(lancamentosParaInserir, { 
-              onConflict: 'user_id, descricao, data_competencia, valor' 
-          });
+        .from("lancamentos_financeiros")
+        .upsert(lancamentosParaInserir, {
+          onConflict: 'user_id, descricao, data_competencia, valor'
+        });
 
       if (insertError) throw insertError;
 
       setLastSync(agoraStr);
       setLogs(prev => [{
-          horario: agoraStr,
-          acao: `Sincronização`,
-          fonte: "Planilha",
-          resultado: `${lancamentosParaInserir.length} registros`
+        horario: agoraStr,
+        acao: `Sincronização`,
+        fonte: "Planilha",
+        resultado: `${lancamentosParaInserir.length} registros`
       }, ...prev]);
-      
+
       alert(`Sucesso! ${lancamentosParaInserir.length} registros integrados.`);
 
     } catch (error: any) {
       console.error("Erro na Sincronização:", error);
       setLogs(prev => [{
-          horario: agoraStr,
-          acao: "Erro",
-          fonte: "Conexão",
-          resultado: "Falha"
+        horario: agoraStr,
+        acao: "Erro",
+        fonte: "Conexão",
+        resultado: "Falha"
       }, ...prev]);
       alert(error.message || "Erro inesperado");
     } finally {
@@ -219,7 +219,7 @@ export default function IntegrarPage() {
 
   return (
     <div className="w-full lg:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
-      
+
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
@@ -228,13 +228,13 @@ export default function IntegrarPage() {
             {/* Ícone reduzido para 32, seguindo o novo padrão visual */}
             <Cloud size={32} className="text-orange-500 skew-x-1 opacity-35 ml-3 hidden md:block" strokeWidth={1.5} />
           </h1>
-          
+
           {/* Subtítulo aproximado com mt-0 e cor text-gray-500 conforme o modelo */}
           <p className="text-gray-500 text-[13px] md:text-lg font-medium max-w-2xl leading-tight mt-0">
             Configure o endpoint da <span className="font-bold text-gray-900 md:inline">Sincronização</span> e conecte o <span className="font-bold text-gray-900">Banco de Dados.</span>
           </p>
         </div>
-        
+
         {/* Espaço para botões ou ações à direita, se houver */}
         <div className="flex gap-2 w-full md:w-auto">
           {/* Conteúdo adicional aqui */}
@@ -246,20 +246,20 @@ export default function IntegrarPage() {
           Integração <div className="h-px bg-gray-300 flex-1"></div>
         </h3>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3 bg-orange-50/60 px-4 py-2 rounded-xl border border-orange-100/50 w-fit">
-              <HardHat size={18} className="text-orange-500 animate-bounce" />
-              <p className="text-[11px] md:text-[14px] font-black text-orange-600 uppercase tracking-widest">
-                  Módulo em fase de desenvolvimento
-              </p>
-            </div>
+          <div className="flex items-center gap-3 bg-orange-50/60 px-4 py-2 rounded-xl border border-orange-100/50 w-fit">
+            <HardHat size={18} className="text-orange-500 animate-bounce" />
+            <p className="text-[11px] md:text-[14px] font-black text-orange-600 uppercase tracking-widest">
+              Módulo em fase de desenvolvimento
+            </p>
+          </div>
 
-            {/* Sync Button Box */}
-            <div className="flex items-center justify-between w-full md:w-auto md:gap-8 bg-orange-50/50 p-4 rounded-2xl border border-orange-100">
-                <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">Último Check</span>
-                <button onClick={handleSyncNow} className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg font-black text-[9px] uppercase tracking-tighter hover:bg-orange-600 transition-all shadow-md shadow-orange-500/10">
-                   <RefreshCw size={12} className={syncing ? "animate-spin" : ""} /> Sincronizar
-                </button>
-            </div>
+          {/* Sync Button Box */}
+          <div className="flex items-center justify-between w-full md:w-auto md:gap-8 bg-orange-50/50 p-4 rounded-2xl border border-orange-100">
+            <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">Último Check</span>
+            <button onClick={handleSyncNow} className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg font-black text-[9px] uppercase tracking-tighter hover:bg-orange-600 transition-all shadow-md shadow-orange-500/10">
+              <RefreshCw size={12} className={syncing ? "animate-spin" : ""} /> Sincronizar
+            </button>
+          </div>
         </div>
       </div>
 
@@ -343,28 +343,28 @@ export default function IntegrarPage() {
       <div className="flex flex-col items-center text-center">
         <div className="max-w-3xl mb-12">
           <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
-            Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+            Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
           </h4>
           <p className="text-gray-500 font-medium text-sm md:text-base">
             Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
           </p>
         </div>
-        
-        <a 
-          href="https://www.instagram.com/nucleobase.app/" 
-          target="_blank" 
+
+        <a
+          href="https://www.instagram.com/nucleobase.app/"
+          target="_blank"
           rel="noopener noreferrer"
           className="group relative flex flex-col items-center gap-6"
         >
           <div className="relative">
             {/* Efeito de brilho/glow ao fundo do ícone */}
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
-            
+
             <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
               <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
             </div>
           </div>
-          
+
           <div className="flex flex-col items-center">
             <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
             <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
@@ -384,9 +384,9 @@ export default function IntegrarPage() {
                 <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">{selectedFonte?.nome}</p>
               </div>
             </div>
-            <input 
-              type="text" 
-              value={newUrl} 
+            <input
+              type="text"
+              value={newUrl}
               onChange={(e) => setNewUrl(e.target.value)}
               placeholder="Cole o link da planilha aqui..."
               className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-6 py-4 text-sm mb-6 outline-none focus:border-orange-500 transition-all"

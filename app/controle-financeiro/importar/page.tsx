@@ -1,4 +1,4 @@
-// app/lancamentos/importar/page.tsx
+// app/controle-financeiro/importar/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -7,7 +7,7 @@ import {
   ArrowLeft, FileUp, FileSpreadsheet, AlertCircle,
   Activity, CreditCard, Wallet, Loader2,
   CheckCircle2, Tag, Info, RotateCcw, ShieldCheck, FileWarning,
-  Download, Instagram
+  Download, Instagram, ChevronLeft, ChevronRight
 } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
@@ -18,6 +18,7 @@ export default function ImportarXLSPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [dadosPreview, setDadosPreview] = useState<any[]>([]);
   const [tipoImportacao, setTipoImportacao] = useState<'CC' | 'CARTAO'>('CC');
+  const [activeCard, setActiveCard] = useState(0);
 
   const [cooldownTime, setCooldownTime] = useState(0);
 
@@ -368,6 +369,9 @@ export default function ImportarXLSPage() {
 
   const contagemNovos = dadosPreview.filter(d => !d.ja_existe).length;
 
+  const nextCard = () => setActiveCard((prev) => (prev + 1) % 2);
+  const prevCard = () => setActiveCard((prev) => (prev - 1 + 2) % 2);
+
   return (
     <div className="w-full lg:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
 
@@ -392,13 +396,13 @@ export default function ImportarXLSPage() {
           <div className="max-w-xl">
             <h4 className="text-gray-900 font-bold text-lg mb-2 flex items-center gap-2">
               <FileSpreadsheet size={20} className="text-orange-500" />
-              Utilize os modelos oficiais
+              Modelos oficiais
             </h4>
             <p className="hidden md:block text-gray-500 text-sm leading-relaxed">
-              Para garantir que seus dados sejam processados corretamente, utilize nossas planilhas pré-configuradas. Elas contêm as colunas exatas para o sistema identificar categorias, bancos e parcelamentos.
+              Utilize nossas planilhas pré-configuradas para garantir que o sistema identifique corretamente categorias, bancos e parcelamentos.
             </p>
             <p className="block md:hidden text-gray-500 text-xs leading-relaxed">
-              Efetue o download dos modelos de arquivos "Conta Corrente" e "Cartão", insira seus dados e garanta a leitura correta das colunas.
+              Baixe os modelos padronizados para correta leitura das colunas.
             </p>
           </div>
           <div className="flex flex-wrap lg:flex-nowrap gap-3 w-full md:w-auto">
@@ -424,7 +428,9 @@ export default function ImportarXLSPage() {
 
       <div className={`mb-8 transition-all ${dadosPreview.length > 0 ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4 w-full">
-          Configuração e Upload <div className="h-px bg-gray-300 flex-1"></div>
+          <span className="md:hidden">Upload</span>
+          <span className="hidden md:inline">Configuração e Upload</span>
+          <div className="h-px bg-gray-300 flex-1"></div>
         </h3>
         <div className="grid grid-cols-2 md:flex md:flex-wrap gap-3 md:gap-4">
           <button
@@ -502,17 +508,20 @@ export default function ImportarXLSPage() {
         )}
       </div>
 
-      <div className="mt-12 mb-8">
+      <div className="mt-8 md:mt-12 mb-4 md:mb-8">
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-4 flex items-center gap-4 w-full">
           Contexto de Importação <div className="h-px bg-gray-200 flex-1"></div>
         </h3>
-        <p className="text-gray-500 text-[13px] font-medium leading-relaxed w-full">
-          Abaixo você encontra a prévia dos dados processados. O sistema aplica regras de integridade para garantir que valores parcelados não gerem duplicidade.
+        <p className="hidden md:block text-gray-500 text-[13px] font-medium leading-relaxed w-full">
+          Abaixo você encontra a prévia dos dados processados. O app aplica regras de integridade para garantir que lançamentos não gerem duplicidade.
+        </p>
+        <p className="block md:hidden text-gray-500 text-[12px] font-medium leading-relaxed w-full">
+          Prévia dos dados processados sem duplicidade.
         </p>
       </div>
 
       {dadosPreview.length > 0 && (
-        <div className="mt-10 animate-in fade-in slide-in-from-top-4 duration-500">
+        <div className="mt-6 md:mt-10 animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="bg-white border border-gray-100 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl shadow-orange-900/5">
             <div className="p-6 md:p-8 bg-gray-50/50 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="flex items-center gap-4">
@@ -583,7 +592,8 @@ export default function ImportarXLSPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mt-16 mb-24">
+      {/* Desktop Version */}
+      <div className="hidden md:grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mt-16 mb-24">
         <div className="bg-gray-900 p-8 md:p-10 rounded-[2.5rem] md:rounded-[3rem] shadow-xl relative overflow-hidden group">
           <Activity className="absolute -right-8 -bottom-8 text-orange-500 opacity-10" size={120} />
           <div className="relative z-10">
@@ -603,6 +613,52 @@ export default function ImportarXLSPage() {
           <p className="text-[13px] md:text-sm text-gray-500 font-medium leading-relaxed">
             Nossa IA gera uma assinatura digital única para cada transação. Isso permite que você suba o mesmo arquivo várias vezes sem duplicar seus gastos.
           </p>
+        </div>
+      </div>
+
+      {/* Mobile Carrossel Version */}
+      <div className="md:hidden mt-8 mb-16 relative overflow-hidden px-2">
+        <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${activeCard * 100}%)` }}>
+          <div className="w-full flex-shrink-0 px-2">
+            <div className="bg-gray-900 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden h-[240px] flex flex-col justify-between">
+              <Activity className="absolute -right-8 -bottom-8 text-orange-500 opacity-10" size={120} />
+              <div className="relative z-10">
+                <p className="text-orange-400 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Dica de Importação</p>
+                <h4 className="text-white font-bold text-lg mb-2 tracking-tight">Processamento Parcelado</h4>
+                <p className="text-gray-400 text-xs leading-relaxed font-medium">
+                  Projeta automaticamente os meses futuros no seu fluxo de caixa.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full flex-shrink-0 px-2">
+            <div className="bg-white border border-gray-100 p-8 rounded-[2.5rem] shadow-sm relative overflow-hidden h-[240px] flex flex-col justify-between">
+              <div>
+                <div className="w-10 h-10 bg-orange-50 text-orange-500 rounded-xl flex items-center justify-center mb-4 shadow-sm border border-orange-100">
+                  <Info size={20} />
+                </div>
+                <h4 className="font-bold text-gray-900 text-lg mb-1 tracking-tight">Deduplicação Ativa</h4>
+                <p className="text-xs text-gray-500 font-medium leading-relaxed">
+                  Assinatura digital única evita gastos duplicados.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-center items-center gap-6 mt-6">
+          <button onClick={prevCard} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 active:bg-gray-100">
+            <ChevronLeft size={20} />
+          </button>
+          <div className="flex gap-2">
+            {[0, 1].map((i) => (
+              <div key={i} className={`h-1.5 rounded-full transition-all ${activeCard === i ? 'w-6 bg-orange-500' : 'w-1.5 bg-gray-200'}`} />
+            ))}
+          </div>
+          <button onClick={nextCard} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 active:bg-gray-100">
+            <ChevronRight size={20} />
+          </button>
         </div>
       </div>
 

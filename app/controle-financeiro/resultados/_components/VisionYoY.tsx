@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import { 
-  CalendarDays, TrendingDown, TrendingUp, X, Info, 
-  ArrowUpRight, ArrowDownRight, Scale 
+import React, { useMemo } from "react";
+import {
+  CalendarDays, TrendingDown, TrendingUp, X, Info,
+  ArrowUpRight, ArrowDownRight, Scale
 } from "lucide-react";
-import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, 
-  Tooltip, ResponsiveContainer, Legend 
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
 
 interface Props {
@@ -17,8 +17,8 @@ interface Props {
 }
 
 export default function VisionYoY({ data, filterCategory, onClearFilter }: Props) {
-  const [naturezaFiltro, setNaturezaFiltro] = useState<'Receita' | 'Despesa' | 'Saldo'>('Despesa');
-  
+  const [naturezaFiltro, setNaturezaFiltro] = React.useState<'Receita' | 'Despesa' | 'Saldo'>('Despesa');
+
   const hoje = new Date();
   const anoAtual = hoje.getUTCFullYear();
   const anoAnterior = anoAtual - 1;
@@ -38,7 +38,7 @@ export default function VisionYoY({ data, filterCategory, onClearFilter }: Props
 
     data.forEach(item => {
       if (naturezaFiltro !== 'Saldo' && item.natureza !== naturezaFiltro) return;
-      
+
       const valorOriginal = Number(item.valor);
       const valorAbsoluto = Math.abs(valorOriginal);
       const pertenceACategoria = !filterCategory || item.categoria === filterCategory;
@@ -90,7 +90,7 @@ export default function VisionYoY({ data, filterCategory, onClearFilter }: Props
 
   return (
     <section id="grafico-yoy" className="w-full bg-white border border-gray-100 rounded-[3rem] p-6 md:p-12 shadow-sm mt-8 scroll-mt-10 animate-in fade-in slide-in-from-bottom-6 duration-1000">
-      
+
       <div className="flex flex-col lg:flex-row justify-between items-start gap-8 mb-12">
         <div className="space-y-4 w-full lg:w-auto">
           <div className="flex items-center gap-3">
@@ -101,7 +101,7 @@ export default function VisionYoY({ data, filterCategory, onClearFilter }: Props
               Sazonalidade Comparativa
             </h3>
           </div>
-          
+
           <div className="flex flex-col gap-3">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">
               Performance <span className="text-blue-600">YoY.</span>
@@ -109,27 +109,27 @@ export default function VisionYoY({ data, filterCategory, onClearFilter }: Props
 
             {/* Container de Botões Ajustado para Mobile */}
             <div className="flex bg-gray-50 p-1.5 rounded-2xl w-full sm:w-fit mx-auto sm:mx-0">
-              <button 
+              <button
                 onClick={() => setNaturezaFiltro('Despesa')}
                 className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 py-2 sm:px-5 sm:py-2 rounded-xl text-[8px] sm:text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${naturezaFiltro === 'Despesa' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}
               >
-                <ArrowDownRight size={12} /> 
+                <ArrowDownRight size={12} />
                 <span>Despesas</span>
               </button>
-              
-              <button 
+
+              <button
                 onClick={() => setNaturezaFiltro('Receita')}
                 className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 py-2 sm:px-5 sm:py-2 rounded-xl text-[8px] sm:text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${naturezaFiltro === 'Receita' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}
               >
-                <ArrowUpRight size={12} /> 
+                <ArrowUpRight size={12} />
                 <span>Receitas</span>
               </button>
-              
-              <button 
+
+              <button
                 onClick={() => setNaturezaFiltro('Saldo')}
                 className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 py-2 sm:px-5 sm:py-2 rounded-xl text-[8px] sm:text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${naturezaFiltro === 'Saldo' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}
               >
-                <Scale size={12} /> 
+                <Scale size={12} />
                 <span>Saldo</span>
               </button>
             </div>
@@ -150,14 +150,13 @@ export default function VisionYoY({ data, filterCategory, onClearFilter }: Props
           </div>
         </div>
 
-        <div className={`flex flex-col items-center justify-center px-10 py-6 rounded-[2.5rem] border transition-all duration-500 min-w-[220px] w-full lg:w-auto ${
-          (naturezaFiltro === 'Despesa' && variacaoPercentual > 0) || (naturezaFiltro !== 'Despesa' && variacaoPercentual < 0)
-            ? 'bg-red-50/50 border-red-100 text-red-600' 
+        <div className={`flex flex-col items-center justify-center px-10 py-6 rounded-[2.5rem] border transition-all duration-500 min-w-[220px] w-full lg:w-auto ${(naturezaFiltro === 'Despesa' && variacaoPercentual > 0) || (naturezaFiltro !== 'Despesa' && variacaoPercentual < 0)
+            ? 'bg-red-50/50 border-red-100 text-red-600'
             : 'bg-emerald-50/50 border-emerald-100 text-emerald-600'
-        }`}>
+          }`}>
           <div className="flex items-center gap-2 mb-1">
-             {variacaoPercentual > 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
-             <p className="text-[10px] font-black uppercase tracking-widest opacity-70">Variação Anual</p>
+            {variacaoPercentual > 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
+            <p className="text-[10px] font-black uppercase tracking-widest opacity-70">Variação Anual</p>
           </div>
           <p className="text-2xl font-semibold tracking-tighter">
             {variacaoPercentual > 0 ? '+' : ''}{variacaoPercentual.toFixed(1)}%
@@ -169,47 +168,47 @@ export default function VisionYoY({ data, filterCategory, onClearFilter }: Props
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={dadosYoY} margin={{ left: -10, right: 10, top: 10 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-            <XAxis 
-              dataKey="name" 
-              axisLine={false} 
-              tickLine={false} 
-              tick={{fontSize: 10, fontWeight: 700, fill: '#94A3B8'}} 
-              dy={15} 
+            <XAxis
+              dataKey="name"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fontSize: 10, fontWeight: 700, fill: '#94A3B8' }}
+              dy={15}
             />
-            <YAxis 
-              axisLine={false} 
-              tickLine={false} 
-              tick={{fontSize: 10, fontWeight: 500, fill: '#94A3B8'}} 
-              tickFormatter={(v) => `R$${v >= 1000 ? v/1000 + 'k' : v}`} 
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              tick={{ fontSize: 10, fontWeight: 500, fill: '#94A3B8' }}
+              tickFormatter={(v) => `R$${v >= 1000 ? v / 1000 + 'k' : v}`}
             />
-            <Tooltip 
+            <Tooltip
               cursor={{ stroke: '#E2E8F0', strokeWidth: 1 }}
               contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 50px rgba(0,0,0,0.1)', padding: '20px' }}
-              formatter={(value: any) => [`R$ ${Number(value).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`]}
+              formatter={(value: any) => [`R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`]}
             />
-            <Legend 
-              verticalAlign="top" 
-              align="right" 
-              iconType="circle" 
-              wrapperStyle={{ paddingBottom: '30px', fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.1em' }} 
+            <Legend
+              verticalAlign="top"
+              align="right"
+              iconType="circle"
+              wrapperStyle={{ paddingBottom: '30px', fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.1em' }}
             />
-            
-            <Line 
+
+            <Line
               name={`Ciclo Atual (${anoAtual})`}
-              type="monotone" 
-              dataKey="atual" 
-              stroke="#2563eb" 
-              strokeWidth={4} 
+              type="monotone"
+              dataKey="atual"
+              stroke="#2563eb"
+              strokeWidth={4}
               dot={{ r: 4, fill: '#2563eb', strokeWidth: 2, stroke: '#fff' }}
               activeDot={{ r: 6, strokeWidth: 0, fill: '#2563eb' }}
               animationDuration={2000}
             />
-            <Line 
+            <Line
               name={`Referência (${anoAnterior})`}
-              type="monotone" 
-              dataKey="anterior" 
-              stroke="#CBD5E1" 
-              strokeWidth={2} 
+              type="monotone"
+              dataKey="anterior"
+              stroke="#CBD5E1"
+              strokeWidth={2}
               strokeDasharray="8 8"
               dot={false}
               activeDot={{ r: 4, fill: '#94A3B8' }}
@@ -226,11 +225,11 @@ export default function VisionYoY({ data, filterCategory, onClearFilter }: Props
         <div className="space-y-1">
           <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight">Análise de Inteligência</h4>
           <p className="text-xs md:text-sm text-gray-500 leading-relaxed font-medium">
-            {naturezaFiltro === 'Despesa' 
+            {naturezaFiltro === 'Despesa'
               ? "A linha tracejada estabelece o benchmark do seu consumo anterior. Manter a curva atual abaixo desta referência é o caminho para a liberdade financeira."
-              : naturezaFiltro === 'Receita' 
-              ? "Compare a evolução das suas receitas. O objetivo é manter a linha azul consistentemente acima da referência tracejada para garantir crescimento de patrimônio."
-              : "Acompanhe o seu fôlego financeiro. O saldo positivo acumulado é o que define sua capacidade de investimento e segurança a longo prazo."}
+              : naturezaFiltro === 'Receita'
+                ? "Compare a evolução das suas receitas. O objetivo é manter a linha azul consistentemente acima da referência tracejada para garantir crescimento de patrimônio."
+                : "Acompanhe o seu fôlego financeiro. O saldo positivo acumulado é o que define sua capacidade de investimento e segurança a longo prazo."}
           </p>
         </div>
       </div>

@@ -1,4 +1,4 @@
-// app/lancamentos/page.tsx
+// app/controle-financeiro/lancamentos/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -417,13 +417,13 @@ export default function LancamentosPage() {
             <div className="text-xs font-bold text-orange-700 flex items-center flex-wrap gap-2">
               <div className="hidden md:flex items-center flex-wrap gap-2">
                 Precisa de mais agilidade? Utilize a
-                <a href="/lancamentos/importar" className="hover:opacity-80 transition-opacity">
+                <a href="/controle-financeiro/importar" className="hover:opacity-80 transition-opacity">
                   <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
                     Importação via arquivo
                   </span>
                 </a>
                 ou também a
-                <a href="/lancamentos/integrar" className="hover:opacity-80 transition-opacity">
+                <a href="/controle-financeiro/integrar" className="hover:opacity-80 transition-opacity">
                   <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
                     Automação em cloud
                   </span>,
@@ -433,13 +433,13 @@ export default function LancamentosPage() {
 
               <div className="md:hidden flex items-center flex-wrap gap-1">
                 Importe dados via
-                <a href="/lancamentos/importar">
+                <a href="/controle-financeiro/importar">
                   <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
                     Arquivo
                   </span>
                 </a>
                 ou
-                <a href="/lancamentos/integrar">
+                <a href="/controle-financeiro/integrar">
                   <span className="bg-orange-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block font-bold">
                     Cloud
                   </span>, para múltiplos registros.
@@ -684,7 +684,7 @@ export default function LancamentosPage() {
                 </button>
 
                 <Link
-                  href="/lancamentos/gerenciar"
+                  href="/controle-financeiro/gerenciar"
                   className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-3 text-amber-400 bg-amber-400/5 border border-amber-400/20 hover:bg-amber-400/10 hover:border-amber-400/40 hover:text-amber-300 shadow-lg shadow-black/20"
                 >
                   <Edit3 size={16} className="animate-pulse" />
@@ -703,7 +703,7 @@ export default function LancamentosPage() {
 
           <div className="hidden lg:grid grid-cols-12 gap-6 mb-10">
             <div className="lg:col-span-4">
-              <Link href="/lancamentos/resultados" className="flex flex-col h-full bg-blue-600 text-white rounded-[2rem] p-8 hover:bg-blue-700 transition-all group relative overflow-hidden shadow-sm">
+              <Link href="/controle-financeiro/resultados" className="flex flex-col h-full bg-blue-600 text-white rounded-[2rem] p-8 hover:bg-blue-700 transition-all group relative overflow-hidden shadow-sm">
                 <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center text-white mb-6">
                   <BarChart3 size={24} />
                 </div>
@@ -713,7 +713,7 @@ export default function LancamentosPage() {
             </div>
 
             <div className="lg:col-span-4">
-              <Link href="/lancamentos/integrar" className="flex flex-col h-full bg-gray-50 border border-gray-200 rounded-[2rem] p-8 hover:bg-emerald-50 hover:border-emerald-200 transition-all group relative overflow-hidden">
+              <Link href="/controle-financeiro/integrar" className="flex flex-col h-full bg-gray-50 border border-gray-200 rounded-[2rem] p-8 hover:bg-emerald-50 hover:border-emerald-200 transition-all group relative overflow-hidden">
                 <div className="absolute top-6 right-6 bg-blue-600 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase">Em desenvolvimento</div>
                 <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-gray-400 group-hover:text-emerald-500 mb-6 shadow-sm">
                   <Cpu size={24} />
@@ -724,7 +724,7 @@ export default function LancamentosPage() {
             </div>
 
             <div className="lg:col-span-4">
-              <Link href="/lancamentos/importar" className="flex flex-col h-full bg-orange-50/30 border-2 border-orange-200 rounded-[2rem] p-8 hover:bg-orange-50 hover:border-orange-300 transition-all group relative overflow-hidden">
+              <Link href="/controle-financeiro/importar" className="flex flex-col h-full bg-orange-50/30 border-2 border-orange-200 rounded-[2rem] p-8 hover:bg-orange-50 hover:border-orange-300 transition-all group relative overflow-hidden">
                 <div className="absolute top-6 right-6 bg-orange-500 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase animate-bounce">Recomendado</div>
                 <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-orange-500 mb-6 shadow-sm">
                   <FileUp size={24} />
@@ -745,14 +745,14 @@ export default function LancamentosPage() {
                     <h4 className="text-lg font-bold mb-1">Painel de Resultados</h4>
                     <p className="text-blue-100 text-xs font-medium opacity-90 leading-relaxed">Acompanhe seus lançamentos em tempo real.</p>
                   </div>
-                  <Link href="/lancamentos/resultados" className="bg-white text-blue-600 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest text-center shadow-lg">
+                  <Link href="/controle-financeiro/resultados" className="bg-white text-blue-600 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest text-center shadow-lg">
                     Acessar agora
                   </Link>
                 </div>
               </div>
 
               <div className="w-full flex-shrink-0 px-2">
-                <Link href="/lancamentos/importar" className="flex flex-col bg-orange-50/30 border-2 border-orange-200 rounded-[2rem] p-8 h-[250px] relative overflow-hidden">
+                <Link href="/controle-financeiro/importar" className="flex flex-col bg-orange-50/30 border-2 border-orange-200 rounded-[2rem] p-8 h-[250px] relative overflow-hidden">
                   <div className="absolute top-6 right-6 bg-orange-500 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase">Recomendado</div>
                   <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-orange-500 mb-6 shadow-sm">
                     <FileUp size={24} />
@@ -763,7 +763,7 @@ export default function LancamentosPage() {
               </div>
 
               <div className="w-full flex-shrink-0 px-2">
-                <Link href="/lancamentos/integrar" className="flex flex-col bg-gray-50 border border-gray-200 rounded-[2rem] p-8 h-[250px] relative overflow-hidden">
+                <Link href="/controle-financeiro/integrar" className="flex flex-col bg-gray-50 border border-gray-200 rounded-[2rem] p-8 h-[250px] relative overflow-hidden">
                   <div className="absolute top-6 right-6 bg-blue-600 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase">Desenvolvimento</div>
                   <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-gray-400 mb-6 shadow-sm">
                     <Cpu size={24} />

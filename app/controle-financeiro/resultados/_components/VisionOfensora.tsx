@@ -34,7 +34,7 @@ export default function VisionOfensora({ data, onViewHistory }: Props) {
           return parseInt(ano) === anoAtual && mesIndex === mesAtual;
         }
       }
-      
+
       // Fallback para data_competencia
       const dataComp = new Date(item.data_competencia);
       return dataComp.getUTCFullYear() === anoAtual && dataComp.getUTCMonth() === mesAtual;
@@ -81,7 +81,7 @@ export default function VisionOfensora({ data, onViewHistory }: Props) {
 
   return (
     <section className="w-full bg-white border border-gray-100 rounded-[3rem] p-6 md:p-12 shadow-sm mt-8 animate-in fade-in slide-in-from-bottom-6 duration-1000">
-      
+
       {/* HEADER: GRID 65/35 */}
       <div className="flex flex-col lg:flex-row justify-between items-start gap-8 mb-14">
         <div className="w-full lg:w-[65%] text-left">
@@ -97,7 +97,7 @@ export default function VisionOfensora({ data, onViewHistory }: Props) {
             Análise crítica de <span className="text-red-600">{nomeOfensora}</span>.
           </h2>
           <p className="text-gray-500 text-sm md:text-base mt-2 font-medium">
-            Sua maior saída financeira projetada para este mês concentra-se aqui.
+            Sua maior saída financeira para este mês concentra-se aqui.
           </p>
         </div>
 
@@ -111,13 +111,13 @@ export default function VisionOfensora({ data, onViewHistory }: Props) {
 
       {/* CONTEÚDO: GRID 65/35 */}
       <div className="flex flex-col lg:flex-row gap-12 items-stretch">
-        
+
         {/* LADO ESQUERDO: DETALHAMENTO (65%) */}
         <div className="w-full lg:w-[65%] space-y-8">
           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-8 flex items-center gap-2">
             <AlertTriangle size={14} className="text-orange-500" /> Detalhamento de incidência por fatura
           </p>
-          
+
           <div className="space-y-7">
             {subcategoriasOrdenadas.map(([nome, valor], idx) => {
               const percentual = (valor / valorTotalOfensora) * 100;
@@ -154,11 +154,11 @@ export default function VisionOfensora({ data, onViewHistory }: Props) {
                 <Target size={14} className="text-blue-400" />
                 <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">Plano de Ação</span>
               </div>
-              
+
               <h4 className="text-xl font-bold mb-6 leading-tight tracking-tight">
-                Potencial de <br/> <span className="text-blue-400">Economia Real</span>
+                Potencial de <br /> <span className="text-blue-400">Economia Real</span>
               </h4>
-              
+
               <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-8 w-full">
                 <p className="text-gray-300 text-[11px] leading-relaxed">
                   Reduzir <span className="text-white font-bold">"{subcategoriasOrdenadas[0]?.[0]}"</span> em 10% traria economia de:
@@ -169,13 +169,13 @@ export default function VisionOfensora({ data, onViewHistory }: Props) {
               </div>
             </div>
 
-            <a 
-              href="/lancamentos/gerenciar"
+            <a
+              href="/controle-financeiro/gerenciar"
               className="relative z-10 group flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.15em] bg-blue-600 text-white hover:bg-white hover:text-gray-900 py-4 px-6 rounded-2xl transition-all duration-500 w-full justify-center active:scale-95 shadow-lg shadow-blue-600/20"
             >
               Ver Histórico <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
             </a>
-            
+
             <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-blue-600/20 rounded-full blur-[40px]"></div>
           </div>
         </div>

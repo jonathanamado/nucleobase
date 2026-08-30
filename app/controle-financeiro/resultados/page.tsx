@@ -1,4 +1,4 @@
-// app/lancamentos/resultados/page.tsx
+// app/controle-financeiro/resultados/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -16,8 +16,8 @@ import {
   Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
 import { createClient } from "@supabase/supabase-js";
-import VisionOfensora from "@/app/lancamentos/resultados/_components/VisionOfensora";
-import VisionYoY from "@/app/lancamentos/resultados/_components/VisionYoY";
+import VisionOfensora from "@/app/controle-financeiro/resultados/_components/VisionOfensora";
+import VisionYoY from "@/app/controle-financeiro/resultados/_components/VisionYoY";
 import { useLoginProtegido } from "@/hooks/useLoginProtegido";
 
 const supabase = createClient(
@@ -379,7 +379,7 @@ export default function DashboardResultados() {
         <div className="bg-orange-50 p-8 rounded-[3rem] text-orange-500 mb-6"><Database size={48} /></div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Nenhum dado encontrado.</h1>
         <p className="text-gray-500 mb-8">Olá, {userName}! Realize seu primeiro lançamento.</p>
-        <a href="/lancamentos" className="bg-orange-500 text-white px-10 py-4 rounded-2xl font-bold flex items-center gap-2">Lançar agora <PlusCircle size={20} /></a>
+        <a href="/controle-financeiro" className="bg-orange-500 text-white px-10 py-4 rounded-2xl font-bold flex items-center gap-2">Lançar agora <PlusCircle size={20} /></a>
       </div>
     );
   }
@@ -618,7 +618,7 @@ export default function DashboardResultados() {
         <div className="relative overflow-hidden bg-white border border-gray-100 rounded-[3rem] p-10 shadow-sm flex flex-col md:flex-row justify-between items-center gap-10 mb-20">
           <div className="max-w-xl text-center md:text-left">
             <h3 className="text-2xl font-bold text-gray-900 mb-4 tracking-tight">Sua visão personalizada<span className="text-blue-600">.</span></h3>
-            <p className="text-gray-500 leading-relaxed text-lg font-medium opacity-80">Transformamos seus padrões de uso em clareza estratégica.</p>
+            <p className="text-gray-500 leading-relaxed text-lg font-medium opacity-80">Transformamos padrões em estratéga.</p>
           </div>
           <div className="w-full md:w-96 flex flex-col gap-1 items-center md:items-start">
             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Canais Oficiais</p>

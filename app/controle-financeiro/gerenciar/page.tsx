@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { 
-  Search, Filter, Edit3, Trash2, ArrowLeft, 
-  Calendar, Tag, DollarSign, X, Save, 
+import {
+  Search, Filter, Edit3, Trash2, ArrowLeft,
+  Calendar, Tag, DollarSign, X, Save,
   ChevronLeft, ChevronRight, AlertCircle, CheckCircle2,
   Database, BarChart3, ArrowUpRight, RotateCcw,
-  Lock, Eye, EyeOff, UserPlus, Trash
+  Lock, Eye, EyeOff, UserPlus, Trash, Instagram
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
@@ -21,9 +21,9 @@ export default function GerenciarLancamentosPage() {
   const [lancamentos, setLancamentos] = useState<any[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  
+
   // Estados para Login
-  const [slug, setSlug] = useState(""); 
+  const [slug, setSlug] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
@@ -37,13 +37,13 @@ export default function GerenciarLancamentosPage() {
   // Edição
   const [editingItem, setEditingItem] = useState<any>(null);
   const [saveLoading, setSaveLoading] = useState(false);
-  const [msgFeedback, setMsgFeedback] = useState<{tipo: 'sucesso' | 'erro', texto: string} | null>(null);
+  const [msgFeedback, setMsgFeedback] = useState<{ tipo: 'sucesso' | 'erro', texto: string } | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (session?.user) {
         setIsLoggedIn(true);
         setUserId(session.user.id);
@@ -51,7 +51,7 @@ export default function GerenciarLancamentosPage() {
           .from("lancamentos_financeiros")
           .select("*")
           .eq("user_id", session.user.id);
-        
+
         if (data) setLancamentos(data);
       }
       setLoading(false);
@@ -60,7 +60,7 @@ export default function GerenciarLancamentosPage() {
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault(); 
+    e.preventDefault();
     setAuthLoading(true);
     const inputAcesso = slug.trim().toLowerCase();
     try {
@@ -73,10 +73,10 @@ export default function GerenciarLancamentosPage() {
       const { error } = await supabase.auth.signInWithPassword({ email: emailParaLogin, password });
       if (error) throw new Error("Senha incorreta.");
       window.location.reload();
-    } catch (err: any) { 
-      alert(err.message); 
-    } finally { 
-      setAuthLoading(false); 
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setAuthLoading(false);
     }
   };
 
@@ -87,12 +87,12 @@ export default function GerenciarLancamentosPage() {
 
   const lancamentosFiltrados = useMemo(() => {
     const filtrados = lancamentos.filter(l => {
-      const matchBusca = l.descricao.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         l.categoria.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchBusca = l.descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        l.categoria.toLowerCase().includes(searchTerm.toLowerCase());
       const matchNatureza = filterNatureza === "TODOS" || l.natureza === filterNatureza;
       const matchBanco = filterBanco === "TODOS" || l.origem === filterBanco;
       const matchMes = filterMes === "" || l.data_competencia.startsWith(filterMes);
-      
+
       return matchBusca && matchNatureza && matchBanco && matchMes;
     });
 
@@ -104,7 +104,7 @@ export default function GerenciarLancamentosPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Deseja realmente excluir este registro?")) return;
-    
+
     const { error } = await supabase.from("lancamentos_financeiros").delete().eq("id", id);
     if (error) alert("Erro ao excluir");
     else setLancamentos(lancamentos.filter(l => l.id !== id));
@@ -113,7 +113,7 @@ export default function GerenciarLancamentosPage() {
   const handleDeleteAll = async () => {
     if (!userId) return;
     const confirmar = confirm("ATENÇÃO: Você está prestes a excluir TODOS os seus registros permanentemente. Esta ação não pode ser desfeita. Deseja continuar?");
-    
+
     if (confirmar) {
       setLoading(true);
       const { error } = await supabase
@@ -135,8 +135,8 @@ export default function GerenciarLancamentosPage() {
     e.preventDefault();
     setSaveLoading(true);
 
-    const valorAjustado = editingItem.natureza === "Despesa" 
-      ? -Math.abs(editingItem.valor) 
+    const valorAjustado = editingItem.natureza === "Despesa"
+      ? -Math.abs(editingItem.valor)
       : Math.abs(editingItem.valor);
 
     const { error } = await supabase
@@ -151,10 +151,10 @@ export default function GerenciarLancamentosPage() {
       .eq("id", editingItem.id);
 
     if (error) {
-      setMsgFeedback({tipo: 'erro', texto: "Erro ao atualizar registro."});
+      setMsgFeedback({ tipo: 'erro', texto: "Erro ao atualizar registro." });
     } else {
-      setLancamentos(lancamentos.map(l => l.id === editingItem.id ? {...editingItem, valor: valorAjustado} : l));
-      setMsgFeedback({tipo: 'sucesso', texto: "Registro atualizado com sucesso!"});
+      setLancamentos(lancamentos.map(l => l.id === editingItem.id ? { ...editingItem, valor: valorAjustado } : l));
+      setMsgFeedback({ tipo: 'sucesso', texto: "Registro atualizado com sucesso!" });
       setTimeout(() => { setEditingItem(null); setMsgFeedback(null); }, 1500);
     }
     setSaveLoading(false);
@@ -179,7 +179,7 @@ export default function GerenciarLancamentosPage() {
             </div>
             <button disabled={authLoading} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-100 transition-transform active:scale-95 disabled:opacity-50">{authLoading ? "Verificando..." : "Entrar na Plataforma"}</button>
           </form>
-          
+
           <div className="mt-8 pt-8 border-t border-gray-100">
             <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Ainda não se cadastrou?</p>
             <a href="/cadastro" className="flex items-center justify-center gap-2 bg-emerald-50 text-emerald-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest border border-emerald-100 hover:bg-emerald-100 transition-all">
@@ -193,7 +193,7 @@ export default function GerenciarLancamentosPage() {
 
   return (
     <div className="w-full animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-8">
-      
+
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
@@ -202,7 +202,8 @@ export default function GerenciarLancamentosPage() {
             <Database size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
           </h1>
           <h2 className="text-gray-500 text-sm md:text-lg font-medium max-w-2xl leading-relaxed mt-0">
-            Edite ou remova registros do seu <span className="text-blue-600 font-bold">"{searchTerm || "Banco de dados"}"</span>.
+            <span className="md:hidden">Edite ou remova registros.</span>
+            <span className="hidden md:inline">Edite ou remova registros do seu <span className="text-blue-600 font-bold">"{searchTerm || "Banco de dados"}"</span>.</span>
           </h2>
         </div>
       </div>
@@ -211,14 +212,14 @@ export default function GerenciarLancamentosPage() {
         <h3 className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 flex items-center gap-4 flex-1">
           Controle de Lançamentos <div className="h-px bg-gray-300 flex-1"></div>
         </h3>
-        
+
         <div className="flex items-center gap-3">
 
           {/* BOTÃO LIMPAR FILTROS */}
           <div className="flex flex-col items-center gap-1">
-            <span className="text-[9px] font-black uppercase tracking-tighter text-gray-400">Limpar filtro</span>
-            <button 
-              onClick={() => {setSearchTerm(""); setFilterNatureza("TODOS"); setFilterBanco("TODOS"); setFilterMes("");}}
+            <span className="text-[9px] font-black uppercase tracking-tighter text-gray-400 md:block hidden">Limpar filtro</span>
+            <button
+              onClick={() => { setSearchTerm(""); setFilterNatureza("TODOS"); setFilterBanco("TODOS"); setFilterMes(""); }}
               className="w-10 h-10 md:w-12 md:h-12 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-gray-400 hover:text-blue-600 hover:border-blue-100 hover:bg-blue-50 transition-all shadow-sm group"
               title="Limpar todos os filtros"
             >
@@ -228,8 +229,8 @@ export default function GerenciarLancamentosPage() {
 
           {/* BOTÃO EXCLUIR TUDO */}
           <div className="flex flex-col items-center gap-1">
-            <span className="text-[9px] font-black uppercase tracking-tighter text-red-400">Excluir dados</span>
-            <button 
+            <span className="text-[9px] font-black uppercase tracking-tighter text-red-400 md:block hidden">Excluir dados</span>
+            <button
               onClick={handleDeleteAll}
               className="w-10 h-10 md:w-12 md:h-12 bg-white border border-red-100 rounded-2xl flex items-center justify-center text-red-400 hover:text-white hover:bg-red-500 transition-all shadow-sm group"
               title="Excluir todos os registros permanentemente"
@@ -242,16 +243,16 @@ export default function GerenciarLancamentosPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 mb-8 items-stretch">
-        
+
         <section className="lg:col-span-12 bg-gray-50/50 border border-gray-100 rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-8">
           <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-end">
-            
+
             <div className="flex-[2] w-full space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Busca livre</label>
               <div className="relative group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-500 transition-colors" size={16} />
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   placeholder=""
                   className="w-full pl-11 pr-10 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold outline-none focus:border-blue-500 transition-all shadow-sm"
                   value={searchTerm}
@@ -267,7 +268,7 @@ export default function GerenciarLancamentosPage() {
 
             <div className="flex-1 w-full space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Natureza</label>
-              <select 
+              <select
                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold outline-none shadow-sm cursor-pointer"
                 value={filterNatureza}
                 onChange={(e) => setFilterNatureza(e.target.value)}
@@ -280,7 +281,7 @@ export default function GerenciarLancamentosPage() {
 
             <div className="flex-1 w-full space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Banco</label>
-              <select 
+              <select
                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold outline-none shadow-sm cursor-pointer"
                 value={filterBanco}
                 onChange={(e) => setFilterBanco(e.target.value)}
@@ -295,8 +296,8 @@ export default function GerenciarLancamentosPage() {
             <div className="flex-1 w-full space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Mês / Ano</label>
               <div className="relative">
-                <input 
-                  type="month" 
+                <input
+                  type="month"
                   className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold outline-none shadow-sm cursor-pointer hover:border-blue-500 transition-all"
                   value={filterMes}
                   onChange={(e) => setFilterMes(e.target.value)}
@@ -357,13 +358,13 @@ export default function GerenciarLancamentosPage() {
                     </td>
                     <td className="sticky right-0 z-10 bg-white/95 md:bg-transparent p-4 md:p-6 border-l md:border-l-0 border-gray-100">
                       <div className="flex items-center justify-center gap-1 md:gap-2">
-                        <button 
-                          onClick={() => setEditingItem({...l, valor: Math.abs(l.valor)})}
+                        <button
+                          onClick={() => setEditingItem({ ...l, valor: Math.abs(l.valor) })}
                           className="p-1.5 md:p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                         >
                           <Edit3 size={16} className="md:w-[18px]" />
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDelete(l.id)}
                           className="p-1.5 md:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                         >
@@ -379,11 +380,53 @@ export default function GerenciarLancamentosPage() {
         </div>
       </div>
 
+      {/* LINHA DIVISÓRIA CONECTE-SE */}
+      <div className="mt-24 flex items-center gap-4 mb-12">
+        <div className="h-px bg-gray-200 flex-1"></div>
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
+          Conecte-se
+        </h3>
+        <div className="h-px bg-gray-200 flex-1"></div>
+      </div>
+
+      <div className="flex flex-col items-center text-center">
+        <div className="max-w-3xl mb-12">
+          <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
+            Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+          </h4>
+          <p className="text-gray-500 font-medium text-sm md:text-base">
+            Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
+          </p>
+        </div>
+
+        <a
+          href="https://www.instagram.com/nucleobase.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group relative flex flex-col items-center gap-6"
+        >
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+
+            <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+              <span className="flex items-center justify-center">
+                <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+            <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
+          </div>
+        </a>
+      </div>
+
       {/* MODAL DE EDIÇÃO */}
       {editingItem && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-xl max-h-[90vh] rounded-[2.5rem] md:rounded-[3rem] shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col">
-            
+
             <div className={`p-6 md:p-8 flex items-center justify-between text-white flex-shrink-0 ${editingItem.natureza === 'Receita' ? 'bg-emerald-600' : 'bg-orange-500'}`}>
               <div>
                 <h3 className="text-lg md:text-xl font-black uppercase tracking-tight">Editar Registro</h3>
@@ -406,7 +449,7 @@ export default function GerenciarLancamentosPage() {
                 <label className="text-[10px] font-black uppercase text-gray-400 ml-2">Descrição</label>
                 <input required type="text" value={editingItem.descricao}
                   className="w-full px-5 py-3 md:py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm focus:bg-white focus:border-blue-500 transition-all"
-                  onChange={(e) => setEditingItem({...editingItem, descricao: e.target.value})} />
+                  onChange={(e) => setEditingItem({ ...editingItem, descricao: e.target.value })} />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -414,13 +457,13 @@ export default function GerenciarLancamentosPage() {
                   <label className="text-[10px] font-black uppercase text-gray-400 ml-2">Valor (R$)</label>
                   <input required type="number" step="0.01" value={editingItem.valor}
                     className="w-full px-5 py-3 md:py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm focus:bg-white focus:border-blue-500 transition-all"
-                    onChange={(e) => setEditingItem({...editingItem, valor: parseFloat(e.target.value)})} />
+                    onChange={(e) => setEditingItem({ ...editingItem, valor: parseFloat(e.target.value) })} />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase text-gray-400 ml-2">Data</label>
                   <input required type="date" value={editingItem.data_competencia}
                     className="w-full px-5 py-3 md:py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm focus:bg-white focus:border-blue-500 transition-all"
-                    onChange={(e) => setEditingItem({...editingItem, data_competencia: e.target.value})} />
+                    onChange={(e) => setEditingItem({ ...editingItem, data_competencia: e.target.value })} />
                 </div>
               </div>
 
@@ -429,18 +472,18 @@ export default function GerenciarLancamentosPage() {
                   <label className="text-[10px] font-black uppercase text-gray-400 ml-2">Categoria</label>
                   <input required type="text" value={editingItem.categoria}
                     className="w-full px-5 py-3 md:py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm focus:bg-white focus:border-blue-500 transition-all"
-                    onChange={(e) => setEditingItem({...editingItem, categoria: e.target.value})} />
+                    onChange={(e) => setEditingItem({ ...editingItem, categoria: e.target.value })} />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase text-gray-400 ml-2">Instituição</label>
                   <input required type="text" value={editingItem.origem}
                     className="w-full px-5 py-3 md:py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-sm focus:bg-white focus:border-blue-500 transition-all"
-                    onChange={(e) => setEditingItem({...editingItem, origem: e.target.value})} />
+                    onChange={(e) => setEditingItem({ ...editingItem, origem: e.target.value })} />
                 </div>
               </div>
 
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={saveLoading}
                 className={`w-full py-4 md:py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] text-white shadow-xl transition-all flex items-center justify-center gap-3 mt-4 flex-shrink-0 ${editingItem.natureza === 'Receita' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-orange-500 hover:bg-orange-600'}`}
               >

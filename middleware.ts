@@ -1,3 +1,4 @@
+// middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
@@ -87,7 +88,7 @@ export async function middleware(request: NextRequest) {
   // --- 2. LÓGICA PARA O SUBDOMÍNIO DASHBOARD ---
   if (hostname.includes(DASHBOARD_DOMAIN)) {
     if (pathname === '/') {
-      return NextResponse.rewrite(new URL('/lancamentos', request.url));
+      return NextResponse.rewrite(new URL('/controle-financeiro/lancamentos', request.url));
     }
 
     const institutionalPages = ['/sobre', '/contato', '/precos'];
@@ -107,7 +108,7 @@ export async function middleware(request: NextRequest) {
   if (hostname === MAIN_DOMAIN) {
     if (pathname.startsWith('/lancamentos')) {
       return NextResponse.redirect(
-        new URL(`https://${DASHBOARD_DOMAIN}/lancamentos`, request.url)
+        new URL(`https://${DASHBOARD_DOMAIN}/controle-financeiro/lancamentos`, request.url)
       );
     }
   }
