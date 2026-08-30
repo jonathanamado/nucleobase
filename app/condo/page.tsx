@@ -67,9 +67,9 @@ export default function NucleobaseCondo() {
     ];
 
     const recursosDestaque = [
-        { id: "criar_conta", icon: <UserPlus size={20} />, title: "Criação de Conta", text: "Configure sua gestão residencial com total autonomia.", highlight: true, link: "/cadastro" },
-        { id: "prestacao_visual", icon: <FileText size={20} />, title: "Prestações Visuais", text: "Tenha relatórios 100% digitais e transparentes.", highlight: false, link: "/cadastro" },
-        { id: "amplitude_gestao", icon: <Layers size={20} />, title: "Gestão Inteligente", text: "E muito mais, diversas funcionalidades para sua gestão inteligente.", highlight: false, link: "/cadastro" },
+        { id: "criar_conta", icon: <UserPlus size={20} />, title: "Criação de Conta", text: "Configure sua gestão residencial com autonomia.", highlight: true, link: "/cadastro" },
+        { id: "prestacao_visual", icon: <FileText size={20} />, title: "Prestações Visuais", text: "Entregue relatórios 100% digitais e transparentes.", highlight: false, link: "/cadastro" },
+        { id: "amplitude_gestao", icon: <Layers size={20} />, title: "Gestão Inteligente", text: "Diversas funcionalidades para uma gestão inteligente.", highlight: false, link: "/cadastro" },
         { id: "agendamento_comum", icon: <CalendarDays size={20} />, title: "Reservas de Espaços", text: "Reserve área comum ou salão de festas de maneira digital.", highlight: false, link: "/cadastro" },
         { id: "decisoes_coletivas", icon: <Vote size={20} />, title: "Enquetes e Decisões", text: "Participe de votações e avisos importantes no dia a dia.", highlight: false, link: "/cadastro" }
     ];
@@ -184,8 +184,6 @@ export default function NucleobaseCondo() {
     };
 
     const CardsDestaqueDesktop = () => {
-        const itemAtual = recursosDestaque[cardAtivoIndex];
-
         return (
             <div className="flex flex-col gap-6 h-full justify-between">
                 {/* CARD 1: ÁREA DO CONDOMÍNIO */}
@@ -213,7 +211,7 @@ export default function NucleobaseCondo() {
                     </div>
                 </Link>
 
-                {/* CARD 2: CONTABILIDADE (Com borda e sombreamento mais escuros) */}
+                {/* CARD 2: CONTABILIDADE (Subido para próximo do card Gestão Inteligente / Área do Condomínio) */}
                 <Link
                     href="/condo/contabilidade"
                     onClick={() => trackClick("Acessar Contabilidade", "/condo/contabilidade")}
@@ -240,49 +238,54 @@ export default function NucleobaseCondo() {
                         </div>
                     </div>
                 </Link>
+            </div>
+        );
+    };
 
-                {/* CARROSSEL VIVO DE RECURSOS (Apenas um card visível por vez, com paginação interativa) */}
-                <div
-                    className="relative flex flex-col justify-center"
-                    onMouseEnter={() => setIsPaused(true)}
-                    onMouseLeave={() => setIsPaused(false)}
+    const CarrosselRecursosDesktop = () => {
+        const itemAtual = recursosDestaque[cardAtivoIndex];
+
+        return (
+            <div
+                className="relative flex flex-col justify-center h-full"
+                onMouseEnter={() => setIsPaused(true)}
+                onMouseLeave={() => setIsPaused(false)}
+            >
+                <Link
+                    href={itemAtual.link}
+                    key={cardAtivoIndex}
+                    className={`p-5 rounded-[2.2rem] transition-all duration-500 animate-in fade-in zoom-in-95 flex items-start gap-4 h-auto min-h-[110px] block cursor-pointer ${itemAtual.highlight
+                        ? "bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xl shadow-blue-600/25 border-2 border-blue-400 hover:opacity-95"
+                        : "bg-white border-2 border-gray-200 shadow-lg hover:border-blue-300"
+                        }`}
                 >
-                    <Link
-                        href={itemAtual.link}
-                        key={cardAtivoIndex}
-                        className={`p-5 rounded-[2.2rem] transition-all duration-500 animate-in fade-in zoom-in-95 flex items-start gap-4 h-auto min-h-[110px] block cursor-pointer ${itemAtual.highlight
-                            ? "bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xl shadow-blue-600/25 border-2 border-blue-400 hover:opacity-95"
-                            : "bg-white border-2 border-gray-200 shadow-lg hover:border-blue-300"
-                            }`}
-                    >
-                        <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-sm mt-0.5 ${itemAtual.highlight
-                            ? "bg-white/15 text-white"
-                            : "bg-blue-50 text-blue-600"
-                            }`}>
-                            {itemAtual.icon}
-                        </div>
-                        <div className="min-w-0 flex-1 flex flex-col justify-center">
-                            <h4 className={`font-black text-[14px] mb-1 tracking-tight leading-snug ${itemAtual.highlight ? "text-white" : "text-gray-900"}`}>
-                                {itemAtual.title}
-                            </h4>
-                            <p className={`text-[12px] leading-relaxed font-medium ${itemAtual.highlight ? "text-blue-100" : "text-gray-500"}`}>
-                                {itemAtual.text}
-                            </p>
-                        </div>
-                    </Link>
-
-                    {/* Indicadores / Paginação do Carrossel */}
-                    <div className="flex justify-center items-center gap-2 mt-3">
-                        {recursosDestaque.map((_, idx) => (
-                            <button
-                                key={idx}
-                                onClick={() => setCardAtivoIndex(idx)}
-                                className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${idx === cardAtivoIndex ? "w-6 bg-blue-600" : "w-2 bg-gray-300 hover:bg-gray-400"
-                                    }`}
-                                aria-label={`Ir para card ${idx + 1}`}
-                            />
-                        ))}
+                    <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-sm mt-0.5 ${itemAtual.highlight
+                        ? "bg-white/15 text-white"
+                        : "bg-blue-50 text-blue-600"
+                        }`}>
+                        {itemAtual.icon}
                     </div>
+                    <div className="min-w-0 flex-1 flex flex-col justify-center">
+                        <h4 className={`font-black text-[14px] mb-1 tracking-tight leading-snug ${itemAtual.highlight ? "text-white" : "text-gray-900"}`}>
+                            {itemAtual.title}
+                        </h4>
+                        <p className={`text-[12px] leading-relaxed font-medium ${itemAtual.highlight ? "text-blue-100" : "text-gray-500"}`}>
+                            {itemAtual.text}
+                        </p>
+                    </div>
+                </Link>
+
+                {/* Indicadores / Paginação do Carrossel */}
+                <div className="flex justify-center items-center gap-2 mt-3">
+                    {recursosDestaque.map((_, idx) => (
+                        <button
+                            key={idx}
+                            onClick={() => setCardAtivoIndex(idx)}
+                            className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${idx === cardAtivoIndex ? "w-6 bg-blue-600" : "w-2 bg-gray-300 hover:bg-gray-400"
+                                }`}
+                            aria-label={`Ir para card ${idx + 1}`}
+                        />
+                    ))}
                 </div>
             </div>
         );
@@ -326,7 +329,7 @@ export default function NucleobaseCondo() {
                     <BotaoAcessoDinamico isInsideLink={true} />
                 </Link>
 
-                {/* CARD 2 MOBILE: CONTABILIDADE */}
+                {/* CARD 2 MOBILE: CONTABILIDADE (Colocado logo abaixo do texto "A Nucleo é a melhor opção..." na visão mobile) */}
                 <Link href="/condo/contabilidade" className="col-span-2 bg-white border border-gray-300 p-6 rounded-[2rem] shadow-md relative overflow-hidden block">
                     <div className="flex items-center justify-between relative z-10 mb-4">
                         <div className="flex items-center gap-3">
@@ -355,8 +358,15 @@ export default function NucleobaseCondo() {
                     </div>
                 </Link>
 
-                <div className="col-span-2 bg-blue-50/60 border border-blue-100 p-4 rounded-2xl my-2 text-center">
-                    <p className="text-xs text-blue-900 font-medium leading-relaxed">
+                {/* Linha divisória com o texto "Funcionalidades" antes das ferramentas integradas */}
+                <div className="col-span-2 flex items-center gap-3 my-4">
+                    <div className="h-px bg-blue-100 flex-1"></div>
+                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Funcionalidades</span>
+                    <div className="h-px bg-blue-100 flex-1"></div>
+                </div>
+
+                <div className="col-span-2 p-0 my-0 text-center">
+                    <p className="text-xs text-gray-600 font-medium leading-relaxed">
                         Explore abaixo as ferramentas integradas do nosso módulo de Administração Condo, projetadas para otimizar a rotina de síndicos e condôminos com total agilidade.
                     </p>
                 </div>
@@ -426,7 +436,7 @@ export default function NucleobaseCondo() {
                 </a>
                 <a href="/condo/dashboard" onClick={() => trackClick("Acessar Dashboard", "/condo/dashboard")} className="flex items-center justify-between flex-1 bg-blue-600 hover:bg-blue-700 text-white py-4 px-6 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest shadow-lg">
                     <div className="flex items-center gap-2"><UserPlus size={15} className="text-white" /> Acessar Dashboard</div>
-                    <ArrowUpRight size={11} />
+                    <ArrowUpRight size={15} />
                 </a>
             </div>
 
@@ -438,11 +448,11 @@ export default function NucleobaseCondo() {
                 <div className="lg:col-span-7 text-gray-700 text-lg leading-[1.8] pr-0 lg:pr-10 flex flex-col justify-between">
                     <div className="flex flex-col justify-between h-full">
                         <p className="mb-8 leading-relaxed text-gray-700 hidden md:block">
-                            A Nucleo Condo nasceu para permitir clareza aos fluxos financeiros, e agora trazemos o mesmo rigor tecnológico para a{" "}
+                            A Nucleo Condo nasceu para permitir clareza aos fluxos, e agora trazemos o mesmo rigor para a{" "}
                             <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                                 Administração
                             </span>{" "}
-                            de condomínios. Sabendo que o principal calcanhar de Aquiles neste segmento é a dificuldade de transparência, unimos tecnologia e clareza para simplificar a rotina de síndicos e condôminos, unificando informações e facilitando decisões.
+                            de condomínios. Sabendo que o principal calcanhar de Aquiles neste segmento é a dificuldade de transparência, unimos tecnologia e clareza para a rotina de síndicos e condôminos, unificando e facilitando decisões.
                         </p>
 
                         <div className="mb-6 md:hidden">
@@ -458,11 +468,12 @@ export default function NucleobaseCondo() {
                             </button>
                         </div>
 
-                        <div className="bg-blue-50/40 border-l-4 border-blue-600 p-6 md:p-10 my-0 rounded-2xl md:rounded-r-[3rem] relative overflow-hidden group transition-all hover:bg-blue-50/60 flex flex-col justify-center">
-                            <ShieldCheck className="absolute -right-6 -bottom-6 text-blue-600 opacity-5 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-700" size={180} />
-                            <p className="font-medium text-blue-900 text-xl md:text-2xl leading-relaxed relative z-10 tracking-tight">
-                                "Nosso objetivo é transformar rotinas em processos visuais e simples, garantindo harmonia e integração com moradores."<br /><br />
-                                <Link href="/cadastro" className="text-blue-600 font-bold underline hover:text-blue-800 transition-colors text-sm md:text-base">Não possui uma conta? Clique aqui</Link>
+                        {/* Card diminuído na visão desktop, mantendo conteúdo */}
+                        <div className="bg-blue-50/40 border-l-4 border-blue-600 p-4 md:p-6 my-0 rounded-2xl relative overflow-hidden group transition-all hover:bg-blue-50/60 flex flex-col justify-center">
+                            <ShieldCheck className="absolute -right-6 -bottom-6 text-blue-600 opacity-5 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-700" size={140} />
+                            <p className="font-medium text-blue-900 text-base md:text-lg leading-relaxed relative z-10 tracking-tight">
+                                "Nosso objetivo é transformar rotinas em processos visuais e simples, garantindo harmonia e integração entre administração e moradores."<br /><br />
+                                <Link href="/cadastro" className="text-blue-600 font-bold underline hover:text-blue-800 transition-colors text-xs md:text-sm">Não possui uma conta? Clique aqui</Link>
                             </p>
                         </div>
 
@@ -482,12 +493,22 @@ export default function NucleobaseCondo() {
                     Nossos Pilares <div className="h-px bg-gray-300 flex-1"></div>
                 </h3>
 
-                <div className="mb-12">
-                    <p className="mb-6 text-gray-700 text-lg leading-[1.8]">
-                        Do planejamento orçamentário anual à reserva instantânea do salão de festas — oferecemos ao síndico o poder de uma gestão ágil e orientada a dados, enquanto o morador ganha a conveniência de acompanhar tudo de onde estiver.
-                    </p>
+                {/* Seção com coluna lateral direita para o carrossel */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-6">
+                    <div className="lg:col-span-8">
+                        <p className="text-gray-700 text-lg leading-[1.8]">
+                            Do planejamento orçamentário anual à reserva instantânea do salão de festas — oferecemos ao síndico a profissionalizaçao desejada e o poder de uma gestão ágil, eficiente, moderna e orientada a dados, enquanto o morador ganha a conveniência de acompanhar tudo de onde estiver.
+                        </p>
+                    </div>
+                    <div className="lg:col-span-4">
+                        <CarrosselRecursosDesktop />
+                    </div>
+                </div>
+
+                {/* Texto transferido para a linha debaixo, ocupando a área inteira da tela */}
+                <div className="mb-12 w-full">
                     <p className="text-gray-700 text-lg leading-[1.8]">
-                        Acreditamos que a <span className="text-gray-900 font-bold underline decoration-blue-200 underline-offset-4 decoration-2">gestão democrática</span> é o caminho para valorizar seu patrimônio. Nossos pilares trazem a estrutura perfeita que resolve as burocracias de convivência de forma ágil e segura.
+                        Acreditamos que a <span className="text-gray-900 font-bold underline decoration-blue-200 underline-offset-4 decoration-2">gestão democrática</span> é o caminho ideal para valorizar o seu patrimônio. Nossos pilares trazem a estrutura perfeita que resolve as burocracias de convivência de forma ágil, segura e inteligente.
                     </p>
                 </div>
 
@@ -506,17 +527,24 @@ export default function NucleobaseCondo() {
                 </div>
             </div>
 
-            <div className="mt-12 md:mt-20 bg-blue-600 rounded-3xl md:rounded-[4rem] p-8 md:p-20 text-center relative overflow-hidden group w-full">
-                <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-                <div className="relative z-10">
-                    <h2 className="text-2xl md:text-5xl font-bold text-white mb-4 md:mb-6 tracking-tight">
-                        Fale com nossa equipe e <br className="hidden md:block" /> leve inovação para seu condomínio.
+            {/* Card final minimalista e inovador */}
+            <div className="mt-12 md:mt-20 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 rounded-3xl md:rounded-[3rem] p-6 md:p-12 text-center relative overflow-hidden group w-full border border-blue-500/20 shadow-2xl">
+                <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
+                <div className="absolute -right-10 -bottom-10 opacity-10 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
+                    <Sparkles size={160} className="text-blue-400" />
+                </div>
+                <div className="relative z-10 max-w-2xl mx-auto">
+                    <span className="inline-block bg-blue-500/10 text-blue-300 font-black text-[9px] uppercase tracking-[0.3em] px-3 py-1 rounded-full mb-3 border border-blue-400/20">
+                        Inovação em Condomínios
+                    </span>
+                    <h2 className="text-xl md:text-3xl font-bold text-white mb-6 tracking-tight leading-snug">
+                        Fale com nossa equipe e leve inovação para seu condomínio.
                     </h2>
-                    <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
-                        <a href="/contato" className="bg-white text-blue-600 px-6 py-4 md:px-10 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-[10px] md:text-[12px] uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all w-full md:w-auto text-center">
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                        <a href="/contato" className="bg-white text-blue-900 px-6 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-blue-50 hover:scale-[1.02] active:scale-95 transition-all w-full sm:w-auto text-center">
                             Entrar em Contato
                         </a>
-                        <button onClick={() => setIsModalOpen(true)} className="bg-blue-700 text-white border border-white/20 px-6 py-4 md:px-10 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-[10px] md:text-[12px] uppercase tracking-widest hover:bg-blue-800 transition-all w-full md:w-auto text-center cursor-pointer">
+                        <button onClick={() => setIsModalOpen(true)} className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-6 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all w-full sm:w-auto text-center cursor-pointer">
                             Solicitar Entrada
                         </button>
                     </div>
@@ -575,7 +603,8 @@ export default function NucleobaseCondo() {
                                 <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
                                     <Users size={20} />
                                 </div>
-                                <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Gestão Condominial</span>                            </div>
+                                <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Gestão Condominial</span>
+                            </div>
                             <h2 className="text-xl font-black tracking-tight text-gray-900">Solicitar Inclusão</h2>
                             <p className="text-xs text-gray-500 max-w-xs mx-auto">
                                 Insira seus dados para enviar a solicitação diretamente para o suporte e administração do seu condomínio.
