@@ -21,7 +21,9 @@ import {
     Clock,
     ArrowUpRight,
     Eye,
-    EyeOff
+    EyeOff,
+    ChevronLeft,
+    ChevronRight
 } from "lucide-react";
 
 interface LinhaRelatorioConsolidado {
@@ -70,6 +72,9 @@ export default function ContabilidadeCondoPage() {
     const [valorTaxaBase, setValorTaxaBase] = useState<number>(0);
     const [linhasRelatorio, setLinhasRelatorio] = useState<LinhaRelatorioConsolidado[]>([]);
     const [totalGeralCondominio, setTotalGeralCondominio] = useState(0);
+
+    // Estado do carrossel mobile para os 3 cards informativos
+    const [cardIndexMobile, setCardIndexMobile] = useState(0);
 
     const isMountedRef = useRef(true);
 
@@ -306,7 +311,11 @@ export default function ContabilidadeCondoPage() {
                 return;
             }
 
-            const vinculoContabilidade = membroDataList.find((m: any) => String(m.role || "").toLowerCase().trim() === 'contabilidade');
+            const vinculoContabilidade = membroDataList.find((m: any) => {
+                const r = String(m.role || "").toLowerCase().trim();
+                return r === 'contabilidade' || r === 'adm';
+            });
+
             if (!vinculoContabilidade) {
                 if (isMountedRef.current) {
                     setIsAcessoNegado(true);
@@ -373,17 +382,31 @@ export default function ContabilidadeCondoPage() {
             let emailParaLogin = inputAcesso;
 
             if (!inputAcesso.includes("@")) {
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('email_contato')
-                    .eq('slug', inputAcesso)
-                    .maybeSingle();
+                let emailEncontrado = null;
+                try {
+                    const { data: rpcEmail, error: rpcError } = await supabase
+                        .rpc('get_email_by_slug', { p_slug: inputAcesso });
+                    if (!rpcError && rpcEmail) {
+                        emailEncontrado = rpcEmail;
+                    }
+                } catch (e) {
+                    console.error("Erro na busca por RPC slug:", e);
+                }
 
-                if (!profile?.email_contato) {
-                    tratarErroLogin("ID ou e-mail não localizado.");
+                if (!emailEncontrado) {
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('email_contato')
+                        .eq('slug', inputAcesso)
+                        .maybeSingle();
+                    emailEncontrado = profile?.email_contato;
+                }
+
+                if (!emailEncontrado) {
+                    tratarErroLogin("ID de usuário (Slug) não foi localizado.");
                     return;
                 }
-                emailParaLogin = profile.email_contato;
+                emailParaLogin = emailEncontrado;
             }
 
             const { data, error } = await supabase.auth.signInWithPassword({ email: emailParaLogin, password });
@@ -392,23 +415,27 @@ export default function ContabilidadeCondoPage() {
                 return;
             }
 
-            // Verificar se o usuário autenticado possui o papel de contabilidade antes de liberar
+            // Verificar se o usuário autenticado possui o papel de contabilidade ou adm antes de liberar
             const { data: membroDataList } = await supabase
                 .from("condominio_membros")
                 .select("role")
                 .eq("user_id", data.session.user.id);
 
-            const temContabilidade = (membroDataList || []).some((m: any) => String(m.role || "").toLowerCase().trim() === 'contabilidade');
+            const temContabilidade = (membroDataList || []).some((m: any) => {
+                const r = String(m.role || "").toLowerCase().trim();
+                return r === 'contabilidade' || r === 'adm';
+            });
 
             if (!temContabilidade) {
                 await supabase.auth.signOut();
                 setIsAcessoNegado(true);
-                tratarErroLogin("Esta conta não possui perfil de contabilidade autorizado para este portal.");
+                tratarErroLogin("Esta conta não possui perfil de contabilidade/adm autorizado para este portal.");
                 setAuthLoading(false);
                 return;
             }
 
             resetarBloqueio();
+            window.dispatchEvent(new Event("storage"));
             await verifyContabilidadeAndLoadData(data.session);
         } catch {
             tratarErroLogin("Erro ao entrar.");
@@ -448,13 +475,15 @@ export default function ContabilidadeCondoPage() {
 
     if (!session || isAcessoNegado) {
         return (
-            <div className="h-screen bg-zinc-50/50 text-zinc-900 flex flex-col items-center justify-center p-4 overflow-hidden">
-                <div className="w-full max-w-sm bg-white border border-zinc-200 p-6 rounded-[2rem] shadow-sm space-y-4 text-center">
-                    <div className="mx-auto w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
-                        <Lock size={22} />
+            <div className="min-h-screen bg-zinc-50/50 text-zinc-900 flex flex-col items-center p-4 pt-1 md:pt-3">
+                <div className="w-full max-w-sm bg-white border border-zinc-200 p-3 rounded-[2rem] shadow-sm space-y-4 text-center">
+                    <div className="flex items-center justify-center gap-3">
+                        <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
+                            <Lock size={20} />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Acesso Restrito</span>
                     </div>
                     <div className="space-y-0.5">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600">Acesso Restrito</span>
                         <h1 className="text-lg font-black tracking-tight">Portal Contábil</h1>
                         <p className="text-[11px] text-zinc-500 font-medium">Insira credenciais autorizadas.</p>
                     </div>
@@ -500,7 +529,7 @@ export default function ContabilidadeCondoPage() {
 
                         {(loginError || isAcessoNegado) && tempoBloqueio === 0 && (
                             <p className="text-[11px] font-bold text-red-600 bg-red-50 p-2.5 rounded-xl text-center">
-                                {isAcessoNegado && !loginError ? "Acesso negado: Perfil de contabilidade não vinculado." : loginError}
+                                {isAcessoNegado && !loginError ? "Acesso negado: Perfil de contabilidade/adm não vinculado." : loginError}
                             </p>
                         )}
 
@@ -517,6 +546,56 @@ export default function ContabilidadeCondoPage() {
         );
     }
 
+    const cardsInformativos = [
+        {
+            id: "moradores",
+            icon: <Users size={22} />,
+            titleMobile: "Cadastro de moradores",
+            titleDesktop: "Cadastro de Moradores",
+            desc: "Visualização detalhada de moradores vinculados às unidades para controle e registro de portaria.",
+            statusBadge: <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Módulo Ativo</span>,
+            action: (
+                <Link
+                    href="/condo/dashboard/cadastro-moradores"
+                    className="flex items-center gap-1 text-xs font-black text-emerald-600 hover:text-emerald-700 transition-colors"
+                >
+                    Acessar <ArrowUpRight size={14} />
+                </Link>
+            ),
+            hoverBorder: "hover:border-emerald-300"
+        },
+        {
+            id: "cnpj",
+            icon: <Building size={22} />,
+            titleMobile: "Informações sobre o CNPJ",
+            titleDesktop: "Informações sobre o CNPJ",
+            desc: "Dados cadastrais da pessoa jurídica do condomínio, situação fiscal, certidões e histórico contábil oficial.",
+            statusBadge: <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Status: Aguardando</span>,
+            action: <span className="text-xs font-black text-emerald-600">Em breve</span>,
+            hoverBorder: ""
+        },
+        {
+            id: "auditoria",
+            icon: <BadgeInfo size={22} />,
+            titleMobile: "Auditoria de contas",
+            titleDesktop: "Auditoria de Contas",
+            desc: "Módulo dedicado à verificação de rateios de contas, extratos bancários e auditorias internas.",
+            statusBadge: <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Status: Aguardando</span>,
+            action: <span className="text-xs font-black text-emerald-600">Em breve</span>,
+            hoverBorder: ""
+        }
+    ];
+
+    const cardAtualMobile = cardsInformativos[cardIndexMobile];
+
+    const proximoCardMobile = () => {
+        setCardIndexMobile((prev) => (prev + 1) % cardsInformativos.length);
+    };
+
+    const anteriorCardMobile = () => {
+        setCardIndexMobile((prev) => (prev - 1 + cardsInformativos.length) % cardsInformativos.length);
+    };
+
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-4 md:p-10 flex flex-col justify-between">
             <div className="space-y-8">
@@ -527,105 +606,109 @@ export default function ContabilidadeCondoPage() {
                             <ShieldCheck size={24} />
                         </div>
                         <div>
-                            <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">Painel Contábil & Auditoria</span>
+                            <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">
+                                <span className="md:hidden">Painel Adm</span>
+                                <span className="hidden md:inline">Painel Contábil & Auditoria</span>
+                            </span>
                             <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5">{condominio?.nome}</h1>
                         </div>
                     </div>
 
                     <Link
                         href="/condo"
-                        className="flex items-center gap-1.5 h-10 px-4 bg-zinc-900 hover:bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm cursor-pointer self-start md:self-auto"
+                        className="hidden md:flex items-center gap-1.5 h-10 px-4 bg-zinc-900 hover:bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm cursor-pointer"
                     >
                         <ArrowLeft size={14} /> Voltar ao Início
                     </Link>
                 </div>
 
-                {/* Cards Informativos */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* CARD 1: CADASTRO DE MORADORES (VINCULADO) */}
-                    <div className="bg-white border border-zinc-200 p-6 rounded-[2.5rem] shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-emerald-300 transition-all">
-                        <div className="space-y-4">
-                            <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
-                                <Users size={22} />
-                            </div>
-                            <div>
-                                <h3 className="text-base font-black text-zinc-900">Cadastro de Moradores</h3>
-                                <p className="text-xs text-zinc-500 font-medium mt-1 leading-relaxed">
-                                    Visualização detalhada dos registros e contatos de moradores vinculados às unidades para conferência fiscal e cadastral.
-                                </p>
-                            </div>
-                        </div>
-                        <div className="mt-6 pt-4 border-t border-zinc-100 flex items-center justify-between">
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Módulo Ativo</span>
-                            <Link
-                                href="/condo/dashboard/cadastro-moradores"
-                                className="flex items-center gap-1 text-xs font-black text-emerald-600 hover:text-emerald-700 transition-colors"
-                            >
-                                Acessar <ArrowUpRight size={14} />
-                            </Link>
-                        </div>
-                    </div>
+                {/* Texto inicial comum para mobile e desktop sem linha divisoria */}
+                <div>
+                    <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-zinc-400">
+                        <span className="md:hidden">Funcionalidades</span>
+                        <span className="hidden md:inline">Funcionalidades da Nucleo</span>
+                    </h3>
+                </div>
 
-                    {/* CARD 2: CNPJ (EM DESENVOLVIMENTO) */}
-                    <div className="bg-white border border-zinc-200 p-6 rounded-[2.5rem] shadow-sm flex flex-col justify-between relative overflow-hidden group">
-                        <div className="absolute top-4 right-4 bg-amber-50 text-amber-600 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full flex items-center gap-1">
-                            <Clock size={10} /> Em desenvolvimento
-                        </div>
-                        <div className="space-y-4">
-                            <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
-                                <Building size={22} />
+                {/* Cards Informativos (Visão Desktop) */}
+                <div className="hidden md:grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {cardsInformativos.map((card) => (
+                        <div key={card.id} className={`bg-white border border-zinc-200 p-6 rounded-[2.5rem] shadow-sm flex flex-col justify-between relative overflow-hidden group transition-all ${card.hoverBorder}`}>
+                            <div className="space-y-4">
+                                <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
+                                    {card.icon}
+                                </div>
+                                <div>
+                                    <h3 className="text-base font-black text-zinc-900">{card.titleDesktop}</h3>
+                                    <p className="text-xs text-zinc-500 font-medium mt-1 leading-relaxed">
+                                        {card.desc}
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 className="text-base font-black text-zinc-900">Informações sobre o CNPJ</h3>
-                                <p className="text-xs text-zinc-500 font-medium mt-1 leading-relaxed">
-                                    Dados cadastrais da pessoa jurídica do condomínio, situação fiscal, certidões e histórico contábil oficial.
-                                </p>
+                            <div className="mt-6 pt-4 border-t border-zinc-100 flex items-center justify-between">
+                                {card.statusBadge}
+                                {card.action}
                             </div>
                         </div>
-                        <div className="mt-6 pt-4 border-t border-zinc-100 flex items-center justify-between">
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Status: Sincronizando</span>
-                            <span className="text-xs font-black text-emerald-600">Consultar</span>
-                        </div>
-                    </div>
+                    ))}
+                </div>
 
-                    {/* CARD 3: AUDITORIA (EM DESENVOLVIMENTO) */}
-                    <div className="bg-white border border-zinc-200 p-6 rounded-[2.5rem] shadow-sm flex flex-col justify-between relative overflow-hidden group">
-                        <div className="absolute top-4 right-4 bg-amber-50 text-amber-600 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full flex items-center gap-1">
-                            <Clock size={10} /> Em desenvolvimento
+                {/* Cards Informativos (Visão Mobile com Carrossel) */}
+                <div className="block md:hidden">
+                    <div className="bg-white border border-zinc-200 p-6 rounded-[2.5rem] shadow-sm flex flex-col justify-between relative overflow-hidden">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shrink-0">
+                                {cardAtualMobile.icon}
+                            </div>
+                            <h3 className="text-base font-black text-zinc-900">{cardAtualMobile.titleMobile}</h3>
                         </div>
                         <div className="space-y-4">
-                            <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
-                                <BadgeInfo size={22} />
-                            </div>
-                            <div>
-                                <h3 className="text-base font-black text-zinc-900">Auditoria de Contas</h3>
-                                <p className="text-xs text-zinc-500 font-medium mt-1 leading-relaxed">
-                                    Módulo dedicado à verificação de lançamentos contábeis, extratos bancários e balancetes automatizados.
-                                </p>
-                            </div>
+                            <p className="text-xs text-zinc-500 font-medium mt-1 leading-relaxed">
+                                {cardAtualMobile.desc}
+                            </p>
                         </div>
-                        <div className="mt-6 pt-4 border-t border-zinc-100 flex items-center justify-between">
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Status: Aguardando</span>
-                            <span className="text-xs font-black text-emerald-600">Acessar</span>
+                        <div className="mt-6 pt-4 border-t border-zinc-100 flex flex-col gap-3">
+                            <div className="flex items-center justify-between">
+                                {cardAtualMobile.statusBadge}
+                                {cardAtualMobile.action}
+                            </div>
+                            <div className="flex justify-end gap-2 pt-1 border-t border-zinc-50">
+                                <button onClick={anteriorCardMobile} className="p-2 bg-zinc-100 hover:bg-zinc-200 rounded-full text-zinc-700 transition-colors cursor-pointer" aria-label="Card anterior">
+                                    <ChevronLeft size={16} />
+                                </button>
+                                <button onClick={proximoCardMobile} className="p-2 bg-zinc-100 hover:bg-zinc-200 rounded-full text-zinc-700 transition-colors cursor-pointer" aria-label="Próximo card">
+                                    <ChevronRight size={16} />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                {/* Linha divisória com o texto específico para desktop e mobile */}
+                <div className="flex items-center gap-4">
+                    <div className="h-px bg-zinc-200 flex-1"></div>
+                    <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-zinc-400 whitespace-nowrap">
+                        <span className="md:hidden">Relatório</span>
+                        <span className="hidden md:inline">Relatório detalhado</span>
+                    </h3>
+                    <div className="h-px bg-zinc-200 flex-1"></div>
+                </div>
+
                 {/* Controles de Filtro e Exportação para o Rateio */}
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full">
-                    <div className="bg-white border border-zinc-200 p-4 rounded-2xl shadow-sm flex items-center gap-4 w-full md:w-auto justify-between md:justify-start">
+                    <div className="bg-white border border-zinc-200 p-4 rounded-2xl shadow-sm flex flex-col md:flex-row items-stretch md:items-center gap-4 w-full md:w-auto justify-between md:justify-start">
                         <div className="bg-white border border-zinc-200 p-2.5 rounded-xl flex items-center gap-3 shadow-sm">
-                            <Calendar size={16} className="text-emerald-600" />
+                            <Calendar size={16} className="text-emerald-600 shrink-0" />
                             <input
                                 type="month"
                                 value={competenciaSelecionada}
                                 onChange={(e) => setCompetenciaSelecionada(e.target.value)}
-                                className="text-xs font-bold text-zinc-900 bg-transparent outline-none cursor-pointer"
+                                className="text-xs font-bold text-zinc-900 bg-transparent outline-none cursor-pointer w-full"
                             />
                         </div>
                         <button
                             onClick={exportarCSV}
-                            className="flex items-center gap-1.5 h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm cursor-pointer"
+                            className="flex items-center justify-center gap-1.5 h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm cursor-pointer"
                         >
                             <Download size={14} /> Exportar CSV
                         </button>
@@ -639,12 +722,18 @@ export default function ContabilidadeCondoPage() {
 
                 {/* Tabela de Consulta do Rateio Condominial */}
                 <div className="w-full bg-white border border-zinc-200 p-6 md:p-8 rounded-[2.5rem] shadow-sm space-y-6">
-                    <div className="flex justify-between items-center">
+                    <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                         <div>
-                            <h2 className="text-xl font-black tracking-tight text-zinc-900">Consulta de Rateio do Condomínio</h2>
-                            <p className="text-xs text-zinc-500 font-medium">Demonstrativo consolidado para fins de auditoria e conferência (Modo Exclusivo de Consulta).</p>
+                            <h2 className="text-xl font-black tracking-tight text-zinc-900">
+                                <span className="md:hidden">Consulta de Rateio</span>
+                                <span className="hidden md:inline">Consulta de Rateio do Condomínio</span>
+                            </h2>
+                            <p className="text-xs text-zinc-500 font-medium">
+                                <span className="md:hidden">Demonstrativo consolidado.</span>
+                                <span className="hidden md:inline">Demonstrativo consolidado para fins de auditoria e conferência (Modo Exclusivo de Consulta).</span>
+                            </p>
                         </div>
-                        <div className="text-right">
+                        <div className="text-left md:text-right mt-2 md:mt-0">
                             <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Consolidado Geral</span>
                             <span className="text-lg font-black text-emerald-600">{formatarMoeda(totalGeralCondominio)}</span>
                         </div>

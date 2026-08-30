@@ -159,7 +159,7 @@ export default function NucleobaseCondo() {
                     {isLoggedIn ? (
                         <UserCircle size={16} className="text-white" />
                     ) : (
-                        <UserPlus size={16} className="text-blue-400" />
+                        <Users size={16} className="text-blue-400" />
                     )}
                     <span className="text-white text-[10px] font-black uppercase tracking-widest">
                         {isLoggedIn ? "Minha conta" : "Acessar Dashboard"}
@@ -198,7 +198,7 @@ export default function NucleobaseCondo() {
                     <div className="relative z-10 w-full">
                         <div className="flex items-center gap-4 mb-2">
                             <div className="w-14 h-14 shrink-0 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover:bg-white group-hover:text-blue-600 transition-all duration-500">
-                                <Star size={24} fill="currentColor" />
+                                <Users size={24} />
                             </div>
                             <div>
                                 <p className="text-blue-400 text-[9px] font-black uppercase tracking-[0.2em]">O Futuro do seu Prédio</p>
@@ -308,7 +308,7 @@ export default function NucleobaseCondo() {
                 <Link href="/condo/dashboard" className="col-span-2 bg-gray-900 p-6 rounded-[2rem] relative overflow-hidden block">
                     <div className="flex items-center justify-between relative z-10 mb-4">
                         <div className="flex items-center gap-3">
-                            <Star size={20} className="text-blue-500" fill="currentColor" />
+                            <Users size={20} className="text-blue-500" />
                             <div>
                                 <p className="text-blue-400 text-[8px] font-black uppercase tracking-widest">Modernização</p>
                                 <h4 className="font-bold text-white text-sm">Praticidade e Segurança</h4>
@@ -435,7 +435,7 @@ export default function NucleobaseCondo() {
                     <ArrowUpRight size={15} />
                 </a>
                 <a href="/condo/dashboard" onClick={() => trackClick("Acessar Dashboard", "/condo/dashboard")} className="flex items-center justify-between flex-1 bg-blue-600 hover:bg-blue-700 text-white py-4 px-6 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest shadow-lg">
-                    <div className="flex items-center gap-2"><UserPlus size={15} className="text-white" /> Acessar Dashboard</div>
+                    <div className="flex items-center gap-2"><Users size={15} className="text-white" /> Acessar Dashboard</div>
                     <ArrowUpRight size={15} />
                 </a>
             </div>
