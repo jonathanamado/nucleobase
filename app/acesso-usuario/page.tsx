@@ -328,13 +328,15 @@ export default function AcessoUsuarioPage() {
       </div>
 
       {/* Seção Condicional */}
-      <div className={!isLoggedIn ? "hidden md:block mt-14" : "block mt-8"}>
+      <div className={!isLoggedIn ? "hidden md:block mt-14" : "block mt-2 md:mt-8"}>
 
         <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-3 flex items-center gap-4 w-full">
-          Navegação e Acessos <div className="h-px bg-gray-300 flex-1"></div>
+          <span className="md:hidden">Navegação</span>
+          <span className="hidden md:block">Navegação e Acessos</span>
+          <div className="h-px bg-gray-300 flex-1"></div>
         </h3>
 
-        <div className="mb-12">
+        <div className="mb-6">
           <p className="hidden md:block text-base text-gray-600 leading-relaxed">
             Através do{" "}
             <span className="inline-flex items-center justify-center bg-orange-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
@@ -439,9 +441,13 @@ export default function AcessoUsuarioPage() {
                   <span className="text-[10px] font-black uppercase tracking-widest text-orange-400">Privacidade Blindada</span>
                 </div>
 
-                <h4 className="text-2xl font-bold mb-3">Sua conta, suas regras.</h4>
-                <p className="text-gray-400 text-sm leading-relaxed mb-8 max-w-2xl font-medium">
-                  Na Nucleo, a segurança dos seus dados é o pilar central. Utilizamos criptografia de ponta a ponta e Row Level Security (RLS) para garantir que apenas você tenha acesso às suas informações financeiras.
+                <h4 className="text-2xl font-bold mb-3">
+                  <span className="md:hidden">Suas regras.</span>
+                  <span className="hidden md:block">Sua conta, suas regras.</span>
+                </h4>
+                <p className="text-gray-400 text-xs md:text-sm leading-relaxed mb-8 max-w-2xl font-medium">
+                  <span className="md:hidden">Segurança com criptografia de ponta a ponta e Row Level Security (RLS) para proteger suas finanças.</span>
+                  <span className="hidden md:block">Na Nucleo, a segurança dos seus dados é o pilar central. Utilizamos criptografia de ponta a ponta e Row Level Security (RLS) para garantir que apenas você tenha acesso às suas informações financeiras.</span>
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
