@@ -145,6 +145,8 @@ export function MobileTabBar() {
 
   const isCondoActive = !isSearchOpen && !isMenuOpen && (pathname === "/condo" || pathname?.startsWith("/condo/"));
 
+  const isFinanceActive = !isSearchOpen && !isMenuOpen && (pathname === "/controle-financeiro" || pathname?.startsWith("/controle-financeiro/"));
+
   const isProfileActive = isMenuOpen ||
     (!isSearchOpen && !isMenuOpen &&
       (pathname === "/minha-conta" || pathname === "/configuracoes" || pathname === "/cadastro" || pathname === "/acesso-usuario" || pathname === "/demonstracao" || pathname === "/sobre"));
@@ -224,8 +226,8 @@ export function MobileTabBar() {
           <Home size={22} strokeWidth={!isSearchOpen && !isMenuOpen && pathname === "/" ? 2.5 : 2} />
         </button>
 
-        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); router.push("/controle-financeiro"); }} className={`p-2 transition-colors cursor-pointer ${!isSearchOpen && !isMenuOpen && pathname === "/controle-financeiro" ? "text-orange-500" : "text-gray-400"}`}>
-          <Rocket size={22} className="-rotate-45" strokeWidth={!isSearchOpen && !isMenuOpen && pathname === "/controle-financeiro" ? 2.5 : 2} />
+        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); router.push("/controle-financeiro"); }} className={`p-2 transition-colors cursor-pointer ${isFinanceActive ? "text-orange-500" : "text-gray-400"}`}>
+          <Rocket size={20} className="-rotate-45" strokeWidth={isFinanceActive ? 2.5 : 2} />
         </button>
 
         <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); router.push("/condo"); }} className={`p-2 transition-colors cursor-pointer ${isCondoActive ? "text-blue-600" : "text-gray-400"}`}>

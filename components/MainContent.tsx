@@ -361,7 +361,7 @@ export function MainContent() {
           <div className="lg:col-span-6 flex flex-col justify-center">
             <div className="mb-0">
               <p className="text-base text-gray-600 leading-relaxed pr-6">
-                A <strong>nucleobase.app</strong> é uma plataforma digital, totalmente online, focada em organização de finanças, processos e{" "}
+                A <strong className="text-gray-900 font-bold">nucleobase.app</strong> é uma plataforma digital, totalmente online, focada em organização de finanças, processos e{" "}
                 <span className="inline-flex items-center justify-center bg-orange-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                   Controle Financeiro,
                 </span>{" "}
@@ -369,14 +369,14 @@ export function MainContent() {
                 <span className="inline-flex items-center justify-center bg-emerald-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                   Gestão Residencial
                 </span>{" "}
-                de maneira simples e consciente. Através de ferramentas integradas, você profissionaliza sua gestão reduzindo dependência em planilhas manuais. No módulo de{" "}
+                de maneira simples e consciente. Através de <strong className="text-gray-900 font-bold">ferramentas integradas</strong>, você profissionaliza sua gestão reduzindo dependência em planilhas manuais. No módulo de{" "}
                 <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                   Resultados & Consultoria
                 </span>{" "}
-                , transformamos dados em informações{" "}
-                <span className="text-gray-900 underline decoration-2 decoration-orange-500/30 underline-offset-4 font-medium">
-                  que aceleram seus projetos pessoais e profissionais.
-                </span>
+                , transformamos dados em informações que aceleram seus{" "}
+                <strong className="text-gray-900 font-bold">
+                  projetos pessoais e profissionais.
+                </strong>
               </p>
 
               <div className="flex items-center gap-3 mt-5 animate-in fade-in duration-1000">

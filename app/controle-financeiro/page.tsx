@@ -73,7 +73,7 @@ export default function ControleFinanceiroHome() {
     { id: "resultados_tempo_real", icon: <Vote size={18} />, title: "Resultados & Indicadores", text: "Acompanhe todos os seus orçamentos detalhados e faturas abertas em tempo real.", link: "/controle-financeiro/resultados" },
     { id: "lancamentos_praticos", icon: <FileText size={18} />, title: "Lançamentos Ágeis", text: "Registre facilmente despesas diárias e receitas importantes em poucos cliques seguros.", link: "/controle-financeiro/lancamentos" },
     { id: "amplitude_gestao", icon: <Briefcase size={18} />, title: "Consultoria", text: "Utilize diversas ferramentas analíticas avançadas para o seu dia a dia empresarial.", link: "/resultados-consultoria" },
-    { id: "importar_arquivos", icon: <MessageCircle size={18} />, title: "Contato", text: "Processe com segurança múltiplos lançamentos financeiros de forma rápida, eficiente e garantida.", link: "/contato" }
+    { id: "importar_arquivos", icon: <MessageCircle size={18} />, title: "Contato", text: "Processe com segurança múltiplos lançamentos de forma rápida e eficiente.", link: "/contato" }
   ];
 
   // Cards que serão passados manualmente no bloco mobile
@@ -447,11 +447,11 @@ export default function ControleFinanceiroHome() {
                 Controle Financeiro
               </span>{" "}
               doméstico e corporativo.<br /><br />
-              Sabendo que o principal obstáculo no gerenciamento de despesas é a dispersão de dados, centralizamos tudo de forma integrada em uma plataforma moderna, inteligente e ágil.
+              Sabendo que o principal obstáculo no gerenciamento diário e estratégico de despesas corporativas é a constante dispersão de dados financeiros importantes, centralizamos absolutamente tudo de forma inteligente e perfeitamente integrada em uma única plataforma moderna e ágil.
             </p>
 
-            <div className="mb-4 md:hidden">
-              <p className="text-xs leading-relaxed text-gray-600 font-medium mb-4">
+            <div className="mb-6 md:hidden">
+              <p className="text-sm leading-relaxed text-gray-600 font-medium mb-6">
                 A Nucleo é a melhor opção em controle de orçamentos, unindo tecnologia, segurança e praticidade no dia a dia dos assinantes.
               </p>
             </div>
@@ -459,7 +459,7 @@ export default function ControleFinanceiroHome() {
             <div className="bg-orange-50/40 border-l-4 border-orange-500 p-5 md:p-8 my-0 rounded-2xl md:rounded-r-[2.5rem] relative overflow-hidden group transition-all hover:bg-orange-50/60 flex flex-col justify-center">
               <ShieldCheck className="absolute -right-6 -bottom-6 text-orange-500 opacity-5 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-700" size={150} />
               <p className="font-medium text-orange-950 text-base md:text-xl leading-relaxed relative z-10 tracking-tight">
-                "Nosso objetivo é transformar números brutos em decisões práticas para a sua vida financeira."<br /><br />
+                "Nosso objetivo é transformar números brutos em decisões práticas para sua rotina." <br />
                 <Link href="/cadastro" className="text-orange-600 font-bold underline hover:text-orange-800 transition-colors text-xs md:text-sm">
                   <span className="inline md:hidden">Crie sua conta gratuitamente</span>
                 </Link>

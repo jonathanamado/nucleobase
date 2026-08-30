@@ -284,6 +284,7 @@ export default function ContabilidadeCondoPage() {
                 if (isMountedRef.current) {
                     setSession(null);
                     setCondominio(null);
+                    setIsAcessoNegado(false);
                     setLoading(false);
                 }
                 return;
@@ -391,6 +392,22 @@ export default function ContabilidadeCondoPage() {
                 return;
             }
 
+            // Verificar se o usuário autenticado possui o papel de contabilidade antes de liberar
+            const { data: membroDataList } = await supabase
+                .from("condominio_membros")
+                .select("role")
+                .eq("user_id", data.session.user.id);
+
+            const temContabilidade = (membroDataList || []).some((m: any) => String(m.role || "").toLowerCase().trim() === 'contabilidade');
+
+            if (!temContabilidade) {
+                await supabase.auth.signOut();
+                setIsAcessoNegado(true);
+                tratarErroLogin("Esta conta não possui perfil de contabilidade autorizado para este portal.");
+                setAuthLoading(false);
+                return;
+            }
+
             resetarBloqueio();
             await verifyContabilidadeAndLoadData(data.session);
         } catch {
@@ -420,77 +437,77 @@ export default function ContabilidadeCondoPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
-                <div className="animate-spin text-emerald-600 mb-4">
-                    <FileSpreadsheet size={32} />
+            <div className="h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 overflow-hidden">
+                <div className="animate-spin text-emerald-600 mb-3">
+                    <FileSpreadsheet size={28} />
                 </div>
-                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Carregando painel de contabilidade...</p>
+                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Carregando painel...</p>
             </div>
         );
     }
 
     if (!session || isAcessoNegado) {
         return (
-            <div className="min-h-screen bg-zinc-50/50 text-zinc-900 flex flex-col items-center justify-center p-6">
-                <div className="w-full max-w-md bg-white border border-zinc-200 p-8 rounded-[2.5rem] shadow-sm space-y-6 text-center">
-                    <div className="mx-auto w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
-                        <Lock size={30} />
+            <div className="h-screen bg-zinc-50/50 text-zinc-900 flex flex-col items-center justify-center p-4 overflow-hidden">
+                <div className="w-full max-w-sm bg-white border border-zinc-200 p-6 rounded-[2rem] shadow-sm space-y-4 text-center">
+                    <div className="mx-auto w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+                        <Lock size={22} />
                     </div>
-                    <div className="space-y-1">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Acesso Restrito</span>
-                        <h1 className="text-xl font-black tracking-tight">Portal da Contabilidade</h1>
-                        <p className="text-xs text-zinc-500 font-medium">Insira as credenciais vinculadas ao papel de contabilidade para acessar as informações do condomínio.</p>
+                    <div className="space-y-0.5">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600">Acesso Restrito</span>
+                        <h1 className="text-lg font-black tracking-tight">Portal Contábil</h1>
+                        <p className="text-[11px] text-zinc-500 font-medium">Insira credenciais autorizadas.</p>
                     </div>
 
-                    <form onSubmit={handleLogin} className="space-y-4 text-left">
+                    <form onSubmit={handleLogin} className="space-y-3 text-left">
                         <div>
-                            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">E-mail ou ID</label>
+                            <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider ml-1">E-mail ou ID</label>
                             <input
                                 type="text"
                                 required
                                 placeholder="exemplo@dominio.com"
-                                className="w-full mt-1 px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl text-sm outline-none focus:border-emerald-400 font-medium"
+                                className="w-full mt-0.5 px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs outline-none focus:border-emerald-400 font-medium"
                                 value={emailOrSlug}
                                 onChange={(e) => setEmailOrSlug(e.target.value)}
                             />
                         </div>
                         <div>
-                            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Senha</label>
-                            <div className="relative mt-1">
+                            <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Senha</label>
+                            <div className="relative mt-0.5">
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     required
                                     placeholder="••••••••"
-                                    className="w-full px-4 py-3 pr-12 bg-zinc-50 border border-zinc-200 rounded-2xl text-sm outline-none focus:border-emerald-400 font-medium"
+                                    className="w-full px-3 py-2.5 pr-10 bg-zinc-50 border border-zinc-200 rounded-xl text-xs outline-none focus:border-emerald-400 font-medium"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 cursor-pointer"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 cursor-pointer"
                                 >
-                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                 </button>
                             </div>
                         </div>
 
                         {tempoBloqueio > 0 && (
-                            <div className="text-xs font-bold text-amber-600 bg-amber-50 p-3 rounded-xl text-center">
-                                Muitas tentativas. Tente novamente em {tempoBloqueio}s.
+                            <div className="text-[11px] font-bold text-amber-600 bg-amber-50 p-2.5 rounded-xl text-center">
+                                Aguarde {tempoBloqueio}s.
                             </div>
                         )}
 
-                        {loginError && tempoBloqueio === 0 && (
-                            <p className="text-xs font-bold text-red-600 bg-red-50 p-3 rounded-xl text-center">
-                                {loginError}
+                        {(loginError || isAcessoNegado) && tempoBloqueio === 0 && (
+                            <p className="text-[11px] font-bold text-red-600 bg-red-50 p-2.5 rounded-xl text-center">
+                                {isAcessoNegado && !loginError ? "Acesso negado: Perfil de contabilidade não vinculado." : loginError}
                             </p>
                         )}
 
                         <button
                             type="submit"
                             disabled={authLoading || tempoBloqueio > 0}
-                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest cursor-pointer transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50"
+                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-black text-[9px] uppercase tracking-widest cursor-pointer transition-all shadow-md disabled:opacity-50 mt-1"
                         >
                             {authLoading ? "Acessando..." : tempoBloqueio > 0 ? `Aguarde (${tempoBloqueio}s)` : "Entrar no Portal"}
                         </button>

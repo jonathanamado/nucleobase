@@ -292,14 +292,14 @@ export default function NucleobaseCondo() {
     };
 
     const LayoutDestaqueMobile = () => (
-        <div className="my-10">
-            <div className="flex items-center gap-3 mb-8">
+        <div className="my-8">
+            <div className="flex items-center gap-3 mb-6">
                 <div className="h-px bg-blue-100 flex-1"></div>
                 <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Destaques</span>
                 <div className="h-px bg-blue-100 flex-1"></div>
             </div>
 
-            <p className="text-gray-700 text-sm font-medium mb-6 text-center leading-relaxed">
+            <p className="text-gray-700 text-sm font-medium mb-5 text-center leading-relaxed">
                 Acreditamos que a <span className="text-gray-900 font-bold underline decoration-blue-200 underline-offset-4 decoration-2">gestão democrática</span> é o caminho para valorizar seu patrimônio.
             </p>
 
@@ -392,8 +392,8 @@ export default function NucleobaseCondo() {
     );
 
     return (
-        <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
+        <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-16 relative px-4 md:px-0">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-4 mt-0">
                 <div>
                     <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
                         <span>Nucleo Condo<span className="text-blue-600">.</span></span>
@@ -429,7 +429,7 @@ export default function NucleobaseCondo() {
                 </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 w-full mb-8 mt-4 md:hidden">
+            <div className="flex flex-col sm:flex-row gap-3 w-full mb-6 mt-3 md:hidden">
                 <a href="/condo/adm" className="flex items-center justify-between flex-1 bg-gray-900 text-white py-4 px-6 rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest shadow-lg">
                     <div className="flex items-center gap-2"><Building2 size={15} className="text-blue-500" /> Área do Síndico</div>
                     <ArrowUpRight size={15} />
@@ -449,7 +449,7 @@ export default function NucleobaseCondo() {
                     <div className="flex flex-col justify-between h-full">
                         <p className="mb-8 leading-relaxed text-gray-700 hidden md:block">
                             A Nucleo Condo nasceu para permitir clareza aos fluxos, e agora trazemos o mesmo rigor para a{" "}
-                            <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
+                            <span className="inline-flex items-center justify-center bg-emerald-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                                 Administração
                             </span>{" "}
                             de condomínios. Sabendo que o principal calcanhar de Aquiles neste segmento é a dificuldade de transparência, unimos tecnologia e clareza para a rotina de síndicos e condôminos, unificando e facilitando decisões.
