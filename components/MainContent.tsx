@@ -206,7 +206,7 @@ export function MainContent() {
                 Nucleo Condo
               </Link>
               <p className="text-xs text-gray-500 font-bold pl-3.5 leading-relaxed">
-                Tecnologia, transparência e otimização de processos para condomínios.
+                Tecnologia aplicada, transparência e otimização de processos em condomínios.
               </p>
             </div>
 

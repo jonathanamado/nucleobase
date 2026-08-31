@@ -437,7 +437,7 @@ export default function ControleFinanceiroHome() {
       </div>
 
       <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4">
-        Gestão financeira <div className="h-px bg-gray-300 flex-1"></div>
+        Controle de verdade <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
