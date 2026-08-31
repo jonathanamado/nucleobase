@@ -454,7 +454,7 @@ export default function ControleFinanceiroHome() {
 
             <div className="mb-6 md:hidden">
               <p className="text-sm leading-relaxed text-gray-600 font-medium mb-1">
-                Transforme intencionalmente cada decisão em um salto de autonomia, unindo rigor, clareza, segurança e agilidade.
+                Transforme intencionalmente cada decisão em um salto de autonomia, unindo clareza, segurança e agilidade.
               </p>
             </div>
 

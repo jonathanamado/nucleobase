@@ -184,7 +184,7 @@ export function MainContent() {
           <p className="text-gray-600 text-base leading-relaxed font-medium py-1">
             A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos controles com inteligência e foco em redução de custos. Conheça a nossa história e a nossa missão <Link href="/sobre" className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
             <br /><br />
-            Nossa plataforma oferece controle completo de orçamentos financeiros e gestão condominial, e em ambos os módulos consultoria especializada. Saiba mais:
+            Nosso app oferece controle completo de orçamentos financeiros e gestão condominial, e em ambos os módulos consultoria especializada. Saiba mais:
           </p>
         </div>
 
