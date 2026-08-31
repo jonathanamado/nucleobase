@@ -72,20 +72,20 @@ export default function RootLayout({
           `}
         </Script>
 
-        {/* 2. Script principal do GTM atualizado para o contêiner correto */}
+        {/* 2. Script principal do GTM atualizado para o novo contêiner oficial */}
         <Script
           id="google-tag-manager"
           strategy="afterInteractive"
-          src="https://www.googletagmanager.com/gtm.js?id=GTM-5DGJ8ST5"
+          src="https://www.googletagmanager.com/gtm.js?id=GTM-KMS44HS2"
         />
       </head>
 
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-gray-900 min-h-screen flex flex-col overflow-x-hidden max-w-full`}>
 
-        {/* NoScript atualizado para o ID correto */}
+        {/* NoScript atualizado para o novo ID oficial */}
         <noscript>
           <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-5DGJ8ST5"
+            src="https://www.googletagmanager.com/ns.html?id=GTM-KMS44HS2"
             height="0"
             width="0"
             style={{ display: 'none', visibility: 'hidden' }}
