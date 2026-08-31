@@ -216,7 +216,7 @@ export function MainContent() {
                 Resultados & Consultoria
               </Link>
               <p className="text-xs text-gray-500 font-bold pl-3.5 leading-relaxed">
-                Suporte especializado e painéis analíticos para decisões críticas.
+                Painéis analíticos para suporte em decisões e consultoria especializada.
               </p>
             </div>
           </div>
