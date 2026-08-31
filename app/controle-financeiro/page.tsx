@@ -454,7 +454,7 @@ export default function ControleFinanceiroHome() {
 
             <div className="mb-6 md:hidden">
               <p className="text-sm leading-relaxed text-gray-600 font-medium mb-1">
-                Domine suas finanças com inteligência e precisão, transformando a gestão do seu orçamento em uma rotina leve e segura.
+                Transforme cada decisão em um salto de autonomia, unindo inteligência preditiva, rigor e clareza absoluta.
               </p>
             </div>
 

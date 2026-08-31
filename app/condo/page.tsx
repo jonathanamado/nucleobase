@@ -457,7 +457,7 @@ export default function NucleobaseCondo() {
 
                         <div className="mb-6 md:hidden">
                             <p className="text-sm leading-relaxed text-gray-600 font-medium mb-6">
-                                Revolucione a administração do seu condomínio com automação inteligente e processos fluidos que simplificam a rotina.
+                                Revolucione a administração do seu condomínio com automação inteligente e processos que simplificam sua rotina.
                             </p>
 
                             <button
@@ -472,7 +472,7 @@ export default function NucleobaseCondo() {
                         <div className="bg-blue-50/40 border-l-4 border-blue-600 p-4 md:p-6 my-0 rounded-2xl relative overflow-hidden group transition-all hover:bg-blue-50/60 flex flex-col justify-center">
                             <ShieldCheck className="absolute -right-6 -bottom-6 text-blue-600 opacity-5 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-700" size={140} />
                             <p className="font-medium text-blue-900 text-base md:text-lg leading-relaxed relative z-10 tracking-tight">
-                                "Nosso objetivo é transformar rotinas em processos visuais e simples, garantindo harmonia e integração entre administração e moradores."<br /><br />
+                                "Nosso objetivo é transformar rotinas em processos simples, garantindo harmonia e integração entre administração e moradores."<br /><br />
                                 <Link href="/cadastro" className="text-blue-600 font-bold underline hover:text-blue-800 transition-colors text-xs md:text-sm">Não possui uma conta? Clique aqui</Link>
                             </p>
                         </div>
