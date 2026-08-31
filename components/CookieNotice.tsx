@@ -5,7 +5,6 @@ import { Cookie, ShieldCheck, X, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-// Tipagem global para o objeto window
 declare global {
   interface Window {
     dataLayer: any[];
@@ -21,6 +20,7 @@ export default function CookieNotice() {
   useEffect(() => {
     const consent = localStorage.getItem("nucleo-consent");
 
+    // Se ainda não deu o consentimento, exibe a notificação após o delay
     if (!consent) {
       const timer = setTimeout(() => setIsVisible(true), 1500);
       return () => clearTimeout(timer);
@@ -32,7 +32,7 @@ export default function CookieNotice() {
       // 1. Inicializa o dataLayer se não existir
       window.dataLayer = window.dataLayer || [];
 
-      // 2. DISPARO OFICIAL DO CONSENT MODE
+      // 2. DISPARO OFICIAL DO CONSENT MODE (Atualiza para granted)
       if (typeof window.gtag === "function") {
         window.gtag("consent", "update", {
           analytics_storage: "granted",
@@ -51,7 +51,7 @@ export default function CookieNotice() {
         });
       }
 
-      // 3. Evento customizado para disparar tags
+      // 3. Evento customizado para disparar tags dependentes de aceite
       window.dataLayer.push({
         event: "cookie_consent_accepted",
         consent_type: "full",
@@ -61,9 +61,10 @@ export default function CookieNotice() {
       document.cookie =
         "nucleobase-consent=true; path=/; max-age=31536000; SameSite=Lax";
 
-      // 5. Persistência local (mantida intacta e blindada contra logouts de usuário)
+      // 5. Persistência local
       localStorage.setItem("nucleo-consent", "true");
 
+      // Oculta o widget imediatamente após o clique
       setIsVisible(false);
     }
   };
@@ -78,7 +79,6 @@ export default function CookieNotice() {
         className="relative group"
         onMouseEnter={() => setIsExpanded(true)}
       >
-
         {!isPolicyPage && (
           <div
             className={`
