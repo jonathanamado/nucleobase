@@ -64,10 +64,10 @@ export default function RootLayout({
             function gtag(){window.dataLayer.push(arguments);}
             
             gtag('consent', 'default', {
-              'analytics_storage': 'denied',
-              'ad_storage': 'denied',
-              'ad_user_data': 'denied',
-              'ad_personalization': 'denied'
+              'analytics_storage': 'granted',
+              'ad_storage': 'granted',
+              'ad_user_data': 'granted',
+              'ad_personalization': 'granted'
             });
           `}
         </Script>
