@@ -457,7 +457,7 @@ export default function NucleobaseCondo() {
 
                         <div className="mb-6 md:hidden">
                             <p className="text-sm leading-relaxed text-gray-600 font-medium mb-6">
-                                A Nucleo é a melhor opção em gestão de processos condominiais, unindo tecnologia e praticidade no dia a dia.
+                                Revolucione a administração do seu condomínio com automação inteligente e processos fluidos que simplificam a rotina.
                             </p>
 
                             <button
