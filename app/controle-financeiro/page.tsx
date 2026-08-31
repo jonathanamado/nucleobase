@@ -454,7 +454,7 @@ export default function ControleFinanceiroHome() {
 
             <div className="mb-6 md:hidden">
               <p className="text-sm leading-relaxed text-gray-600 font-medium mb-1">
-                A Nucleo é a melhor opção em controle de orçamentos, unindo tecnologia, segurança e praticidade no dia a dia dos assinantes.
+                A Nucleo é a melhor opção em controle de orçamentos, unindo tecnologia, segurança e praticidade ao seu dia a dia.
               </p>
             </div>
 
