@@ -57,11 +57,6 @@ export async function middleware(request: NextRequest) {
 
   // --- 1. LÓGICA PARA O GOOGLE TAG GATEWAY (SERVER-SIDE) ---
   if (pathname.startsWith('/metrics')) {
-    // Bloqueia envio se usuário não consentiu
-    if (!hasConsent) {
-      return new NextResponse(null, { status: 204 });
-    }
-
     // Remove o prefixo /metrics
     const targetPath = pathname.replace('/metrics', '');
 
