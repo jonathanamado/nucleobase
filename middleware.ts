@@ -1,41 +1,29 @@
 // middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
+  let supabaseResponse = NextResponse.next({
+    request,
   });
 
-  // --- LÓGICA DE PERSISTÊNCIA SUPABASE (SSR com proteção de erro) ---
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
+        getAll() {
+          return request.cookies.getAll();
         },
-        set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({ name, value, ...options });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value));
+          supabaseResponse = NextResponse.next({
+            request,
           });
-          response.cookies.set({ name, value, ...options });
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.set({ name, value: '', ...options });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
-          response.cookies.set({ name, value: '', ...options });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          );
         },
       },
     }
@@ -44,14 +32,13 @@ export async function middleware(request: NextRequest) {
   try {
     await supabase.auth.getUser();
   } catch (error) {
-    // Silencia erros de sessão ausente para não quebrar o fluxo de login inicial
+    // Silencia erros de sessão ausente para não travar o fluxo inicial
   }
 
   const url = request.nextUrl.clone();
   const hostname = request.headers.get('host') || '';
   const pathname = url.pathname;
 
-  // Definições de domínio declaradas no topo para evitar erros de escopo
   const MAIN_DOMAIN = 'nucleobase.app';
   const DASHBOARD_DOMAIN = 'dashboard.nucleobase.app';
 
@@ -105,7 +92,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  return response;
+  return supabaseResponse;
 }
 
 export const config = {
