@@ -57,22 +57,25 @@ export default function RootLayout({
       <head>
         <meta name="color-scheme" content="only light" />
 
-        {/* 1. Inicialização do Consent Mode e dataLayer (Obrigatório antes do GTM) */}
-        <Script id="gtm-init" strategy="beforeInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){window.dataLayer.push(arguments);}
-            
-            gtag('consent', 'default', {
-              'analytics_storage': 'granted',
-              'ad_storage': 'granted',
-              'ad_user_data': 'granted',
-              'ad_personalization': 'granted'
-            });
-          `}
-        </Script>
+        {/* 1. Inicialização segura do Consent Mode e dataLayer antes do GTM */}
+        <Script
+          id="gtm-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){window.dataLayer.push(arguments);}
+              gtag('consent', 'default', {
+                'analytics_storage': 'granted',
+                'ad_storage': 'granted',
+                'ad_user_data': 'granted',
+                'ad_personalization': 'granted'
+              });
+            `,
+          }}
+        />
 
-        {/* 2. Script principal do GTM atualizado para o novo contêiner oficial */}
+        {/* 2. Script principal do GTM atualizado para o contêiner oficial */}
         <Script
           id="google-tag-manager"
           strategy="afterInteractive"
@@ -82,7 +85,7 @@ export default function RootLayout({
 
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-gray-900 min-h-screen flex flex-col overflow-x-hidden max-w-full`}>
 
-        {/* NoScript atualizado para o novo ID oficial */}
+        {/* NoScript atualizado para o ID oficial */}
         <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-KMS44HS2"
