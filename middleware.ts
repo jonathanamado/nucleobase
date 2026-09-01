@@ -10,7 +10,7 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // --- LÓGICA DE PERSISTÊNCIA SUPABASE (SSR) ---
+  // --- LÓGICA DE PERSISTÊNCIA SUPABASE (SSR com proteção de erro) ---
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -41,28 +41,23 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Essencial para renovar o token e persistir a conta Google nos cookies
-  await supabase.auth.getUser();
+  // Envolvemos a checagem em try/catch para evitar crash quando os cookies estiverem vazios
+  try {
+    await supabase.auth.getUser();
+  } catch (error) {
+    // Silencia erros de sessão ausente para não quebrar o fluxo de login inicial
+  }
 
   const url = request.nextUrl.clone();
   const hostname = request.headers.get('host') || '';
   const pathname = url.pathname;
 
-  // Nome do cookie que seu componente CookieNotice deve usar
-  const COOKIE_CONSENT_NAME = 'nucleobase-consent';
-  const hasConsent = request.cookies.has(COOKIE_CONSENT_NAME);
-
-  const MAIN_DOMAIN = 'nucleobase.app';
-  const DASHBOARD_DOMAIN = 'dashboard.nucleobase.app';
-
-  // --- 1. LÓGICA PARA O GOOGLE TAG GATEWAY (SERVER-SIDE) ---
+  // --- 1. LÓGICA PARA O GOOGLE TAG GATEWAY (SERVER-SIDE VIA PROXY) ---
   if (pathname.startsWith('/metrics')) {
-    // Remove o prefixo /metrics
     const targetPath = pathname.replace('/metrics', '');
 
     let googleDomain = 'https://www.google-analytics.com';
 
-    // Arquivos do GTM precisam vir do googletagmanager
     if (targetPath.startsWith('/gtm.js') || targetPath.startsWith('/gtag/js')) {
       googleDomain = 'https://www.googletagmanager.com';
     }
@@ -72,7 +67,6 @@ export async function middleware(request: NextRequest) {
       googleDomain
     );
 
-    // Reaplica a resposta mantendo os cookies do Supabase
     const rewriteResponse = NextResponse.rewrite(googleTarget);
     rewriteResponse.headers.set('Access-Control-Allow-Origin', '*');
     return rewriteResponse;
@@ -98,6 +92,9 @@ export async function middleware(request: NextRequest) {
       );
     }
   }
+
+  const MAIN_DOMAIN = 'nucleobase.app';
+  const DASHBOARD_DOMAIN = 'dashboard.nucleobase.app';
 
   // --- 3. LÓGICA PARA O DOMÍNIO PRINCIPAL ---
   if (hostname === MAIN_DOMAIN) {
