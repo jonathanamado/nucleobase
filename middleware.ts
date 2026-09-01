@@ -29,10 +29,18 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  try {
-    await supabase.auth.getUser();
-  } catch (error) {
-    // Silencia erros de sessão ausente para não travar o fluxo inicial
+  // SEGURANÇA: Só valida a sessão se o navegador já possuir um cookie do Supabase.
+  // Isso evita que o login seja bloqueado quando o usuário está sem cookies ou tentando logar.
+  const hasAuthCookie = request.cookies.getAll().some(
+    cookie => cookie.name.includes('auth-token') || cookie.name.includes('supabase')
+  );
+
+  if (hasAuthCookie) {
+    try {
+      await supabase.auth.getUser();
+    } catch (error) {
+      // Silencia erros de token expirado/inválido para não quebrar a navegação
+    }
   }
 
   const url = request.nextUrl.clone();
