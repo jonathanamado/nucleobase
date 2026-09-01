@@ -41,7 +41,6 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Envolvemos a checagem em try/catch para evitar crash quando os cookies estiverem vazios
   try {
     await supabase.auth.getUser();
   } catch (error) {
@@ -51,6 +50,10 @@ export async function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
   const hostname = request.headers.get('host') || '';
   const pathname = url.pathname;
+
+  // Definições de domínio declaradas no topo para evitar erros de escopo
+  const MAIN_DOMAIN = 'nucleobase.app';
+  const DASHBOARD_DOMAIN = 'dashboard.nucleobase.app';
 
   // --- 1. LÓGICA PARA O GOOGLE TAG GATEWAY (SERVER-SIDE VIA PROXY) ---
   if (pathname.startsWith('/metrics')) {
@@ -92,9 +95,6 @@ export async function middleware(request: NextRequest) {
       );
     }
   }
-
-  const MAIN_DOMAIN = 'nucleobase.app';
-  const DASHBOARD_DOMAIN = 'dashboard.nucleobase.app';
 
   // --- 3. LÓGICA PARA O DOMÍNIO PRINCIPAL ---
   if (hostname === MAIN_DOMAIN) {
