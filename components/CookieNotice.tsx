@@ -18,7 +18,8 @@ export default function CookieNotice() {
   const pathname = usePathname();
 
   useEffect(() => {
-    const consent = localStorage.getItem("nucleo-consent");
+    // Chave unificada para evitar dessincronia com o middleware
+    const consent = localStorage.getItem("nucleobase-consent");
 
     // Se ainda não deu o consentimento, exibe a notificação após o delay
     if (!consent) {
@@ -61,8 +62,8 @@ export default function CookieNotice() {
       document.cookie =
         "nucleobase-consent=true; path=/; max-age=31536000; SameSite=Lax";
 
-      // 5. Persistência local
-      localStorage.setItem("nucleo-consent", "true");
+      // 5. Persistência local unificada
+      localStorage.setItem("nucleobase-consent", "true");
 
       // Oculta o widget imediatamente após o clique
       setIsVisible(false);
