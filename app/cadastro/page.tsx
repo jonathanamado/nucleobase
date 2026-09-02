@@ -173,6 +173,16 @@ export default function CadastroPage() {
         localStorage.removeItem("nucleobase_referral_id");
       }
 
+      // === ADICIONE ESTE BLOCO AQUI ===
+      if (typeof window !== "undefined") {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: "user_signed_up",
+          method: email.trim() ? "email" : "slug"
+        });
+      }
+      // ================================
+
       setTimeout(() => {
         window.location.href = "/minha-conta";
       }, 300);
