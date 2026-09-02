@@ -317,6 +317,16 @@ export default function MinhaContaPage() {
         return;
       }
 
+      // === ADICIONE ESTE BLOCO AQUI ===
+      if (typeof window !== "undefined") {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: "user_profile_updated",
+          category: "account_management"
+        });
+      }
+      // ================================
+
       setIsDirty(false);
       setSuccessMessage("Dados salvos com sucesso!");
 

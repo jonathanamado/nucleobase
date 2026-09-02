@@ -430,7 +430,7 @@ export function MainContent() {
               <div className="bg-white p-3 rounded-2xl text-blue-600 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 mb-4">
                 <BarChart3 size={24} />
               </div>
-              <h4 className="font-bold text-gray-900 text-base mb-1">Resultado Consultoria</h4>
+              <h4 className="font-bold text-gray-900 text-base mb-1">Resultados Consultoria</h4>
               <p className="text-[11px] text-gray-600 leading-tight mb-4">Conheça a expertise digital e de processos com foco em consultoria.</p>
               <div className="w-full mt-auto py-2.5 bg-white border border-blue-200 text-blue-600 rounded-xl font-bold text-[10px] uppercase tracking-widest group-hover:bg-blue-600 group-hover:text-white transition-all flex items-center justify-center gap-2">
                 Acessar <ArrowRight size={12} />

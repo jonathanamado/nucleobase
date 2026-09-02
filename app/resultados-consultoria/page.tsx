@@ -1,4 +1,4 @@
-// app/lancamentos/resultados/page.tsx
+// app/resultados-consultoria/page.tsx
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
@@ -40,7 +40,7 @@ export default function ResultadosGeraisPage() {
       badgeMobile: "Controle",
       color: "text-blue-600",
       bg: "bg-blue-50",
-      link: "/lancamentos",
+      link: "/controle-financeiro",
       metric: "100%",
       metricLabel: "Visibilidade"
     },
@@ -137,7 +137,20 @@ export default function ResultadosGeraisPage() {
         <div className="w-full md:grid md:grid-cols-3 gap-6 flex items-stretch justify-center">
           {beneficiosModulos.map((beneficio, idx) => (
             <div key={idx} className={`h-auto md:h-full w-full flex-1 ${cardAtivo === idx ? 'flex animate-in fade-in zoom-in-95 duration-300' : 'hidden'} md:flex md:animate-none`}>
-              <Link href={beneficio.link} className="block w-full group bg-white p-6 md:p-8 rounded-[2rem] border border-gray-100 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-500 relative overflow-hidden flex flex-col justify-between">
+              <Link
+                href={beneficio.link}
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    window.dataLayer = window.dataLayer || [];
+                    window.dataLayer.push({
+                      event: "consulting_module_clicked",
+                      module_title: beneficio.title,
+                      module_badge: beneficio.badgeDesktop
+                    });
+                  }
+                }}
+                className="block w-full group bg-white p-6 md:p-8 rounded-[2rem] border border-gray-100 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-500 relative overflow-hidden flex flex-col justify-between"
+              >
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     {/* VISÃO DESKTOP: ÍCONE ISOLADO */}

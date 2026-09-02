@@ -629,6 +629,16 @@ export default function CondoDashboard() {
                     <Link
                         key={idx}
                         href={modulo.path}
+                        onClick={() => {
+                            if (typeof window !== "undefined") {
+                                window.dataLayer = window.dataLayer || [];
+                                window.dataLayer.push({
+                                    event: "condo_module_clicked",
+                                    module_title: modulo.title,
+                                    module_badge: modulo.badge
+                                });
+                            }
+                        }}
                         className="bg-white border border-zinc-200 p-3 md:p-8 rounded-[1.5rem] md:rounded-[2rem] shadow-sm hover:shadow-md transition-all group cursor-pointer flex flex-col justify-between"
                     >
                         <div>

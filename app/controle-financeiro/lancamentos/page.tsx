@@ -282,6 +282,18 @@ export default function LancamentosPage() {
         throw new Error(errorBody.message || "Erro ao salvar");
       }
 
+      // === ADICIONE ESTE BLOCO AQUI ===
+      if (typeof window !== "undefined") {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: "financial_record_created",
+          natureza: payload.natureza,       // "Despesa" ou "Receita"
+          projeto: payload.projeto,         // "Pessoal", "Empresarial" ou "Condomínio"
+          tipo_origem: payload.tipo_origem  // "CONTA_CORRENTE" ou "CARTAO"
+        });
+      }
+      // ================================
+
       setSucesso(true);
       setFormData(initialFormState);
       fetchUltimos(userId);
