@@ -23,6 +23,18 @@ export default function AuthForm({ onSuccess, redirectTo, view = "login" }: Auth
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  const trackAuthEvent = (event: string, method: string, status: string, errorMessage?: string) => {
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: event,
+        auth_method: method,
+        auth_status: status,
+        error_message: errorMessage || null
+      });
+    }
+  };
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -32,9 +44,15 @@ export default function AuthForm({ onSuccess, redirectTo, view = "login" }: Auth
       if (mode === "login") {
         const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
         if (authError) throw authError;
+
+        // Rastreio de Login bem-sucedido
+        trackAuthEvent("user_login", "email_password", "success");
       } else {
         const { error: authError } = await supabase.auth.signUp({ email, password });
         if (authError) throw authError;
+
+        // Rastreio de Cadastro bem-sucedido
+        trackAuthEvent("user_signup", "email_password", "success");
         alert("Verifique seu e-mail para confirmar o cadastro!");
       }
 
@@ -43,7 +61,11 @@ export default function AuthForm({ onSuccess, redirectTo, view = "login" }: Auth
       else router.refresh();
 
     } catch (err: any) {
-      setError(err.message || "Ocorreu um erro na autenticação.");
+      const errorMsg = err.message || "Ocorreu um erro na autenticação.";
+      setError(errorMsg);
+
+      // Rastreio de Erro na autenticação
+      trackAuthEvent(mode === "login" ? "user_login" : "user_signup", "email_password", "error", errorMsg);
     } finally {
       setLoading(false);
     }
@@ -116,7 +138,14 @@ export default function AuthForm({ onSuccess, redirectTo, view = "login" }: Auth
       <div className="mt-8 text-center">
         <button
           type="button"
-          onClick={() => setMode(mode === "login" ? "signup" : "login")}
+          onClick={() => {
+            const nextMode = mode === "login" ? "signup" : "login";
+            setMode(nextMode);
+            if (typeof window !== "undefined") {
+              window.dataLayer = window.dataLayer || [];
+              window.dataLayer.push({ event: "auth_mode_switched", view_mode: nextMode });
+            }
+          }}
           className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 hover:text-blue-600 transition-colors cursor-pointer"
         >
           {mode === "login"

@@ -317,15 +317,15 @@ export default function MinhaContaPage() {
         return;
       }
 
-      // === ADICIONE ESTE BLOCO AQUI ===
+      // Rastreamento de conversão/atualização de perfil no Google Tag Manager
       if (typeof window !== "undefined") {
         window.dataLayer = window.dataLayer || [];
         window.dataLayer.push({
           event: "user_profile_updated",
-          category: "account_management"
+          category: "account_management",
+          page_location: "/minha-conta"
         });
       }
-      // ================================
 
       setIsDirty(false);
       setSuccessMessage("Dados salvos com sucesso!");
@@ -706,7 +706,7 @@ export default function MinhaContaPage() {
             </div>
 
             <div className="flex flex-col gap-3 mt-10">
-              <Link href="/lancamentos" className="block w-full p-4 bg-orange-500 rounded-xl group hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/10">
+              <Link href="/controle-financeiro/lancamentos" className="block w-full p-4 bg-orange-500 rounded-xl group hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/10">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1 text-center">
                     <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">+ Lançamentos</p>
@@ -717,7 +717,7 @@ export default function MinhaContaPage() {
                   </div>
                 </div>
               </Link>
-              <Link href="/lancamentos/resultados" className="block w-full p-4 bg-blue-600 rounded-xl group hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">
+              <Link href="/controle-financeiro/resultados" className="block w-full p-4 bg-blue-600 rounded-xl group hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1 text-center">
                     <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Performance</p>
@@ -917,7 +917,7 @@ export default function MinhaContaPage() {
       {showPassModal && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-xl z-[150] flex items-center justify-center p-6">
           <div className="bg-white w-full max-w-md rounded-[3rem] p-10 shadow-2xl relative animate-in zoom-in-95 duration-300">
-            <button onClick={() => setShowPassModal(false)} className="absolute right-8 top-8 text-gray-300 hover:text-gray-900 transition-colors">
+            <button onClick={() => setShowPassModal(false)} className="absolute right-8 top-8 text-gray-300 hover:text-gray-900 transition-colors cursor-pointer">
               <X size={24} />
             </button>
             <div className="text-center mb-8">

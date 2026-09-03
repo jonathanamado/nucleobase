@@ -1,13 +1,30 @@
 // app/ecossistema/page.tsx
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import {
     Sparkles, Layers, Wallet, Building2, ShieldCheck, Cpu,
     ArrowRight, ArrowLeft, CheckCircle2, Globe, HeartHandshake
 } from "lucide-react";
 
 export default function EcossistemaNucleobase() {
+    useEffect(() => {
+        window.dataLayer?.push({
+            event: "view_page_content",
+            content_category: "ecossistema",
+            content_name: "pagina_ecossistema"
+        });
+    }, []);
+
+    const trackClick = (label: string, destination: string) => {
+        window.dataLayer?.push({
+            event: "click_conversion_button",
+            button_label: label,
+            destination_url: destination,
+            page_location: "/ecossistema"
+        });
+    };
+
     const modulosExistentes = [
         {
             id: "orcamento-domestico",
@@ -39,7 +56,7 @@ export default function EcossistemaNucleobase() {
 
     const pilaresTecnologicos = [
         {
-            title: "Organização por Base",
+            title: "Organização começa pela base",
             desc: "Princípio fundamental de que a estruturação precede o crescimento escalável.",
             icon: <Layers size={20} className="text-blue-600" />
         },
@@ -158,7 +175,8 @@ export default function EcossistemaNucleobase() {
                     </div>
                     <a
                         href="/cadastro"
-                        className="flex items-center justify-center gap-2 px-6 py-4 bg-gray-900 text-white rounded-2xl text-xs font-bold hover:bg-blue-600 transition-all shadow-lg"
+                        onClick={() => trackClick("Criar Conta - Ecossistema", "/cadastro")}
+                        className="flex items-center justify-center gap-2 px-6 py-4 bg-gray-900 text-white rounded-2xl text-xs font-bold hover:bg-blue-600 transition-all shadow-lg cursor-pointer"
                     >
                         Criar conta <ArrowRight size={16} />
                     </a>

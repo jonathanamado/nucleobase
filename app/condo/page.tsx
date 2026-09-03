@@ -124,6 +124,8 @@ export default function NucleobaseCondo() {
 
     const handleEnviarSolicitacao = (e: React.FormEvent) => {
         e.preventDefault();
+        trackClick("Enviar Solicitação WhatsApp - Condo", "whatsapp_admin");
+
         const textoMensagem = `Olá! Gostaria de solicitar meu cadastro para Acesso ao APP da Nucleo como Morador, utilizando o módulo de Gestão de Condomínio. Segue abaixo dados para liberação:\n\n` +
             `• *Nome:* ${solicitanteNome}\n` +
             `• *E-mail:* ${solicitanteEmail}\n` +
@@ -211,7 +213,7 @@ export default function NucleobaseCondo() {
                     </div>
                 </Link>
 
-                {/* CARD 2: CONTABILIDADE (Subido para próximo do card Gestão Inteligente / Área do Condomínio) */}
+                {/* CARD 2: CONTABILIDADE */}
                 <Link
                     href="/condo/contabilidade"
                     onClick={() => trackClick("Acessar Contabilidade", "/condo/contabilidade")}
@@ -254,6 +256,7 @@ export default function NucleobaseCondo() {
                 <Link
                     href={itemAtual.link}
                     key={cardAtivoIndex}
+                    onClick={() => trackClick(`Carrossel Destaque: ${itemAtual.title}`, itemAtual.link)}
                     className={`p-5 rounded-[2.2rem] transition-all duration-500 animate-in fade-in zoom-in-95 flex items-start gap-4 h-auto min-h-[110px] block cursor-pointer ${itemAtual.highlight
                         ? "bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xl shadow-blue-600/25 border-2 border-blue-400 hover:opacity-95"
                         : "bg-white border-2 border-gray-200 shadow-lg hover:border-blue-300"
@@ -305,7 +308,7 @@ export default function NucleobaseCondo() {
 
             <div className="grid grid-cols-2 gap-3">
                 {/* CARD 1 MOBILE: ÁREA DO CONDOMÍNIO */}
-                <Link href="/condo/dashboard" className="col-span-2 bg-gray-900 p-6 rounded-[2rem] relative overflow-hidden block">
+                <Link href="/condo/dashboard" onClick={() => trackClick("Área do Condomínio (Mobile)", "/condo/dashboard")} className="col-span-2 bg-gray-900 p-6 rounded-[2rem] relative overflow-hidden block">
                     <div className="flex items-center justify-between relative z-10 mb-4">
                         <div className="flex items-center gap-3">
                             <Users size={20} className="text-blue-500" />
@@ -329,8 +332,8 @@ export default function NucleobaseCondo() {
                     <BotaoAcessoDinamico isInsideLink={true} />
                 </Link>
 
-                {/* CARD 2 MOBILE: CONTABILIDADE (Colocado logo abaixo do texto "A Nucleo é a melhor opção..." na visão mobile) */}
-                <Link href="/condo/contabilidade" className="col-span-2 bg-white border border-gray-300 p-6 rounded-[2rem] shadow-md relative overflow-hidden block">
+                {/* CARD 2 MOBILE: CONTABILIDADE */}
+                <Link href="/condo/contabilidade" onClick={() => trackClick("Contabilidade (Mobile)", "/condo/contabilidade")} className="col-span-2 bg-white border border-gray-300 p-6 rounded-[2rem] shadow-md relative overflow-hidden block">
                     <div className="flex items-center justify-between relative z-10 mb-4">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
@@ -381,6 +384,7 @@ export default function NucleobaseCondo() {
                     <Link
                         key={idx}
                         href="/cadastro"
+                        onClick={() => trackClick(`Funcionalidade Mobile: ${item.title}`, "/cadastro")}
                         className={`bg-white border border-gray-100 p-4 rounded-[1.5rem] flex flex-col items-center text-center gap-2 block ${idx === 0 ? "col-span-2 bg-gradient-to-br from-blue-600 to-indigo-700 text-white border-blue-400 shadow-md" : ""}`}
                     >
                         <div className={`${idx === 0 ? "bg-white/15 text-white" : "text-blue-600 bg-blue-50"} p-2.5 rounded-xl`}>{item.icon}</div>
@@ -408,7 +412,7 @@ export default function NucleobaseCondo() {
                 <div className="hidden md:flex flex-row gap-3 w-full md:max-w-[340px] shrink-0">
                     <a
                         href="/condo/adm"
-                        onClick={() => trackClick("Acessar Área do Síndico", "/condo/adm")}
+                        onClick={() => trackClick("Área do Síndico", "/condo/adm")}
                         className="flex items-center justify-between flex-1 bg-gray-900 text-white py-3.5 px-4 rounded-2xl hover:bg-black transition-all group font-black text-[10px] uppercase tracking-widest shadow-lg cursor-pointer"
                     >
                         <div className="flex items-center gap-2">
@@ -418,7 +422,10 @@ export default function NucleobaseCondo() {
                     </a>
 
                     <button
-                        onClick={() => setIsModalOpen(true)}
+                        onClick={() => {
+                            setIsModalOpen(true);
+                            trackClick("Abrir Modal Solicitar Acesso", "modal_solicitar_acesso");
+                        }}
                         className="flex items-center justify-between flex-1 bg-white border border-gray-200 text-gray-700 py-3.5 px-4 rounded-2xl hover:border-blue-600 hover:text-blue-600 transition-all group font-black text-[10px] uppercase tracking-widest shadow-sm cursor-pointer"
                     >
                         <div className="flex items-center gap-2">
@@ -430,11 +437,11 @@ export default function NucleobaseCondo() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 w-full mb-6 mt-3 md:hidden">
-                <a href="/condo/adm" className="flex items-center justify-between flex-1 bg-gray-900 text-white py-3.5 px-5 rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest shadow-md">
+                <a href="/condo/adm" onClick={() => trackClick("Área do Síndico (Mobile)", "/condo/adm")} className="flex items-center justify-between flex-1 bg-gray-900 text-white py-3.5 px-5 rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest shadow-md">
                     <div className="flex items-center gap-2"><Building2 size={14} className="text-blue-500" /> Área do Síndico</div>
                     <ArrowUpRight size={14} />
                 </a>
-                <a href="/condo/dashboard" onClick={() => trackClick("Acessar Dashboard", "/condo/dashboard")} className="flex items-center justify-between flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3.5 px-5 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md">
+                <a href="/condo/dashboard" onClick={() => trackClick("Acessar Dashboard (Mobile)", "/condo/dashboard")} className="flex items-center justify-between flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3.5 px-5 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md">
                     <div className="flex items-center gap-2"><Users size={14} className="text-white" /> Acessar Dashboard</div>
                     <ArrowUpRight size={14} />
                 </a>
@@ -461,7 +468,10 @@ export default function NucleobaseCondo() {
                             </p>
 
                             <button
-                                onClick={() => setIsModalOpen(true)}
+                                onClick={() => {
+                                    setIsModalOpen(true);
+                                    trackClick("Abrir Modal Solicitar Acesso (Mobile)", "modal_solicitar_acesso");
+                                }}
                                 className="w-full flex items-center justify-center gap-2 bg-white border border-blue-600 text-blue-600 py-4 px-6 rounded-2xl hover:bg-blue-50 transition-all font-black text-[10px] uppercase tracking-widest shadow-sm cursor-pointer"
                             >
                                 <MessageSquarePlus size={16} /> Solicitar Acesso
@@ -473,7 +483,7 @@ export default function NucleobaseCondo() {
                             <ShieldCheck className="absolute -right-6 -bottom-6 text-blue-600 opacity-5 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-700" size={140} />
                             <p className="font-medium text-blue-900 text-base md:text-lg leading-relaxed relative z-10 tracking-tight">
                                 "Nosso objetivo é transformar rotinas vistas como complexas em processos visuais e simples, garantindo total clareza, harmonia e integração entre administração e moradores."<br /><br />
-                                <Link href="/cadastro" className="text-blue-600 font-bold underline hover:text-blue-800 transition-colors text-xs md:text-sm">Não possui uma conta? Clique aqui</Link>
+                                <Link href="/cadastro" onClick={() => trackClick("Não possui conta - Clique Aqui", "/cadastro")} className="text-blue-600 font-bold underline hover:text-blue-800 transition-colors text-xs md:text-sm">Não possui uma conta? Clique aqui</Link>
                             </p>
                         </div>
 
@@ -541,10 +551,10 @@ export default function NucleobaseCondo() {
                         Fale com nossa equipe e leve inovação para seu condomínio.
                     </h2>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                        <a href="/contato" className="bg-white text-blue-900 px-6 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-blue-50 hover:scale-[1.02] active:scale-95 transition-all w-full sm:w-auto text-center">
+                        <a href="/contato" onClick={() => trackClick("Entrar em Contato - Footer Condo", "/contato")} className="bg-white text-blue-900 px-6 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-blue-50 hover:scale-[1.02] active:scale-95 transition-all w-full sm:w-auto text-center">
                             Entrar em Contato
                         </a>
-                        <button onClick={() => setIsModalOpen(true)} className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-6 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all w-full sm:w-auto text-center cursor-pointer">
+                        <button onClick={() => { setIsModalOpen(true); trackClick("Solicitar Entrada - Footer Condo", "modal_solicitar_acesso"); }} className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-6 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all w-full sm:w-auto text-center cursor-pointer">
                             Solicitar Entrada
                         </button>
                     </div>
@@ -571,7 +581,8 @@ export default function NucleobaseCondo() {
                     href="https://www.instagram.com/nucleobase.app/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group relative flex flex-col items-center gap-6"
+                    onClick={() => trackClick("Instagram - Condo", "https://www.instagram.com/nucleobase.app/")}
+                    className="group relative flex flex-col items-center gap-6 cursor-pointer"
                 >
                     <div className="relative">
                         <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>

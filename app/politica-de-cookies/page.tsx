@@ -1,9 +1,10 @@
+// app/politica-de-cookies/page.tsx
 "use client";
 import React, { useEffect } from "react";
-import { 
-  ShieldCheck, 
-  Cookie, 
-  Lock, 
+import {
+  ShieldCheck,
+  Cookie,
+  Lock,
   ShieldAlert,
   Fingerprint,
   Database,
@@ -11,7 +12,6 @@ import {
 } from "lucide-react";
 
 export default function CookiePolicy() {
-  
   useEffect(() => {
     window.dataLayer?.push({
       event: "view_page_content",
@@ -20,9 +20,18 @@ export default function CookiePolicy() {
     });
   }, []);
 
+  const trackClick = (label: string, destination: string) => {
+    window.dataLayer?.push({
+      event: "click_conversion_button",
+      button_label: label,
+      destination_url: destination,
+      page_location: "/politica-de-cookies"
+    });
+  };
+
   return (
     <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
-      
+
       {/* HEADER DA PÁGINA PADRONIZADO */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
@@ -30,7 +39,7 @@ export default function CookiePolicy() {
             <span>Privacidade<span className="text-blue-600">.</span></span>
             <Cookie size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
           </h1>
-          
+
           <h2 className="text-gray-500 text-base md:text-lg font-medium w-full leading-relaxed mt-0">
             Transparência total sobre nossos cookies funcionais.
           </h2>
@@ -45,19 +54,22 @@ export default function CookiePolicy() {
       </h3>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch mb-20">
-        
+
         {/* NARRATIVA PRINCIPAL - ENRIQUECIDA PARA ALINHAMENTO DE ALTURA */}
         <div className="lg:col-span-7 text-gray-700 text-lg leading-[1.8] pr-0 lg:pr-10 flex flex-col justify-between">
           <div className="space-y-8">
             <p className="text-gray-700">
-              Na <strong>Nucleobase</strong>, a sua segurança é o nosso alicerce. Ao contrário da maioria das plataformas de gestão, 
+              Na <strong>Nucleobase</strong>, a sua segurança é o nosso alicerce. Ao contrário da maioria das plataformas de gestão,
               <span className="text-blue-600 font-bold ml-1">optamos por um ecossistema limpo</span>: não utilizamos cookies de terceiros para publicidade, remarketing ou rastreamento de comportamento fora do nosso domínio.
             </p>
 
             {/* MANIFESTO DE PRIVACIDADE PADRONIZADO */}
-            <div 
-              onMouseEnter={() => window.dataLayer?.push({ event: "reading_privacy_manifesto" })}
-              className="bg-blue-50/40 border-l-4 border-blue-600 p-6 md:p-10 my-8 rounded-2xl md:rounded-r-[3rem] relative overflow-hidden group transition-all hover:bg-blue-50/60"
+            <div
+              onMouseEnter={() => {
+                window.dataLayer?.push({ event: "reading_privacy_manifesto" });
+                trackClick("Leitura Manifesto de Privacidade", "manifesto_section");
+              }}
+              className="bg-blue-50/40 border-l-4 border-blue-600 p-6 md:p-10 my-8 rounded-2xl md:rounded-r-[3rem] relative overflow-hidden group transition-all hover:bg-blue-50/60 cursor-pointer"
             >
               <ShieldCheck className="absolute -right-6 -bottom-6 text-blue-600 opacity-5 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-700" size={180} />
               <p className="font-medium text-blue-900 italic text-xl md:text-2xl leading-relaxed relative z-10 tracking-tight">
@@ -81,7 +93,7 @@ export default function CookiePolicy() {
 
         {/* SIDEBAR DE ATRIBUTOS TÉCNICOS - MANTIDA INTEGRALMENTE */}
         <div className="lg:col-span-5 flex flex-col gap-6">
-          
+
           {/* CARD DE STATUS CRIPTOGRÁFICO */}
           <div className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center flex-1 min-h-[180px]">
             <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
@@ -110,10 +122,13 @@ export default function CookiePolicy() {
             { id: "stripe_payment", icon: <Database size={24} />, title: "Transacional", desc: "Integridade das assinaturas." },
             { id: "ui_preferences", icon: <Lock size={24} />, title: "Preferências", desc: "Retém suas escolhas de UI." }
           ].map((item, idx) => (
-            <div 
-              key={idx} 
-              onMouseEnter={() => window.dataLayer?.push({ event: "hover_cookie_type", cookie_id: item.id })}
-              className="bg-white border border-gray-100 p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all group flex items-center gap-6 flex-1"
+            <div
+              key={idx}
+              onMouseEnter={() => {
+                window.dataLayer?.push({ event: "hover_cookie_type", cookie_id: item.id });
+                trackClick(`Hover Cookie: ${item.title}`, `cookie_${item.id}`);
+              }}
+              className="bg-white border border-gray-100 p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all group flex items-center gap-6 flex-1 cursor-pointer"
             >
               <div className="w-14 h-14 shrink-0 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm">
                 {item.icon}
@@ -140,27 +155,28 @@ export default function CookiePolicy() {
       <div className="flex flex-col items-center text-center">
         <div className="max-w-3xl mb-12">
           <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
-            Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+            Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
           </h4>
           <p className="text-gray-500 font-medium text-sm md:text-base">
             Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
           </p>
         </div>
-        
-        <a 
-          href="https://www.instagram.com/nucleobase.app/" 
-          target="_blank" 
+
+        <a
+          href="https://www.instagram.com/nucleobase.app/"
+          target="_blank"
           rel="noopener noreferrer"
-          className="group relative flex flex-col items-center gap-6"
+          onClick={() => trackClick("Instagram - Política de Cookies", "https://www.instagram.com/nucleobase.app/")}
+          className="group relative flex flex-col items-center gap-6 cursor-pointer"
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
-            
+
             <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
               <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
             </div>
           </div>
-          
+
           <div className="flex flex-col items-center">
             <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
             <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>

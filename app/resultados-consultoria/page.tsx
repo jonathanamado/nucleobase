@@ -58,8 +58,13 @@ export default function ResultadosGeraisPage() {
     }
   ];
 
-  // Passar automaticamente de 6 em 6 segundos
   useEffect(() => {
+    window.dataLayer?.push({
+      event: "view_page_content",
+      content_category: "consultoria",
+      content_name: "resultados_consultoria"
+    });
+
     const timer = setInterval(() => {
       setCardAtivo((prev) => (prev + 1) % beneficiosModulos.length);
     }, 6000);
@@ -78,12 +83,19 @@ export default function ResultadosGeraisPage() {
     const diff = touchStartX.current - touchEndX.current;
     const threshold = 50; // sensibilidade do arrastar
     if (diff > threshold) {
-      // Arrastou para a esquerda -> Próximo card
       setCardAtivo((prev) => (prev < beneficiosModulos.length - 1 ? prev + 1 : 0));
     } else if (diff < -threshold) {
-      // Arrastou para a direita -> Card anterior
       setCardAtivo((prev) => (prev > 0 ? prev - 1 : beneficiosModulos.length - 1));
     }
+  };
+
+  const trackClick = (label: string, destination: string) => {
+    window.dataLayer?.push({
+      event: "click_conversion_button",
+      button_label: label,
+      destination_url: destination,
+      page_location: "/resultados-consultoria"
+    });
   };
 
   return (
@@ -129,7 +141,7 @@ export default function ResultadosGeraisPage() {
       </h3>
 
       <div
-        className="relative flex items-center justify-center mb-16 w-full"
+        className="relative flex items-center justify-center mb-16 w-full cursor-grab active:cursor-grabbing"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -140,6 +152,7 @@ export default function ResultadosGeraisPage() {
               <Link
                 href={beneficio.link}
                 onClick={() => {
+                  trackClick(`Módulo: ${beneficio.title}`, beneficio.link);
                   if (typeof window !== "undefined") {
                     window.dataLayer = window.dataLayer || [];
                     window.dataLayer.push({
@@ -210,10 +223,10 @@ export default function ResultadosGeraisPage() {
             Seja indicando a plataforma ou integrando nossas soluções à sua operação, a Nucleobase entrega previsibilidade, robustez e suporte contínuo.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Link href="/indique" className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-2 text-center">
+            <Link href="/indique" onClick={() => trackClick("Programa de Indicações", "/indique")} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-2 text-center">
               Programa de Indicações <ArrowRight size={12} />
             </Link>
-            <Link href="/parceiros" className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border border-white/10 flex items-center justify-center text-center">
+            <Link href="/parceiros" onClick={() => trackClick("Seja um Parceiro Nucleobase", "/parceiros")} className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border border-white/10 flex items-center justify-center text-center">
               Seja um Parceiro Nucleobase
             </Link>
           </div>
@@ -244,7 +257,8 @@ export default function ResultadosGeraisPage() {
           href="https://www.instagram.com/nucleobase.app/"
           target="_blank"
           rel="noopener noreferrer"
-          className="group relative flex flex-col items-center gap-4"
+          onClick={() => trackClick("Instagram - Resultados Consultoria", "https://www.instagram.com/nucleobase.app/")}
+          className="group relative flex flex-col items-center gap-4 cursor-pointer"
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2rem] blur-xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>

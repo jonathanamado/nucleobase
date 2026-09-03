@@ -6,11 +6,23 @@ import { MessageCircle } from "lucide-react";
 export function WhatsAppButton() {
   const whatsappLink = "https://wa.link/qbxg9f";
 
+  const trackWhatsAppClick = () => {
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "whatsapp_button_clicked",
+        button_location: "floating_button",
+        destination_url: whatsappLink
+      });
+    }
+  };
+
   return (
     <a
       href={whatsappLink}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={trackWhatsAppClick}
       className="fixed bottom-6 right-6 z-50 bg-green-500 text-white p-4 rounded-full shadow-2xl hover:bg-green-600 hover:scale-110 transition-all duration-300 group flex items-center gap-2 cursor-pointer"
       aria-label="Chamar no WhatsApp"
     >

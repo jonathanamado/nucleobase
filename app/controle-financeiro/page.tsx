@@ -167,6 +167,8 @@ export default function ControleFinanceiroHome() {
 
   const handleEnviarSolicitacao = (e: React.FormEvent) => {
     e.preventDefault();
+    trackClick("Enviar Solicitação WhatsApp - Controle Financeiro", "whatsapp_admin");
+
     const textoMensagem = `Olá! Gostaria de solicitar meu cadastro para Acesso ao APP da Nucleo com foco em Controle Financeiro. Segue abaixo dados para liberação:\n\n` +
       `• *Nome:* ${solicitanteNome}\n` +
       `• *E-mail:* ${solicitanteEmail}\n` +
@@ -293,7 +295,7 @@ export default function ControleFinanceiroHome() {
           <Link
             href={itemAtual.link}
             key={cardAtivoIndex}
-            onClick={() => trackClick(itemAtual.title, itemAtual.link)}
+            onClick={() => trackClick(`Carrossel Destaque: ${itemAtual.title}`, itemAtual.link)}
             className="p-5 rounded-[2rem] transition-all duration-500 animate-in fade-in zoom-in-95 flex items-start gap-3 h-auto min-h-[115px] block cursor-pointer bg-white border-2 border-gray-200 shadow-md hover:border-orange-300"
           >
             <div className="w-11 h-11 shrink-0 rounded-xl flex items-center justify-center transition-all duration-500 shadow-sm mt-0.5 bg-orange-50 text-orange-600">
@@ -398,7 +400,7 @@ export default function ControleFinanceiroHome() {
             <Link
               key={idx}
               href={item.link}
-              onClick={() => trackClick(item.title, item.link)}
+              onClick={() => trackClick(`Funcionalidade Mobile: ${item.title}`, item.link)}
               className="bg-white border border-gray-100 p-3.5 rounded-[1.2rem] flex flex-col items-center text-center gap-1.5 block"
             >
               <div className="text-orange-600 bg-orange-50 p-2 rounded-xl">{item.icon}</div>
@@ -426,11 +428,11 @@ export default function ControleFinanceiroHome() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 w-full mb-6 mt-3 md:hidden">
-        <a href="/controle-financeiro/lancamentos" onClick={() => trackClick("Acessar Dashboard", "/controle-financeiro/lancamentos")} className="flex items-center justify-between flex-1 bg-orange-500 hover:bg-orange-600 text-white py-3.5 px-5 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md">
+        <a href="/controle-financeiro/lancamentos" onClick={() => trackClick("Acessar Dashboard (Mobile)", "/controle-financeiro/lancamentos")} className="flex items-center justify-between flex-1 bg-orange-500 hover:bg-orange-600 text-white py-3.5 px-5 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md">
           <div className="flex items-center gap-2"><LayoutDashboard size={14} className="text-white" /> Acessar Dashboard</div>
           <ArrowUpRight size={14} />
         </a>
-        <a href="/controle-financeiro/resultados" onClick={() => trackClick("Painel de Resultados", "/controle-financeiro/resultados")} className="flex items-center justify-between flex-1 bg-gray-900 text-white py-3.5 px-5 rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest shadow-md">
+        <a href="/controle-financeiro/resultados" onClick={() => trackClick("Painel de Resultados (Mobile)", "/controle-financeiro/resultados")} className="flex items-center justify-between flex-1 bg-gray-900 text-white py-3.5 px-5 rounded-2xl hover:bg-black transition-all font-black text-[10px] uppercase tracking-widest shadow-md">
           <div className="flex items-center gap-2"><BarChart3 size={14} className="text-orange-500" /> Painel de Resultados</div>
           <ArrowUpRight size={14} />
         </a>
@@ -462,7 +464,7 @@ export default function ControleFinanceiroHome() {
               <ShieldCheck className="absolute -right-6 -bottom-6 text-orange-500 opacity-5 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-700" size={150} />
               <p className="font-medium text-orange-950 text-base md:text-xl leading-relaxed relative z-10 tracking-tight">
                 "Nosso objetivo é transformar números brutos em decisões práticas para sua rotina." <br />
-                <Link href="/cadastro" onClick={() => trackClick("Criar conta gratuitamente", "/cadastro")} className="text-orange-600 font-bold underline hover:text-orange-800 transition-colors text-xs md:text-sm">
+                <Link href="/cadastro" onClick={() => trackClick("Crie sua conta gratuitamente", "/cadastro")} className="text-orange-600 font-bold underline hover:text-orange-800 transition-colors text-xs md:text-sm">
                   <span className="inline md:hidden">Crie sua conta gratuitamente</span>
                 </Link>
               </p>
@@ -515,7 +517,7 @@ export default function ControleFinanceiroHome() {
             Fale com nossa equipe e profissionalize suas finanças.
           </h2>
           <div className="flex items-center justify-center">
-            <a href="/contato" onClick={() => trackClick("Entrar em Contato", "/contato")} className="bg-white text-orange-600 px-6 py-3.5 rounded-xl font-black text-[9px] uppercase tracking-widest shadow-md hover:scale-105 active:scale-95 transition-all text-center">
+            <a href="/contato" onClick={() => trackClick("Entrar em Contato - Footer Financeiro", "/contato")} className="bg-white text-orange-600 px-6 py-3.5 rounded-xl font-black text-[9px] uppercase tracking-widest shadow-md hover:scale-105 active:scale-95 transition-all text-center">
               Entrar em Contato
             </a>
           </div>
@@ -543,7 +545,7 @@ export default function ControleFinanceiroHome() {
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => trackClick("Instagram - Controle Financeiro", "https://www.instagram.com/nucleobase.app/")}
-          className="group relative flex flex-col items-center gap-6"
+          className="group relative flex flex-col items-center gap-6 cursor-pointer"
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
@@ -635,7 +637,6 @@ export default function ControleFinanceiroHome() {
 
               <button
                 type="submit"
-                onClick={() => trackClick("Enviar Solicitação WhatsApp", "whatsapp")}
                 className="w-full bg-orange-500 hover:bg-orange-600 text-white h-13 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 mt-6 shadow-lg shadow-orange-500/10 cursor-pointer"
               >
                 Enviar Solicitação via WhatsApp

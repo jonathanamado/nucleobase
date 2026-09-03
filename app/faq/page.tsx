@@ -1,15 +1,16 @@
+// app/faq/page.tsx
 "use client";
-import React, { useState, useRef } from "react";
-import { 
-  ChevronDown, 
-  HelpCircle, 
-  ShieldCheck, 
-  Zap, 
-  BarChart3, 
-  Users, 
-  MessageCircle, 
-  Send, 
-  Mail, 
+import React, { useState, useRef, useEffect } from "react";
+import {
+  ChevronDown,
+  HelpCircle,
+  ShieldCheck,
+  Zap,
+  BarChart3,
+  Users,
+  MessageCircle,
+  Send,
+  Mail,
   Headphones,
   Sparkles,
   Instagram,
@@ -25,8 +26,26 @@ export default function FAQ() {
   const formRef = useRef<HTMLFormElement>(null);
   const whatsappLink = "https://wa.link/qbxg9f";
 
+  useEffect(() => {
+    window.dataLayer?.push({
+      event: "view_page_content",
+      content_category: "faq",
+      content_name: "pagina_faq"
+    });
+  }, []);
+
+  const trackClick = (label: string, destination: string) => {
+    window.dataLayer?.push({
+      event: "click_conversion_button",
+      button_label: label,
+      destination_url: destination,
+      page_location: "/faq"
+    });
+  };
+
   // Função para limpar o formulário antes do redirecionamento do Web3Forms
-  const handleSubmit = () => {
+  const handleSubmit = (e: React.FormEvent) => {
+    trackClick("Enviar Chamado", "web3forms_submit");
     setTimeout(() => {
       if (formRef.current) {
         formRef.current.reset();
@@ -69,7 +88,7 @@ export default function FAQ() {
 
   return (
     <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
-      
+
       {/* HEADER - PADRONIZADO COM PÁGINA SOBRE */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
@@ -89,28 +108,32 @@ export default function FAQ() {
       </h3>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-24">
-        
+
         {/* ACCORDION DE PERGUNTAS */}
         <div className="lg:col-span-8 space-y-4">
           {perguntas.map((item, index) => (
-            <div 
+            <div
               key={index}
-              className={`group border rounded-[2rem] transition-all duration-300 ${
-                aberto === index 
-                ? "border-blue-100 bg-white shadow-xl shadow-blue-900/5" 
-                : "border-gray-100 bg-white hover:border-blue-100"
-              }`}
+              className={`group border rounded-[2rem] transition-all duration-300 ${aberto === index
+                  ? "border-blue-100 bg-white shadow-xl shadow-blue-900/5"
+                  : "border-gray-100 bg-white hover:border-blue-100"
+                }`}
             >
               <button
-                onClick={() => setAberto(aberto === index ? null : index)}
-                className="w-full flex items-center justify-between p-6 md:p-8 text-left"
+                onClick={() => {
+                  const novoEstado = aberto === index ? null : index;
+                  setAberto(novoEstado);
+                  if (novoEstado !== null) {
+                    trackClick(`Abrir FAQ: ${item.pergunta}`, "accordion_faq");
+                  }
+                }}
+                className="w-full flex items-center justify-between p-6 md:p-8 text-left cursor-pointer"
               >
                 <div className="flex items-center gap-5">
-                  <div className={`p-4 rounded-2xl transition-all duration-500 ${
-                    aberto === index 
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" 
-                    : "bg-blue-50 text-blue-600"
-                  }`}>
+                  <div className={`p-4 rounded-2xl transition-all duration-500 ${aberto === index
+                      ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
+                      : "bg-blue-50 text-blue-600"
+                    }`}>
                     {item.icon}
                   </div>
                   <div>
@@ -122,16 +145,14 @@ export default function FAQ() {
                     </span>
                   </div>
                 </div>
-                <div className={`shrink-0 ml-4 p-2 rounded-full transition-all ${
-                  aberto === index ? "bg-blue-50 text-blue-600 rotate-180" : "bg-gray-50 text-gray-400"
-                }`}>
+                <div className={`shrink-0 ml-4 p-2 rounded-full transition-all ${aberto === index ? "bg-blue-50 text-blue-600 rotate-180" : "bg-gray-50 text-gray-400"
+                  }`}>
                   <ChevronDown size={20} />
                 </div>
               </button>
-              
-              <div className={`overflow-hidden transition-all duration-500 ${
-                aberto === index ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
-              }`}>
+
+              <div className={`overflow-hidden transition-all duration-500 ${aberto === index ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
+                }`}>
                 <div className="px-8 pb-8 pt-0 md:ml-[84px]">
                   <p className="text-gray-600 text-base leading-relaxed font-medium italic">
                     {item.resposta}
@@ -154,11 +175,12 @@ export default function FAQ() {
               <p className="text-gray-400 text-xs mb-6 leading-relaxed font-medium italic">
                 Nosso time operacional está pronto para te atender via WhatsApp agora.
               </p>
-              <a 
-                href={whatsappLink} 
+              <a
+                href={whatsappLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-3 bg-white text-gray-900 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-50 transition-all shadow-lg"
+                onClick={() => trackClick("Chamar no WhatsApp", whatsappLink)}
+                className="flex items-center justify-center gap-3 bg-white text-gray-900 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-50 transition-all shadow-lg cursor-pointer"
               >
                 Chamar no WhatsApp <ArrowRight size={14} />
               </a>
@@ -171,10 +193,10 @@ export default function FAQ() {
               <Mail size={16} className="text-blue-600" /> E-mail Oficial
             </h4>
             <p className="text-gray-500 text-[13px] mb-3 font-medium leading-relaxed">Para dúvidas adicionais ou suporte por e-mail, fale conosco através do endereço:</p>
-            <a href="mailto:contato@nucleobase.app" className="text-blue-600 font-black text-[9px] uppercase tracking-widest hover:underline">contato@nucleobase.app</a>
+            <a href="mailto:contato@nucleobase.app" onClick={() => trackClick("E-mail Oficial", "mailto:contato@nucleobase.app")} className="text-blue-600 font-black text-[9px] uppercase tracking-widest hover:underline">contato@nucleobase.app</a>
           </div>
 
-          <Link href="/seguranca_privacidade" className="block bg-white border border-gray-100 p-6 md:p-7 rounded-[2.5rem] hover:border-blue-200 transition-all group shadow-sm">
+          <Link href="/seguranca_privacidade" onClick={() => trackClick("Segurança & Dados - FAQ", "/seguranca_privacidade")} className="block bg-white border border-gray-100 p-6 md:p-7 rounded-[2.5rem] hover:border-blue-200 transition-all group shadow-sm cursor-pointer">
             <h4 className="text-gray-900 font-bold mb-3 flex items-center gap-2 text-sm">
               <Lock size={16} className="text-blue-600" /> Segurança & Dados
             </h4>
@@ -192,15 +214,15 @@ export default function FAQ() {
       </h3>
 
       <div className="w-full mb-32">
-        <form 
+        <form
           ref={formRef}
           onSubmit={handleSubmit}
-          action="https://api.web3forms.com/submit" 
-          method="POST" 
+          action="https://api.web3forms.com/submit"
+          method="POST"
           className="bg-white border border-gray-100 p-8 md:p-12 rounded-[3.5rem] shadow-2xl shadow-blue-900/5 relative w-full"
         >
           <input type="hidden" name="access_key" value="9ef5a274-150a-4664-a885-0b052efd06f7" />
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nome Completo</label>
@@ -223,7 +245,7 @@ export default function FAQ() {
               <Clock size={16} />
               <span className="text-[10px] font-bold uppercase tracking-widest">Resposta em até 24h (úteis)</span>
             </div>
-            <button type="submit" className="w-full md:w-auto px-12 py-5 bg-gray-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-black transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3">
+            <button type="submit" className="w-full md:w-auto px-12 py-5 bg-gray-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-black transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3 cursor-pointer">
               <Send size={16} /> Enviar para especialistas
             </button>
           </div>
@@ -242,18 +264,19 @@ export default function FAQ() {
       <div className="flex flex-col items-center text-center">
         <div className="max-w-3xl mb-12">
           <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
-            Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+            Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
           </h4>
           <p className="text-gray-500 font-medium text-sm md:text-base">
             Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
           </p>
         </div>
-        
-        <a 
-          href="https://www.instagram.com/nucleobase.app/" 
-          target="_blank" 
+
+        <a
+          href="https://www.instagram.com/nucleobase.app/"
+          target="_blank"
           rel="noopener noreferrer"
-          className="group relative flex flex-col items-center gap-6"
+          onClick={() => trackClick("Instagram - FAQ", "https://www.instagram.com/nucleobase.app/")}
+          className="group relative flex flex-col items-center gap-6 cursor-pointer"
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
@@ -261,7 +284,7 @@ export default function FAQ() {
               <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
             </div>
           </div>
-          
+
           <div className="flex flex-col items-center">
             <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
             <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>

@@ -1,14 +1,15 @@
+// app/parceria/page.tsx
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { 
-  Handshake, 
-  Target, 
-  Globe, 
-  BarChart, 
-  Rocket, 
-  CheckCircle, 
-  ArrowRight, 
+import {
+  Handshake,
+  Target,
+  Globe,
+  BarChart,
+  Rocket,
+  CheckCircle,
+  ArrowRight,
   Sparkles,
   Zap,
   Instagram,
@@ -20,12 +21,33 @@ export default function ParceirosPage() {
   const formRef = useRef<HTMLFormElement>(null);
   const [cardAtivo, setCardAtivo] = useState(0);
 
-  // Lógica para limpar o formulário ao carregar/voltar para a página
   useEffect(() => {
+    window.dataLayer?.push({
+      event: "view_page_content",
+      content_category: "comercial",
+      content_name: "pagina_parceria"
+    });
+
     if (formRef.current) {
       formRef.current.reset();
     }
   }, []);
+
+  const trackClick = (label: string, destination: string) => {
+    window.dataLayer?.push({
+      event: "click_conversion_button",
+      button_label: label,
+      destination_url: destination,
+      page_location: "/parceria"
+    });
+  };
+
+  const handleFormSubmit = () => {
+    window.dataLayer?.push({
+      event: "partnership_proposal_submitted",
+      form_name: "candidatura_parceiro"
+    });
+  };
 
   const frentes = [
     {
@@ -67,7 +89,7 @@ export default function ParceirosPage() {
 
   return (
     <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
-      
+
       {/* BADGE SUPERIOR */}
       <div className="inline-flex items-center gap-2 text-blue-600 mb-4">
         <Zap size={18} className="fill-blue-600" />
@@ -79,10 +101,10 @@ export default function ParceirosPage() {
         <div className="flex-1">
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
             <span>Cresça com a <span className="text-blue-600">Nucleo.</span></span>
-            <Handshake 
-              size={32} 
-              className="text-blue-600 opacity-35 ml-3" 
-              strokeWidth={2} 
+            <Handshake
+              size={32}
+              className="text-blue-600 opacity-35 ml-3"
+              strokeWidth={2}
             />
           </h1>
           <h2 className="text-gray-500 text-base md:text-lg font-medium leading-relaxed mt-0 w-full">
@@ -111,7 +133,7 @@ export default function ParceirosPage() {
       <div className="relative flex items-center justify-center mb-24">
         {/* SETAS MOBILE */}
         {cardAtivo > 0 && (
-          <button onClick={anteriorCard} className="md:hidden absolute left-0 z-20 bg-white shadow-lg border border-gray-100 text-blue-600 p-2 rounded-full active:scale-90 transition-all">
+          <button onClick={anteriorCard} className="md:hidden absolute left-0 z-20 bg-white shadow-lg border border-gray-100 text-blue-600 p-2 rounded-full active:scale-90 transition-all cursor-pointer">
             <ChevronLeft size={24} />
           </button>
         )}
@@ -120,7 +142,11 @@ export default function ParceirosPage() {
           {frentes.map((frente, idx) => (
             <div key={idx} className={`h-auto md:h-full flex-1 ${cardAtivo === idx ? 'flex animate-in fade-in zoom-in-95 duration-300' : 'hidden'} md:flex md:animate-none`}>
               {frente.link ? (
-                <Link href={frente.link} className="block w-full group bg-white p-10 rounded-[3rem] border border-gray-100 hover:border-emerald-200 hover:shadow-2xl hover:shadow-emerald-500/5 transition-all duration-500 relative overflow-hidden">
+                <Link
+                  href={frente.link}
+                  onClick={() => trackClick(`Parceria - ${frente.title}`, frente.link)}
+                  className="block w-full group bg-white p-10 rounded-[3rem] border border-gray-100 hover:border-emerald-200 hover:shadow-2xl hover:shadow-emerald-500/5 transition-all duration-500 relative overflow-hidden cursor-pointer"
+                >
                   <div className={`mb-8 w-16 h-16 ${frente.bg} ${frente.color} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
                     {frente.icon}
                   </div>
@@ -153,7 +179,7 @@ export default function ParceirosPage() {
         </div>
 
         {cardAtivo < frentes.length - 1 && (
-          <button onClick={proximoCard} className="md:hidden absolute right-0 z-20 bg-white shadow-lg border border-gray-100 text-blue-600 p-2 rounded-full active:scale-90 transition-all">
+          <button onClick={proximoCard} className="md:hidden absolute right-0 z-20 bg-white shadow-lg border border-gray-100 text-blue-600 p-2 rounded-full active:scale-90 transition-all cursor-pointer">
             <ChevronRight size={24} />
           </button>
         )}
@@ -161,7 +187,7 @@ export default function ParceirosPage() {
 
       {/* SEÇÃO CTA E FORMULÁRIO - DESMEMBRADOS NO MOBILE */}
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 items-stretch">
-        
+
         {/* CARD CTA REDUZIDO NO MOBILE */}
         <div className="bg-gray-900 rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-16 flex-1 text-white relative overflow-hidden shadow-2xl shadow-blue-900/20">
           <div className="absolute top-0 right-0 w-1/3 h-full bg-blue-600/5 blur-[120px] pointer-events-none"></div>
@@ -169,7 +195,7 @@ export default function ParceirosPage() {
             <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-600 rounded-xl md:rounded-2xl flex items-center justify-center mb-6 md:mb-8 shadow-lg shadow-blue-600/20">
               <Sparkles size={24} className="md:size-[30px]" />
             </div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-6 md:mb-8 tracking-tight leading-tight">Pronto para dar o<br/>próximo passo?</h2>
+            <h2 className="text-3xl md:text-5xl font-bold mb-6 md:mb-8 tracking-tight leading-tight">Pronto para dar o<br />próximo passo?</h2>
             <ul className="space-y-4 md:space-y-6 mb-8 md:mb-12">
               {[
                 "Suporte dedicado de Key Account",
@@ -191,16 +217,17 @@ export default function ParceirosPage() {
         </div>
 
         {/* FORMULÁRIO FORA DO CARD NO MOBILE */}
-        <form 
+        <form
           ref={formRef}
-          action="https://api.web3forms.com/submit" 
+          onSubmit={handleFormSubmit}
+          action="https://api.web3forms.com/submit"
           method="POST"
           className="flex-1 w-full bg-white p-8 md:p-14 rounded-[2.5rem] md:rounded-[3rem] shadow-2xl relative z-10 border border-gray-100"
         >
           <input type="hidden" name="access_key" value="9ef5a274-150a-4664-a885-0b052efd06f7" />
           <input type="hidden" name="subject" value="Nova Candidatura de Parceiro - Nucleobase" />
           <input type="hidden" name="from_name" value="Nucleobase Parcerias" />
-          
+
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
@@ -214,7 +241,7 @@ export default function ParceirosPage() {
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Modelo de Parceria</label>
-              <select name="modelo_parceria" className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 text-sm transition-all font-medium appearance-none">
+              <select name="modelo_parceria" className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 text-sm transition-all font-medium appearance-none cursor-pointer">
                 <option>Consultoria Estratégica</option>
                 <option>Afiliado / Indicação</option>
                 <option>Integração de Software (API)</option>
@@ -225,7 +252,7 @@ export default function ParceirosPage() {
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Sua Operação</label>
               <textarea name="parceiro_motivacao" required className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 text-sm transition-all h-32 resize-none font-medium" placeholder="Conte-nos brevemente como você pretende atuar..."></textarea>
             </div>
-            <button type="submit" className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-black transition-all shadow-xl shadow-blue-100 text-[11px] uppercase tracking-[0.2em]">
+            <button type="submit" className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-black transition-all shadow-xl shadow-blue-100 text-[11px] uppercase tracking-[0.2em] cursor-pointer">
               <Rocket size={18} /> Enviar Proposta de Parceria
             </button>
           </div>
@@ -245,18 +272,19 @@ export default function ParceirosPage() {
       <div className="flex flex-col items-center text-center">
         <div className="max-w-3xl mb-12">
           <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
-            Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+            Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
           </h4>
           <p className="text-gray-500 font-medium text-sm md:text-base">
             Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
           </p>
         </div>
-        
-        <a 
-          href="https://www.instagram.com/nucleobase.app/" 
-          target="_blank" 
+
+        <a
+          href="https://www.instagram.com/nucleobase.app/"
+          target="_blank"
           rel="noopener noreferrer"
-          className="group relative flex flex-col items-center gap-6"
+          onClick={() => trackClick("Instagram - Parceria", "https://www.instagram.com/nucleobase.app/")}
+          className="group relative flex flex-col items-center gap-6 cursor-pointer"
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
@@ -264,7 +292,7 @@ export default function ParceirosPage() {
               <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
             </div>
           </div>
-          
+
           <div className="flex flex-col items-center">
             <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
             <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>

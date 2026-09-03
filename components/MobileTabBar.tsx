@@ -20,6 +20,17 @@ export function MobileTabBar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const trackTabClick = (label: string, destination: string) => {
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "mobile_tab_clicked",
+        tab_label: label,
+        destination_url: destination
+      });
+    }
+  };
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -85,12 +96,12 @@ export function MobileTabBar() {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
-  // Logout inteligente e seguro (Preserva consentimento de cookies e limpa estritamente os tokens de sessão)
   const handleLogout = async () => {
     const confirmLogout = window.confirm("Deseja realmente sair da conta?");
     if (!confirmLogout) return;
 
     setIsMenuOpen(false);
+    trackTabClick("Sair da Conta", "/");
 
     try {
       await supabase.auth.signOut({ scope: 'global' });
@@ -122,12 +133,14 @@ export function MobileTabBar() {
     e.stopPropagation();
     setIsSearchOpen(false);
     setIsMenuOpen(!isMenuOpen);
+    trackTabClick("Menu Perfil (TabBar)", "toggle_menu");
   };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       setIsSearchOpen(false);
+      trackTabClick(`Busca Mobile: ${searchQuery}`, `/busca?q=${searchQuery}`);
       router.push(`/busca?q=${encodeURIComponent(searchQuery)}`);
       setSearchQuery("");
     }
@@ -160,17 +173,17 @@ export function MobileTabBar() {
             <div className="flex items-center justify-between h-20 px-2">
               {isLoggedIn ? (
                 <div className="flex items-center w-full h-full">
-                  <MenuItem icon={User} label="Conta" onClick={() => { router.push("/minha-conta"); setIsMenuOpen(false); }} />
-                  <MenuItem icon={Settings} label="Ajustes" onClick={() => { router.push("/configuracoes"); setIsMenuOpen(false); }} />
-                  <MenuItem icon={PlayCircle} label="Demo" onClick={() => { router.push("/demonstracao"); setIsMenuOpen(false); }} />
+                  <MenuItem icon={User} label="Conta" onClick={() => { trackTabClick("Conta", "/minha-conta"); router.push("/minha-conta"); setIsMenuOpen(false); }} />
+                  <MenuItem icon={Settings} label="Ajustes" onClick={() => { trackTabClick("Ajustes", "/configuracoes"); router.push("/configuracoes"); setIsMenuOpen(false); }} />
+                  <MenuItem icon={PlayCircle} label="Demo" onClick={() => { trackTabClick("Demo", "/demonstracao"); router.push("/demonstracao"); setIsMenuOpen(false); }} />
                   <MenuItem icon={Power} label="Sair" color="text-red-500" onClick={handleLogout} />
                 </div>
               ) : (
                 <div className="flex items-center w-full h-full">
-                  <MenuItem icon={UserPlus} label="Criar" onClick={() => { router.push("/cadastro"); setIsMenuOpen(false); }} />
-                  <MenuItem icon={Fingerprint} label="Entrar" onClick={() => { router.push("/acesso-usuario"); setIsMenuOpen(false); }} />
-                  <MenuItem icon={Info} label="Sobre" onClick={() => { router.push("/sobre"); setIsMenuOpen(false); }} />
-                  <MenuItem icon={PlayCircle} label="Demo" onClick={() => { router.push("/demonstracao"); setIsMenuOpen(false); }} />
+                  <MenuItem icon={UserPlus} label="Criar" onClick={() => { trackTabClick("Criar Conta", "/cadastro"); router.push("/cadastro"); setIsMenuOpen(false); }} />
+                  <MenuItem icon={Fingerprint} label="Entrar" onClick={() => { trackTabClick("Entrar", "/acesso-usuario"); router.push("/acesso-usuario"); setIsMenuOpen(false); }} />
+                  <MenuItem icon={Info} label="Sobre" onClick={() => { trackTabClick("Sobre", "/sobre"); router.push("/sobre"); setIsMenuOpen(false); }} />
+                  <MenuItem icon={PlayCircle} label="Demo" onClick={() => { trackTabClick("Demo", "/demonstracao"); router.push("/demonstracao"); setIsMenuOpen(false); }} />
                 </div>
               )}
             </div>
@@ -222,19 +235,19 @@ export function MobileTabBar() {
       {/* Tab Bar Principal */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 h-[60px] z-[100] flex items-center justify-between shadow-[0_-1px_10px_rgba(0,0,0,0.02)] pb-safe-bottom">
 
-        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); router.push("/"); }} className={`p-2 transition-colors cursor-pointer ${!isSearchOpen && !isMenuOpen && pathname === "/" ? "text-blue-600" : "text-gray-400"}`}>
+        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); trackTabClick("Home", "/"); router.push("/"); }} className={`p-2 transition-colors cursor-pointer ${!isSearchOpen && !isMenuOpen && pathname === "/" ? "text-blue-600" : "text-gray-400"}`}>
           <Home size={22} strokeWidth={!isSearchOpen && !isMenuOpen && pathname === "/" ? 2.5 : 2} />
         </button>
 
-        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); router.push("/controle-financeiro"); }} className={`p-2 transition-colors cursor-pointer ${isFinanceActive ? "text-orange-500" : "text-gray-400"}`}>
+        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); trackTabClick("Controle Financeiro", "/controle-financeiro"); router.push("/controle-financeiro"); }} className={`p-2 transition-colors cursor-pointer ${isFinanceActive ? "text-orange-500" : "text-gray-400"}`}>
           <Rocket size={20} className="-rotate-45" strokeWidth={isFinanceActive ? 2.5 : 2} />
         </button>
 
-        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); router.push("/condo"); }} className={`p-2 transition-colors cursor-pointer ${isCondoActive ? "text-blue-600" : "text-gray-400"}`}>
+        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); trackTabClick("Administração Condo", "/condo"); router.push("/condo"); }} className={`p-2 transition-colors cursor-pointer ${isCondoActive ? "text-blue-600" : "text-gray-400"}`}>
           <Building2 size={22} strokeWidth={isCondoActive ? 2.5 : 2} />
         </button>
 
-        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(true); }} className={`p-2 transition-colors cursor-pointer ${(isSearchOpen || pathname === "/busca") && !isMenuOpen ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}>
+        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(true); trackTabClick("Abrir Busca", "open_search"); }} className={`p-2 transition-colors cursor-pointer ${(isSearchOpen || pathname === "/busca") && !isMenuOpen ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}>
           <Search size={22} strokeWidth={(isSearchOpen || pathname === "/busca") && !isMenuOpen ? 2.5 : 2} />
         </button>
 

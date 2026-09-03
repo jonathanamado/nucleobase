@@ -93,7 +93,7 @@ export async function middleware(request: NextRequest) {
 
   // --- 3. LÓGICA PARA O DOMÍNIO PRINCIPAL ---
   if (hostname === MAIN_DOMAIN) {
-    if (pathname.startsWith('/lancamentos')) {
+    if (pathname.startsWith('/controle-financeiro/lancamentos')) {
       return NextResponse.redirect(
         new URL(`https://${DASHBOARD_DOMAIN}/controle-financeiro/lancamentos`, request.url)
       );

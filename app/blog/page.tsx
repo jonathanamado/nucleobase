@@ -1,14 +1,15 @@
+// app/blog/page.tsx
 "use client";
-import React, { useState } from "react";
-import { 
-  Newspaper, 
-  ArrowRight, 
-  Clock, 
-  PenTool, 
-  Mail, 
-  Plus, 
-  X, 
-  CheckCircle2, 
+import React, { useState, useEffect } from "react";
+import {
+  Newspaper,
+  ArrowRight,
+  Clock,
+  PenTool,
+  Mail,
+  Plus,
+  X,
+  CheckCircle2,
   Loader2,
   Instagram,
   Wallet,
@@ -18,7 +19,7 @@ import {
   BarChart3,
   Target
 } from "lucide-react";
-import { supabase } from "@/lib/supabase"; 
+import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 
 export default function BlogDaNucleo() {
@@ -26,69 +27,86 @@ export default function BlogDaNucleo() {
   const [loading, setLoading] = useState(false);
   const [enviado, setEnviado] = useState(false);
 
+  useEffect(() => {
+    window.dataLayer?.push({
+      event: "view_page_content",
+      content_category: "conteudo",
+      content_name: "blog_nucleo"
+    });
+  }, []);
+
+  const trackClick = (label: string, destination: string) => {
+    window.dataLayer?.push({
+      event: "click_conversion_button",
+      button_label: label,
+      destination_url: destination,
+      page_location: "/blog"
+    });
+  };
+
   const posts = [
-    { 
-      id: 1, 
-      tag: "Gestão", 
-      titulo: "A ciência por trás da separação de contas (PF e PJ).", 
-      preview: "Por que misturar seus gastos pessoais com os do lançamento é o erro número 1 que destrói o ROI.", 
-      editoria: "Estratégia de Negócios", 
-      foco: "Organização Patrimonial", 
+    {
+      id: 1,
+      tag: "Gestão",
+      titulo: "A ciência por trás da separação de contas (PF e PJ).",
+      preview: "Por que misturar seus gastos pessoais com os do lançamento é o erro número 1 que destrói o ROI.",
+      editoria: "Estratégia de Negócios",
+      foco: "Organização Patrimonial",
       tempo: "5 min",
       slug: "a-ciencia-por-tras-da-separacao-de-contas",
       icon: <Wallet size={20} />
     },
-    { 
-      id: 2, 
-      tag: "Estratégia", 
-      titulo: "Fluxo de caixa: Como prever o fôlego financeiro.", 
-      preview: "Entenda como a antecipação de recebíveis impacta sua saúde patrimonial no carrinho aberto.", 
-      editoria: "Gestão de Tráfego", 
-      foco: "Previsibilidade de Caixa", 
+    {
+      id: 2,
+      tag: "Estratégia",
+      titulo: "Fluxo de caixa: Como prever o fôlego financeiro.",
+      preview: "Entenda como a antecipação de recebíveis impacta sua saúde patrimonial no carrinho aberto.",
+      editoria: "Gestão de Tráfego",
+      foco: "Previsibilidade de Caixa",
       tempo: "8 min",
       slug: "fluxo-de-caixa-como-prever-o-folego-financeiro",
       icon: <LineChart size={20} />
     },
-    { 
-      id: 3, 
-      tag: "Mentalidade", 
-      titulo: "O lucro consciente: O que fazer após o 6 em 7.", 
-      preview: "Bateu a meta? Saiba como reinvestir inteligentemente na estrutura da sua empresa.", 
-      editoria: "Mercado de Infoprodutos", 
-      foco: "Cultura de Reinvestimento", 
+    {
+      id: 3,
+      tag: "Mentalidade",
+      titulo: "O lucro consciente: O que fazer após o 6 em 7.",
+      preview: "Bateu a meta? Saiba como reinvestir inteligentemente na estrutura da sua empresa.",
+      editoria: "Mercado de Infoprodutos",
+      foco: "Cultura de Reinvestimento",
       tempo: "6 min",
       slug: "o-lucro-consciente-o-que-fazer-apos-o-6-em-7",
       icon: <Gem size={20} />
     },
-    { 
-      id: 4, 
-      tag: "Tributário", 
-      titulo: "Holdings no Mercado Digital: Vale a pena?", 
-      preview: "A estrutura societária correta pode economizar milhares de reais em impostos no longo prazo.", 
-      editoria: "Direito Tributário", 
-      foco: "Eficiência Fiscal", 
+    {
+      id: 4,
+      tag: "Tributário",
+      titulo: "Holdings no Mercado Digital: Vale a pena?",
+      preview: "A estrutura societária correta pode economizar milhares de reais em impostos no longo prazo.",
+      editoria: "Direito Tributário",
+      foco: "Eficiência Fiscal",
       tempo: "10 min",
       slug: "holdings-no-mercado-digital-vale-a-pena",
       icon: <Building2 size={20} />
     },
-    { 
-      id: 5, 
-      tag: "Escala", 
-      titulo: "KPIs que realmente importam para o seu Financeiro.", 
-      preview: "Pare de olhar apenas para o faturamento bruto e comece a analisar sua margem líquida real.", 
-      editoria: "Controladoria Digital", 
-      foco: "Métricas de Sobrevivência", 
+    {
+      id: 5,
+      tag: "Escala",
+      titulo: "KPIs que realmente importam para o seu Financeiro.",
+      preview: "Pare de olhar apenas para o faturamento bruto e comece a analisar sua margem líquida real.",
+      editoria: "Controladoria Digital",
+      foco: "Métricas de Sobrevivência",
       tempo: "7 min",
       slug: "kpis-que-realmente-importam-para-o-seu-financeiro",
       icon: <BarChart3 size={20} />
     },
-    { 
-      id: 6, 
-      tag: "Lançamento", 
-      titulo: "Custo por Lead vs. Lucratividade Final.", 
-      preview: "Como equilibrar o investimento em captação sem comprometer o caixa da operação.", 
-      editoria: "Copy & Estratégia", 
-      foco: "Análise de ROI Real", 
+    {
+      id: 6,
+      tag: "Lançamento",
+      titulo: "Custo por Lead vs. Lucratividade Final.",
+      preview: "Como equilibrar o investimento em captação sem comprometer o caixa da operação.",
+      editoria: "Copy & Estratégia",
+      foco: "Análise de ROI Real",
       tempo: "5 min",
       slug: "custo-por-lead-vs-lucratividade-final",
       icon: <Target size={20} />
@@ -115,9 +133,16 @@ export default function BlogDaNucleo() {
         method: "POST",
         body: formData
       });
-      
+
       const data = await res.json();
-      if (data.success) setEnviado(true);
+      if (data.success) {
+        setEnviado(true);
+        // Evento de sucesso na assinatura da newsletter
+        window.dataLayer?.push({
+          event: "newsletter_subscribed",
+          source: "blog_modal"
+        });
+      }
     } catch (err) {
       console.error("Erro no processamento:", err);
     } finally {
@@ -127,18 +152,18 @@ export default function BlogDaNucleo() {
 
   return (
     <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
-      
+
       {/* MODAL DE NEWSLETTER */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
           <div className="bg-white rounded-[3rem] p-10 max-w-md w-full relative shadow-2xl scale-in-center">
-            <button 
-              onClick={() => {setIsModalOpen(false); setEnviado(false);}} 
-              className="absolute top-6 right-6 text-gray-400 hover:text-gray-900 transition-colors"
+            <button
+              onClick={() => { setIsModalOpen(false); setEnviado(false); }}
+              className="absolute top-6 right-6 text-gray-400 hover:text-gray-900 transition-colors cursor-pointer"
             >
               <X size={24} />
             </button>
-            
+
             {!enviado ? (
               <>
                 <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
@@ -148,14 +173,14 @@ export default function BlogDaNucleo() {
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Newsletter</h3>
                 <p className="text-gray-500 mb-8 font-medium text-sm">Insights financeiros e estratégicos toda semana.</p>
-                
+
                 <div className="space-y-4">
                   <form onSubmit={handleSubscribe} className="space-y-3">
                     <input required type="email" name="email" placeholder="Seu melhor e-mail" className="w-full bg-gray-50 border-transparent rounded-2xl py-4 px-6 text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm" />
-                    <button 
-                      type="submit" 
-                      disabled={loading} 
-                      className="w-full py-4 bg-gray-900 text-white rounded-full font-bold text-[10px] uppercase tracking-[0.2em] hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg shadow-gray-200"
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full py-4 bg-gray-900 text-white rounded-full font-bold text-[10px] uppercase tracking-[0.2em] hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg shadow-gray-200 cursor-pointer"
                     >
                       {loading ? <Loader2 className="animate-spin" size={18} /> : "Assinar"}
                     </button>
@@ -188,13 +213,20 @@ export default function BlogDaNucleo() {
         </div>
 
         <div className="hidden md:flex flex-wrap gap-3">
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-white border border-gray-200 text-gray-500 rounded-full hover:border-blue-600 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest shadow-sm"
+          <button
+            onClick={() => {
+              setIsModalOpen(true);
+              trackClick("Assinar Newsletter", "modal_newsletter");
+            }}
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-white border border-gray-200 text-gray-500 rounded-full hover:border-blue-600 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest shadow-sm cursor-pointer"
           >
             <Mail size={14} /> Assinar Newsletter
           </button>
-          <a href="/blog/contribuir" className="inline-flex items-center gap-2 px-6 py-2.5 bg-gray-900 text-white rounded-full hover:bg-black transition-all font-bold text-[10px] uppercase tracking-widest shadow-lg">
+          <a
+            href="/blog/contribuir"
+            onClick={() => trackClick("Escrever Artigo", "/blog/contribuir")}
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-gray-900 text-white rounded-full hover:bg-black transition-all font-bold text-[10px] uppercase tracking-widest shadow-lg cursor-pointer"
+          >
             <Plus size={14} /> Escrever Artigo
           </a>
         </div>
@@ -238,9 +270,10 @@ export default function BlogDaNucleo() {
             </div>
             <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4 group-hover:text-blue-600 transition-colors leading-tight">{post.titulo}</h3>
             <p className="hidden md:block text-gray-500 text-sm leading-relaxed mb-8 font-medium italic">"{post.preview}"</p>
-            
-            <Link 
+
+            <Link
               href={`/blog/contribuicoes/${post.slug}`}
+              onClick={() => trackClick(`Ler Artigo: ${post.titulo}`, `/blog/contribuicoes/${post.slug}`)}
               className="mt-4 md:mt-auto flex items-center text-gray-900 text-[10px] md:text-[11px] font-black uppercase tracking-widest gap-2 group-hover:gap-4 transition-all cursor-pointer"
             >
               Ler artigo completo <ArrowRight size={16} className="text-blue-600" />
@@ -263,12 +296,16 @@ export default function BlogDaNucleo() {
       <div className="bg-white rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-12 text-center border-2 border-blue-600/20 shadow-[0_20px_50px_rgba(37,99,235,0.1)] relative overflow-hidden mb-12 group hover:border-blue-600 transition-all duration-500">
         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
         <PenTool size={140} className="absolute -top-10 -left-10 text-blue-600 opacity-[0.07] -rotate-12 pointer-events-none group-hover:rotate-0 transition-transform duration-700" />
-        
+
         <h3 className="text-2xl md:text-4xl font-bold text-gray-900 mb-4 relative z-10 group-hover:text-blue-600 transition-colors">Sua expertise na Nucleobase.</h3>
         <p className="text-gray-500 mb-8 max-w-2xl mx-auto font-medium text-base md:text-lg relative z-10">
           Compartilhe conhecimento e posicione-se como uma autoridade no mercado digital.
         </p>
-        <a href="/blog/contribuir" className="relative z-10 inline-block px-10 py-4 bg-blue-600 text-white rounded-full font-bold text-[10px] md:text-xs uppercase tracking-widest hover:bg-gray-900 transition-all shadow-xl shadow-blue-200">
+        <a
+          href="/blog/contribuir"
+          onClick={() => trackClick("Criar artigo agora (CTA)", "/blog/contribuir")}
+          className="relative z-10 inline-block px-10 py-4 bg-blue-600 text-white rounded-full font-bold text-[10px] md:text-xs uppercase tracking-widest hover:bg-gray-900 transition-all shadow-xl shadow-blue-200 cursor-pointer"
+        >
           Criar artigo agora
         </a>
       </div>
@@ -286,28 +323,28 @@ export default function BlogDaNucleo() {
       <div className="flex flex-col items-center text-center">
         <div className="max-w-3xl mb-12">
           <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
-            Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+            Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
           </h4>
           <p className="text-gray-500 font-medium text-sm md:text-base">
             Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
           </p>
         </div>
-        
-        <a 
-          href="https://www.instagram.com/nucleobase.app/" 
-          target="_blank" 
+
+        <a
+          href="https://www.instagram.com/nucleobase.app/"
+          target="_blank"
           rel="noopener noreferrer"
-          className="group relative flex flex-col items-center gap-6"
+          onClick={() => trackClick("Instagram - Blog", "https://www.instagram.com/nucleobase.app/")}
+          className="group relative flex flex-col items-center gap-6 cursor-pointer"
         >
           <div className="relative">
-            {/* Efeito de brilho/glow ao fundo do ícone */}
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
-            
+
             <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
               <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
             </div>
           </div>
-          
+
           <div className="flex flex-col items-center">
             <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
             <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>

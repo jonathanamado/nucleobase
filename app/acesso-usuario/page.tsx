@@ -40,6 +40,12 @@ export default function AcessoUsuarioPage() {
   const [resetLoading, setResetLoading] = useState(false);
 
   useEffect(() => {
+    window.dataLayer?.push({
+      event: "view_page_content",
+      content_category: "autenticacao",
+      content_name: "pagina_acesso_usuario"
+    });
+
     const checkUser = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -70,6 +76,15 @@ export default function AcessoUsuarioPage() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const trackClick = (label: string, destination: string) => {
+    window.dataLayer?.push({
+      event: "click_conversion_button",
+      button_label: label,
+      destination_url: destination,
+      page_location: "/acesso-usuario"
+    });
+  };
 
   const fetchProfileData = async (user: any) => {
     setIsLoggedIn(true);
@@ -137,6 +152,7 @@ export default function AcessoUsuarioPage() {
       } else {
         resetarBloqueio();
         window.dispatchEvent(new Event("storage"));
+        window.dataLayer?.push({ event: "user_login_success", page_location: "/acesso-usuario" });
         window.location.href = "/minha-conta";
       }
     } catch (err) {
@@ -187,6 +203,7 @@ export default function AcessoUsuarioPage() {
     else {
       alert("Link de recuperação enviado com sucesso!");
       setShowForgotModal(false);
+      trackClick("Enviar Link de Recuperação", "reset_password");
     }
     setResetLoading(false);
   };
@@ -241,7 +258,7 @@ export default function AcessoUsuarioPage() {
             ) : (
               <span>
                 Para prosseguir em sua conta, realize o login. Caso não possua uma conta,{" "}
-                <Link href="/cadastro" className="text-blue-600 hover:underline inline-flex items-center gap-1">
+                <Link href="/cadastro" onClick={() => trackClick("Cadastre-se Aqui", "/cadastro")} className="text-blue-600 hover:underline inline-flex items-center gap-1 cursor-pointer">
                   <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md shadow-sm inline-block leading-none ml-1 font-bold tracking-tight">
                     cadastre-se aqui
                   </span>
@@ -283,7 +300,7 @@ export default function AcessoUsuarioPage() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition-colors cursor-pointer"
                       >
                         {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
@@ -307,8 +324,11 @@ export default function AcessoUsuarioPage() {
                   <div className="flex flex-col items-end gap-1.5 mt-1 pr-1">
                     <button
                       type="button"
-                      onClick={() => setShowForgotModal(true)}
-                      className="text-[10px] text-gray-400 font-bold hover:text-orange-500 transition-colors"
+                      onClick={() => {
+                        setShowForgotModal(true);
+                        trackClick("Abrir Modal Esqueceu a Senha", "modal_recuperacao");
+                      }}
+                      className="text-[10px] text-gray-400 font-bold hover:text-orange-500 transition-colors cursor-pointer"
                     >
                       Esqueceu a senha?
                     </button>
@@ -360,7 +380,8 @@ export default function AcessoUsuarioPage() {
             <div className="md:min-h-[480px] min-h-[160px] flex">
               <a
                 href="/controle-financeiro"
-                className={`p-4 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-lg transition-all border flex flex-col text-center md:text-left bg-orange-500 border-orange-400 hover:bg-orange-600 group w-full h-full relative overflow-hidden ${!isLoggedIn && "pointer-events-none opacity-50"}`}
+                onClick={() => trackClick("Acessar Gestão Financeira", "/controle-financeiro")}
+                className={`p-4 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-lg transition-all border flex flex-col text-center md:text-left bg-orange-500 border-orange-400 hover:bg-orange-600 group w-full h-full relative overflow-hidden cursor-pointer ${!isLoggedIn && "pointer-events-none opacity-50"}`}
               >
                 <div className="p-2 md:p-3 rounded-xl md:rounded-2xl mb-2 md:mb-4 w-fit bg-white/20 text-white group-hover:scale-110 transition-transform mx-auto md:mx-0">
                   <Rocket size={20} className="md:w-7 md:h-7" />
@@ -390,7 +411,8 @@ export default function AcessoUsuarioPage() {
             <div className="md:min-h-[480px] min-h-[160px] flex">
               <a
                 href="/condo"
-                className="group bg-white p-4 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-gray-300 flex flex-col text-center md:text-left w-full h-full relative overflow-hidden"
+                onClick={() => trackClick("Acessar Nucleo Condo", "/condo")}
+                className="group bg-white p-4 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-gray-300 flex flex-col text-center md:text-left w-full h-full relative overflow-hidden cursor-pointer"
               >
                 <div className="absolute top-6 right-6 bg-emerald-600 text-white text-[9px] font-black px-2 py-1 rounded-full uppercase tracking-tighter animate-pulse text-center hidden md:block">
                   Gestão <br /> residencial
@@ -472,10 +494,10 @@ export default function AcessoUsuarioPage() {
               </div>
 
               <div className="flex flex-col gap-4 relative z-10 w-full md:w-auto">
-                <Link href="/minha-conta" className="bg-white text-black px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all whitespace-nowrap text-center">
+                <Link href="/minha-conta" onClick={() => trackClick("Configurações de Perfil", "/minha-conta")} className="bg-white text-black px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all whitespace-nowrap text-center cursor-pointer">
                   Configurações de Perfil
                 </Link>
-                <Link href="/seguranca_privacidade" className="bg-white/5 border border-white/10 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all whitespace-nowrap text-center">
+                <Link href="/seguranca_privacidade" onClick={() => trackClick("Segurança e Privacidade", "/seguranca_privacidade")} className="bg-white/5 border border-white/10 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all whitespace-nowrap text-center cursor-pointer">
                   Segurança e Privacidade
                 </Link>
               </div>
@@ -509,7 +531,8 @@ export default function AcessoUsuarioPage() {
           href="https://www.instagram.com/nucleobase.app/"
           target="_blank"
           rel="noopener noreferrer"
-          className="group relative flex flex-col items-center gap-6"
+          onClick={() => trackClick("Instagram - Acesso Usuário", "https://www.instagram.com/nucleobase.app/")}
+          className="group relative flex flex-col items-center gap-6 cursor-pointer"
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>

@@ -1,6 +1,7 @@
+// app/cadastro/page.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import {
   ShieldCheck,
@@ -32,6 +33,23 @@ export default function CadastroPage() {
 
   const [showWarning, setShowWarning] = useState(false);
   const [cienteSemEmail, setCienteSemEmail] = useState(false);
+
+  useEffect(() => {
+    window.dataLayer?.push({
+      event: "view_page_content",
+      content_category: "autenticacao",
+      content_name: "pagina_cadastro"
+    });
+  }, []);
+
+  const trackClick = (label: string, destination: string) => {
+    window.dataLayer?.push({
+      event: "click_conversion_button",
+      button_label: label,
+      destination_url: destination,
+      page_location: "/cadastro"
+    });
+  };
 
   const formatarSlug = (texto: string) => {
     return texto
@@ -120,6 +138,7 @@ export default function CadastroPage() {
     if (authError) {
       if (authError.message === "User already registered") {
         alert("Este e-mail já possui uma conta vinculada. Redirecionando para o login...");
+        trackClick("Redirecionamento Email Já Cadastrado", "/acesso-usuario");
         window.location.href = "/acesso-usuario";
         return;
       }
@@ -173,15 +192,16 @@ export default function CadastroPage() {
         localStorage.removeItem("nucleobase_referral_id");
       }
 
-      // === ADICIONE ESTE BLOCO AQUI ===
+      // === RASTREAMENTO DE SUCESSO DE CADASTRO ===
       if (typeof window !== "undefined") {
         window.dataLayer = window.dataLayer || [];
         window.dataLayer.push({
           event: "user_signed_up",
           method: email.trim() ? "email" : "slug"
         });
+        trackClick("Cadastro Concluído com Sucesso", "/minha-conta");
       }
-      // ================================
+      // ============================================
 
       setTimeout(() => {
         window.location.href = "/minha-conta";
@@ -352,7 +372,7 @@ export default function CadastroPage() {
                     className="w-full px-6 py-3 bg-gray-50 border-2 border-transparent rounded-2xl outline-none text-gray-900 focus:bg-white focus:border-blue-100 transition-all text-sm font-medium pr-14"
                     onChange={(e) => setPassword(e.target.value)}
                   />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-gray-400">
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-gray-400 cursor-pointer">
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
@@ -368,7 +388,7 @@ export default function CadastroPage() {
             </form>
 
             <p className="mt-6 text-center text-[10px] text-gray-400 font-medium uppercase tracking-widest">
-              Já possui uma conta? <a href="/acesso-usuario" className="text-blue-600 font-bold hover:underline">Fazer login</a>
+              Já possui uma conta? <a href="/acesso-usuario" onClick={() => trackClick("Fazer Login - Cadastro", "/acesso-usuario")} className="text-blue-600 font-bold hover:underline cursor-pointer">Fazer login</a>
             </p>
 
             {/* DIVISÓRIA EXCLUSIVA MOBILE */}
@@ -403,7 +423,8 @@ export default function CadastroPage() {
             href="https://www.instagram.com/nucleobase.app/"
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative flex flex-col items-center gap-6"
+            onClick={() => trackClick("Instagram - Cadastro", "https://www.instagram.com/nucleobase.app/")}
+            className="group relative flex flex-col items-center gap-6 cursor-pointer"
           >
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>

@@ -1,5 +1,6 @@
+// app/planos/page.tsx
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Zap, ShieldCheck, BarChart3, ShoppingCart,
   CheckCircle2, Info, Star, TrendingUp, Gem,
@@ -17,6 +18,23 @@ export default function PaginaDePlanos() {
 
   const PIX_KEY = "contato@nucleobase.app";
   const WHATSAPP_LINK_ID = "q46hkm";
+
+  useEffect(() => {
+    window.dataLayer?.push({
+      event: "view_page_content",
+      content_category: "comercial",
+      content_name: "planos_e_assinaturas"
+    });
+  }, []);
+
+  const trackClick = (label: string, destination: string) => {
+    window.dataLayer?.push({
+      event: "click_conversion_button",
+      button_label: label,
+      destination_url: destination,
+      page_location: "/planos"
+    });
+  };
 
   const diferenciais = [
     { icon: <ShieldCheck size={32} />, title: "Criptografia Base", desc: "Privacidade total dos seus dados." },
@@ -43,17 +61,23 @@ export default function PaginaDePlanos() {
   const openPixModal = (name: string, price: string, qrCode: string) => {
     setSelectedPlan({ name, price, qrCode });
     setIsModalOpen(true);
+    trackClick(`Abrir Modal PIX - ${name}`, "modal_pix");
   };
 
   const handleCopyPix = () => {
     navigator.clipboard.writeText(PIX_KEY);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    window.dataLayer?.push({
+      event: "pix_key_copied",
+      pix_key: PIX_KEY
+    });
   };
 
   const handleSendProof = () => {
     const message = encodeURIComponent(`Olá! Realizei o pagamento via PIX do plano ${selectedPlan?.name} (${selectedPlan?.price}). Segue o comprovante em anexo.`);
     window.open(`https://wa.link/${WHATSAPP_LINK_ID}?text=${message}`, '_blank');
+    trackClick("Enviar Comprovante WhatsApp", "whatsapp");
   };
 
   const CheckoutForm = ({
@@ -69,9 +93,13 @@ export default function PaginaDePlanos() {
     description: string,
     href?: string
   }) => {
+    const handleClick = () => {
+      trackClick(`Plano: ${description} (${lookupKey})`, href || "/api/stripe");
+    };
+
     if (href) {
       return (
-        <a href={href} className="block w-full no-underline">
+        <a href={href} onClick={handleClick} className="block w-full no-underline">
           <button className={`${className} cursor-pointer transition-transform active:scale-[0.98]`}>
             {label}
           </button>
@@ -80,7 +108,7 @@ export default function PaginaDePlanos() {
     }
 
     return (
-      <form action="/api/stripe" method="POST" className="w-full">
+      <form action="/api/stripe" method="POST" className="w-full" onSubmit={handleClick}>
         <input type="hidden" name="lookup_key" value={lookupKey} />
         <a href={`#checkout-${lookupKey}`} title={description} className="block w-full cursor-pointer decoration-transparent">
           <button
@@ -104,7 +132,7 @@ export default function PaginaDePlanos() {
             <div className="p-8 flex flex-col items-center text-center">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-900 transition-colors"
+                className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-900 transition-colors cursor-pointer"
               >
                 <X size={24} />
               </button>
@@ -121,12 +149,12 @@ export default function PaginaDePlanos() {
               <div className="w-full space-y-3">
                 <div className="relative group">
                   <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">Chave E-mail:</p>
-                  <button onClick={handleCopyPix} className="w-full py-4 bg-gray-50 border-2 border-dashed border-gray-200 text-gray-700 rounded-2xl font-mono text-sm flex items-center justify-center gap-3 hover:border-blue-400 hover:bg-white transition-all active:scale-95">
+                  <button onClick={handleCopyPix} className="w-full py-4 bg-gray-50 border-2 border-dashed border-gray-200 text-gray-700 rounded-2xl font-mono text-sm flex items-center justify-center gap-3 hover:border-blue-400 hover:bg-white transition-all active:scale-95 cursor-pointer">
                     {PIX_KEY}
                     {copied ? <Check size={18} className="text-emerald-500" /> : <Copy size={18} className="text-gray-400" />}
                   </button>
                 </div>
-                <button onClick={handleSendProof} className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-200 active:scale-95">
+                <button onClick={handleSendProof} className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-200 active:scale-95 cursor-pointer">
                   <MessageCircle size={20} /> Enviar Comprovante
                 </button>
                 <p className="text-[11px] text-gray-400 font-medium uppercase tracking-widest pt-2">A liberação ocorre após validação manual.</p>
@@ -172,7 +200,7 @@ export default function PaginaDePlanos() {
             </ul>
           </div>
           <div className="relative z-10">
-            <a href="/cadastro" className="block w-full py-4 bg-white border border-slate-200 text-slate-900 text-center rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all shadow-sm">
+            <a href="/cadastro" onClick={() => trackClick("Começar Degustação (Plano Gratuito)", "/cadastro")} className="block w-full py-4 bg-white border border-slate-200 text-slate-900 text-center rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all shadow-sm">
               Começar Degustação
             </a>
           </div>
@@ -258,8 +286,8 @@ export default function PaginaDePlanos() {
           <h5 className="text-2xl font-bold text-gray-900 tracking-tight mb-4">Diferenciais Nucleobase</h5>
           <p className="text-sm text-gray-500 font-medium leading-relaxed mb-6">Desenvolvemos uma infraestrutura focada na sua privacidade e no crescimento do seu patrimônio, garantindo suporte e evolução constante.</p>
           <div className="flex gap-3">
-            <button onClick={prevCardDesktop} className="p-3 bg-white shadow-md rounded-full text-gray-400 hover:text-blue-600 transition-all border border-gray-100 active:scale-90"><ChevronLeft size={24} /></button>
-            <button onClick={nextCardDesktop} className="p-3 bg-white shadow-md rounded-full text-gray-400 hover:text-blue-600 transition-all border border-gray-100 active:scale-90"><ChevronRight size={24} /></button>
+            <button onClick={prevCardDesktop} className="p-3 bg-white shadow-md rounded-full text-gray-400 hover:text-blue-600 transition-all border border-gray-100 active:scale-90 cursor-pointer"><ChevronLeft size={24} /></button>
+            <button onClick={nextCardDesktop} className="p-3 bg-white shadow-md rounded-full text-gray-400 hover:text-blue-600 transition-all border border-gray-100 active:scale-90 cursor-pointer"><ChevronRight size={24} /></button>
           </div>
         </div>
 
@@ -281,8 +309,8 @@ export default function PaginaDePlanos() {
       <div className="md:hidden">
         <div className="relative px-2">
           <div className="flex items-center justify-between absolute top-1/2 -translate-y-1/2 w-full left-0 z-10 px-1">
-            <button onClick={prevCardMobile} className="p-2 bg-white shadow-lg rounded-full text-gray-400 active:scale-90 transition-transform border border-gray-100"><ChevronLeft size={20} /></button>
-            <button onClick={nextCardMobile} className="p-2 bg-white shadow-lg rounded-full text-gray-400 active:scale-90 transition-transform border border-gray-100"><ChevronRight size={20} /></button>
+            <button onClick={prevCardMobile} className="p-2 bg-white shadow-lg rounded-full text-gray-400 active:scale-90 transition-transform border border-gray-100 cursor-pointer"><ChevronLeft size={20} /></button>
+            <button onClick={nextCardMobile} className="p-2 bg-white shadow-lg rounded-full text-gray-400 active:scale-90 transition-transform border border-gray-100 cursor-pointer"><ChevronRight size={20} /></button>
           </div>
           <div className="overflow-hidden">
             <div className="flex transition-transform duration-500 ease-out" style={{ transform: `translateX(-${currentCardMobile * 100}%)` }}>
@@ -316,7 +344,13 @@ export default function PaginaDePlanos() {
           <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span></h4>
           <p className="text-gray-500 font-medium text-sm md:text-base">Insights, novidades e bastidores da Nucleobase diretamente no seu feed.</p>
         </div>
-        <a href="https://www.instagram.com/nucleobase.app/" target="_blank" rel="noopener noreferrer" className="group relative flex flex-col items-center gap-6">
+        <a
+          href="https://www.instagram.com/nucleobase.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => trackClick("Instagram - Planos", "https://www.instagram.com/nucleobase.app/")}
+          className="group relative flex flex-col items-center gap-6 cursor-pointer"
+        >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
             <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">

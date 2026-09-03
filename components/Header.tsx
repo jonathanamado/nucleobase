@@ -34,6 +34,17 @@ export function Header() {
   const pathname = usePathname();
   const router = useRouter();
 
+  const trackHeaderClick = (label: string, destination: string) => {
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "header_link_clicked",
+        link_label: label,
+        destination_url: destination
+      });
+    }
+  };
+
   useEffect(() => {
     setIsMenuOpen(false);
     setIsUserDropdownOpen(false);
@@ -114,10 +125,11 @@ export function Header() {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
-  // Logout inteligente: Encerra a sessão global sem destruir cookies de consentimento ou preferências do navegador
   const handleLogout = async () => {
     const confirmLogout = window.confirm("Tem certeza que deseja sair da conta?");
     if (!confirmLogout) return;
+
+    trackHeaderClick("Sair da Conta", "/");
 
     try {
       await supabase.auth.signOut({ scope: 'global' });
@@ -194,22 +206,22 @@ export function Header() {
     const btnBase = "flex items-center gap-2 px-5 py-2 rounded-md transition font-bold shadow-sm text-white";
 
     const btnResultados = (
-      <a key="res" href="/controle-financeiro/resultados" className={`${btnBase} bg-blue-600 hover:bg-blue-700`}>
+      <a key="res" href="/controle-financeiro/resultados" onClick={() => trackHeaderClick("Painel de Resultados", "/controle-financeiro/resultados")} className={`${btnBase} bg-blue-600 hover:bg-blue-700`}>
         <BarChart3 size={18} /> Painel de Resultados
       </a>
     );
     const btnEdicao = (
-      <a key="edit" href="/controle-financeiro/gerenciar" className={`${btnBase} bg-orange-500 hover:bg-orange-600`}>
+      <a key="edit" href="/controle-financeiro/gerenciar" onClick={() => trackHeaderClick("Edição de lançamentos", "/controle-financeiro/gerenciar")} className={`${btnBase} bg-orange-500 hover:bg-orange-600`}>
         <Pencil size={18} /> Edição de lançamentos
       </a>
     );
     const btnNovos = (
-      <a key="new" href="/controle-financeiro/lancamentos" className={`${btnBase} bg-orange-500 hover:bg-orange-600`}>
+      <a key="new" href="/controle-financeiro/lancamentos" onClick={() => trackHeaderClick("Novos lançamentos", "/controle-financeiro/lancamentos")} className={`${btnBase} bg-orange-500 hover:bg-orange-600`}>
         <Rocket size={18} /> Novos lançamentos
       </a>
     );
     const btnPadrao = (
-      <a key="def" href="/acesso-usuario" className={`${btnBase} bg-blue-600 hover:bg-blue-700`}>
+      <a key="def" href="/acesso-usuario" onClick={() => trackHeaderClick("Acessar Plataforma", "/acesso-usuario")} className={`${btnBase} bg-blue-600 hover:bg-blue-700`}>
         <LayoutDashboard size={18} /> Acessar Plataforma
       </a>
     );
@@ -296,7 +308,7 @@ export function Header() {
           </div>
 
           <div className="hidden lg:flex flex-col text-[13px] font-bold text-gray-900 leading-tight tracking-tighter -ml-8 select-none">
-            <a href="/" rel="external" className="flex flex-col no-underline hover:opacity-80 transition-opacity">
+            <a href="/" rel="external" className="flex flex-col no-underline hover:opacity-80 transition-opacity" onClick={() => trackHeaderClick("Logo Header", "/")}>
               <span className="pl-0 text-gray-900">Sua plataforma</span>
               <span className="pl-4 mt-1 text-gray-500">de controle</span>
               <span className="pl-8 mt-0.5">
@@ -326,10 +338,10 @@ export function Header() {
           <div className="flex items-center gap-3 relative bg-white">
             {!isLoggedIn ? (
               <div className="flex items-center gap-3 bg-white">
-                <a href="/cadastro" className="min-w-[120px] inline-block text-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition font-bold shadow-sm">
+                <a href="/cadastro" onClick={() => trackHeaderClick("Criar Conta", "/cadastro")} className="min-w-[120px] inline-block text-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition font-bold shadow-sm">
                   Criar Conta
                 </a>
-                <a href="/acesso-usuario" className="min-w-[120px] inline-block text-center bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition font-bold shadow-sm">
+                <a href="/acesso-usuario" onClick={() => trackHeaderClick("Acessar", "/acesso-usuario")} className="min-w-[120px] inline-block text-center bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition font-bold shadow-sm">
                   Acessar
                 </a>
               </div>
@@ -376,16 +388,16 @@ export function Header() {
                   <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
                     {isLoggedIn ? (
                       <div className="flex flex-col bg-white">
-                        <DropdownItem icon={UserCircle} label="Minha Conta" onClick={() => { router.push("/minha-conta"); setIsUserDropdownOpen(false); }} />
-                        <DropdownItem icon={Settings} label="Configurações" onClick={() => { router.push("/configuracoes"); setIsUserDropdownOpen(false); }} />
+                        <DropdownItem icon={UserCircle} label="Minha Conta" onClick={() => { trackHeaderClick("Minha Conta", "/minha-conta"); router.push("/minha-conta"); setIsUserDropdownOpen(false); }} />
+                        <DropdownItem icon={Settings} label="Configurações" onClick={() => { trackHeaderClick("Configurações", "/configuracoes"); router.push("/configuracoes"); setIsUserDropdownOpen(false); }} />
                         <DropdownItem icon={Key} label="Alterar senha" onClick={() => { setIsUserDropdownOpen(false); setShowPassModal(true); }} />
                         <DropdownItem icon={Power} label="Sair da conta" color="text-red-500" onClick={handleLogout} />
                       </div>
                     ) : (
                       <div className="flex flex-col bg-white">
-                        <DropdownItem icon={UserPlus} label="Criar conta" onClick={() => { router.push("/cadastro"); setIsUserDropdownOpen(false); }} />
-                        <DropdownItem icon={LogIn} label="Realizar login" onClick={() => { router.push("/acesso-usuario"); setIsUserDropdownOpen(false); }} />
-                        <DropdownItem icon={PlayCircle} label="Demonstração APP" onClick={() => { router.push("/demonstracao"); setIsUserDropdownOpen(false); }} />
+                        <DropdownItem icon={UserPlus} label="Criar conta" onClick={() => { trackHeaderClick("Criar conta (Dropdown)", "/cadastro"); router.push("/cadastro"); setIsUserDropdownOpen(false); }} />
+                        <DropdownItem icon={LogIn} label="Realizar login" onClick={() => { trackHeaderClick("Realizar login (Dropdown)", "/acesso-usuario"); router.push("/acesso-usuario"); setIsUserDropdownOpen(false); }} />
+                        <DropdownItem icon={PlayCircle} label="Demonstração APP" onClick={() => { trackHeaderClick("Demonstração APP (Dropdown)", "/demonstracao"); router.push("/demonstracao"); setIsUserDropdownOpen(false); }} />
                       </div>
                     )}
                   </div>
@@ -439,7 +451,10 @@ export function Header() {
                     <a
                       key={link.name}
                       href={link.href}
-                      onClick={() => setIsMenuOpen(false)}
+                      onClick={() => {
+                        trackHeaderClick(`Menu Mobile: ${link.name}`, link.href);
+                        setIsMenuOpen(false);
+                      }}
                       className="flex items-center justify-between p-2 rounded-2xl text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition-all group bg-white"
                     >
                       <div className="flex items-center gap-3">
@@ -456,21 +471,21 @@ export function Header() {
                 <div className="mt-2 pt-2 border-t border-gray-100 space-y-2 bg-white">
                   {!isLoggedIn ? (
                     <div className="grid grid-cols-2 gap-3 bg-white">
-                      <a href="/acesso-usuario" className="py-3 bg-orange-500 text-white text-center rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+                      <a href="/acesso-usuario" onClick={() => trackHeaderClick("Acessar (Mobile)", "/acesso-usuario")} className="py-3 bg-orange-500 text-white text-center rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all">
                         Acessar
                       </a>
-                      <a href="/cadastro" className="py-3 bg-blue-600 text-white text-center rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+                      <a href="/cadastro" onClick={() => trackHeaderClick("Criar Conta (Mobile)", "/cadastro")} className="py-3 bg-blue-600 text-white text-center rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all">
                         Criar Conta
                       </a>
                     </div>
                   ) : (
                     <div className="flex flex-col gap-2 bg-white">
                       {pathname !== "/acesso-usuario" && (
-                        <a href="/controle-financeiro/lancamentos" className="flex items-center justify-center gap-2 w-full py-2.5 bg-orange-500 text-white rounded-xl font-bold text-xs shadow-lg active:scale-95 transition-all">
+                        <a href="/controle-financeiro/lancamentos" onClick={() => trackHeaderClick("Gestão Financeira (Mobile)", "/controle-financeiro/lancamentos")} className="flex items-center justify-center gap-2 w-full py-2.5 bg-orange-500 text-white rounded-xl font-bold text-xs shadow-lg active:scale-95 transition-all">
                           <LayoutDashboard size={15} /> Gestão Financeira
                         </a>
                       )}
-                      <a href="/condo" className="flex items-center justify-center gap-2 w-full py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-xs shadow-lg active:scale-95 transition-all">
+                      <a href="/condo" onClick={() => trackHeaderClick("Administração Condo (Mobile)", "/condo")} className="flex items-center justify-center gap-2 w-full py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-xs shadow-lg active:scale-95 transition-all">
                         <Building2 size={15} /> Administração Condo
                       </a>
                     </div>

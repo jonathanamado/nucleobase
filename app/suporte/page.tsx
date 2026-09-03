@@ -1,12 +1,13 @@
+// app/suporte/page.tsx
 "use client";
-import React from "react";
-import { 
-  LifeBuoy, 
-  BookOpen, 
-  Video, 
-  MessageSquare, 
-  FileWarning, 
-  Settings, 
+import React, { useEffect } from "react";
+import {
+  LifeBuoy,
+  BookOpen,
+  Video,
+  MessageSquare,
+  FileWarning,
+  Settings,
   ArrowRight,
   ShieldCheck,
   Lock,
@@ -16,6 +17,23 @@ import {
 
 export default function SuportePage() {
   const whatsappLink = "https://wa.link/qbxg9f";
+
+  useEffect(() => {
+    window.dataLayer?.push({
+      event: "view_page_content",
+      content_category: "atendimento",
+      content_name: "pagina_suporte"
+    });
+  }, []);
+
+  const trackClick = (label: string, destination: string) => {
+    window.dataLayer?.push({
+      event: "click_conversion_button",
+      button_label: label,
+      destination_url: destination,
+      page_location: "/suporte"
+    });
+  };
 
   const centrais = [
     {
@@ -33,7 +51,7 @@ export default function SuportePage() {
       link: "https://www.youtube.com/@nucleobaseapp",
       color: "text-purple-600",
       bg: "bg-purple-50",
-      external: true 
+      external: true
     },
     {
       title: "Configurações da Conta",
@@ -55,16 +73,16 @@ export default function SuportePage() {
 
   return (
     <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
-      
+
       {/* HEADER DA PÁGINA */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
             <span>Como podemos ajudá-lo(a) hoje<span className="text-blue-600">?</span></span>
-            <Lightbulb 
-              size={32} 
-              className="text-blue-600 opacity-35 ml-3" 
-              strokeWidth={2} 
+            <Lightbulb
+              size={32}
+              className="text-blue-600 opacity-35 ml-3"
+              strokeWidth={2}
             />
           </h1>
           <h2 className="text-gray-500 text-base md:text-lg font-medium leading-relaxed mt-0">
@@ -81,15 +99,15 @@ export default function SuportePage() {
       {/* GRIDS DE ATALHOS - MOBILE 2X2 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-16">
         {centrais.map((item, i) => (
-          <a 
-            key={i} 
+          <a
+            key={i}
             href={item.link}
             target={item.external ? "_blank" : "_self"}
             rel={item.external ? "noopener noreferrer" : ""}
-            className="group bg-white p-4 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 hover:-translate-y-1 transition-all duration-300 flex flex-col"
+            onClick={() => trackClick(`Suporte - ${item.title}`, item.link)}
+            className="group bg-white p-4 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 hover:-translate-y-1 transition-all duration-300 flex flex-col cursor-pointer"
           >
             <div className={`${item.bg} ${item.color} w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center mb-4 md:mb-6 group-hover:scale-110 transition-transform`}>
-              {/* Ajuste para evitar erro de compilação: usando wrapper div em vez de cloneElement */}
               <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center">
                 {item.icon}
               </div>
@@ -117,15 +135,16 @@ export default function SuportePage() {
             <div className="bg-white/20 w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center mb-4 md:mb-6">
               <MessageSquare size={24} className="md:w-7 md:h-7" />
             </div>
-            <h3 className="text-2xl md:text-4xl font-bold mb-2 md:mb-4 tracking-tight">Suporte via<br/>WhatsApp</h3>
+            <h3 className="text-2xl md:text-4xl font-bold mb-2 md:mb-4 tracking-tight">Suporte via<br />WhatsApp</h3>
             <p className="text-emerald-100 mb-6 md:mb-10 text-sm md:text-base leading-relaxed max-w-[320px] font-medium italic">
               Fale com um consultor humano para questões técnicas ou comerciais em tempo real.
             </p>
-            <a 
+            <a
               href={whatsappLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-auto inline-flex items-center justify-center gap-3 bg-white text-emerald-600 px-6 py-3 md:px-10 md:py-5 rounded-xl md:rounded-2xl font-bold text-[10px] md:text-xs uppercase tracking-widest hover:bg-emerald-50 transition-all shadow-xl w-fit"
+              onClick={() => trackClick("Suporte - WhatsApp", whatsappLink)}
+              className="mt-auto inline-flex items-center justify-center gap-3 bg-white text-emerald-600 px-6 py-3 md:px-10 md:py-5 rounded-xl md:rounded-2xl font-bold text-[10px] md:text-xs uppercase tracking-widest hover:bg-emerald-50 transition-all shadow-xl w-fit cursor-pointer"
             >
               Iniciar Chat Agora <ArrowRight size={16} />
             </a>
@@ -139,13 +158,14 @@ export default function SuportePage() {
             <div className="bg-white/10 w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center mb-4 md:mb-6">
               <FileWarning size={24} className="text-amber-400 md:w-7 md:h-7" />
             </div>
-            <h3 className="text-2xl md:text-4xl font-bold mb-2 md:mb-4 tracking-tight">Reportar um<br/>Problema</h3>
+            <h3 className="text-2xl md:text-4xl font-bold mb-2 md:mb-4 tracking-tight">Reportar um<br />Problema</h3>
             <p className="text-gray-400 mb-6 md:mb-10 text-sm md:text-base leading-relaxed max-w-[320px] font-medium italic">
               Encontrou algo errado? Nos avise para que nossa engenharia possa corrigir imediatamente.
             </p>
-            <a 
+            <a
               href="/contato"
-              className="mt-auto inline-flex items-center justify-center gap-3 bg-gray-800 text-white border border-gray-700 px-6 py-3 md:px-10 md:py-5 rounded-xl md:rounded-2xl font-bold text-[10px] md:text-xs uppercase tracking-widest hover:bg-gray-700 transition-all w-fit"
+              onClick={() => trackClick("Suporte - Reportar Problema", "/contato")}
+              className="mt-auto inline-flex items-center justify-center gap-3 bg-gray-800 text-white border border-gray-700 px-6 py-3 md:px-10 md:py-5 rounded-xl md:rounded-2xl font-bold text-[10px] md:text-xs uppercase tracking-widest hover:bg-gray-700 transition-all w-fit cursor-pointer"
             >
               Abrir Chamado Técnico
             </a>
@@ -166,10 +186,10 @@ export default function SuportePage() {
           </div>
         </div>
         <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-emerald-50 text-emerald-600 text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] rounded-full border border-emerald-100">
-              <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-              Status: Operacional
-            </div>
+          <div className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-emerald-50 text-emerald-600 text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] rounded-full border border-emerald-100">
+            <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+            Status: Operacional
+          </div>
         </div>
       </div>
 
@@ -186,27 +206,28 @@ export default function SuportePage() {
       <div className="flex flex-col items-center text-center">
         <div className="max-w-3xl mb-12">
           <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
-            Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+            Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
           </h4>
           <p className="text-gray-500 font-medium text-sm md:text-base">
             Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
           </p>
         </div>
-        
-        <a 
-          href="https://www.instagram.com/nucleobase.app/" 
-          target="_blank" 
+
+        <a
+          href="https://www.instagram.com/nucleobase.app/"
+          target="_blank"
           rel="noopener noreferrer"
-          className="group relative flex flex-col items-center gap-6"
+          onClick={() => trackClick("Instagram - Suporte", "https://www.instagram.com/nucleobase.app/")}
+          className="group relative flex flex-col items-center gap-6 cursor-pointer"
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
-            
+
             <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
               <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
             </div>
           </div>
-          
+
           <div className="flex flex-col items-center">
             <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
             <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>

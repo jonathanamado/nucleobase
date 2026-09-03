@@ -55,6 +55,23 @@ export default function IndiquePage() {
   const [pixKey, setPixKey] = useState("");
   const [solicitandoSaque, setSolicitandoSaque] = useState(false);
 
+  useEffect(() => {
+    window.dataLayer?.push({
+      event: "view_page_content",
+      content_category: "comercial",
+      content_name: "pagina_indique_e_ganhe"
+    });
+  }, []);
+
+  const trackClick = (label: string, destination: string) => {
+    window.dataLayer?.push({
+      event: "click_conversion_button",
+      button_label: label,
+      destination_url: destination,
+      page_location: "/indique"
+    });
+  };
+
   const fetchAllUserData = useCallback(async (user: any) => {
     setLoadingData(true);
     try {
@@ -126,6 +143,7 @@ export default function IndiquePage() {
         return;
       }
       resetarBloqueio();
+      window.dataLayer?.push({ event: "user_login_success", page_location: "/indique" });
       window.location.reload();
     } catch (err: any) {
       tratarErroLogin("Ocorreu um erro inesperado.");
@@ -162,11 +180,13 @@ export default function IndiquePage() {
     navigator.clipboard.writeText(linkIndicacao);
     setCopiado(true);
     setTimeout(() => setCopiado(false), 2000);
+    trackClick("Copiar Link de Indicação", linkIndicacao);
   };
 
   const handleWhatsAppInvite = () => {
     const text = encodeURIComponent(`Olá! Estou usando a Nucleobase para organizar minha vida financeira e acho que você vai curtir: ${linkIndicacao}`);
     window.open(`https://wa.me/?text=${text}`, '_blank');
+    trackClick("Compartilhar WhatsApp - Indicação", "whatsapp");
   };
 
   const handleSendInvite = (e: React.FormEvent) => {
@@ -176,13 +196,18 @@ export default function IndiquePage() {
     window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${emailInvite}&su=${subject}&body=${body}`, '_blank');
     setInviteEnviado(true);
     setTimeout(() => { setInviteEnviado(false); setEmailInvite(""); }, 4000);
+    trackClick("Enviar Convite por E-mail", "gmail");
   };
 
   const handleSaque = async () => {
     if (!pixKey || saldoValidado < 20) return alert("Mínimo R$ 20,00 e PIX obrigatório.");
     setSolicitandoSaque(true);
     const { error } = await supabase.from('afiliados_saques').insert({ consultor_id: userId, valor: saldoValidado, pix_qrcode_url: pixKey, status: 'solicitado' });
-    if (!error) { alert("Sucesso!"); setPixKey(""); }
+    if (!error) {
+      alert("Sucesso!");
+      setPixKey("");
+      window.dataLayer?.push({ event: "withdrawal_requested", value: saldoValidado });
+    }
     setSolicitandoSaque(false);
   };
 
@@ -221,7 +246,7 @@ export default function IndiquePage() {
         <div className="mb-8 animate-in fade-in slide-in-from-left-2 duration-500">
           <p className="text-sm md:text-base font-medium text-blue-900 leading-relaxed">
             Para começar a indicar e garantir suas recompensas, você precisa estar autenticado em nossa plataforma.
-            Caso ainda não possua uma conta, <Link href="/cadastro" className="text-blue-600 font-bold underline decoration-2 underline-offset-4 hover:text-blue-800 transition-colors">clique aqui</Link> para se cadastrar.
+            Caso ainda não possua uma conta, <Link href="/cadastro" onClick={() => trackClick("Cadastre-se (Indique)", "/cadastro")} className="text-blue-600 font-bold underline decoration-2 underline-offset-4 hover:text-blue-800 transition-colors cursor-pointer">clique aqui</Link> para se cadastrar.
           </p>
         </div>
       )}
@@ -255,12 +280,12 @@ export default function IndiquePage() {
                   </div>
 
                   <div className="flex flex-col gap-4">
-                    <button onClick={handleWhatsAppInvite} className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all shadow-lg">
+                    <button onClick={handleWhatsAppInvite} className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all shadow-lg cursor-pointer">
                       Enviar Agora <ArrowUpRight size={14} />
                     </button>
 
                     <div className="flex md:hidden items-center justify-center gap-3 pt-2">
-                      <button onClick={() => setCardAtivo(1)} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-80 hover:opacity-100 transition-opacity">
+                      <button onClick={() => setCardAtivo(1)} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-80 hover:opacity-100 transition-opacity cursor-pointer">
                         <ChevronRight size={20} strokeWidth={3} />
                       </button>
                       <span className="text-[9px] font-bold text-blue-600 uppercase tracking-tighter opacity-70">Opções de indicação (Link e E-mail)</span>
@@ -281,15 +306,15 @@ export default function IndiquePage() {
                   </div>
 
                   <div className="flex flex-col gap-4">
-                    <button onClick={handleCopy} className={`w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 shadow-lg ${copiado ? "bg-emerald-500 text-white" : "bg-gray-900 text-white"}`}>
+                    <button onClick={handleCopy} className={`w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer ${copiado ? "bg-emerald-500 text-white" : "bg-gray-900 text-white"}`}>
                       {copiado ? "Copiado" : "Copiar Link"}
                     </button>
 
                     <div className="flex md:hidden justify-center gap-4 pt-2">
-                      <button onClick={() => setCardAtivo(0)} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-60 hover:opacity-100 transition-opacity">
+                      <button onClick={() => setCardAtivo(0)} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
                         <ChevronLeft size={20} strokeWidth={3} />
                       </button>
-                      <button onClick={() => setCardAtivo(2)} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-60 hover:opacity-100 transition-opacity">
+                      <button onClick={() => setCardAtivo(2)} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
                         <ChevronRight size={20} strokeWidth={3} />
                       </button>
                     </div>
@@ -316,15 +341,15 @@ export default function IndiquePage() {
                   </div>
 
                   <div className="flex flex-col gap-4">
-                    <button onClick={handleSendInvite} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-lg">
+                    <button onClick={handleSendInvite} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-lg cursor-pointer">
                       {inviteEnviado ? "Enviado" : "Convidar"} <Send size={14} />
                     </button>
 
                     <div className="flex md:hidden justify-center gap-4 pt-2">
-                      <button onClick={() => setCardAtivo(1)} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-60 hover:opacity-100 transition-opacity">
+                      <button onClick={() => setCardAtivo(1)} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
                         <ChevronLeft size={20} strokeWidth={3} />
                       </button>
-                      <button onClick={() => setCardAtivo(0)} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-60 hover:opacity-100 transition-opacity">
+                      <button onClick={() => setCardAtivo(0)} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
                         <ChevronRight size={20} strokeWidth={3} />
                       </button>
                     </div>
@@ -338,7 +363,7 @@ export default function IndiquePage() {
                   <button
                     key={dot}
                     onClick={() => setCardAtivo(dot)}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${cardAtivo === dot ? "w-8 bg-blue-600" : "w-2 bg-gray-300"}`}
+                    className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${cardAtivo === dot ? "w-8 bg-blue-600" : "w-2 bg-gray-300"}`}
                   />
                 ))}
               </div>
@@ -362,8 +387,8 @@ export default function IndiquePage() {
           </div>
 
           <div className="flex gap-2 mb-8 bg-gray-100 p-1 rounded-full w-fit">
-            <button onClick={() => setActiveTab("comunidade")} className={`px-4 md:px-6 py-2 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "comunidade" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500"}`}>Indicações</button>
-            <button onClick={() => setActiveTab("partner")} className={`px-4 md:px-6 py-2 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "partner" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500"}`}>Recompensas</button>
+            <button onClick={() => setActiveTab("comunidade")} className={`px-4 md:px-6 py-2 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${activeTab === "comunidade" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500"}`}>Indicações</button>
+            <button onClick={() => setActiveTab("partner")} className={`px-4 md:px-6 py-2 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${activeTab === "partner" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500"}`}>Recompensas</button>
           </div>
 
           {activeTab === "comunidade" ? (
@@ -428,7 +453,7 @@ export default function IndiquePage() {
                     <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                     <input value={pixKey} onChange={(e) => setPixKey(e.target.value)} placeholder="Informe aqui sua Chave PIX" className="w-full bg-white/10 border-none rounded-xl pl-11 pr-4 py-4 text-xs outline-none text-white font-bold" />
                   </div>
-                  <button onClick={handleSaque} disabled={solicitandoSaque || saldoValidado < 20} className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 py-4 rounded-xl text-[10px] font-black uppercase">
+                  <button onClick={handleSaque} disabled={solicitandoSaque || saldoValidado < 20} className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 py-4 rounded-xl text-[10px] font-black uppercase cursor-pointer">
                     {solicitandoSaque ? "Processando..." : "Solicitar resgate"}
                   </button>
                   <span className="text-[10px] text-gray-500 mt-2 uppercase font-bold text-center">Mínimo R$ 20,00</span>
@@ -485,14 +510,14 @@ export default function IndiquePage() {
                     className="w-full pl-11 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-1 focus:ring-blue-600 outline-none text-xs font-bold"
                   />
                 </div>
-                <button disabled={loadingLogin} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700 transition shadow-lg text-[10px] disabled:opacity-50">
+                <button disabled={loadingLogin} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700 transition shadow-lg text-[10px] disabled:opacity-50 cursor-pointer">
                   {loadingLogin ? "Enviando..." : "Receber link por e-mail"}
                 </button>
                 <div className="text-center">
                   <button
                     type="button"
                     onClick={() => setIsRecovering(false)}
-                    className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-blue-600 transition-colors"
+                    className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-blue-600 transition-colors cursor-pointer"
                   >
                     Voltar para o Login
                   </button>
@@ -521,7 +546,7 @@ export default function IndiquePage() {
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full pl-11 pr-12 py-4 bg-gray-50 border-none rounded-2xl focus:ring-1 focus:ring-blue-600 outline-none text-xs font-bold"
                   />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer">
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
@@ -543,7 +568,7 @@ export default function IndiquePage() {
                   <button
                     type="button"
                     onClick={() => setIsRecovering(true)}
-                    className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-blue-600 transition-colors"
+                    className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-blue-600 transition-colors cursor-pointer"
                   >
                     Esqueceu a senha?
                   </button>
@@ -575,17 +600,17 @@ export default function IndiquePage() {
 
                 <div className="flex justify-center gap-4 mt-auto">
                   {i > 0 && (
-                    <button onClick={() => setRecompensaAtiva(i - 1)} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-60 hover:opacity-100 transition-opacity">
+                    <button onClick={() => setRecompensaAtiva(i - 1)} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
                       <ChevronLeft size={20} strokeWidth={3} />
                     </button>
                   )}
                   {i < cardsRecompensa.length - 1 && (
-                    <button onClick={() => setRecompensaAtiva(i + 1)} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-60 hover:opacity-100 transition-opacity">
+                    <button onClick={() => setRecompensaAtiva(i + 1)} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
                       <ChevronRight size={20} strokeWidth={3} />
                     </button>
                   )}
                   {i === cardsRecompensa.length - 1 && (
-                    <button onClick={() => setRecompensaAtiva(0)} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-60 hover:opacity-100 transition-opacity">
+                    <button onClick={() => setRecompensaAtiva(0)} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
                       <ChevronRight size={20} strokeWidth={3} />
                     </button>
                   )}
@@ -598,7 +623,7 @@ export default function IndiquePage() {
                 <button
                   key={dot}
                   onClick={() => setRecompensaAtiva(dot)}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${recompensaAtiva === dot ? "w-8 bg-blue-600" : "w-2 bg-gray-300"}`}
+                  className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${recompensaAtiva === dot ? "w-8 bg-blue-600" : "w-2 bg-gray-300"}`}
                 />
               ))}
             </div>
@@ -638,7 +663,8 @@ export default function IndiquePage() {
           href="https://www.instagram.com/nucleobase.app/"
           target="_blank"
           rel="noopener noreferrer"
-          className="group relative flex flex-col items-center gap-6"
+          onClick={() => trackClick("Instagram - Indique", "https://www.instagram.com/nucleobase.app/")}
+          className="group relative flex flex-col items-center gap-6 cursor-pointer"
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>

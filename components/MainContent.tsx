@@ -29,18 +29,42 @@ export function MainContent() {
         .from("newsletter")
         .insert([{ email: email, user_id: user?.id || null }]);
       if (dbError && dbError.code !== '23505') throw dbError;
+
       const res = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
         body: formData
       });
       const data = await res.json();
-      if (data.success) setEnviado(true);
-      else throw new Error("Erro no serviço de e-mail");
+
+      if (data.success) {
+        setEnviado(true);
+        // Rastreamento GTM de conversão da newsletter
+        if (typeof window !== "undefined") {
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({
+            event: "newsletter_subscribed",
+            page_location: "/"
+          });
+        }
+      } else {
+        throw new Error("Erro no serviço de e-mail");
+      }
     } catch (err) {
       console.error("Erro no processamento:", err);
       alert("Erro ao processar assinatura. Tente novamente.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const trackClick = (label: string, destination: string) => {
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "click_home_navigation",
+        button_label: label,
+        destination_url: destination
+      });
     }
   };
 
@@ -114,6 +138,7 @@ export function MainContent() {
 
               <Link
                 href="/acesso-usuario"
+                onClick={() => trackClick("Acessar Área do Usuário (Mobile)", "/acesso-usuario")}
                 className="grid grid-cols-[1fr_auto_1fr] items-center w-full p-2 bg-gray-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl active:scale-[0.96] transition-all hover:bg-black"
               >
                 <div className="w-[36px]" aria-hidden="true" />
@@ -137,7 +162,7 @@ export function MainContent() {
                     </div>
                   ))}
                 </div>
-                <Link href="/cadastro" className="group flex items-center gap-2">
+                <Link href="/cadastro" onClick={() => trackClick("Junte-se ao nosso time (Mobile)", "/cadastro")} className="group flex items-center gap-2">
                   <p className="text-gray-500 text-[12px] font-bold leading-tight group-hover:text-gray-900 transition-colors">
                     Junte-se ao nosso time
                   </p>
@@ -158,7 +183,7 @@ export function MainContent() {
               <p className="text-gray-600 text-base leading-relaxed font-medium py-1">
                 Assista ao nosso vídeo institucional e entenda como a <span className="text-gray-900 font-bold">Nucleobase</span> transforma sua gestão em poucos cliques.
               </p>
-              <Link href="/demonstracao" className="group flex items-center gap-2 mb-8">
+              <Link href="/demonstracao" onClick={() => trackClick("Explore as dicas (Mobile)", "/demonstracao")} className="group flex items-center gap-2 mb-8">
                 <span className="text-gray-600 text-sm font-bold underline hover:text-blue-600 transition-colors">
                   <u>Explore as dicas que criamos e aproveite ao máximo a plataforma.</u>
                 </span>
@@ -182,7 +207,7 @@ export function MainContent() {
             Informativos e acessos <div className="h-px bg-gray-300 flex-1"></div>
           </h3>
           <p className="text-gray-600 text-base leading-relaxed font-medium py-1">
-            A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos controles com inteligência e foco em redução de custos. Conheça a nossa história e a nossa missão <Link href="/sobre" className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
+            A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos controles com inteligência e foco em redução de custos. Conheça a nossa história e a nossa missão <Link href="/sobre" onClick={() => trackClick("Sobre a história (Mobile)", "/sobre")} className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
             <br /><br />
             Nosso app oferece controle completo de orçamentos financeiros e gestão condominial, e em ambos os módulos consultoria digital especializada. Saiba mais:
           </p>
@@ -191,7 +216,7 @@ export function MainContent() {
         <div className="grid grid-cols-2 gap-3 -mt-4">
           <div className="col-span-2 py-4 px-2 flex flex-col">
             <div className="space-y-1 -mt-6">
-              <Link href="/controle-financeiro" className="text-base font-medium text-gray-600 leading-relaxed hover:text-orange-600 transition-colors flex items-center gap-2">
+              <Link href="/controle-financeiro" onClick={() => trackClick("Gestão Financeira (Mobile)", "/controle-financeiro")} className="text-base font-medium text-gray-600 leading-relaxed hover:text-orange-600 transition-colors flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full font-bold bg-orange-600"></span>
                 Gestão Financeira
               </Link>
@@ -201,7 +226,7 @@ export function MainContent() {
             </div>
 
             <div className="space-y-1 mt-2.5">
-              <Link href="/condo" className="text-base font-medium text-gray-600 leading-relaxed hover:text-emerald-600 transition-colors flex items-center gap-2">
+              <Link href="/condo" onClick={() => trackClick("Nucleo Condo (Mobile)", "/condo")} className="text-base font-medium text-gray-600 leading-relaxed hover:text-emerald-600 transition-colors flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full font-bold bg-emerald-600"></span>
                 Nucleo Condo
               </Link>
@@ -211,7 +236,7 @@ export function MainContent() {
             </div>
 
             <div className="space-y-1 mt-2.5">
-              <Link href="/resultados-consultoria" className="text-base font-medium text-gray-600 leading-relaxed hover:text-blue-600 transition-colors flex items-center gap-2">
+              <Link href="/resultados-consultoria" onClick={() => trackClick("Resultados e Consultoria (Mobile)", "/resultados-consultoria")} className="text-base font-medium text-gray-600 leading-relaxed hover:text-blue-600 transition-colors flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full font-bold bg-blue-600"></span>
                 Resultados & Consultoria
               </Link>
@@ -225,7 +250,7 @@ export function MainContent() {
             <Mail className="text-blue-600" size={24} />
             <span className="font-bold text-[10px] uppercase tracking-widest text-gray-800">Assinar <br /> Newsletter</span>
           </button>
-          <Link href="/blog" className="col-span-1 bg-gray-50 p-6 rounded-3xl flex flex-col gap-4 border border-gray-100 text-left active:scale-95 transition-transform">
+          <Link href="/blog" onClick={() => trackClick("Blog (Mobile)", "/blog")} className="col-span-1 bg-gray-50 p-6 rounded-3xl flex flex-col gap-4 border border-gray-100 text-left active:scale-95 transition-transform">
             <Newspaper className="text-gray-400" size={24} />
             <span className="font-bold text-[10px] uppercase tracking-widest text-gray-800">Blog da <br /> Nucleobase</span>
           </Link>
@@ -240,8 +265,7 @@ export function MainContent() {
             <div className="h-px bg-gray-300 flex-1"></div>
           </div>
           <p className="text-gray-400 text-xs text-center font-bold tracking-wider mb-3">Proteção e criptografia de ponta</p>
-          <Link href="/seguranca_privacidade" className="group block bg-gray-900 border border-gray-800 p-8 rounded-[2.5rem] relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-emerald-500/10 hover:border-emerald-500/30">
-            {/* Elemento gráfico de fundo estilo radar/criptografia */}
+          <Link href="/seguranca_privacidade" onClick={() => trackClick("Segurança e Privacidade (Mobile)", "/seguranca_privacidade")} className="group block bg-gray-900 border border-gray-800 p-8 rounded-[2.5rem] relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-emerald-500/10 hover:border-emerald-500/30">
             <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all duration-700 pointer-events-none" />
             <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all duration-700 pointer-events-none text-emerald-400">
               <Lock size={140} strokeWidth={1} />
@@ -282,19 +306,19 @@ export function MainContent() {
           </div>
           <p className="text-gray-400 text-xs text-center font-bold tracking-wider mb-3">Atendimento e Oportunidades</p>
           <div className="grid grid-cols-2 gap-3">
-            <Link href="/suporte" className="bg-gray-50 p-6 rounded-3xl flex flex-col gap-2 border border-gray-100 active:bg-gray-100 transition-colors">
+            <Link href="/suporte" onClick={() => trackClick("Suporte (Mobile)", "/suporte")} className="bg-gray-50 p-6 rounded-3xl flex flex-col gap-2 border border-gray-100 active:bg-gray-100 transition-colors">
               <FileWarning size={20} className="text-amber-500" />
               <span className="font-bold text-[10px] uppercase text-gray-800">Suporte</span>
             </Link>
-            <Link href="/contato" className="bg-emerald-50 p-6 rounded-3xl flex flex-col gap-2 border border-emerald-100 active:bg-emerald-100 transition-colors">
+            <Link href="/contato" onClick={() => trackClick("Contato (Mobile)", "/contato")} className="bg-emerald-50 p-6 rounded-3xl flex flex-col gap-2 border border-emerald-100 active:bg-emerald-100 transition-colors">
               <MessageSquare size={20} className="text-emerald-600" />
               <span className="font-bold text-[10px] uppercase text-gray-800">Contato</span>
             </Link>
-            <Link href="/indique" className="bg-blue-50 p-6 rounded-3xl flex flex-col gap-2 border border-blue-100 active:bg-blue-100 transition-colors">
+            <Link href="/indique" onClick={() => trackClick("Indique (Mobile)", "/indique")} className="bg-blue-50 p-6 rounded-3xl flex flex-col gap-2 border border-blue-100 active:bg-blue-100 transition-colors">
               <Gift size={20} className="text-blue-600" />
               <span className="font-bold text-[10px] uppercase text-gray-800">Indicar</span>
             </Link>
-            <Link href="/parceria" className="bg-orange-50 p-6 rounded-3xl flex flex-col gap-2 border border-orange-100 active:bg-orange-100 transition-colors">
+            <Link href="/parceria" onClick={() => trackClick("Parceria (Mobile)", "/parceria")} className="bg-orange-50 p-6 rounded-3xl flex flex-col gap-2 border border-orange-100 active:bg-orange-100 transition-colors">
               <Users size={20} className="text-orange-600" />
               <span className="font-bold text-[10px] uppercase text-gray-800">Parceria</span>
             </Link>
@@ -322,6 +346,7 @@ export function MainContent() {
               href="https://www.instagram.com/nucleobase.app/"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackClick("Instagram (Mobile)", "https://www.instagram.com/nucleobase.app/")}
               className="group relative flex flex-col items-center gap-4"
             >
               <div className="relative">
@@ -387,7 +412,7 @@ export function MainContent() {
                     </div>
                   ))}
                 </div>
-                <Link href="/cadastro" className="group flex items-center gap-2">
+                <Link href="/cadastro" onClick={() => trackClick("Junte-se ao time (Desktop)", "/cadastro")} className="group flex items-center gap-2">
                   <p className="text-gray-500 text-[12px] font-bold leading-tight group-hover:text-gray-900 transition-colors">
                     Junte-se ao time da Nucleo e cresça com a gente
                   </p>
@@ -400,7 +425,7 @@ export function MainContent() {
           </div>
 
           <div className="lg:col-span-2 flex">
-            <Link href="/controle-financeiro" className="flex-1 bg-white border border-gray-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
+            <Link href="/controle-financeiro" onClick={() => trackClick("Controle Financeiro (Desktop)", "/controle-financeiro")} className="flex-1 bg-white border border-gray-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
               <div className="bg-orange-50 p-3 rounded-2xl text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all duration-300 mb-4">
                 <LayoutDashboard size={24} />
               </div>
@@ -413,7 +438,7 @@ export function MainContent() {
           </div>
 
           <div className="lg:col-span-2 flex">
-            <Link href="/condo" className="flex-1 bg-emerald-50/50 border border-emerald-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
+            <Link href="/condo" onClick={() => trackClick("Nucleo Condo (Desktop)", "/condo")} className="flex-1 bg-emerald-50/50 border border-emerald-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
               <div className="bg-white p-3 rounded-2xl text-emerald-600 shadow-sm group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 mb-4">
                 <Building2 size={24} />
               </div>
@@ -426,7 +451,7 @@ export function MainContent() {
           </div>
 
           <div className="lg:col-span-2 flex">
-            <Link href="resultados-consultoria" className="flex-1 bg-blue-50/50 border border-blue-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
+            <Link href="/resultados-consultoria" onClick={() => trackClick("Resultados Consultoria (Desktop)", "/resultados-consultoria")} className="flex-1 bg-blue-50/50 border border-blue-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
               <div className="bg-white p-3 rounded-2xl text-blue-600 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 mb-4">
                 <BarChart3 size={24} />
               </div>
@@ -479,7 +504,7 @@ export function MainContent() {
                   <div className="grid grid-cols-3 gap-2 pt-2">
                     {/* Item 01 */}
                     <div className="flex flex-col gap-2">
-                      <Link href="/demonstracao" className="group/thumb relative aspect-video bg-white rounded-xl overflow-hidden border border-gray-200 transition-all hover:border-blue-300 shadow-sm">
+                      <Link href="/demonstracao" onClick={() => trackClick("Demonstração - Criar Conta", "/demonstracao")} className="group/thumb relative aspect-video bg-white rounded-xl overflow-hidden border border-gray-200 transition-all hover:border-blue-300 shadow-sm">
                         <img
                           src="/imagem-miniatura-criar-conta.png"
                           alt="Como criar conta"
@@ -498,7 +523,7 @@ export function MainContent() {
 
                     {/* Item 02 */}
                     <div className="flex flex-col gap-2">
-                      <Link href="/demonstracao" className="group/thumb relative aspect-video bg-white rounded-xl overflow-hidden border border-gray-200 transition-all hover:border-blue-300 shadow-sm">
+                      <Link href="/demonstracao" onClick={() => trackClick("Demonstração - Realizar Lançamento", "/demonstracao")} className="group/thumb relative aspect-video bg-white rounded-xl overflow-hidden border border-gray-200 transition-all hover:border-blue-300 shadow-sm">
                         <img
                           src="/imagem-miniatura-realizar-lancamento.png"
                           alt="Como realizar lançamento"
@@ -517,7 +542,7 @@ export function MainContent() {
 
                     {/* Item 03 */}
                     <div className="flex flex-col gap-2">
-                      <Link href="/demonstracao" className="group/thumb relative aspect-video bg-white rounded-xl overflow-hidden border border-gray-200 transition-all hover:border-blue-300 shadow-sm">
+                      <Link href="/demonstracao" onClick={() => trackClick("Demonstração - Analisar Resultado", "/demonstracao")} className="group/thumb relative aspect-video bg-white rounded-xl overflow-hidden border border-gray-200 transition-all hover:border-blue-300 shadow-sm">
                         <img
                           src="/imagem-miniatura-acompanhar-resultado.png"
                           alt="Como acompanhar resultados"
@@ -537,7 +562,7 @@ export function MainContent() {
                 </div>
               </div>
 
-              <Link href="/demonstracao" className="group/link block pt-4 border-t border-gray-100">
+              <Link href="/demonstracao" onClick={() => trackClick("Demonstração - Link Final", "/demonstracao")} className="group/link block pt-4 border-t border-gray-100">
                 <span className="text-[13px] font-bold text-orange-600 leading-snug group-hover/link:text-orange-700 transition-colors">
                   Confira dicas sobre a plataforma e suas funcionalidades, <span className="underline underline-offset-4 decoration-2">clique aqui.</span>
                 </span>
@@ -549,7 +574,7 @@ export function MainContent() {
         <div className="w-full mb-12">
           <p className="text-gray-600 text-base leading-[1.8]">
             <span className="text-gray-900 font-semibold">Acreditamos que</span> a verdadeira inteligência financeira e de gestão nasce da união entre clareza de dados e disciplina. <span className="text-gray-900 font-semibold">Desenvolvemos uma tecnologia</span> que não apenas organiza isto, mas traduz comportamentos. <span className="text-gray-900 font-semibold">Ao eliminar complexidade e controles manuais,</span> permitimos o seu foco no que importa: entender e agir.
-            <Link href="/sobre" className="inline-flex items-center ml-2 group">
+            <Link href="/sobre" onClick={() => trackClick("Sobre (Desktop)", "/sobre")} className="inline-flex items-center ml-2 group">
               <span className="bg-blue-600 text-white px-2 pt-1 pb-0.5 rounded-md text-[10px] font-bold shadow-sm hover:bg-blue-700 transition-colors uppercase tracking-wider">
                 Saiba mais clicando aqui.
               </span>
@@ -565,7 +590,7 @@ export function MainContent() {
                 A Nucleobase é o seu centro de comando. Diferente de planilhas complexas, traduzimos controle financeiro e gestão residencial (Condo) em inteligência prática.
               </h4>
             </div>
-            <a href="/cadastro" className="shrink-0 inline-flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-full transition-all font-bold text-sm uppercase tracking-widest shadow-lg shadow-blue-900/20 group-hover:scale-105">
+            <a href="/cadastro" onClick={() => trackClick("Criar conta gratuita (Banner Desktop)", "/cadastro")} className="shrink-0 inline-flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-full transition-all font-bold text-sm uppercase tracking-widest shadow-lg shadow-blue-900/20 group-hover:scale-105">
               Criar conta gratuita <ArrowRight size={20} />
             </a>
           </div>
@@ -586,12 +611,12 @@ export function MainContent() {
                   <h4 className="text-2xl font-bold text-gray-900 mb-1 tracking-tight">Segurança e Privacidade</h4>
                   <p className="text-gray-600 text-base font-medium leading-relaxed mb-4">Custódia integral sob o princípio do Zero-Knowledge.</p>
                   <div className="flex gap-2">
-                    <Link href="/seguranca_privacidade" className="group flex-1">
+                    <Link href="/seguranca_privacidade" onClick={() => trackClick("Segurança e Privacidade (Card Desktop)", "/seguranca_privacidade")} className="group flex-1">
                       <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest flex items-center justify-center text-center gap-2 w-full h-full">
                         Acesse a área de Segurança aqui <ArrowRight size={12} />
                       </span>
                     </Link>
-                    <Link href="/politica-de-cookies" className="group flex-1">
+                    <Link href="/politica-de-cookies" onClick={() => trackClick("Política de Cookies (Card Desktop)", "/politica-de-cookies")} className="group flex-1">
                       <span className="bg-gray-900 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-black transition-all uppercase tracking-widest flex items-center justify-center text-center gap-2 w-full h-full">
                         Conheça nossa política aqui <ArrowRight size={12} />
                       </span>
@@ -604,7 +629,7 @@ export function MainContent() {
                 <p className="text-gray-500 text-sm font-medium leading-relaxed mb-6">
                   Sua soberania digital é nossa prioridade. Implementamos padrões de criptografia de ponta para garantir que apenas você acesse seus dados.
                 </p>
-                <Link href="/depoimentos" className="group w-fit ml-auto">
+                <Link href="/depoimentos" onClick={() => trackClick("Veja Depoimentos", "/depoimentos")} className="group w-fit ml-auto">
                   <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest inline-flex items-center gap-2">
                     Veja Depoimentos <ArrowRight size={12} />
                   </span>
@@ -623,13 +648,13 @@ export function MainContent() {
                 <p className="text-gray-600 text-base leading-relaxed mb-8">
                   Mais do que números, entregamos inteligência em processos. O Dashboard da Nucleobase processa seus dados e os gerencia para oferecer a você diagnósticos precisos na palma da mão.
                 </p>
-                <Link href="/resultados-consultoria" className="group w-fit">
+                <Link href="/resultados-consultoria" onClick={() => trackClick("Resultados e Consultorias (Texto Desktop)", "/resultados-consultoria")} className="group w-fit">
                   <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest inline-flex items-center gap-2">
                     Entenda Resultados & Consultorias <ArrowRight size={12} />
                   </span>
                 </Link>
               </div>
-              <Link href="/resultados-consultoria" className="md:col-span-5 bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl group hover:border-blue-100 transition-all flex flex-col justify-center min-h-[280px]">
+              <Link href="/resultados-consultoria" onClick={() => trackClick("Resultados e Consultorias (Card Desktop)", "/resultados-consultoria")} className="md:col-span-5 bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl group hover:border-blue-100 transition-all flex flex-col justify-center min-h-[280px]">
                 <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
                   <BarChart3 size={32} />
                 </div>
@@ -655,7 +680,7 @@ export function MainContent() {
                     <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6">{item.icon}</div>
                     <h4 className="text-xl font-bold text-gray-900 group-hover:text-white">{item.title}</h4>
                   </div>
-                  <a href={item.href} className="w-fit bg-gray-900 text-white px-6 py-3 rounded-full font-bold text-[10px] uppercase group-hover:bg-white group-hover:text-gray-900 transition-all">{item.label}</a>
+                  <a href={item.href} onClick={() => trackClick(`Canal: ${item.title}`, item.href)} className="w-fit bg-gray-900 text-white px-6 py-3 rounded-full font-bold text-[10px] uppercase group-hover:bg-white group-hover:text-gray-900 transition-all">{item.label}</a>
                 </div>
               ))}
             </div>
@@ -682,7 +707,8 @@ export function MainContent() {
                 href="https://www.instagram.com/nucleobase.app/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative flex flex-col items-center gap-6"
+                onClick={() => trackClick("Instagram (Desktop)", "https://www.instagram.com/nucleobase.app/")}
+                className="group relative flex flex-col items-center gap-6 cursor-pointer"
               >
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>

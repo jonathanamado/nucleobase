@@ -15,6 +15,19 @@ export default function AuthRapido() {
   const [resetEmail, setResetEmail] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
 
+  const trackAuthRapidoEvent = (event: string, method: string, status: string, errorMessage?: string) => {
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: event,
+        auth_method: method,
+        auth_status: status,
+        form_type: "auth_rapido",
+        error_message: errorMessage || null
+      });
+    }
+  };
+
   const handleAuth = async () => {
     if (!slug || !senha) return alert("Preencha os campos para liberar.");
     setAuthLoading(true);
@@ -40,11 +53,16 @@ export default function AuthRapido() {
         if (auth.user) {
           await supabase.from('profiles').upsert({ id: auth.user.id, email: emailParaAuth, nome_completo: nome, plan_type: 'free' });
         }
+        trackAuthRapidoEvent("user_signup", "slug_or_email", "success");
       } else if (loginError) {
         throw loginError;
+      } else {
+        trackAuthRapidoEvent("user_login", "slug_or_email", "success");
       }
     } catch (err: any) {
-      alert(err.message || "Erro na autenticação.");
+      const errorMsg = err.message || "Erro na autenticação.";
+      trackAuthRapidoEvent("user_auth_error", "slug_or_email", "error", errorMsg);
+      alert(errorMsg);
     } finally {
       setAuthLoading(false);
     }
@@ -58,10 +76,21 @@ export default function AuthRapido() {
         redirectTo: `${window.location.origin}/auth/callback?next=/v3/perfil`,
       });
       if (error) throw error;
+
+      if (typeof window !== "undefined") {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({ event: "password_reset_requested", status: "success" });
+      }
+
       alert("Link de recuperação enviado com sucesso!");
       setShowForgotModal(false);
     } catch (err: any) {
-      alert(err.message || "Erro ao enviar link de recuperação.");
+      const errorMsg = err.message || "Erro ao enviar link de recuperação.";
+      if (typeof window !== "undefined") {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({ event: "password_reset_requested", status: "error", error_message: errorMsg });
+      }
+      alert(errorMsg);
     } finally {
       setResetLoading(false);
     }
@@ -94,7 +123,13 @@ export default function AuthRapido() {
         <input type="text" placeholder="Nome Completo (Novos autores)" value={nome} onChange={(e) => setNome(e.target.value)} className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-medium text-gray-900 outline-none focus:ring-2 focus:ring-blue-100 transition-all" />
       </div>
 
-      <button type="button" onClick={() => setShowForgotModal(true)} className="text-[10px] text-gray-400 font-bold hover:text-blue-600 mb-6 block w-fit cursor-pointer transition-colors">Esqueceu a senha?</button>
+      <button type="button" onClick={() => {
+        setShowForgotModal(true);
+        if (typeof window !== "undefined") {
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({ event: "open_forgot_password_modal" });
+        }
+      }} className="text-[10px] text-gray-400 font-bold hover:text-blue-600 mb-6 block w-fit cursor-pointer transition-colors">Esqueceu a senha?</button>
 
       <button type="button" onClick={handleAuth} disabled={authLoading} className="w-full bg-gray-900 text-white py-5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-black transition-all shadow-lg shadow-gray-200 cursor-pointer disabled:opacity-50">
         {authLoading ? <Loader2 className="animate-spin" size={18} /> : <Unlock size={18} />}

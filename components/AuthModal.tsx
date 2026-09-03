@@ -12,6 +12,19 @@ export default function AuthModal({ onSucess }: { onSucess: () => void }) {
   const [password, setPassword] = useState("");
   const [nome, setNome] = useState("");
 
+  const trackAuthModalEvent = (event: string, method: string, status: string, errorMessage?: string) => {
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: event,
+        auth_method: method,
+        auth_status: status,
+        modal_type: "auth_modal",
+        error_message: errorMessage || null
+      });
+    }
+  };
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -20,6 +33,8 @@ export default function AuthModal({ onSucess }: { onSucess: () => void }) {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+
+        trackAuthModalEvent("user_login", "email_password", "success");
         onSucess();
       } else {
         const { error } = await supabase.auth.signUp({
@@ -28,10 +43,14 @@ export default function AuthModal({ onSucess }: { onSucess: () => void }) {
           options: { data: { full_name: nome } }
         });
         if (error) throw error;
+
+        trackAuthModalEvent("user_signup", "email_password", "success");
         onSucess();
       }
     } catch (error: any) {
-      alert(error.message || "Ocorreu um erro na autenticação.");
+      const errorMsg = error.message || "Ocorreu um erro na autenticação.";
+      trackAuthModalEvent(isLogin ? "user_login" : "user_signup", "email_password", "error", errorMsg);
+      alert(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -90,7 +109,14 @@ export default function AuthModal({ onSucess }: { onSucess: () => void }) {
 
       <button
         type="button"
-        onClick={() => setIsLogin(!isLogin)}
+        onClick={() => {
+          const nextState = !isLogin;
+          setIsLogin(nextState);
+          if (typeof window !== "undefined") {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({ event: "auth_modal_mode_switched", view_mode: nextState ? "login" : "signup" });
+          }
+        }}
         className="w-full mt-6 text-xs font-bold text-gray-400 hover:text-blue-600 transition uppercase tracking-widest cursor-pointer"
       >
         {isLogin ? "Não tem conta? Cadastre-se" : "Já tem conta? Faça login"}

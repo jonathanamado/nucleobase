@@ -1,3 +1,4 @@
+// app/depoimentos/page.tsx
 "use client";
 import React, { useEffect, useState } from "react";
 import { Star, Quote, Loader2, User, Plus, MessageSquarePlus, MessageCircle, Instagram } from "lucide-react";
@@ -27,6 +28,12 @@ export default function DepoimentosPage() {
   ];
 
   useEffect(() => {
+    window.dataLayer?.push({
+      event: "view_page_content",
+      content_category: "social_proof",
+      content_name: "pagina_depoimentos"
+    });
+
     async function fetchDepoimentos() {
       try {
         setLoading(true);
@@ -61,11 +68,20 @@ export default function DepoimentosPage() {
     fetchDepoimentos();
   }, []);
 
+  const trackClick = (label: string, destination: string) => {
+    window.dataLayer?.push({
+      event: "click_conversion_button",
+      button_label: label,
+      destination_url: destination,
+      page_location: "/depoimentos"
+    });
+  };
+
   const todosDepoimentos = [...depoimentosFixos, ...depoimentosReais];
 
   return (
     <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
-      
+
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div className="text-left">
@@ -73,16 +89,17 @@ export default function DepoimentosPage() {
             <span>Sua Experiência<span className="text-blue-600">.</span></span>
             <MessageCircle size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
           </h1>
-          
+
           <h2 className="text-gray-500 text-base md:text-lg font-medium max-w-2xl leading-relaxed mt-0">
             O sentimento real de quem já transformou sua gestão financeira.
           </h2>
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <a 
-            href="/publicacao_depoimentos" 
-            className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-white border border-gray-200 text-gray-900 rounded-full hover:border-blue-600 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest shadow-sm"
+          <a
+            href="/publicacao_depoimentos"
+            onClick={() => trackClick("Criar Depoimento - Topo", "/publicacao_depoimentos")}
+            className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-white border border-gray-200 text-gray-900 rounded-full hover:border-blue-600 hover:text-blue-600 transition-all font-bold text-[10px] uppercase tracking-widest shadow-sm cursor-pointer"
           >
             <Plus size={14} /> Criar depoimento
           </a>
@@ -113,22 +130,21 @@ export default function DepoimentosPage() {
           const fotoExibicao = item.foto || perfil?.avatar_url;
 
           return (
-            <div 
+            <div
               key={item.id}
-              className={`group bg-white border border-gray-100 shadow-2xl shadow-blue-900/5 rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-10 relative overflow-hidden transition-all hover:scale-[1.01] ${
-                index % 2 !== 0 ? "md:mt-32" : ""
-              }`}
+              className={`group bg-white border border-gray-100 shadow-2xl shadow-blue-900/5 rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-10 relative overflow-hidden transition-all hover:scale-[1.01] ${index % 2 !== 0 ? "md:mt-32" : ""
+                }`}
             >
               <Quote size={80} className="absolute -top-4 -right-4 text-blue-600 opacity-[0.03] pointer-events-none group-hover:opacity-10 transition-opacity" />
-              
+
               <div className="relative z-10">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                   <div className="flex items-center gap-4">
                     {fotoExibicao ? (
-                      <img 
-                        src={fotoExibicao} 
-                        alt={nomeExibicao} 
-                        className="w-14 h-14 md:w-16 md:h-16 rounded-2xl object-cover border-2 border-blue-50 shadow-md" 
+                      <img
+                        src={fotoExibicao}
+                        alt={nomeExibicao}
+                        className="w-14 h-14 md:w-16 md:h-16 rounded-2xl object-cover border-2 border-blue-50 shadow-md"
                       />
                     ) : (
                       <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-blue-50 border-2 border-blue-100 flex items-center justify-center text-blue-600 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
@@ -163,7 +179,7 @@ export default function DepoimentosPage() {
         })}
       </div>
 
-      {/* BANNER CTA FINAL - FEEDBACK LOOP (Ajustado para Mobile) */}
+      {/* BANNER CTA FINAL - FEEDBACK LOOP */}
       <div className="bg-gray-900 rounded-[3rem] md:rounded-[3.5rem] p-10 md:p-16 relative overflow-hidden group shadow-2xl shadow-gray-400 mb-24">
         <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
           <div className="max-w-xl text-center lg:text-left">
@@ -171,26 +187,25 @@ export default function DepoimentosPage() {
               <MessageSquarePlus size={16} />
               <span className="text-[10px] font-black uppercase tracking-widest">Feedback Loop</span>
             </div>
-            {/* Título oculto no mobile, visível apenas em telas grandes */}
             <h3 className="hidden lg:block text-3xl md:text-4xl font-bold text-white tracking-tight leading-tight">
               Sua voz é importante para nós melhorarmos a Plataforma.
             </h3>
-            {/* Texto que permanece no mobile com ajuste de margem */}
             <p className="text-gray-400 font-medium text-lg lg:mt-4 italic">
               Como a Nucleobase mudou sua rotina hoje?
             </p>
           </div>
 
-          <a 
-            href="/publicacao_depoimentos" 
-            className="group relative inline-flex items-center justify-center gap-4 px-10 md:px-12 py-5 md:py-6 bg-blue-600 text-white rounded-full hover:bg-blue-500 transition-all font-bold text-xs uppercase tracking-[0.2em] shadow-xl shadow-blue-900/40 overflow-hidden w-full lg:w-auto"
+          <a
+            href="/publicacao_depoimentos"
+            onClick={() => trackClick("Criar Depoimento - Banner Final", "/publicacao_depoimentos")}
+            className="group relative inline-flex items-center justify-center gap-4 px-10 md:px-12 py-5 md:py-6 bg-blue-600 text-white rounded-full hover:bg-blue-500 transition-all font-bold text-xs uppercase tracking-[0.2em] shadow-xl shadow-blue-900/40 overflow-hidden w-full lg:w-auto cursor-pointer"
           >
-            <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300 relative z-10" /> 
+            <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300 relative z-10" />
             <span className="relative z-10">Deixar meu depoimento</span>
             <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
           </a>
         </div>
-        
+
         <div className="absolute -right-20 -bottom-20 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none group-hover:bg-blue-600/20 transition-all duration-700"></div>
       </div>
 
@@ -207,18 +222,19 @@ export default function DepoimentosPage() {
       <div className="text-center flex flex-col items-center">
         <div className="max-w-3xl mb-12">
           <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
-            Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+            Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
           </h4>
           <p className="text-gray-500 font-medium text-sm md:text-base">
             Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
           </p>
         </div>
-        
-        <a 
-          href="https://instagram.com/nucleobase.app" 
-          target="_blank" 
+
+        <a
+          href="https://instagram.com/nucleobase.app"
+          target="_blank"
           rel="noopener noreferrer"
-          className="group relative flex flex-col items-center gap-6"
+          onClick={() => trackClick("Instagram - Depoimentos", "https://instagram.com/nucleobase.app")}
+          className="group relative flex flex-col items-center gap-6 cursor-pointer"
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
@@ -226,7 +242,7 @@ export default function DepoimentosPage() {
               <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
             </div>
           </div>
-          
+
           <div className="flex flex-col items-center">
             <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
             <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>

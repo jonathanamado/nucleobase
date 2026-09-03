@@ -1,3 +1,4 @@
+// app/configuracoes/page.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -26,7 +27,6 @@ export default function ConfiguracoesPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Estados independentes para exibir senha em cada campo do popup
   const [showNewPass, setShowNewPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
 
@@ -35,6 +35,23 @@ export default function ConfiguracoesPage() {
 
   const [mfaEnabled, setMfaEnabled] = useState(false);
   const [mfaLoading, setMfaLoading] = useState(false);
+
+  useEffect(() => {
+    window.dataLayer?.push({
+      event: "view_page_content",
+      content_category: "configuracoes",
+      content_name: "pagina_configuracoes"
+    });
+  }, []);
+
+  const trackClick = (label: string, destination: string) => {
+    window.dataLayer?.push({
+      event: "click_conversion_button",
+      button_label: label,
+      destination_url: destination,
+      page_location: "/configuracoes"
+    });
+  };
 
   const carregarDadosUsuario = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -77,6 +94,7 @@ export default function ConfiguracoesPage() {
       else {
         alert("Configurações atualizadas!");
         setDadosOriginais({ emailContato });
+        window.dataLayer?.push({ event: "user_settings_updated" });
       }
     }
     setUpdating(false);
@@ -92,6 +110,7 @@ export default function ConfiguracoesPage() {
       setPassLoading(false);
     } else {
       setPassSuccessMessage("Senha alterada com sucesso!");
+      window.dataLayer?.push({ event: "user_password_reset" });
       setTimeout(async () => {
         setShowPassModal(false);
         setPassSuccessMessage("");
@@ -108,6 +127,7 @@ export default function ConfiguracoesPage() {
 
   const toggleMFA = async () => {
     setMfaLoading(true);
+    trackClick("Toggle MFA", "mfa_settings");
     if (!mfaEnabled) {
       const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp' });
       if (error) alert(error.message);
@@ -176,15 +196,18 @@ export default function ConfiguracoesPage() {
           <div className="flex flex-col gap-3 pt-6 mt-auto">
             <div className="flex flex-row gap-3">
               <button
-                onClick={() => setShowPassModal(true)}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-4 bg-gray-900 text-white rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all active:scale-95 shadow-lg"
+                onClick={() => {
+                  setShowPassModal(true);
+                  trackClick("Abrir Modal Nova Senha", "modal_senha");
+                }}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-4 bg-gray-900 text-white rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all active:scale-95 shadow-lg cursor-pointer"
               >
                 <KeyRound size={10} className="hidden sm:block" /> Nova Senha
               </button>
               <button
                 onClick={handleUpdate}
                 disabled={updating || !temAlteracoes}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-4 bg-blue-600 text-white rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all active:scale-95 shadow-lg disabled:opacity-30"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-4 bg-blue-600 text-white rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all active:scale-95 shadow-lg disabled:opacity-30 cursor-pointer"
               >
                 <Save size={14} className="hidden sm:block" /> {updating ? "Salvando" : "Salvar"}
               </button>
@@ -192,7 +215,8 @@ export default function ConfiguracoesPage() {
 
             <Link
               href="/minha-conta"
-              className="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-gray-100 text-gray-700 rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95"
+              onClick={() => trackClick("Acessar Minha Conta", "/minha-conta")}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-gray-100 text-gray-700 rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95 cursor-pointer"
             >
               <UserCircle size={14} /> Acessar Minha Conta
             </Link>
@@ -233,7 +257,7 @@ export default function ConfiguracoesPage() {
                   <button
                     onClick={toggleMFA}
                     disabled={mfaLoading}
-                    className={`w-full py-3 md:py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${mfaEnabled
+                    className={`w-full py-3 md:py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all cursor-pointer ${mfaEnabled
                       ? 'bg-transparent border border-white/20 text-white hover:bg-white/10'
                       : 'bg-blue-600 text-white hover:bg-blue-500 shadow-xl shadow-blue-600/20'
                       }`}
@@ -246,7 +270,8 @@ export default function ConfiguracoesPage() {
               <div className="mt-4 md:mt-8 pt-4 md:pt-6 border-t border-white/10 text-center">
                 <Link
                   href="/seguranca_privacidade"
-                  className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2 mx-auto hover:text-white transition-colors justify-center"
+                  onClick={() => trackClick("Política de Segurança - Configurações", "/seguranca_privacidade")}
+                  className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2 mx-auto hover:text-white transition-colors justify-center cursor-pointer"
                 >
                   <ExternalLink size={14} /> Ver Política de Segurança Nucleobase
                 </Link>
@@ -308,7 +333,7 @@ export default function ConfiguracoesPage() {
                     <span className="block md:hidden">Conta ativa em 1 dispositivo no momento.</span>
                     <span className="hidden md:block">Sua conta está ativa em 1 dispositivo no momento.</span>
                   </p>
-                  <button className="text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-1 hover:underline mt-1 md:mt-0">
+                  <button onClick={() => trackClick("Encerrar Outras Sessões", "dispositivos")} className="text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-1 hover:underline mt-1 md:mt-0 cursor-pointer">
                     <span className="block md:hidden">Encerrar</span>
                     <span className="hidden md:flex items-center gap-2">Encerrar outras sessões <ExternalLink size={10} /></span>
                   </button>
@@ -343,7 +368,8 @@ export default function ConfiguracoesPage() {
           href="https://www.instagram.com/nucleobase.app/"
           target="_blank"
           rel="noopener noreferrer"
-          className="group relative flex flex-col items-center gap-6"
+          onClick={() => trackClick("Instagram - Configurações", "https://www.instagram.com/nucleobase.app/")}
+          className="group relative flex flex-col items-center gap-6 cursor-pointer"
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
@@ -364,7 +390,7 @@ export default function ConfiguracoesPage() {
       {showPassModal && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-xl z-[100] flex items-center justify-center p-6">
           <div className="bg-white w-full max-w-md rounded-[3.5rem] p-6 md:p-12 shadow-2xl relative border border-gray-100 animate-in zoom-in-95 duration-300">
-            <button onClick={() => setShowPassModal(false)} className="absolute right-6 top-6 md:right-10 md:top-10 text-gray-300 hover:text-gray-900 transition-colors">
+            <button onClick={() => setShowPassModal(false)} className="absolute right-6 top-6 md:right-10 md:top-10 text-gray-300 hover:text-gray-900 transition-colors cursor-pointer">
               <X size={28} strokeWidth={1.5} />
             </button>
             <div className="text-center mb-4 md:mb-10">
@@ -392,7 +418,7 @@ export default function ConfiguracoesPage() {
                     onChange={(e) => setNewPassword(e.target.value)}
                     className="w-full h-11 md:h-14 pl-5 md:pl-6 pr-12 md:pr-14 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all font-bold text-xs md:text-base placeholder:text-xs md:placeholder:text-sm"
                   />
-                  <button type="button" onClick={() => setShowNewPass(!showNewPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700">
+                  <button type="button" onClick={() => setShowNewPass(!showNewPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 cursor-pointer">
                     {showNewPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
@@ -405,11 +431,11 @@ export default function ConfiguracoesPage() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="w-full h-11 md:h-14 pl-5 md:pl-6 pr-12 md:pr-14 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 transition-all font-bold text-xs md:text-base placeholder:text-xs md:placeholder:text-sm"
                   />
-                  <button type="button" onClick={() => setShowConfirmPass(!showConfirmPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700">
+                  <button type="button" onClick={() => setShowConfirmPass(!showConfirmPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 cursor-pointer">
                     {showConfirmPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
-                <button disabled={passLoading} className="w-full bg-gray-900 text-white h-12 md:h-16 rounded-2xl md:rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-lg mt-2 md:mt-4 active:scale-95 transition-all disabled:opacity-50">
+                <button disabled={passLoading} className="w-full bg-gray-900 text-white h-12 md:h-16 rounded-2xl md:rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-lg mt-2 md:mt-4 active:scale-95 transition-all disabled:opacity-50 cursor-pointer">
                   {passLoading ? "Validando..." : "Confirmar Alteração"}
                 </button>
               </form>

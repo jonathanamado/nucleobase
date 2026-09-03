@@ -1,12 +1,13 @@
+// app/sobre/page.tsx
 "use client";
 import React, { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { 
-  ShieldCheck, 
-  Target, 
-  Zap, 
-  Dna, 
-  LockKeyhole, 
+import {
+  ShieldCheck,
+  Target,
+  Zap,
+  Dna,
+  LockKeyhole,
   Users,
   ArrowUpRight,
   Star,
@@ -91,8 +92,8 @@ export default function SobreNucleobase() {
 
     if (isLoggedIn) {
       return (
-        <a 
-          href="/minha-conta" 
+        <a
+          href="/minha-conta"
           onClick={() => trackClick("Acessar Minha Conta", "/minha-conta")}
           className="flex items-center justify-between bg-blue-600 hover:bg-blue-700 py-2 px-4 rounded-xl transition-all group/btn mt-4 shadow-lg shadow-blue-600/20"
         >
@@ -106,9 +107,9 @@ export default function SobreNucleobase() {
     }
 
     return (
-      <a 
-        href="/cadastro" 
-        onClick={() => trackClick("Ir para Cadastro", "/cadastro")}
+      <a
+        href="/cadastro"
+        onClick={() => trackClick("Criar cadastro", "/cadastro")}
         className="flex items-center justify-between bg-white/10 hover:bg-white/20 py-2 px-4 rounded-xl transition-all group/btn mt-4 border border-white/10"
       >
         <div className="flex items-center gap-2">
@@ -166,23 +167,23 @@ export default function SobreNucleobase() {
         <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Destaques</span>
         <div className="h-px bg-blue-100 flex-1"></div>
       </div>
-      
+
       <div className="grid grid-cols-2 gap-3">
         <div className="col-span-2 bg-gray-900 p-6 rounded-[2rem] relative overflow-hidden">
           <div className="flex items-center justify-between relative z-10 mb-4">
             <div className="flex items-center gap-3">
-               <Star size={20} className="text-blue-500" fill="currentColor" />
-               <div>
-                  <p className="text-blue-400 text-[8px] font-black uppercase tracking-widest">Sua Jornada</p>
-                  <h4 className="font-bold text-white text-sm">Privacidade & Evolução</h4>
-               </div>
+              <Star size={20} className="text-blue-500" fill="currentColor" />
+              <div>
+                <p className="text-blue-400 text-[8px] font-black uppercase tracking-widest">Sua Jornada</p>
+                <h4 className="font-bold text-white text-sm">Privacidade & Evolução</h4>
+              </div>
             </div>
             <div className="flex gap-2">
-               <button onClick={anteriorPilar} className="p-2 bg-white/5 rounded-full text-white active:bg-white/20"><ChevronLeft size={16}/></button>
-               <button onClick={proximoPilar} className="p-2 bg-white/5 rounded-full text-white active:bg-white/20"><ChevronRight size={16}/></button>
+              <button onClick={anteriorPilar} className="p-2 bg-white/5 rounded-full text-white active:bg-white/20"><ChevronLeft size={16} /></button>
+              <button onClick={proximoPilar} className="p-2 bg-white/5 rounded-full text-white active:bg-white/20"><ChevronRight size={16} /></button>
             </div>
           </div>
-          
+
           <div className="relative z-10 py-2 border-y border-white/5 mb-2">
             <p className="text-blue-100 text-[11px] font-medium italic opacity-80 leading-relaxed">
               "{pilares[pilarAtivo].fullDesc}"
@@ -209,7 +210,7 @@ export default function SobreNucleobase() {
 
   return (
     <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
-      
+
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
@@ -222,12 +223,12 @@ export default function SobreNucleobase() {
         </div>
 
         <div className="hidden md:grid md:grid-cols-2 md:flex md:flex-wrap gap-2 md:gap-3">
-          <a href="/parceria" className="inline-flex items-center justify-center gap-1 md:gap-2 px-3 md:px-6 py-2.5 bg-white border border-gray-200 text-gray-500 rounded-full hover:border-blue-600 hover:text-blue-600 transition-all font-bold text-[9px] md:text-[10px] uppercase tracking-widest shadow-sm">
-            <Users size={14} className="shrink-0" /> 
+          <a href="/parceria" onClick={() => trackClick("Seja um parceiro", "/parceria")} className="inline-flex items-center justify-center gap-1 md:gap-2 px-3 md:px-6 py-2.5 bg-white border border-gray-200 text-gray-500 rounded-full hover:border-blue-600 hover:text-blue-600 transition-all font-bold text-[9px] md:text-[10px] uppercase tracking-widest shadow-sm">
+            <Users size={14} className="shrink-0" />
             <span className="md:inline hidden">Seja um parceiro</span>
           </a>
-          <a href="/indique" className="inline-flex items-center justify-center gap-1 md:gap-2 px-3 md:px-6 py-2.5 bg-gray-900 text-white rounded-full hover:bg-black transition-all font-bold text-[9px] md:text-[10px] uppercase tracking-widest shadow-lg">
-            <ArrowUpRight size={14} className="shrink-0" /> 
+          <a href="/indique" onClick={() => trackClick("Indique nosso APP", "/indique")} className="inline-flex items-center justify-center gap-1 md:gap-2 px-3 md:px-6 py-2.5 bg-gray-900 text-white rounded-full hover:bg-black transition-all font-bold text-[9px] md:text-[10px] uppercase tracking-widest shadow-lg">
+            <ArrowUpRight size={14} className="shrink-0" />
             <span className="md:inline hidden">Indique nosso APP</span>
           </a>
         </div>
@@ -245,10 +246,10 @@ export default function SobreNucleobase() {
               <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                 Digital
               </span>{" "}
-              no ano de 2025. O que começou antes disso como uma ferramenta de controle pessoal em uma planilha de excel, 
+              no ano de 2025. O que começou antes disso como uma ferramenta de controle pessoal em uma planilha de excel,
               lapidada pelo tempo e demanda deste nicho, evoluiu para uma plataforma robusta.
             </p>
-            
+
             <p className="mb-6 text-sm leading-relaxed text-gray-600 md:hidden font-medium">
               A base da Nucleo é uma planilha de Excel, lapidada pelo tempo, evoluindo para uma plataforma robusta, transformando controles financeiros em experiência digital estratégica para usuários de diferentes níveis.
             </p>
@@ -256,7 +257,7 @@ export default function SobreNucleobase() {
             <div className="bg-blue-50/40 border-l-4 border-blue-600 p-6 md:p-10 my-12 rounded-2xl md:rounded-r-[3rem] relative overflow-hidden group transition-all hover:bg-blue-50/60">
               <ShieldCheck className="absolute -right-6 -bottom-6 text-blue-600 opacity-5 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-700" size={180} />
               <p className="font-medium text-blue-900 italic text-xl md:text-2xl leading-relaxed relative z-10 tracking-tight">
-                "Nossa missão é mitigar os riscos de interpretação e blindar a sua segurança através de padrões 
+                "Nossa missão é mitigar os riscos de interpretação e blindar a sua segurança através de padrões
                 rigorosos."
               </p>
             </div>
@@ -270,7 +271,7 @@ export default function SobreNucleobase() {
             </p>
           </div>
           <p className="text-gray-700 text-sm md:text-lg">
-            Acreditamos no <span className="text-gray-900 font-bold underline decoration-blue-200 underline-offset-4 decoration-2">controle consciente</span> como o primeiro nível de conquista, por isso nossos pilares são fundamentados em tópicos que fazem parte da nossa essência: foco, consistência, sigilo e segurança. 
+            Acreditamos no <span className="text-gray-900 font-bold underline decoration-blue-200 underline-offset-4 decoration-2">controle consciente</span> como o primeiro nível de conquista, por isso nossos pilares são fundamentados em tópicos que fazem parte da nossa essência: foco, consistência, sigilo e segurança.
           </p>
         </div>
 
@@ -305,10 +306,10 @@ export default function SobreNucleobase() {
             Pronto para dominar seu <br className="hidden md:block" /> fluxo financeiro?
           </h2>
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
-            <a href="/cadastro" className="bg-white text-blue-600 px-6 py-4 md:px-10 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-[10px] md:text-[12px] uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all w-full md:w-auto text-center">
+            <a href="/cadastro" onClick={() => trackClick("Começar agora", "/cadastro")} className="bg-white text-blue-600 px-6 py-4 md:px-10 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-[10px] md:text-[12px] uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all w-full md:w-auto text-center">
               Começar agora
             </a>
-            <a href="/planos" className="bg-blue-700 text-white border border-white/20 px-6 py-4 md:px-10 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-[10px] md:text-[12px] uppercase tracking-widest hover:bg-blue-800 transition-all w-full md:w-auto text-center">
+            <a href="/planos" onClick={() => trackClick("Conhecer Planos", "/planos")} className="bg-blue-700 text-white border border-white/20 px-6 py-4 md:px-10 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-[10px] md:text-[12px] uppercase tracking-widest hover:bg-blue-800 transition-all w-full md:w-auto text-center">
               Conhecer Planos
             </a>
           </div>
@@ -325,27 +326,28 @@ export default function SobreNucleobase() {
       <div className="flex flex-col items-center text-center">
         <div className="max-w-3xl mb-12">
           <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
-            Fique por dentro <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+            Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
           </h4>
           <p className="text-gray-500 font-medium text-sm md:text-base">
             Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
           </p>
         </div>
-        
-        <a 
-          href="https://www.instagram.com/nucleobase.app/" 
-          target="_blank" 
+
+        <a
+          href="https://www.instagram.com/nucleobase.app/"
+          target="_blank"
           rel="noopener noreferrer"
+          onClick={() => trackClick("Instagram - Sobre", "https://www.instagram.com/nucleobase.app/")}
           className="group relative flex flex-col items-center gap-6"
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
-            
+
             <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
               <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
             </div>
           </div>
-          
+
           <div className="flex flex-col items-center">
             <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
             <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>

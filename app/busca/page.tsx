@@ -16,11 +16,11 @@ const siteMap = [
   { term: "configuracoes ajustes", title: "Configurações", desc: "Ajuste as preferências da sua conta.", href: "/configuracoes", category: "Acesso" },
 
   // Operacional e Dashboard
-  { term: "lançamentos financeiro entradas saídas", title: "Gestão de Lançamentos", desc: "Controle seu fluxo financeiro diário.", href: "/lancamentos", category: "Operacional" },
-  { term: "gerenciar lancamentos editar excluir", title: "Gerenciar Lançamentos", desc: "Visualize e edite seus registros financeiros.", href: "/lancamentos/gerenciar", category: "Operacional" },
-  { term: "importar csv excel planilha", title: "Importar Dados", desc: "Suba suas planilhas de bancos ou plataformas.", href: "/lancamentos/importar", category: "Operacional" },
-  { term: "integrar api webhook hotmart kiwify", title: "Integrações", desc: "Conecte a Nucleobase com suas ferramentas.", href: "/lancamentos/integrar", category: "Operacional" },
-  { term: "resultados dashboard bi gráficos lucro", title: "Painel de Resultados", desc: "Visualize a saúde do seu negócio em tempo real.", href: "/lancamentos/resultados", category: "Estratégico" },
+  { term: "lançamentos financeiro entradas saídas", title: "Gestão de Lançamentos", desc: "Controle seu fluxo financeiro diário.", href: "/controle-financeiro/lancamentos", category: "Operacional" },
+  { term: "gerenciar lancamentos editar excluir", title: "Gerenciar Lançamentos", desc: "Visualize e edite seus registros financeiros.", href: "/controle-financeiro/lancamentos/gerenciar", category: "Operacional" },
+  { term: "importar csv excel planilha", title: "Importar Dados", desc: "Suba suas planilhas de bancos ou plataformas.", href: "/controle-financeiro/lancamentos/importar", category: "Operacional" },
+  { term: "integrar api webhook hotmart kiwify", title: "Integrações", desc: "Conecte a Nucleobase com suas ferramentas.", href: "/controle-financeiro/lancamentos/integrar", category: "Operacional" },
+  { term: "resultados dashboard bi gráficos lucro", title: "Painel de Resultados", desc: "Visualize a saúde do seu negócio em tempo real.", href: "/controle-financeiro/lancamentos/resultados", category: "Estratégico" },
 
   // Módulo Condomínio (Condo)
   { term: "condominio morador sindico predio", title: "Módulo Condomínio", desc: "Gestão completa e livro digital para condomínios.", href: "/condo", category: "Condomínio" },
@@ -69,11 +69,27 @@ function BuscaContent() {
 
   useEffect(() => {
     setInputValue(rawQuery);
+    window.dataLayer?.push({
+      event: "view_page_content",
+      content_category: "busca",
+      content_name: "pagina_busca",
+      search_query: rawQuery
+    });
   }, [rawQuery]);
+
+  const trackClick = (label: string, destination: string) => {
+    window.dataLayer?.push({
+      event: "click_conversion_button",
+      button_label: label,
+      destination_url: destination,
+      page_location: "/busca"
+    });
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim()) {
+      trackClick(`Nova Busca: ${inputValue.trim()}`, `/busca?q=${encodeURIComponent(inputValue.trim())}`);
       router.push(`/busca?q=${encodeURIComponent(inputValue.trim())}`);
     }
   };
@@ -121,7 +137,8 @@ function BuscaContent() {
             <Link
               key={index}
               href={result.href}
-              className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-500 relative overflow-hidden flex flex-col gap-2"
+              onClick={() => trackClick(`Resultado Busca: ${result.title}`, result.href)}
+              className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-500 relative overflow-hidden flex flex-col gap-2 cursor-pointer"
             >
               <div className="flex justify-between items-start">
                 <div className="inline-block text-[9px] font-black px-3 py-1 rounded-full bg-gray-50 text-gray-400 uppercase tracking-widest group-hover:bg-blue-600 group-hover:text-white transition-colors mb-2">
@@ -166,16 +183,16 @@ function BuscaContent() {
                   placeholder="Pesquisar novamente..."
                   className="w-full bg-white border-2 border-gray-100 rounded-2xl py-4 px-6 pr-14 focus:border-blue-500 outline-none transition-all shadow-sm font-medium text-gray-700"
                 />
-                <button type="submit" className="absolute right-7 top-1/2 -translate-y-1/2 text-blue-600 hover:scale-110 transition-transform">
+                <button type="submit" className="absolute right-7 top-1/2 -translate-y-1/2 text-blue-600 hover:scale-110 transition-transform cursor-pointer">
                   <Search size={24} strokeWidth={2.5} />
                 </button>
               </form>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
-              <QuickLink icon={<Sparkles size={18} />} title="Ver Planos" href="/planos" />
-              <QuickLink icon={<HelpCircle size={18} />} title="Central de Ajuda" href="/faq" />
-              <QuickLink icon={<Instagram size={18} />} title="Instagram" href="https://www.instagram.com/nucleobase.app/" external />
+              <QuickLink icon={<Sparkles size={18} />} title="Ver Planos" href="/planos" onClick={() => trackClick("Link Rápido: Planos", "/planos")} />
+              <QuickLink icon={<HelpCircle size={18} />} title="Central de Ajuda" href="/faq" onClick={() => trackClick("Link Rápido: Central de Ajuda", "/faq")} />
+              <QuickLink icon={<Instagram size={18} />} title="Instagram" href="https://www.instagram.com/nucleobase.app/" external onClick={() => trackClick("Link Rápido: Instagram", "https://www.instagram.com/nucleobase.app/")} />
             </div>
           </div>
         )}
@@ -186,7 +203,7 @@ function BuscaContent() {
         <div className="relative z-10">
           <h4 className="text-2xl md:text-4xl font-bold text-white mb-2 md:mb-4 tracking-tight">Ainda com dúvidas?</h4>
           <p className="text-sm text-gray-400 mb-8 font-medium">Nossa equipe de suporte está pronta para te ajudar com qualquer integração.</p>
-          <Link href="https://wa.link/qbxg9f" className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-2xl font-black text-[10px] md:text-[12px] uppercase tracking-widest transition-all">
+          <Link href="https://wa.link/qbxg9f" onClick={() => trackClick("Chamar no WhatsApp - Busca", "https://wa.link/qbxg9f")} className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-2xl font-black text-[10px] md:text-[12px] uppercase tracking-widest transition-all cursor-pointer">
             Chamar no WhatsApp
           </Link>
         </div>
@@ -217,7 +234,8 @@ function BuscaContent() {
           href="https://www.instagram.com/nucleobase.app/"
           target="_blank"
           rel="noopener noreferrer"
-          className="group relative flex flex-col items-center gap-6"
+          onClick={() => trackClick("Instagram - Busca", "https://www.instagram.com/nucleobase.app/")}
+          className="group relative flex flex-col items-center gap-6 cursor-pointer"
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
@@ -237,14 +255,14 @@ function BuscaContent() {
   );
 }
 
-function QuickLink({ icon, title, href, external = false }: { icon: any, title: string, href: string, external?: boolean }) {
+function QuickLink({ icon, title, href, external = false, onClick }: { icon: any, title: string, href: string, external?: boolean, onClick?: () => void }) {
   const content = (
-    <div className="flex items-center justify-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl hover:border-blue-200 hover:shadow-md transition-all cursor-pointer">
+    <div onClick={onClick} className="flex items-center justify-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl hover:border-blue-200 hover:shadow-md transition-all cursor-pointer">
       <span className="text-blue-600">{icon}</span>
       <span className="text-sm font-bold text-gray-700">{title}</span>
     </div>
   );
-  return external ? <a href={href} target="_blank">{content}</a> : <Link href={href}>{content}</Link>;
+  return external ? <a href={href} target="_blank" rel="noopener noreferrer">{content}</a> : <Link href={href}>{content}</Link>;
 }
 
 export default function BuscaPage() {
