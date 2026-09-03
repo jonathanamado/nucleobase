@@ -7,6 +7,7 @@ import {
   Eye, EyeOff, Dna, Instagram
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useLoginProtegido } from "@/hooks/useLoginProtegido";
 
 export default function PublicacaoDepoimentos() {
   const [rating, setRating] = useState(0);
@@ -17,10 +18,22 @@ export default function PublicacaoDepoimentos() {
 
   const [user, setUser] = useState<any>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const [slug, setSlug] = useState("");
-  const [password, setPassword] = useState("");
+
+  const {
+    emailOrSlug: slug,
+    setEmailOrSlug: setSlug,
+    password,
+    setPassword,
+    authLoading: loginLoading,
+    setAuthLoading: setLoginLoading,
+    loginError,
+    setLoginError,
+    tempoBloqueio,
+    tratarErroLogin,
+    resetarBloqueio
+  } = useLoginProtegido();
+
   const [showPassword, setShowPassword] = useState(false);
-  const [loginLoading, setLoginLoading] = useState(false);
 
   useEffect(() => {
     window.dataLayer?.push({
@@ -55,7 +68,10 @@ export default function PublicacaoDepoimentos() {
 
   const handleInlineLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (tempoBloqueio > 0) return;
+
     setLoginLoading(true);
+    setLoginError("");
 
     const inputAcesso = slug.trim().toLowerCase();
     const isEmail = inputAcesso.includes("@");
@@ -66,17 +82,15 @@ export default function PublicacaoDepoimentos() {
       if (isEmail) {
         emailParaLogin = inputAcesso;
       } else {
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('email')
-          .eq('slug', inputAcesso)
-          .maybeSingle();
+        const { data: emailEncontrado, error: profileError } = await supabase
+          .rpc('get_email_by_slug', { p_slug: inputAcesso });
 
         if (profileError) throw profileError;
-        if (!profile || !profile.email) {
-          throw new Error("ID de usuário não encontrado.");
+        if (!emailEncontrado) {
+          tratarErroLogin("ID de usuário (Slug) não foi localizado.");
+          return;
         }
-        emailParaLogin = profile.email;
+        emailParaLogin = emailEncontrado;
       }
 
       const { error: authError } = await supabase.auth.signInWithPassword({
@@ -84,12 +98,19 @@ export default function PublicacaoDepoimentos() {
         password
       });
 
-      if (authError) throw new Error("Senha incorreta ou problema na conta.");
+      if (authError) {
+        tratarErroLogin("Erro ao acessar: Verifique suas credenciais de acesso.");
+        return;
+      }
+
+      resetarBloqueio();
+      window.dispatchEvent(new Event("storage"));
+      window.dataLayer?.push({ event: "user_login_success", page_location: "/publicacao_depoimentos" });
 
       trackClick("Login em Linha Concluído", "auth_success");
       await checkUser();
     } catch (error: any) {
-      alert(error.message || "Erro ao acessar a plataforma.");
+      tratarErroLogin("Ocorreu um erro inesperado.");
     } finally {
       setLoginLoading(false);
     }
@@ -225,6 +246,7 @@ export default function PublicacaoDepoimentos() {
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Senha"
                         className="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm font-medium pr-14"
                         required
                       />
@@ -239,13 +261,25 @@ export default function PublicacaoDepoimentos() {
                   </div>
                 </div>
 
+                {tempoBloqueio > 0 && (
+                  <div className="text-xs font-bold text-amber-600 bg-amber-50 p-3 rounded-xl text-center mb-4">
+                    Muitas tentativas. Tente novamente em {tempoBloqueio}s.
+                  </div>
+                )}
+
+                {loginError && tempoBloqueio === 0 && (
+                  <p className="text-xs font-bold text-red-600 bg-red-50 p-3 rounded-xl text-center mb-4">
+                    {loginError}
+                  </p>
+                )}
+
                 <button
                   type="submit"
-                  disabled={loginLoading}
+                  disabled={loginLoading || tempoBloqueio > 0}
                   className="w-full bg-gray-900 text-white py-5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-black transition-all flex items-center justify-center gap-3 shadow-xl shadow-gray-200 disabled:opacity-50 cursor-pointer"
                 >
                   {loginLoading ? <Loader2 size={18} className="animate-spin" /> : <LogIn size={18} />}
-                  {loginLoading ? "Sincronizando..." : "Entrar e Publicar"}
+                  {loginLoading ? "Sincronizando..." : tempoBloqueio > 0 ? `Aguarde (${tempoBloqueio}s)` : "Entrar e Publicar"}
                 </button>
 
                 <a href="/cadastro" onClick={() => trackClick("Criar Conta - Depoimentos", "/cadastro")} className="text-center mt-6 text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline cursor-pointer">
@@ -274,8 +308,8 @@ export default function PublicacaoDepoimentos() {
                         <Star
                           size={42}
                           className={`transition-all duration-300 ${star <= (hover || rating)
-                              ? "fill-orange-400 text-orange-400 drop-shadow-[0_0_8px_rgba(251,146,60,0.4)]"
-                              : "text-gray-100"
+                            ? "fill-orange-400 text-orange-400 drop-shadow-[0_0_8px_rgba(251,146,60,0.4)]"
+                            : "text-gray-100"
                             }`}
                         />
                       </button>

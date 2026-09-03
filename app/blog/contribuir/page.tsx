@@ -106,50 +106,31 @@ export default function ContribuirBlog() {
       if (isEmail) {
         emailParaAuth = inputAcesso;
       } else {
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('email')
-          .eq('slug', inputAcesso)
-          .maybeSingle();
+        const { data: emailEncontrado, error: profileError } = await supabase
+          .rpc('get_email_by_slug', { p_slug: inputAcesso });
 
         if (profileError) throw profileError;
-        if (!profile || !profile.email) {
-          tratarErroLogin("ID de usuário não encontrado.");
+        if (!emailEncontrado) {
+          tratarErroLogin("ID de usuário (Slug) não foi localizado.");
           return;
         }
-        emailParaAuth = profile.email;
+        emailParaAuth = emailEncontrado;
       }
 
-      const { error: loginError } = await supabase.auth.signInWithPassword({
+      const { error: authError } = await supabase.auth.signInWithPassword({
         email: emailParaAuth,
         password: senha,
       });
 
-      if (loginError) {
-        if (nome) {
-          const { data: authData, error: authError } = await supabase.auth.signUp({
-            email: emailParaAuth,
-            password: senha,
-            options: { data: { full_name: nome } }
-          });
-          if (authError) throw authError;
-
-          if (authData.user) {
-            const indicadorId = localStorage.getItem("nucleobase_referral_id");
-            if (indicadorId && indicadorId !== authData.user.id) {
-              await supabase.from("indicacoes").insert([{ indicador_id: indicadorId, indicado_id: authData.user.id, status: 'pendente' }]);
-            }
-            await supabase.from('profiles').upsert({ id: authData.user.id, email: emailParaAuth, nome_completo: nome, plan_type: 'free' });
-          }
-          resetarBloqueio();
-        } else {
-          tratarErroLogin("Acesso incorreto. Se você é novo, preencha também o seu nome completo.");
-        }
+      if (authError) {
+        tratarErroLogin("Erro ao acessar: Verifique suas credenciais de acesso.");
       } else {
         resetarBloqueio();
+        window.dispatchEvent(new Event("storage"));
+        window.dataLayer?.push({ event: "user_login_success", page_location: "/blog/contribuir" });
       }
     } catch (err: any) {
-      tratarErroLogin("Erro: " + err.message);
+      tratarErroLogin("Ocorreu um erro inesperado.");
     } finally {
       setAuthLoading(false);
     }
@@ -163,7 +144,7 @@ export default function ContribuirBlog() {
     });
     if (error) alert("Erro: " + error.message);
     else {
-      alert("Link enviado com sucesso!");
+      alert("Link de recuperação enviado com sucesso!");
       setShowForgotModal(false);
     }
     setResetLoading(false);
@@ -245,53 +226,58 @@ export default function ContribuirBlog() {
     <div className="w-full pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
 
       {/* HEADER PADRONIZADO */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-4 mt-0">
         <div>
-          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
-            <span>Escreva para a gente<span className="text-blue-600">.</span></span>
-            <PenTool size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
+          <h1 className="text-lg md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
+            <span>
+              <span className="md:inline hidden">Escreva para a gente</span>
+              <span className="md:hidden inline">Contribua</span>
+              <span className="text-blue-600">.</span>
+            </span>
+            <PenTool size={24} className="text-blue-600 opacity-35 ml-2 md:w-8 md:h-8" strokeWidth={2} />
           </h1>
-          <h2 className="text-gray-500 text-base md:text-lg font-medium w-full leading-relaxed mt-0">
-            Compartilhando seu conhecimento.
+          <h2 className="text-gray-500 text-xs md:text-lg font-medium w-full leading-relaxed mt-0">
+            <span className="md:inline hidden">Compartilhando seu conhecimento.</span>
+            <span className="md:hidden inline">Participe ativamente</span>
           </h2>
         </div>
       </div>
 
-      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-5 flex items-center gap-2 w-full">
+      <h3 className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-3 md:mb-5 flex items-center gap-2 w-full">
         Conteúdo e Identidade <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+      <div className={`grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch ${!user ? "min-h-[calc(100vh-220px)] items-center" : ""}`}>
 
-        {/* FORMULÁRIO / LOGIN (ESQUERDA) */}
-        <div className="lg:col-span-7 h-full">
+        {/* FORMULÁRIO / LOGIN (ESQUERDA / CENTRALIZADO SE DESLOGADO) */}
+        <div className={!user ? "lg:col-span-12 flex justify-center w-full" : "lg:col-span-7 h-full"}>
           {!user ? (
-            <div className="h-full">
-              <div className="w-full bg-white p-6 md:p-4 rounded-[3rem] border border-gray-100 shadow-2xl shadow-blue-900/5 h-full flex flex-col">
-                <h2 className="text-lg font-bold text-gray-900 mb-2 px-1">
+            <div className="w-full max-w-sm md:max-w-md">
+              <div className="w-full bg-white p-5 md:p-6 rounded-[2.5rem] md:rounded-[3rem] border border-gray-100 shadow-2xl shadow-blue-900/5 flex flex-col">
+                <h2 className="text-base md:text-lg font-bold text-gray-900 mb-3 px-1">
                   Realizar login<span className="text-orange-500">.</span>
                 </h2>
-                <form onSubmit={handleAuthRapido} className="flex flex-col gap-1 flex-grow">
-                  <div className="space-y-3">
+                <form onSubmit={handleAuthRapido} className="flex flex-col gap-1.5">
+                  <div className="space-y-2.5">
                     <div className="relative group">
-                      <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
+                      <AtSign className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={14} />
                       <input
                         type="text"
                         placeholder="ID de Usuário ou E-mail"
                         required
                         value={slug}
-                        className="w-full pl-11 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900 font-medium"
+                        className="w-full pl-10 pr-3 py-2.5 md:py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-[11px] md:text-xs text-gray-900 font-medium"
                         onChange={(e) => setSlug(e.target.value)}
                       />
                     </div>
                     <div className="relative group">
-                      <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={16} />
+                      <Key className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors" size={14} />
                       <input
                         type={showPassword ? "text" : "password"}
                         placeholder="Senha"
                         required
                         value={senha}
-                        className="w-full pl-11 pr-10 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900"
+                        className="w-full pl-10 pr-9 py-2.5 md:py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-[11px] md:text-xs text-gray-900"
                         onChange={(e) => setSenha(e.target.value)}
                       />
                       <button
@@ -299,20 +285,20 @@ export default function ContribuirBlog() {
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition-colors"
                       >
-                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                       </button>
                     </div>
                   </div>
 
                   {/* Aviso visual de bloqueio regressivo */}
                   {tempoBloqueio > 0 && (
-                    <div className="text-xs font-bold text-amber-600 bg-amber-50 p-3 rounded-xl text-center mt-2">
+                    <div className="text-[11px] font-bold text-amber-600 bg-amber-50 p-2.5 rounded-xl text-center mt-1.5">
                       Muitas tentativas. Tente novamente em {tempoBloqueio}s.
                     </div>
                   )}
 
                   {loginError && tempoBloqueio === 0 && (
-                    <p className="text-xs font-bold text-red-600 bg-red-50 p-3 rounded-xl text-center mt-2">
+                    <p className="text-[11px] font-bold text-red-600 bg-red-50 p-2.5 rounded-xl text-center mt-1.5">
                       {loginError}
                     </p>
                   )}
@@ -320,23 +306,23 @@ export default function ContribuirBlog() {
                   <button
                     type="button"
                     onClick={() => setShowForgotModal(true)}
-                    className="text-[10px] text-gray-400 font-bold hover:text-orange-500 transition-colors text-right pr-1 mt-1"
+                    className="text-[9px] md:text-[10px] text-gray-400 font-bold hover:text-orange-500 transition-colors text-right pr-1 mt-0.5"
                   >
                     Esqueceu a senha?
                   </button>
 
                   <button
                     disabled={authLoading || tempoBloqueio > 0}
-                    className="w-full bg-orange-500 text-white h-[56px] rounded-2xl font-bold hover:bg-orange-600 transition shadow-lg text-xs disabled:opacity-50 mt-2 cursor-pointer"
+                    className="w-full bg-orange-500 text-white h-[40px] md:h-[44px] rounded-xl font-bold hover:bg-orange-600 transition shadow-lg text-[11px] md:text-xs disabled:opacity-50 mt-1 cursor-pointer"
                   >
                     {authLoading ? "Verificando..." : tempoBloqueio > 0 ? `Aguarde (${tempoBloqueio}s)` : "Acessar Plataforma"}
                   </button>
                 </form>
 
-                <div className="mt-6 pt-2 border-t border-gray-100">
-                  <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2 text-center">Ainda não se cadastrou?</p>
-                  <a href="/cadastro" className="flex items-center justify-center gap-3 bg-white text-gray-900 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] border border-gray-200 shadow-sm hover:shadow-md hover:border-orange-200 hover:text-orange-600 transition-all active:scale-95">
-                    <UserPlus size={18} className="text-orange-500" /> Criar conta gratuita
+                <div className="mt-3 pt-3 border-t border-gray-100 flex flex-col items-center">
+                  <p className="text-gray-400 text-[10px] md:text-xs font-bold uppercase tracking-widest mb-1.5 text-center">Ainda não se cadastrou?</p>
+                  <a href="/cadastro" className="flex items-center justify-center gap-2 bg-white text-gray-900 py-2.5 px-5 rounded-xl font-black text-[9px] md:text-[10px] uppercase tracking-[0.2em] border border-gray-200 shadow-sm hover:shadow-md hover:border-orange-200 hover:text-orange-600 transition-all active:scale-95 w-fit mx-auto">
+                    <UserPlus size={14} className="text-orange-500 md:w-4 md:h-4" /> Criar conta gratuita
                   </a>
                 </div>
               </div>
@@ -365,9 +351,10 @@ export default function ContribuirBlog() {
                 <div className="relative">
                   <select
                     name="Categoria"
+                    defaultValue=""
                     className="w-full bg-gray-50 border-none rounded-2xl py-5 pl-8 pr-14 text-sm font-bold text-gray-500 outline-none cursor-pointer focus:bg-white focus:ring-2 focus:ring-blue-100 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 20 20%27%3D%3Cpath stroke=%27%236b7280%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27m6 8 4 4 4-4%27/%3E%3C/svg%3E')] bg-[length:1.25rem_1.25rem] bg-[position:right_1.5rem_center] bg-no-repeat transition-all"
                   >
-                    <option value="" disabled selected className="text-gray-400">Escolha uma categoria...</option>
+                    <option value="" disabled className="text-gray-400">Escolha uma categoria...</option>
                     <option>Gestão</option>
                     <option>Estratégia</option>
                     <option>Tributário</option>
@@ -393,9 +380,9 @@ export default function ContribuirBlog() {
         </div>
 
         {/* SIDEBAR (DIREITA) */}
-        <div className="lg:col-span-5 flex flex-col gap-6 h-full">
-          {/* CARD CREDIBILIDADE - Agora condicional ao login */}
-          {user && (
+        {user && (
+          <div className="lg:col-span-5 flex flex-col gap-6 h-full">
+            {/* CARD CREDIBILIDADE - Condicional ao login */}
             <div className="bg-gray-900 p-8 md:p-12 rounded-[2.5rem] md:rounded-[3rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center h-full">
               <div className="absolute -top-10 -right-10 opacity-10 pointer-events-none group-hover:rotate-12 transition-transform duration-700">
                 <Dna size={180} strokeWidth={1} className="text-blue-500" />
@@ -412,10 +399,8 @@ export default function ContribuirBlog() {
                 </div>
               </div>
             </div>
-          )}
 
-          {/* CARD DIRETRIZES E IMPACTO */}
-          {user && (
+            {/* CARD DIRETRIZES E IMPACTO */}
             <div className="bg-white border border-gray-100 p-8 rounded-[2.5rem] shadow-sm flex-grow flex flex-col justify-between">
               <div>
                 <div className="flex items-center gap-3 mb-8">
@@ -451,8 +436,8 @@ export default function ContribuirBlog() {
                 </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* LINHA DIVISÓRIA "CONECTE-SE" */}
