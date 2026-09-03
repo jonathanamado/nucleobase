@@ -3,7 +3,7 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search, ArrowRight, Instagram, SearchSlash, Sparkles, HelpCircle } from "lucide-react";
+import { Search, ArrowRight, Instagram, SearchSlash, Sparkles, HelpCircle, Compass, Rocket, Building2, CreditCard } from "lucide-react";
 import { Suspense, useState, useEffect } from "react";
 
 // Mapeamento abrangente atualizado com base na estrutura do projeto
@@ -69,21 +69,27 @@ function BuscaContent() {
 
   useEffect(() => {
     setInputValue(rawQuery);
-    window.dataLayer?.push({
-      event: "view_page_content",
-      content_category: "busca",
-      content_name: "pagina_busca",
-      search_query: rawQuery
-    });
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "view_page_content",
+        content_category: "busca",
+        content_name: "pagina_busca",
+        search_query: rawQuery
+      });
+    }
   }, [rawQuery]);
 
   const trackClick = (label: string, destination: string) => {
-    window.dataLayer?.push({
-      event: "click_conversion_button",
-      button_label: label,
-      destination_url: destination,
-      page_location: "/busca"
-    });
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "click_conversion_button",
+        link_label: label,
+        destination_url: destination,
+        page_location: "/busca"
+      });
+    }
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -113,86 +119,183 @@ function BuscaContent() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
-            <span>Resultados<span className="text-blue-600">.</span></span>
+            <span>Busca na Plataforma<span className="text-blue-600">.</span></span>
             <Search size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
           </h1>
           <h2 className="text-gray-500 text-base md:text-lg font-medium max-w-2xl leading-relaxed mt-0">
-            {results.length > 0
-              ? `Encontramos ${results.length} sugestões para: `
-              : "Não encontramos resultados para: "}
-            <span className="text-blue-600 font-bold">"{rawQuery}"</span>
+            {rawQuery ? (
+              results.length > 0 ? (
+                <>Encontramos <span className="text-blue-600 font-bold">{results.length}</span> sugestões para: <span className="text-blue-600 font-bold">"{rawQuery}"</span></>
+              ) : (
+                <>Não encontramos resultados para: <span className="text-blue-600 font-bold">"{rawQuery}"</span></>
+              )
+            ) : (
+              "O que você gostaria de encontrar? Pesquise ou explore nossos atalhos."
+            )}
           </h2>
         </div>
       </div>
 
       {/* LINHA DIVISÓRIA PADRÃO */}
       <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4 w-full">
-        {results.length > 0 ? "Sugestões Encontradas" : "Tente uma nova busca"}
+        {rawQuery ? (results.length > 0 ? "Sugestões Encontradas" : "Tente uma nova busca") : "Pesquisa e recomendações"}
         <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
       <div className="grid gap-4">
-        {results.length > 0 ? (
-          results.map((result, index) => (
-            <Link
-              key={index}
-              href={result.href}
-              onClick={() => trackClick(`Resultado Busca: ${result.title}`, result.href)}
-              className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-500 relative overflow-hidden flex flex-col gap-2 cursor-pointer"
-            >
-              <div className="flex justify-between items-start">
-                <div className="inline-block text-[9px] font-black px-3 py-1 rounded-full bg-gray-50 text-gray-400 uppercase tracking-widest group-hover:bg-blue-600 group-hover:text-white transition-colors mb-2">
-                  {result.category}
+        {rawQuery ? (
+          results.length > 0 ? (
+            results.map((result, index) => (
+              <Link
+                key={index}
+                href={result.href}
+                onClick={() => trackClick(`Resultado Busca: ${result.title}`, result.href)}
+                className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-500 relative overflow-hidden flex flex-col gap-2 cursor-pointer"
+              >
+                <div className="flex justify-between items-start">
+                  <div className="inline-block text-[9px] font-black px-3 py-1 rounded-full bg-gray-50 text-gray-400 uppercase tracking-widest group-hover:bg-blue-600 group-hover:text-white transition-colors mb-2">
+                    {result.category}
+                  </div>
                 </div>
+
+                <div className="flex items-center justify-between relative z-10">
+                  <div className="flex-1">
+                    <h3 className="text-lg md:text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-1">
+                      {result.title}
+                    </h3>
+                    <p className="text-sm text-gray-500 font-medium leading-relaxed max-w-[90%] md:max-w-[80%]">
+                      {result.desc}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-2xl text-gray-300 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all duration-500 group-hover:translate-x-1 shrink-0">
+                    <ArrowRight size={20} strokeWidth={3} />
+                  </div>
+                </div>
+              </Link>
+            ))
+          ) : (
+            /* ESTADO DE ERRO COM PESQUISA INTERNA */
+            <div className="flex flex-col items-center">
+              <div className="w-full text-center py-16 bg-gray-50/50 rounded-[2.5rem] border border-dashed border-gray-200 mb-8">
+                <div className="bg-white w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+                  <SearchSlash size={32} className="text-gray-300" />
+                </div>
+                <p className="text-gray-500 font-bold text-lg px-6 mb-2">
+                  Poxa, não encontramos o que você buscava.
+                </p>
+                <p className="text-gray-400 text-sm mb-8">
+                  Tente palavras mais simples como "planos", "blog" ou "ajuda".
+                </p>
+
+                <form onSubmit={handleSearch} className="max-w-md mx-auto px-4 relative">
+                  <input
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder="Pesquisar novamente..."
+                    className="w-full bg-white border-2 border-gray-100 rounded-2xl py-4 px-6 pr-14 focus:border-blue-500 outline-none transition-all shadow-sm font-medium text-gray-700"
+                  />
+                  <button type="submit" className="absolute right-7 top-1/2 -translate-y-1/2 text-blue-600 hover:scale-110 transition-transform cursor-pointer">
+                    <Search size={24} strokeWidth={2.5} />
+                  </button>
+                </form>
               </div>
 
-              <div className="flex items-center justify-between relative z-10">
-                <div className="flex-1">
-                  <h3 className="text-lg md:text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-1">
-                    {result.title}
-                  </h3>
-                  <p className="text-sm text-gray-500 font-medium leading-relaxed max-w-[90%] md:max-w-[80%]">
-                    {result.desc}
-                  </p>
-                </div>
-                <div className="bg-gray-50 p-3 rounded-2xl text-gray-300 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all duration-500 group-hover:translate-x-1 shrink-0">
-                  <ArrowRight size={20} strokeWidth={3} />
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+                <QuickLink icon={<Sparkles size={18} />} title="Ver Planos" href="/planos" onClick={() => trackClick("Link Rápido: Planos", "/planos")} />
+                <QuickLink icon={<HelpCircle size={18} />} title="Central de Ajuda" href="/faq" onClick={() => trackClick("Link Rápido: Central de Ajuda", "/faq")} />
+                <QuickLink icon={<Instagram size={18} />} title="Instagram" href="https://www.instagram.com/nucleobase.app/" external onClick={() => trackClick("Link Rápido: Instagram", "https://www.instagram.com/nucleobase.app/")} />
               </div>
-            </Link>
-          ))
+            </div>
+          )
         ) : (
-          /* ESTADO DE ERRO COM PESQUISA INTERNA */
-          <div className="flex flex-col items-center">
-            <div className="w-full text-center py-16 bg-gray-50/50 rounded-[2.5rem] border border-dashed border-gray-200 mb-8">
-              <div className="bg-white w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
-                <SearchSlash size={32} className="text-gray-300" />
-              </div>
-              <p className="text-gray-500 font-bold text-lg px-6 mb-2">
-                Poxa, não encontramos o que você buscava.
-              </p>
-              <p className="text-gray-400 text-sm mb-8">
-                Tente palavras mais simples como "planos", "blog" ou "ajuda".
-              </p>
-
-              <form onSubmit={handleSearch} className="max-w-md mx-auto px-4 relative">
+          /* ESTADO INICIAL / PRIMEIRO ACESSO COM BARRA DE PESQUISA E DESTAQUES */
+          <div className="space-y-6">
+            {/* LUPA / BARRA DE PESQUISA LIVRE NO PRIMEIRO ACESSO */}
+            <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+              <form onSubmit={handleSearch} className="relative">
                 <input
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Pesquisar novamente..."
-                  className="w-full bg-white border-2 border-gray-100 rounded-2xl py-4 px-6 pr-14 focus:border-blue-500 outline-none transition-all shadow-sm font-medium text-gray-700"
+                  placeholder="Digite o que procura (ex: relatórios, boletos, planos)..."
+                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl py-4 px-6 pr-14 focus:border-blue-500 focus:bg-white outline-none transition-all shadow-inner font-medium text-gray-900"
                 />
-                <button type="submit" className="absolute right-7 top-1/2 -translate-y-1/2 text-blue-600 hover:scale-110 transition-transform cursor-pointer">
-                  <Search size={24} strokeWidth={2.5} />
+                <button type="submit" className="absolute right-5 top-1/2 -translate-y-1/2 bg-blue-600 text-white p-3 rounded-xl shadow-md hover:scale-105 transition-transform cursor-pointer">
+                  <Search size={20} strokeWidth={2.5} />
                 </button>
               </form>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
-              <QuickLink icon={<Sparkles size={18} />} title="Ver Planos" href="/planos" onClick={() => trackClick("Link Rápido: Planos", "/planos")} />
-              <QuickLink icon={<HelpCircle size={18} />} title="Central de Ajuda" href="/faq" onClick={() => trackClick("Link Rápido: Central de Ajuda", "/faq")} />
-              <QuickLink icon={<Instagram size={18} />} title="Instagram" href="https://www.instagram.com/nucleobase.app/" external onClick={() => trackClick("Link Rápido: Instagram", "https://www.instagram.com/nucleobase.app/")} />
+            {/* CARDS DE RECOMENDAÇÕES EM DESTAQUE */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Link
+                href="/controle-financeiro"
+                onClick={() => trackClick("Destaque: Controle Financeiro", "/controle-financeiro")}
+                className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-500 flex flex-col justify-between cursor-pointer"
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="bg-blue-50 text-blue-600 p-4 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                    <Rocket size={24} />
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-black px-3 py-1 rounded-full bg-gray-50 text-gray-400 uppercase tracking-widest">Operacional</span>
+                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors mt-1">Controle Financeiro</h3>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500 font-medium">Gerencie entradas, saídas e visualize o painel de resultados do seu negócio.</p>
+              </Link>
+
+              <Link
+                href="/condo"
+                onClick={() => trackClick("Destaque: Módulo Condomínio", "/condo")}
+                className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-500 flex flex-col justify-between cursor-pointer"
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="bg-orange-50 text-orange-500 p-4 rounded-2xl group-hover:bg-orange-500 group-hover:text-white transition-colors">
+                    <Building2 size={24} />
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-black px-3 py-1 rounded-full bg-gray-50 text-gray-400 uppercase tracking-widest">Condomínio</span>
+                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-orange-500 transition-colors mt-1">Administração Condo</h3>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500 font-medium">Livro digital, boletos, ocorrências e gestão condominial completa.</p>
+              </Link>
+
+              <Link
+                href="/planos"
+                onClick={() => trackClick("Destaque: Planos", "/planos")}
+                className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-500 flex flex-col justify-between cursor-pointer"
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="bg-teal-50 text-teal-600 p-4 rounded-2xl group-hover:bg-teal-600 group-hover:text-white transition-colors">
+                    <CreditCard size={24} />
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-black px-3 py-1 rounded-full bg-gray-50 text-gray-400 uppercase tracking-widest">Comercial</span>
+                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-teal-600 transition-colors mt-1">Nossos Planos</h3>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500 font-medium">Conheça as opções de assinatura ideal para a sua escala de operação.</p>
+              </Link>
+
+              <Link
+                href="/sobre"
+                onClick={() => trackClick("Destaque: Sobre", "/sobre")}
+                className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-500 flex flex-col justify-between cursor-pointer"
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="bg-purple-50 text-purple-600 p-4 rounded-2xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                    <Compass size={24} />
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-black px-3 py-1 rounded-full bg-gray-50 text-gray-400 uppercase tracking-widest">Institucional</span>
+                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-purple-600 transition-colors mt-1">Sobre a Nucleobase</h3>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500 font-medium">Saiba mais sobre nossa história, missão e compromisso com a segurança.</p>
+              </Link>
             </div>
           </div>
         )}
