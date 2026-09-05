@@ -148,7 +148,7 @@ export default function NucleobaseCondo() {
                 <div className="flex items-center justify-between bg-blue-600 py-2 px-4 rounded-xl mt-4 opacity-0 transition-opacity duration-300">
                     <div className="flex items-center gap-2">
                         <UserCircle size={16} className="text-white" />
-                        <span className="text-white text-[10px] font-black uppercase tracking-widest">Minha conta</span>
+                        <span className="text-white text-[10px] font-black uppercase tracking-widest">Acesso Morador</span>
                     </div>
                     <ArrowUpRight size={14} className="text-white/50" />
                 </div>
@@ -164,7 +164,7 @@ export default function NucleobaseCondo() {
                         <Users size={16} className="text-blue-400" />
                     )}
                     <span className="text-white text-[10px] font-black uppercase tracking-widest">
-                        {isLoggedIn ? "Minha conta" : "Acessar Dashboard"}
+                        Acesso Morador
                     </span>
                 </div>
                 <ArrowUpRight size={14} className={isLoggedIn ? "text-white/50 group-hover/btn:text-white transition-colors" : "text-blue-400 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform"} />
@@ -178,7 +178,7 @@ export default function NucleobaseCondo() {
         return (
             <a
                 href="/condo/dashboard"
-                onClick={() => trackClick(isLoggedIn ? "Acessar Dashboard" : "Ir para Cadastro", "/condo/dashboard")}
+                onClick={() => trackClick("Acesso Morador", "/condo/dashboard")}
             >
                 {content}
             </a>
@@ -187,12 +187,12 @@ export default function NucleobaseCondo() {
 
     const CardsDestaqueDesktop = () => {
         return (
-            <div className="flex flex-col gap-6 h-full justify-between">
+            <div className="flex flex-col gap-6 h-full justify-between items-end">
                 {/* CARD 1: ÁREA DO CONDOMÍNIO */}
                 <Link
                     href="/condo/dashboard"
                     onClick={() => trackClick("O Futuro do seu Prédio", "/condo/dashboard")}
-                    className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center cursor-pointer block"
+                    className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center cursor-pointer block w-full lg:max-w-[340px]"
                 >
                     <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
                         <Zap size={180} strokeWidth={1} className="text-blue-500" />
@@ -217,7 +217,7 @@ export default function NucleobaseCondo() {
                 <Link
                     href="/condo/contabilidade"
                     onClick={() => trackClick("Acessar Contabilidade", "/condo/contabilidade")}
-                    className="bg-white border border-gray-300 p-8 rounded-[2.5rem] shadow-lg shadow-gray-200/50 hover:shadow-2xl transition-all group relative overflow-hidden flex flex-col justify-center cursor-pointer block"
+                    className="bg-white border border-gray-300 p-8 rounded-[2.5rem] shadow-lg shadow-gray-200/50 hover:shadow-2xl transition-all group relative overflow-hidden flex flex-col justify-center cursor-pointer block w-full lg:max-w-[340px]"
                 >
                     <div className="relative z-10 w-full">
                         <div className="flex items-center gap-4 mb-4">
@@ -234,7 +234,7 @@ export default function NucleobaseCondo() {
                         <div className="flex items-center justify-between bg-emerald-600 hover:bg-emerald-700 py-3 px-4 rounded-xl transition-all group/btn shadow-lg shadow-emerald-600/20">
                             <div className="flex items-center gap-2">
                                 <UserCircle size={16} className="text-white" />
-                                <span className="text-white text-[10px] font-black uppercase tracking-widest">Acesso Restrito</span>
+                                <span className="text-white text-[10px] font-black uppercase tracking-widest">Acesso Administração</span>
                             </div>
                             <ArrowUpRight size={14} className="text-white/70 group-hover/btn:text-white transition-colors" />
                         </div>
@@ -355,7 +355,7 @@ export default function NucleobaseCondo() {
                     <div className="flex items-center justify-between bg-emerald-600 hover:bg-emerald-700 py-2.5 px-4 rounded-xl transition-all shadow-md shadow-emerald-600/20">
                         <div className="flex items-center gap-2">
                             <UserCircle size={14} className="text-white" />
-                            <span className="text-white text-[10px] font-black uppercase tracking-widest">Acesso Restrito</span>
+                            <span className="text-white text-[10px] font-black uppercase tracking-widest">Acesso Administração</span>
                         </div>
                         <ArrowUpRight size={14} className="text-white/70" />
                     </div>
@@ -441,8 +441,8 @@ export default function NucleobaseCondo() {
                     <div className="flex items-center gap-2"><Building2 size={14} className="text-blue-500" /> Área do Síndico</div>
                     <ArrowUpRight size={14} />
                 </a>
-                <a href="/condo/dashboard" onClick={() => trackClick("Acessar Dashboard (Mobile)", "/condo/dashboard")} className="flex items-center justify-between flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3.5 px-5 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md">
-                    <div className="flex items-center gap-2"><Users size={14} className="text-white" /> Acessar Dashboard</div>
+                <a href="/condo/dashboard" onClick={() => trackClick("Acesso Morador (Mobile)", "/condo/dashboard")} className="flex items-center justify-between flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3.5 px-5 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md">
+                    <div className="flex items-center gap-2"><Users size={14} className="text-white" /> Acesso Morador</div>
                     <ArrowUpRight size={14} />
                 </a>
             </div>
@@ -451,15 +451,15 @@ export default function NucleobaseCondo() {
                 Gestão profissional <div className="h-px bg-gray-300 flex-1"></div>
             </h3>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
-                <div className="lg:col-span-7 text-gray-700 text-lg leading-[1.8] pr-0 lg:pr-10 flex flex-col justify-between">
+            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-stretch justify-between">
+                <div className="flex-1 text-gray-700 text-lg leading-[1.8] flex flex-col justify-between min-w-0">
                     <div className="flex flex-col justify-between h-full">
                         <p className="mb-8 leading-relaxed text-gray-700 hidden md:block">
                             A Nucleo Condo nasceu para permitir clareza aos fluxos, e agora trazemos o mesmo rigor para a{" "}
                             <span className="inline-flex items-center justify-center bg-emerald-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                                 Administração
                             </span>{" "}
-                            de condomínios. Sabendo que o principal calcanhar de Aquiles neste segmento é a dificuldade de transparência, unimos tecnologia e clareza para a rotina de síndicos e condôminos, unificando e facilitando decisões.
+                            de condomínios. Sabendo que o principal calcanhar de Aquiles neste segmento é a histórica e constante dificuldade de transparência, unimos tecnologia e clareza absoluta para a rotina de síndicos e condôminos, unificando e facilitando decisões.
                         </p>
 
                         <div className="mb-6 md:hidden">
@@ -478,11 +478,11 @@ export default function NucleobaseCondo() {
                             </button>
                         </div>
 
-                        {/* Card diminuído na visão desktop, mantendo conteúdo */}
-                        <div className="bg-blue-50/40 border-l-4 border-blue-600 p-4 md:p-6 my-0 rounded-2xl relative overflow-hidden group transition-all hover:bg-blue-50/60 flex flex-col justify-center">
+                        {/* Card padronizado na altura desktop para alinhar visualmente com Contabilidade */}
+                        <div className="bg-blue-50/40 border-l-4 border-blue-600 p-4 md:p-6 my-0 rounded-2xl relative overflow-hidden group transition-all hover:bg-blue-50/60 flex flex-col justify-center lg:max-h-[168px] lg:h-full">
                             <ShieldCheck className="absolute -right-6 -bottom-6 text-blue-600 opacity-5 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-700" size={140} />
                             <p className="font-medium text-blue-900 text-base md:text-lg leading-relaxed relative z-10 tracking-tight">
-                                "Nosso objetivo é transformar rotinas vistas como complexas em processos visuais e simples, garantindo total clareza, harmonia e integração entre administração e moradores."<br /><br />
+                                "Nosso objetivo é transformar rotinas vistas como complexas em processos visuais e simples, garantindo clareza, harmonia e integração entre administração e moradores."<br /><br />
                                 <Link href="/cadastro" onClick={() => trackClick("Não possui conta - Clique Aqui", "/cadastro")} className="text-blue-600 font-bold underline hover:text-blue-800 transition-colors text-xs md:text-sm">Não possui uma conta? Clique aqui</Link>
                             </p>
                         </div>
@@ -493,7 +493,7 @@ export default function NucleobaseCondo() {
                     </div>
                 </div>
 
-                <div className="hidden lg:block lg:col-span-5 h-full">
+                <div className="hidden lg:block shrink-0 w-[340px] h-full">
                     <CardsDestaqueDesktop />
                 </div>
             </div>
@@ -518,7 +518,7 @@ export default function NucleobaseCondo() {
                 {/* Texto transferido para a linha debaixo, ocupando a área inteira da tela */}
                 <div className="mb-12 w-full">
                     <p className="text-gray-700 text-lg leading-[1.8]">
-                        Acreditamos que a <span className="text-gray-900 font-bold underline decoration-blue-200 underline-offset-4 decoration-2">gestão democrática</span> é o caminho ideal para valorizar o seu patrimônio. Nossos pilares trazem a estrutura perfeita que resolve as burocracias de convivência de forma ágil, segura e inteligente.
+                        Acreditamos que a <span className="text-gray-900 font-bold underline decoration-blue-200 underline-offset-4 decoration-2">gestão democrática</span> é o caminho ideal para garantir resoluções e melhorias em sua administração. Nossos pilares sólidos trazem a estrutura perfeita, moderna e altamente completa que resolve definitivamente todas as burocracias do dia a dia de convivência de forma ágil, segura e transparente.
                     </p>
                 </div>
 
