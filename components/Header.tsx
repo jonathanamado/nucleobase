@@ -74,7 +74,7 @@ export function Header() {
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from("profiles")
-      .select("nome_completo, avatar_url")
+      .select("nome_completo, avatar_url, plan_type")
       .eq("id", userId)
       .maybeSingle();
 
@@ -83,6 +83,16 @@ export function Header() {
         nome: data.nome_completo || "",
         avatar: data.avatar_url || null,
       });
+
+      // ENVIO SEGURO DAS CARACTERÍSTICAS DO CONSUMIDOR PARA O GTM / GA4
+      if (typeof window !== "undefined") {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: "user_properties_set",
+          user_id: userId, // UUID anonimizado seguro
+          user_plan: data.plan_type || "free", // Ex: free, pro, empresarial
+        });
+      }
     }
   };
 
@@ -109,6 +119,12 @@ export function Header() {
         fetchProfile(session.user.id);
       } else {
         setUserProfile({ nome: "", avatar: null });
+        if (typeof window !== "undefined") {
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({
+            event: "user_properties_cleared"
+          });
+        }
       }
     });
 
