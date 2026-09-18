@@ -796,7 +796,7 @@ export default function MinhaContaPage() {
                   className="relative z-10 flex items-center justify-center gap-1.5 bg-white text-blue-900 hover:bg-blue-50 px-3.5 py-2.5 rounded-lg font-black text-[9px] uppercase tracking-widest shadow-md transition-all shrink-0"
                 >
                   <span className="hidden md:inline">Conhecer Pro</span>
-                  <span className="md:hidden">Saiba Mais</span> <ArrowUpRight size={12} />
+                  <span className="md:hidden">Conheça nossos Planos</span> <ArrowUpRight size={12} />
                 </Link>
               </div>
             </div>
