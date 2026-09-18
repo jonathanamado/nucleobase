@@ -34,6 +34,8 @@ interface Morador {
     role: string;
     user_id: string;
     acesso_app: boolean;
+    data_inicio?: string;
+    data_fim?: string;
     profile: {
         nome_completo: string;
         email_contato: string;
@@ -82,6 +84,8 @@ export default function CadastroMoradorPage() {
     const [novoMoradorNome, setNovoMoradorNome] = useState("");
     const [novoMoradorEmail, setNovoMoradorEmail] = useState("");
     const [novoMoradorUnidade, setNovoMoradorUnidade] = useState("");
+    const [dataInicio, setDataInicio] = useState("");
+    const [dataFim, setDataFim] = useState("");
     const [tipoMorador, setTipoMorador] = useState<string>("proprietario");
     const [roleMorador, setRoleMorador] = useState<string>("morador");
     const [autorizadoApp, setAutorizadoApp] = useState(true);
@@ -183,6 +187,8 @@ export default function CadastroMoradorPage() {
                 role,
                 user_id,
                 acesso_app,
+                data_inicio,
+                data_fim,
                 profile:profiles ( nome_completo, email_contato, slug )
             `)
             .eq("condominio_id", condoId)
@@ -466,6 +472,8 @@ export default function CadastroMoradorPage() {
             unidadeTratada = "Adm";
         }
         setNovoMoradorUnidade(unidadeTratada);
+        setDataInicio(morador.data_inicio || "");
+        setDataFim(morador.data_fim || "");
         setTipoMorador(morador.tipo_morador || "proprietario");
         setRoleMorador(morador.role || "morador");
         setAutorizadoApp(morador.acesso_app);
@@ -478,6 +486,8 @@ export default function CadastroMoradorPage() {
         setNovoMoradorNome("");
         setNovoMoradorEmail("");
         setNovoMoradorUnidade("");
+        setDataInicio("");
+        setDataFim("");
         setTipoMorador("proprietario");
         setRoleMorador("morador");
         setAutorizadoApp(true);
@@ -528,7 +538,9 @@ export default function CadastroMoradorPage() {
                         unidade: unidadeFinal,
                         tipo_morador: tipoMorador,
                         role: roleMorador,
-                        acesso_app: autorizadoApp
+                        acesso_app: autorizadoApp,
+                        data_inicio: dataInicio || null,
+                        data_fim: dataFim || null
                     })
                     .eq("id", editandoId);
 
@@ -626,7 +638,9 @@ export default function CadastroMoradorPage() {
                             role: roleMorador,
                             unidade: unidadeFinal,
                             tipo_morador: tipoMorador,
-                            acesso_app: autorizadoApp
+                            acesso_app: autorizadoApp,
+                            data_inicio: dataInicio || null,
+                            data_fim: dataFim || null
                         }
                     ]);
 
@@ -644,6 +658,8 @@ export default function CadastroMoradorPage() {
                 setNovoMoradorNome("");
                 setNovoMoradorEmail("");
                 setNovoMoradorUnidade("");
+                setDataInicio("");
+                setDataFim("");
                 setTipoMorador("proprietario");
                 setRoleMorador("morador");
                 setAutorizadoApp(true);
@@ -988,7 +1004,7 @@ export default function CadastroMoradorPage() {
                             </div>
                             <div>
                                 <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">
-                                    Controle de Moradores
+                                    Controle de Acessos à Plataforma
                                 </span>
                                 <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5">
                                     <span className="md:hidden text-black">{formatarNomePrimeiroEUltimo(condominio?.nome || "")}</span>
@@ -998,6 +1014,14 @@ export default function CadastroMoradorPage() {
                         </div>
 
                         <div className="hidden md:flex items-center gap-3">
+                            <button
+                                type="button"
+                                onClick={() => alert("Em desenvolvimento")}
+                                className="group relative flex items-center justify-center gap-1.5 h-8 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-blue-600/25 active:scale-95 overflow-hidden shrink-0 cursor-pointer"
+                            >
+                                <UserPlus size={12} />
+                                <span>+ Autorizar visitante</span>
+                            </button>
                             <Link
                                 href="/condo/adm"
                                 className="group relative flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 overflow-hidden shrink-0 cursor-pointer"
@@ -1011,8 +1035,8 @@ export default function CadastroMoradorPage() {
                 </div>
 
                 <p className="text-xs md:text-sm text-zinc-500 font-medium mb-6">
-                    <span className="md:hidden">Gerencie o cadastro de novos condôminos e configure suas permissões de acesso.</span>
-                    <span className="hidden md:inline">Gerencie o cadastro de novos condôminos, configure permissões digitais de acesso ao aplicativo e atualize dados cadastrais em ambiente exclusivo.</span>
+                    <span className="md:hidden">Gerencie o cadastro de novos acessos e configure os níveis de permissão ao APP.</span>
+                    <span className="hidden md:inline">Gerencie o cadastro de novos acessos, configure permissões digitais no aplicativo e atualize dados cadastrais em ambiente seguro.</span>
                 </p>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
@@ -1065,9 +1089,6 @@ export default function CadastroMoradorPage() {
                                         onChange={(e) => setNovoMoradorEmail(e.target.value)}
                                         className={`w-full px-4 py-3 border rounded-xl outline-none transition-all text-xs font-medium ${editandoSemEmail ? 'bg-zinc-100 border-zinc-200 text-zinc-400 cursor-not-allowed select-none' : 'bg-zinc-50 border-zinc-200 focus:bg-white focus:border-blue-400'}`}
                                     />
-                                    <span className="text-[10px] text-zinc-400 block px-1">
-                                        Se preenchido, deve ser um e-mail válido. Se deixado em branco, será gerado acesso automático baseado no ID de usuário.
-                                    </span>
                                 </div>
 
                                 <div className="space-y-1">
@@ -1082,6 +1103,27 @@ export default function CadastroMoradorPage() {
                                     />
                                 </div>
 
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Data Início</label>
+                                        <input
+                                            type="date"
+                                            value={dataInicio}
+                                            onChange={(e) => setDataInicio(e.target.value)}
+                                            className="w-full px-3 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Data Fim</label>
+                                        <input
+                                            type="date"
+                                            value={dataFim}
+                                            onChange={(e) => setDataFim(e.target.value)}
+                                            className="w-full px-3 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium"
+                                        />
+                                    </div>
+                                </div>
+
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Perfil de Acesso</label>
                                     <select
@@ -1093,6 +1135,7 @@ export default function CadastroMoradorPage() {
                                         <option value="sindico">Síndico</option>
                                         <option value="conselho">Conselho</option>
                                         <option value="contabilidade">Contabilidade</option>
+                                        <option value="portaria">Portaria</option>
                                     </select>
                                 </div>
 

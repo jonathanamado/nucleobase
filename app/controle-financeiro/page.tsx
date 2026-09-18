@@ -463,7 +463,7 @@ export default function ControleFinanceiroHome() {
             <div className="bg-orange-50/40 border-l-4 border-orange-500 p-5 md:p-8 my-0 rounded-2xl md:rounded-r-[2.5rem] relative overflow-hidden group transition-all hover:bg-orange-50/60 flex flex-col justify-center">
               <ShieldCheck className="absolute -right-6 -bottom-6 text-orange-500 opacity-5 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-700" size={150} />
               <p className="font-medium text-orange-950 text-base md:text-xl leading-relaxed relative z-10 tracking-tight">
-                "Nosso objetivo é transformar números brutos em decisões práticas para sua rotina." <br />
+                "Nosso objetivo é transformar números brutos em decisões práticas para o seu dia a dia, permitindo que o seu foco esteja em entender o melhor momento para que sejam tomadas decisões inteligentes de compra." <br />
                 <Link href="/cadastro" onClick={() => trackClick("Crie sua conta gratuitamente", "/cadastro")} className="text-orange-600 font-bold underline hover:text-orange-800 transition-colors text-xs md:text-sm">
                   <span className="inline md:hidden">Crie sua conta gratuitamente</span>
                 </Link>

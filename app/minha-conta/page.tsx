@@ -10,7 +10,7 @@ import {
   KeyRound, Instagram, X,
   Target, Share2, Wallet, Zap, Rocket, LayoutDashboard, Info,
   PieChart, Award, ChartPie, Building2, FileCheck2, CheckCircle2, Settings2, ShieldCheck,
-  Eye, EyeOff, Sparkles, ArrowUpRight, Lock
+  Eye, EyeOff, Sparkles, ArrowUpRight, Lock, Send
 } from "lucide-react";
 
 export default function MinhaContaPage() {
@@ -39,6 +39,7 @@ export default function MinhaContaPage() {
   const [condoNome, setCondoNome] = useState("");
   const [condoCnpj, setCondoCnpj] = useState("");
   const [unidadeSindico, setUnidadeSindico] = useState("");
+  const [telefoneEmpresarial, setTelefoneEmpresarial] = useState("");
 
   // --- ESTADOS INICIAIS ORIGINAIS (PARA VALIDAÇÃO DE BLOQUEIO) ---
   const [initialCondoNome, setInitialCondoNome] = useState("");
@@ -57,16 +58,32 @@ export default function MinhaContaPage() {
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [passLoading, setPassLoading] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [isEmpresarialDirty, setIsEmpresarialDirty] = useState(false);
 
   // Estados para os Popovers de Insight
   const [activeInsight, setActiveInsight] = useState<string | null>(null);
   const insightRef = useRef<HTMLDivElement>(null);
   const saveButtonRef = useRef<HTMLButtonElement>(null);
+  const empresarialFormRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (empresarialFormRef.current) {
+      empresarialFormRef.current.reset();
+    }
+  }, []);
+
+  const handleEmpresarialSubmit = (e: React.FormEvent) => {
+    setIsEmpresarialDirty(false);
+    window.dataLayer?.push({
+      event: "empresarial_access_proposal_submitted",
+      form_name: "acesso_empresarial"
+    });
+  };
 
   // --- LÓGICA DE AVISO DE SAÍDA ---
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isDirty) {
+      if (isDirty || isEmpresarialDirty) {
         e.preventDefault();
         e.returnValue = "Você tem alterações não salvas. Deseja realmente sair?";
         return e.returnValue;
@@ -77,7 +94,7 @@ export default function MinhaContaPage() {
       const target = e.target as HTMLElement;
       const link = target.closest("a");
 
-      if (isDirty && link && link.href && !link.href.includes("#") && !link.target) {
+      if ((isDirty || isEmpresarialDirty) && link && link.href && !link.href.includes("#") && !link.target) {
         const confirmExit = window.confirm("Você possui alterações não salvas. Deseja sair sem salvar?");
         if (!confirmExit) {
           e.preventDefault();
@@ -94,11 +111,16 @@ export default function MinhaContaPage() {
       window.removeEventListener("beforeunload", handleBeforeUnload);
       document.removeEventListener("click", handleInternalNavigation, true);
     };
-  }, [isDirty]);
+  }, [isDirty, isEmpresarialDirty]);
 
   const handleChange = (setter: Function, value: any) => {
     setter(value);
     setIsDirty(true);
+  };
+
+  const handleEmpresarialChange = (setter: Function, value: any) => {
+    setter(value);
+    setIsEmpresarialDirty(true);
   };
 
   useEffect(() => {
@@ -286,17 +308,6 @@ export default function MinhaContaPage() {
   }, []);
 
   const handleUpdate = async () => {
-    // Validação de bloqueio: CNPJ e Unidade (e Nome do Edifício) não podem ser alterados pelo usuário comum
-    if (condoCnpj !== initialCondoCnpj || unidadeSindico !== initialUnidadeSindico || condoNome !== initialCondoNome) {
-      alert("Entre em contato com o Administrador de sua conta para realizar esta operação em 'Acesso Empresarial'.");
-      // Reverte os campos bloqueados para os valores originais
-      setCondoCnpj(initialCondoCnpj);
-      setUnidadeSindico(initialUnidadeSindico);
-      setCondoNome(initialCondoNome);
-      setUpdating(false);
-      return;
-    }
-
     setUpdating(true);
     setSuccessMessage("");
     const { data: { user } } = await supabase.auth.getUser();
@@ -325,6 +336,24 @@ export default function MinhaContaPage() {
           category: "account_management",
           page_location: "/minha-conta"
         });
+      }
+
+      // Validação/submissão do formulário de acesso empresarial se houver alterações nele
+      if (condoCnpj !== initialCondoCnpj || unidadeSindico !== initialUnidadeSindico || condoNome !== initialCondoNome) {
+        if (isEmpresarialDirty && empresarialFormRef.current) {
+          window.dataLayer?.push({
+            event: "empresarial_access_proposal_submitted",
+            form_name: "acesso_empresarial"
+          });
+          empresarialFormRef.current.target = "_blank";
+          empresarialFormRef.current.submit();
+          setIsEmpresarialDirty(false);
+        } else {
+          alert("Entre em contato com o Administrador de sua conta para realizar esta operação em 'Acesso Empresarial'.");
+        }
+        setCondoCnpj(initialCondoCnpj);
+        setUnidadeSindico(initialUnidadeSindico);
+        setCondoNome(initialCondoNome);
       }
 
       setIsDirty(false);
@@ -394,6 +423,15 @@ export default function MinhaContaPage() {
           <h2 className="text-gray-500 text-base md:text-lg font-medium max-w-2xl leading-relaxed mt-0">
             Olá<span className="whitespace-nowrap font-bold text-gray-900"> {getPrimeiroNome()},</span> gerencie seus dados e entenda o seu comportamento.
           </h2>
+        </div>
+        <div className="hidden md:flex items-center gap-3">
+          <button
+            onClick={() => setShowPassModal(true)}
+            className="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md cursor-pointer flex items-center gap-2"
+          >
+            <KeyRound size={14} />
+            <span>Alterar senha</span>
+          </button>
         </div>
       </div>
 
@@ -665,7 +703,7 @@ export default function MinhaContaPage() {
                   </div>
                   <p className="text-lg font-black text-gray-900">{stats.percGastosVariaveis}%</p>
                 </div>
-                <InsightPopover id="eficiencia" title="Variáveis" colorClass="text-rose-400" content={`Atualmente, seus Gastos Variáveis representam ${stats.percGastosVariaveis}% das suas despesas totais. Este é o grupo onde você tem maior poder de decisão imediata. Pequenos ajustes here são o caminho mais rápido para aumentar sua capacidade de investimento.`} align="right" />
+                <InsightPopover id="eficiencia" title="Variáveis" colorClass="text-rose-400" content={`Atualmente, seus Gastos Variáveis representam ${stats.percGastosVariaveis}% das suas despesas totais. Este é o grupo onde você tiene maior poder de decisão imediata. Pequenos ajustes here são o caminho mais rápido para aumentar sua capacidade de investimento.`} align="right" />
               </div>
 
               <div className="flex items-center gap-4 relative"
@@ -710,7 +748,7 @@ export default function MinhaContaPage() {
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1 text-center">
                     <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">+ Lançamentos</p>
-                    <p className="text-white text-xs font-bold leading-tight">Atualize sua conta hoje mesmo.</p>
+                    <p className="text-white text-xs font-bold leading-tight">Realize sua gestão financeira pela Nucleo.</p>
                   </div>
                   <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform shrink-0">
                     <Rocket size={20} fill="currentColor" className="text-orange-100" />
@@ -721,20 +759,53 @@ export default function MinhaContaPage() {
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1 text-center">
                     <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Performance</p>
-                    <p className="text-white text-xs font-bold leading-tight">Acompanhe resultados online.</p>
+                    <p className="text-white text-xs font-bold leading-tight">Acompanhe suas contas e tome melhores decisões.</p>
                   </div>
                   <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform shrink-0">
                     <LayoutDashboard size={20} fill="currentColor" className="text-blue-100" />
                   </div>
                 </div>
               </Link>
+
+              {/* BANNER DE DESTAQUE - PLANO PRO & DEGUSTAÇÃO TRANSFERIDO PARA CÁ */}
+              <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white p-4 rounded-xl shadow-lg flex items-center justify-between gap-4 relative overflow-hidden border border-blue-400/20">
+                <div className="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
+                  <Sparkles size={160} />
+                </div>
+                <div className="flex items-center gap-3 relative z-10 flex-1 min-w-0">
+                  <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white shrink-0 shadow-md shadow-blue-600/30">
+                    <Sparkles size={18} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5 hidden md:flex">
+                      <span className="bg-blue-500 text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded-md tracking-wider">Nucleo Condo</span>
+                      <span className="text-blue-200 text-[9px] font-bold uppercase tracking-widest">• Plano Pro</span>
+                    </div>
+                    {/* VERSÃO DESKTOP */}
+                    <h4 className="font-bold text-xs text-white leading-snug hidden md:block truncate">
+                      Período de degustação de 45 dias ativos inclusos.
+                    </h4>
+                    {/* VERSÃO MOBILE SIMPLIFICADA */}
+                    <h4 className="font-bold text-[11px] text-white leading-snug md:hidden truncate">
+                      Degustação de 45 dias para novos negócios.
+                    </h4>
+                  </div>
+                </div>
+                <Link
+                  href="/planos/pro"
+                  className="relative z-10 flex items-center justify-center gap-1.5 bg-white text-blue-900 hover:bg-blue-50 px-3.5 py-2.5 rounded-lg font-black text-[9px] uppercase tracking-widest shadow-md transition-all shrink-0"
+                >
+                  <span className="hidden md:inline">Conhecer Pro</span>
+                  <span className="md:hidden">Saiba Mais</span> <ArrowUpRight size={12} />
+                </Link>
+              </div>
             </div>
           </section>
         </div>
       </div>
 
       <div className="mt-12">
-        <section className="bg-gray-50/50 rounded-[2.5rem] p-6 md:p-10 border border-gray-100">
+        <section className="bg-white rounded-[2.5rem] p-6 md:p-10 border border-gray-100 shadow-sm">
           <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
             Preferências <div className="h-px bg-gray-200 flex-1"></div>
           </h3>
@@ -756,6 +827,7 @@ export default function MinhaContaPage() {
                 <option value="liberdade">Liberdade Financeira</option>
                 <option value="sair_dividas">Sair de Dívidas</option>
                 <option value="investir">Começar a Investir</option>
+                <option value="empresas">Administração Empresas</option>
               </select>
             </div>
             <div className="space-y-3">
@@ -782,87 +854,105 @@ export default function MinhaContaPage() {
 
       {/* --- BLOCO: ACESSO EMPRESARIAL (CONDOMÍNIO) --- */}
       <div className="mt-8">
-        <section className="bg-blue-50/10 rounded-[2.5rem] p-6 md:p-10 border border-blue-100/30">
-          <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-blue-600/70 mb-8 flex items-center gap-4">
-            Acesso Empresarial <div className="h-px bg-blue-100/50 flex-1"></div>
+        <section className="bg-emerald-50/60 rounded-[2.5rem] p-6 md:p-10 border border-emerald-100">
+          <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-emerald-700/80 mb-4 flex items-center gap-4">
+            Acesso Empresarial <div className="h-px bg-emerald-200/60 flex-1"></div>
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
-                <span className="flex items-center gap-2"><Building2 size={12} className="text-blue-500" /> Nome | Razão Social </span>
-                <span className="text-orange-600 flex items-center"><Lock size={12} /></span>
-              </label>
-              <input
-                type="text"
-                placeholder="Residencial Bela Vista"
-                value={condoNome}
-                className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none transition-all focus:border-blue-300"
-                onChange={(e) => handleChange(setCondoNome, e.target.value)}
-              />
-            </div>
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
-                <span className="flex items-center gap-2"><FileCheck2 size={12} className="text-blue-500" /> CNPJ | CCMEI</span>
-                <span className="text-orange-600 flex items-center"><Lock size={12} /></span>
-              </label>
-              <input
-                type="text"
-                placeholder="00.000.000/0000-00"
-                value={condoCnpj}
-                className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none transition-all focus:border-blue-300"
-                onChange={(e) => handleChange(setCondoCnpj, e.target.value)}
-              />
-            </div>
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
-                <span>Unidade | Identificação</span>
-                <span className="text-orange-600 flex items-center"><Lock size={12} /></span>
-              </label>
-              <input
-                type="text"
-                placeholder="Ex: Apto 302 Bloco B"
-                value={unidadeSindico}
-                className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none transition-all focus:border-blue-300"
-                onChange={(e) => handleChange(setUnidadeSindico, e.target.value)}
-              />
-            </div>
-          </div>
-          <p className="text-[10px] text-orange-600 font-medium mb-6">
-            * Edição restrita ao Administrador: Caso precise alterar o Edifício ou sua Unidade, entre em contato com a Administração do Condomínio.
+          <p className="text-xs text-gray-600 mb-8 leading-relaxed font-medium hidden md:block">
+            As alterações da conta empresarial são gerenciadas pela equipe Nucleobase. Para este perfil, preencha os dados nos campos abaixo e envie as informações diretamente à administração.
+          </p>
+          <p className="text-xs text-gray-600 mb-8 leading-relaxed font-medium block md:hidden">
+            Gestão de conta empresarial simplificada. Envie os dados abaixo para nossa administração.
           </p>
 
-          {/* BANNER DE DESTAQUE - PLANO PRO & DEGUSTAÇÃO */}
-          <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white p-4 md:p-6 rounded-2xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden border border-blue-400/20">
-            <div className="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
-              <Sparkles size={160} />
-            </div>
-            <div className="flex items-center gap-4 relative z-10 w-full md:w-auto">
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-blue-600/30">
-                <Sparkles size={20} />
+          <form
+            ref={empresarialFormRef}
+            onSubmit={handleEmpresarialSubmit}
+            action="https://api.web3forms.com/submit"
+            method="POST"
+            target="_blank"
+          >
+            <input type="hidden" name="access_key" value="9ef5a274-150a-4664-a885-0b052efd06f7" />
+            <input type="hidden" name="subject" value="Atualização de Acesso Empresarial - Nucleobase" />
+            <input type="hidden" name="from_name" value="Nucleobase Empresarial" />
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-6">
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
+                  <span className="flex items-center gap-2"><Building2 size={12} className="text-emerald-600" /> Nome</span>
+                </label>
+                <input
+                  type="text"
+                  name="nome_empresarial"
+                  placeholder="Nome"
+                  value={condoNome}
+                  className="w-full h-11 px-4 bg-white border border-emerald-200/60 rounded-xl text-xs outline-none transition-all focus:border-emerald-400"
+                  onChange={(e) => handleEmpresarialChange(setCondoNome, e.target.value)}
+                />
               </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1 hidden md:flex">
-                  <span className="bg-blue-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-md tracking-wider">Nucleo Condo</span>
-                  <span className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">• Plano Pro</span>
-                </div>
-                {/* VERSÃO DESKTOP */}
-                <h4 className="font-bold text-sm text-white leading-snug hidden md:block">
-                  Período de degustação de 45 dias ativos inclusos.
-                </h4>
-                {/* VERSÃO MOBILE SIMPLIFICADA */}
-                <h4 className="font-bold text-xs text-white leading-snug md:hidden">
-                  Degustação de 45 dias para novos negócios. Indique-nos.
-                </h4>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
+                  <span className="flex items-center gap-2"><FileCheck2 size={12} className="text-emerald-600" /> CNPJ</span>
+                </label>
+                <input
+                  type="text"
+                  name="cnpj_empresarial"
+                  placeholder="00.000.000/0000-00"
+                  value={condoCnpj}
+                  className="w-full h-11 px-4 bg-white border border-emerald-200/60 rounded-xl text-xs outline-none transition-all focus:border-emerald-400"
+                  onChange={(e) => handleEmpresarialChange(setCondoCnpj, e.target.value)}
+                />
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
+                  <span>Unidade</span>
+                </label>
+                <input
+                  type="text"
+                  name="unidade_empresarial"
+                  placeholder="Ex: Apto 302 Bloco B"
+                  value={unidadeSindico}
+                  className="w-full h-11 px-4 bg-white border border-emerald-200/60 rounded-xl text-xs outline-none transition-all focus:border-emerald-400"
+                  onChange={(e) => handleEmpresarialChange(setUnidadeSindico, e.target.value)}
+                />
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
+                  <span>Telefone</span>
+                </label>
+                <input
+                  type="text"
+                  name="telefone_empresarial"
+                  placeholder="(00) 00000-0000"
+                  value={telefoneEmpresarial}
+                  className="w-full h-11 px-4 bg-white border border-emerald-200/60 rounded-xl text-xs outline-none transition-all focus:border-emerald-400"
+                  onChange={(e) => handleEmpresarialChange(setTelefoneEmpresarial, aplicarMascaraTelefone(e.target.value))}
+                />
               </div>
             </div>
-            <Link
-              href="/planos/pro"
-              className="relative z-10 flex items-center justify-center gap-2 bg-white text-blue-900 hover:bg-blue-50 w-full md:w-auto px-6 py-2.5 md:py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md transition-all shrink-0"
-            >
-              <span className="hidden md:inline">Conhecer Plano Pro</span>
-              <span className="md:hidden">Saiba Mais</span> <ArrowUpRight size={14} />
-            </Link>
-          </div>
+
+            <textarea
+              name="mensagem_empresarial"
+              className="hidden"
+              readOnly
+              value={`Solicitação de atualização de dados cadastrais empresariais.\n\nNome: ${condoNome || 'Não informado'}\nCNPJ: ${condoCnpj || 'Não informado'}\nUnidade: ${unidadeSindico || 'Não informada'}\nTelefone: ${telefoneEmpresarial || 'Não informado'}`}
+            ></textarea>
+
+            <div className="flex flex-col md:flex-row items-center justify-between flex-wrap gap-4 mt-6 text-center md:text-left">
+              <p className="text-[10px] text-emerald-800 font-medium w-full md:w-auto text-center md:text-left">
+                * Preencha os campos acima e clique no botão para enviar os dados por e-mail para a nossa administração.
+              </p>
+              <div className="w-full md:w-auto flex justify-center md:justify-end">
+                <button
+                  type="submit"
+                  className="px-6 py-3 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer w-full md:w-auto"
+                >
+                  <Send size={16} />
+                  <span>Enviar dados cadastrais</span>
+                </button>
+              </div>
+            </div>
+          </form>
         </section>
       </div>
 

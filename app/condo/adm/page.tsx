@@ -997,8 +997,8 @@ export default function CondoAdm() {
                                         <UserPlus className="w-4 h-4 md:w-5 md:h-5" />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Cadastro Morador</h3>
-                                        <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Acesso novo condômino</p>
+                                        <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Cadastro Plataforma</h3>
+                                        <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Atualização de acesso ao APP</p>
                                     </div>
                                 </div>
                             </Link>
