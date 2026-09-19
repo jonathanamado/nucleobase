@@ -114,14 +114,15 @@ export default function NucleobaseCondo() {
         return () => subscription.unsubscribe();
     }, []);
 
-    // Efeito de carrossel vivo: muda a cada 3 segundos, pausando se o mouse estiver em cima
+    // Efeito de carrossel vivo com tempos personalizados: 15s para o primeiro card (index 0) e 7s para os demais
     useEffect(() => {
         if (isPaused) return;
-        const interval = setInterval(() => {
+        const tempoAtual = cardAtivoIndex === 0 ? 15000 : 7000;
+        const timer = setTimeout(() => {
             setCardAtivoIndex((prev) => (prev + 1) % recursosDestaque.length);
-        }, 3000);
-        return () => clearInterval(interval);
-    }, [isPaused, recursosDestaque.length]);
+        }, tempoAtual);
+        return () => clearTimeout(timer);
+    }, [isPaused, cardAtivoIndex, recursosDestaque.length]);
 
     const trackClick = (label: string, destination: string) => {
         window.dataLayer?.push({
@@ -252,10 +253,10 @@ export default function NucleobaseCondo() {
 
     const CardsDestaqueDesktop = () => {
         return (
-            <div className="flex flex-col gap-6 h-full justify-between items-end">
+            <div className="flex flex-col justify-between items-stretch w-full h-full">
                 {/* CARD 1: ÁREA DO CONDÔMINO / LOGIN */}
                 {!isLoggedIn ? (
-                    <div className="bg-gray-900 p-6 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden w-full lg:max-w-[340px]">
+                    <div className="bg-gray-900 p-6 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden w-full flex flex-col justify-center">
                         <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
                             <Zap size={180} strokeWidth={1} className="text-blue-500" />
                         </div>
@@ -266,8 +267,9 @@ export default function NucleobaseCondo() {
                             <form onSubmit={handleLogin} className="flex flex-col gap-2">
                                 <div className="space-y-2">
                                     <div className="relative group">
-                                        <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-400 transition-colors" size={14} />
+                                        <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" size={14} />
                                         <input
+                                            key="input-email-slug"
                                             type="text"
                                             placeholder="ID de Usuário ou E-mail"
                                             required
@@ -277,8 +279,9 @@ export default function NucleobaseCondo() {
                                         />
                                     </div>
                                     <div className="relative group">
-                                        <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-400 transition-colors" size={14} />
+                                        <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" size={14} />
                                         <input
+                                            key="input-password"
                                             type={showPassword ? "text" : "password"}
                                             placeholder="Senha de acesso"
                                             required
@@ -321,7 +324,7 @@ export default function NucleobaseCondo() {
                     <Link
                         href="/condo/dashboard"
                         onClick={() => trackClick("O Futuro do seu Prédio", "/condo/dashboard")}
-                        className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center cursor-pointer block w-full lg:max-w-[340px]"
+                        className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center cursor-pointer block w-full"
                     >
                         <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
                             <Zap size={180} strokeWidth={1} className="text-blue-500" />
@@ -347,26 +350,15 @@ export default function NucleobaseCondo() {
                 <Link
                     href="/condo/contabilidade"
                     onClick={() => trackClick("Acessar Contabilidade", "/condo/contabilidade")}
-                    className="bg-white border border-gray-300 p-8 rounded-[2.5rem] shadow-lg shadow-gray-200/50 hover:shadow-2xl transition-all group relative overflow-hidden flex flex-col justify-center cursor-pointer block w-full lg:max-w-[340px]"
+                    className="bg-white border border-gray-300 p-5 rounded-[2.5rem] shadow-lg shadow-gray-200/50 hover:shadow-2xl transition-all group relative overflow-hidden flex flex-col justify-center cursor-pointer block w-full"
                 >
-                    <div className="relative z-10 w-full">
-                        <div className="flex items-center gap-4 mb-4">
-                            <div className="w-14 h-14 shrink-0 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all duration-500 shadow-sm">
-                                <LockKeyhole size={24} />
-                            </div>
-                            <div>
-                                <p className="text-emerald-600 text-[9px] font-black uppercase tracking-[0.2em]">Empresa parceira</p>
-                                <h4 className="font-bold text-gray-900 text-xl leading-tight">
-                                    Contabilidade
-                                </h4>
-                            </div>
+                    <div className="relative z-10 w-full flex items-center justify-center gap-3">
+                        <div className="w-12 h-12 shrink-0 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all duration-500 shadow-sm">
+                            <LockKeyhole size={20} />
                         </div>
-                        <div className="flex items-center justify-between bg-emerald-600 hover:bg-emerald-700 py-3 px-4 rounded-xl transition-all group/btn shadow-lg shadow-emerald-600/20">
-                            <div className="flex items-center gap-2">
-                                <UserCircle size={16} className="text-white" />
-                                <span className="text-white text-[10px] font-black uppercase tracking-widest">Acesso Administração</span>
-                            </div>
-                            <ArrowUpRight size={14} className="text-white/70 group-hover/btn:text-white transition-colors" />
+                        <div className="flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 py-2 px-3 rounded-xl transition-all group/btn shadow-lg shadow-emerald-600/20 flex-1 min-w-0">
+                            <UserCircle size={14} className="text-white shrink-0" />
+                            <span className="text-white text-[9px] font-black uppercase tracking-wider truncate">Acesso Administração</span>
                         </div>
                     </div>
                 </Link>
@@ -453,8 +445,9 @@ export default function NucleobaseCondo() {
                         <form onSubmit={handleLogin} className="flex flex-col gap-2 relative z-10">
                             <div className="space-y-2">
                                 <div className="relative group">
-                                    <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-400 transition-colors" size={14} />
+                                    <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" size={14} />
                                     <input
+                                        key="mobile-input-email-slug"
                                         type="text"
                                         placeholder="ID de Usuário ou E-mail"
                                         required
@@ -464,8 +457,9 @@ export default function NucleobaseCondo() {
                                     />
                                 </div>
                                 <div className="relative group">
-                                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-400 transition-colors" size={14} />
+                                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" size={14} />
                                     <input
+                                        key="mobile-input-password"
                                         type={showPassword ? "text" : "password"}
                                         placeholder="Senha de acesso"
                                         required
@@ -530,31 +524,17 @@ export default function NucleobaseCondo() {
                 )}
 
                 {/* CARD 2 MOBILE: CONTABILIDADE */}
-                <Link href="/condo/contabilidade" onClick={() => trackClick("Contabilidade (Mobile)", "/condo/contabilidade")} className="col-span-2 bg-white border border-gray-300 p-6 rounded-[2rem] shadow-md relative overflow-hidden block">
-                    <div className="flex items-center justify-between relative z-10 mb-4">
+                <Link href="/condo/contabilidade" onClick={() => trackClick("Contabilidade (Mobile)", "/condo/contabilidade")} className="col-span-2 bg-white border border-gray-300 p-5 rounded-[2rem] shadow-md relative overflow-hidden block">
+                    <div className="flex items-center justify-between relative z-10 gap-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                                 <LockKeyhole size={18} />
                             </div>
-                            <div>
-                                <p className="text-emerald-600 text-[8px] font-black uppercase tracking-widest">Parceiros</p>
-                                <h4 className="font-bold text-gray-900 text-sm">Contabilidade</h4>
+                            <div className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 py-2 px-4 rounded-xl transition-all shadow-md shadow-emerald-600/20">
+                                <UserCircle size={14} className="text-white" />
+                                <span className="text-white text-[10px] font-black uppercase tracking-widest whitespace-nowrap">Acesso Administração</span>
                             </div>
                         </div>
-                    </div>
-
-                    <div className="relative z-10 py-2 border-y border-gray-100 mb-4">
-                        <p className="text-gray-500 text-[11px] font-medium italic leading-relaxed">
-                            "Acesso restrito para gestão e auditoria financeira do condomínio."
-                        </p>
-                    </div>
-
-                    <div className="flex items-center justify-between bg-emerald-600 hover:bg-emerald-700 py-2.5 px-4 rounded-xl transition-all shadow-md shadow-emerald-600/20">
-                        <div className="flex items-center gap-2">
-                            <UserCircle size={14} className="text-white" />
-                            <span className="text-white text-[10px] font-black uppercase tracking-widest">Acesso Administração</span>
-                        </div>
-                        <ArrowUpRight size={14} className="text-white/70" />
                     </div>
                 </Link>
 
@@ -648,16 +628,27 @@ export default function NucleobaseCondo() {
                 Gestão profissional <div className="h-px bg-gray-300 flex-1"></div>
             </h3>
 
-            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-stretch justify-between">
-                <div className="flex-1 text-gray-700 text-lg leading-[1.8] flex flex-col justify-between min-w-0">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch mb-6">
+                <div className="lg:col-span-8 text-gray-700 text-lg leading-[1.8] flex flex-col justify-between min-w-0">
                     <div className="flex flex-col justify-between h-full">
-                        <p className="mb-8 leading-relaxed text-gray-700 hidden md:block">
-                            A Nucleo Condo nasceu para permitir clareza aos fluxos, e agora trazemos o mesmo rigor para a{" "}
-                            <span className="inline-flex items-center justify-center bg-emerald-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
-                                Administração
-                            </span>{" "}
-                            de condomínios. Sabendo que o principal calcanhar de Aquiles neste segmento é a histórica e constante dificuldade de transparência, unimos tecnologia e clareza absoluta para a rotina de síndicos e condôminos, unificando e facilitando decisões.
-                        </p>
+                        <div>
+                            <p className="mb-4 leading-relaxed text-gray-700 hidden md:block">
+                                A Nucleo Condo nasceu para permitir clareza aos fluxos, e agora trazemos o mesmo rigor para a{" "}
+                                <span className="inline-flex items-center justify-center bg-emerald-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
+                                    Administração
+                                </span>{" "}
+                                de condomínios. Sabendo que o principal calcanhar de Aquiles neste segmento é a histórica e constante dificuldade de transparência, unimos tecnologia e clareza absoluta para a rotina de síndicos e condôminos, unificando e facilitando decisões.
+                            </p>
+
+                            {/* Card reposicionado logo após o primeiro parágrafo com uma única quebra de linha */}
+                            <div className="bg-blue-50/40 border-l-4 border-blue-600 p-4 md:p-6 my-4 rounded-2xl relative overflow-hidden group transition-all hover:bg-blue-50/60 flex flex-col justify-center">
+                                <ShieldCheck className="absolute -right-6 -bottom-6 text-blue-600 opacity-5 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-700" size={140} />
+                                <p className="font-medium text-blue-900 text-base md:text-lg leading-relaxed relative z-10 tracking-tight">
+                                    "Nosso objetivo é transformar rotinas vistas como complexas em processos visuais e simples, garantindo clareza, harmonia e integração entre administração e moradores."<br /><br />
+                                    <Link href="/cadastro" onClick={() => trackClick("Não possui conta - Clique Aqui", "/cadastro")} className="text-blue-600 font-bold underline hover:text-blue-800 transition-colors text-xs md:text-sm">Não possui uma conta? Clique aqui</Link>
+                                </p>
+                            </div>
+                        </div>
 
                         <div className="mb-6 md:hidden">
                             <p className="text-sm leading-relaxed text-gray-600 font-medium mb-6">
@@ -675,22 +666,13 @@ export default function NucleobaseCondo() {
                             </button>
                         </div>
 
-                        {/* Card padronizado na altura desktop para alinhar visualmente com Contabilidade */}
-                        <div className="bg-blue-50/40 border-l-4 border-blue-600 p-4 md:p-6 my-0 rounded-2xl relative overflow-hidden group transition-all hover:bg-blue-50/60 flex flex-col justify-center lg:max-h-[168px] lg:h-full">
-                            <ShieldCheck className="absolute -right-6 -bottom-6 text-blue-600 opacity-5 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-700" size={140} />
-                            <p className="font-medium text-blue-900 text-base md:text-lg leading-relaxed relative z-10 tracking-tight">
-                                "Nosso objetivo é transformar rotinas vistas como complexas em processos visuais e simples, garantindo clareza, harmonia e integração entre administração e moradores."<br /><br />
-                                <Link href="/cadastro" onClick={() => trackClick("Não possui conta - Clique Aqui", "/cadastro")} className="text-blue-600 font-bold underline hover:text-blue-800 transition-colors text-xs md:text-sm">Não possui uma conta? Clique aqui</Link>
-                            </p>
-                        </div>
-
                         <div className="block lg:hidden">
                             <LayoutDestaqueMobile />
                         </div>
                     </div>
                 </div>
 
-                <div className="hidden lg:block shrink-0 w-[340px] h-full">
+                <div className="hidden lg:block lg:col-span-4 h-full">
                     <CardsDestaqueDesktop />
                 </div>
             </div>
@@ -850,7 +832,7 @@ export default function NucleobaseCondo() {
                                     <input
                                         type="text"
                                         required
-                                        placeholder="Ed. G. Rosa"
+                                        placeholder="Ed. G.Rosa"
                                         value={solicitanteCondo}
                                         onChange={(e) => setSolicitanteCondo(e.target.value)}
                                         className="w-full h-12 px-4 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium placeholder:text-xs"
