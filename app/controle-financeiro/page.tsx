@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import { supabase } from "@/lib/supabase";
+import { useLoginProtegido } from "@/hooks/useLoginProtegido";
 import {
   ShieldCheck,
   Zap,
@@ -24,19 +25,38 @@ import {
   Briefcase,
   MessageCircle,
   LayoutDashboard,
-  BarChart3
+  BarChart3,
+  AtSign,
+  Key,
+  Eye,
+  EyeOff
 } from "lucide-react";
 
 export default function ControleFinanceiroHome() {
+  const {
+    emailOrSlug,
+    setEmailOrSlug,
+    password,
+    setPassword,
+    authLoading,
+    setAuthLoading,
+    loginError,
+    setLoginError,
+    tempoBloqueio,
+    tratarErroLogin,
+    resetarBloqueio
+  } = useLoginProtegido();
+
   const [pilarAtivo, setPilarAtivo] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Estado para controlar o índice do carrossel vivo (apenas um card visível por vez)
   const [cardAtivoIndex, setCardAtivoIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
-  // Estado para o carrossel manual interno do card mobile (Praticidade e Segurança)
+  // Estado para o carrossel manual interno do card mobile
   const [mobileCardIndex, setMobileCardIndex] = useState(0);
 
   // Estados do Formulário de Solicitação de Entrada
@@ -165,6 +185,51 @@ export default function ControleFinanceiroHome() {
     setMobileCardIndex((prev) => (prev - 1 + mobileCards.length) % mobileCards.length);
   };
 
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (tempoBloqueio > 0) return;
+
+    setAuthLoading(true);
+    setLoginError("");
+    const inputAcesso = emailOrSlug.trim().toLowerCase();
+    const isEmail = inputAcesso.includes("@");
+
+    try {
+      let emailParaLogin = "";
+      if (isEmail) {
+        emailParaLogin = inputAcesso;
+      } else {
+        const { data: emailEncontrado, error: profileError } = await supabase
+          .rpc('get_email_by_slug', { p_slug: inputAcesso });
+
+        if (profileError) throw profileError;
+        if (!emailEncontrado) {
+          tratarErroLogin("ID de usuário (Slug) não foi localizado.");
+          return;
+        }
+        emailParaLogin = emailEncontrado;
+      }
+
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: emailParaLogin,
+        password
+      });
+
+      if (authError) {
+        tratarErroLogin("Erro ao acessar: Verifique suas credenciais de acesso.");
+      } else {
+        resetarBloqueio();
+        window.dispatchEvent(new Event("storage"));
+        window.dataLayer?.push({ event: "user_login_success", page_location: "/controle-financeiro" });
+        window.location.href = "/controle-financeiro/lancamentos";
+      }
+    } catch (err) {
+      tratarErroLogin("Ocorreu um erro inesperado.");
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
   const handleEnviarSolicitacao = (e: React.FormEvent) => {
     e.preventDefault();
     trackClick("Enviar Solicitação WhatsApp - Controle Financeiro", "whatsapp_admin");
@@ -233,58 +298,95 @@ export default function ControleFinanceiroHome() {
 
     return (
       <div className="flex flex-col gap-4 h-full justify-between">
-        {/* CARD 1: ÁREA DE LANÇAMENTOS */}
-        <Link
-          href="/controle-financeiro/lancamentos"
-          onClick={() => trackClick("Área de Lançamentos", "/controle-financeiro/lancamentos")}
-          className="bg-gray-900 p-6 rounded-[2rem] shadow-xl shadow-orange-950/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center cursor-pointer block"
-        >
-          <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
-            <Zap size={140} strokeWidth={1} className="text-orange-500" />
-          </div>
-          <div className="relative z-10 w-full">
-            <div className="flex items-center gap-3 mb-1">
-              <div className="w-11 h-11 shrink-0 bg-orange-500 text-white rounded-xl flex items-center justify-center shadow-md shadow-orange-500/20 group-hover:bg-white group-hover:text-orange-500 transition-all duration-500">
-                <LayoutDashboard size={20} />
-              </div>
-              <div>
-                <p className="text-orange-400 text-[9px] font-black uppercase tracking-[0.2em]">Controle Absoluto</p>
-                <h4 className="font-bold text-white text-lg leading-tight">
-                  {isLoggedIn ? "Área de lançamentos" : "Gestão inteligente"}
-                </h4>
-              </div>
+        {/* CARD 1: ÁREA DE LANÇAMENTOS / LOGIN PROTEGIDO */}
+        {!isLoggedIn ? (
+          <div className="bg-gray-900 p-6 rounded-[2rem] shadow-xl shadow-orange-950/10 group relative overflow-hidden w-full">
+            <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
+              <Zap size={140} strokeWidth={1} className="text-orange-500" />
             </div>
-            <BotaoAcessoDinamico isInsideLink={true} />
-          </div>
-        </Link>
+            <div className="relative z-10 w-full">
+              <h4 className="font-bold text-white text-base mb-3">
+                Realizar login<span className="text-orange-500">.</span>
+              </h4>
+              <form onSubmit={handleLogin} className="flex flex-col gap-2">
+                <div className="space-y-2">
+                  <div className="relative group">
+                    <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-400 transition-colors" size={14} />
+                    <input
+                      type="text"
+                      placeholder="ID de Usuário ou E-mail"
+                      required
+                      value={emailOrSlug}
+                      className="w-full pl-9 pr-3 py-2.5 bg-white/10 border-none rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-xs text-white placeholder:text-gray-400"
+                      onChange={(e) => setEmailOrSlug(e.target.value)}
+                    />
+                  </div>
+                  <div className="relative group">
+                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-400 transition-colors" size={14} />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Senha de acesso"
+                      required
+                      value={password}
+                      className="w-full pl-9 pr-9 py-2.5 bg-white/10 border-none rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-xs text-white placeholder:text-gray-400"
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-400 transition-colors cursor-pointer"
+                    >
+                      {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
+                </div>
 
-        {/* CARD 2 DESKTOP: RESULTADOS */}
-        <Link
-          href="/controle-financeiro/resultados"
-          onClick={() => trackClick("Painel de Resultados", "/controle-financeiro/resultados")}
-          className="bg-white border border-blue-200 p-6 rounded-[2rem] shadow-md shadow-blue-900/5 hover:shadow-xl transition-all group relative overflow-hidden flex flex-col justify-center cursor-pointer block"
-        >
-          <div className="relative z-10 w-full">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-11 h-11 shrink-0 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm">
-                <BarChart3 size={20} />
-              </div>
-              <div>
-                <p className="text-blue-600 text-[9px] font-black uppercase tracking-[0.2em]">Painel Analítico</p>
-                <h4 className="font-bold text-gray-900 text-lg leading-tight">
-                  Resultados
-                </h4>
-              </div>
-            </div>
-            <div className="flex items-center justify-between bg-blue-600 hover:bg-blue-700 py-2.5 px-3 rounded-xl transition-all group/btn shadow-md shadow-blue-500/20">
-              <div className="flex items-center gap-2">
-                <UserCircle size={14} className="text-white" />
-                <span className="text-white text-[9px] font-black uppercase tracking-widest">Acessar Painel</span>
-              </div>
-              <ArrowUpRight size={12} className="text-white/70 group-hover/btn:text-white transition-colors" />
+                {tempoBloqueio > 0 && (
+                  <div className="text-[10px] font-bold text-amber-400 bg-amber-500/10 p-2 rounded-xl text-center">
+                    Muitas tentativas. Tente novamente em {tempoBloqueio}s.
+                  </div>
+                )}
+
+                {loginError && tempoBloqueio === 0 && (
+                  <p className="text-[10px] font-bold text-red-400 bg-red-500/10 p-2 rounded-xl text-center">
+                    {loginError}
+                  </p>
+                )}
+
+                <button
+                  disabled={authLoading || tempoBloqueio > 0}
+                  className="w-full bg-orange-500 text-white h-[40px] rounded-xl font-bold hover:bg-orange-600 transition shadow-lg text-[10px] uppercase tracking-wider disabled:opacity-50 mt-1 cursor-pointer"
+                >
+                  {authLoading ? "Verificando..." : tempoBloqueio > 0 ? `Aguarde (${tempoBloqueio}s)` : "Acessar Plataforma"}
+                </button>
+              </form>
             </div>
           </div>
-        </Link>
+        ) : (
+          <Link
+            href="/controle-financeiro/lancamentos"
+            onClick={() => trackClick("Área de Lançamentos", "/controle-financeiro/lancamentos")}
+            className="bg-gray-900 p-6 rounded-[2rem] shadow-xl shadow-orange-950/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center cursor-pointer block"
+          >
+            <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
+              <Zap size={140} strokeWidth={1} className="text-orange-500" />
+            </div>
+            <div className="relative z-10 w-full">
+              <div className="flex items-center gap-3 mb-1">
+                <div className="w-11 h-11 shrink-0 bg-orange-500 text-white rounded-xl flex items-center justify-center shadow-md shadow-orange-500/20 group-hover:bg-white group-hover:text-orange-500 transition-all duration-500">
+                  <LayoutDashboard size={20} />
+                </div>
+                <div>
+                  <p className="text-orange-400 text-[9px] font-black uppercase tracking-[0.2em]">Controle Absoluto</p>
+                  <h4 className="font-bold text-white text-lg leading-tight">
+                    Área de lançamentos
+                  </h4>
+                </div>
+              </div>
+              <BotaoAcessoDinamico isInsideLink={true} />
+            </div>
+          </Link>
+        )}
 
         {/* CARROSSEL VIVO DE RECURSOS (Desktop) */}
         <div
@@ -344,46 +446,113 @@ export default function ControleFinanceiroHome() {
         </p>
 
         <div className="grid grid-cols-2 gap-3">
-          {/* BLOCO ÚNICO DE CARDS INTERATIVOS MOBILE */}
-          <div className="col-span-2 bg-gray-900 p-5 rounded-[1.8rem] relative overflow-hidden block">
-            <div className="flex items-center justify-between relative z-10 mb-3">
-              <div className="flex items-center gap-2.5">
-                <Star size={18} className="text-orange-500" fill="currentColor" />
-                <div>
-                  <p className="text-orange-400 text-[8px] font-black uppercase tracking-widest">{currentMobileCard.subtitle}</p>
-                  <h4 className="font-bold text-white text-sm">{currentMobileCard.title}</h4>
+          {/* BLOCO ÚNICO DE CARDS INTERATIVOS MOBILE / LOGIN MOBILE */}
+          {!isLoggedIn ? (
+            <div className="col-span-2 bg-gray-900 p-5 rounded-[1.8rem] relative overflow-hidden block">
+              <div className="flex items-center justify-between relative z-10 mb-3">
+                <div className="flex items-center gap-2.5">
+                  <Star size={18} className="text-orange-500" fill="currentColor" />
+                  <div>
+                    <p className="text-orange-400 text-[8px] font-black uppercase tracking-widest">Acesso Restrito</p>
+                    <h4 className="font-bold text-white text-sm">Realizar login</h4>
+                  </div>
                 </div>
               </div>
-              <div className="flex gap-1.5" onClick={(e) => e.preventDefault()}>
-                <button onClick={prevMobileCard} className="p-1.5 bg-white/5 rounded-full text-white active:bg-white/20 cursor-pointer"><ChevronLeft size={14} /></button>
-                <button onClick={nextMobileCard} className="p-1.5 bg-white/5 rounded-full text-white active:bg-white/20 cursor-pointer"><ChevronRight size={14} /></button>
+
+              <form onSubmit={handleLogin} className="flex flex-col gap-2 relative z-10">
+                <div className="space-y-2">
+                  <div className="relative group">
+                    <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-400 transition-colors" size={14} />
+                    <input
+                      type="text"
+                      placeholder="ID de Usuário ou E-mail"
+                      required
+                      value={emailOrSlug}
+                      className="w-full pl-9 pr-3 py-2.5 bg-white/10 border-none rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-xs text-white placeholder:text-gray-400"
+                      onChange={(e) => setEmailOrSlug(e.target.value)}
+                    />
+                  </div>
+                  <div className="relative group">
+                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-400 transition-colors" size={14} />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Senha de acesso"
+                      required
+                      value={password}
+                      className="w-full pl-9 pr-9 py-2.5 bg-white/10 border-none rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-xs text-white placeholder:text-gray-400"
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-400 transition-colors cursor-pointer"
+                    >
+                      {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
+                </div>
+
+                {tempoBloqueio > 0 && (
+                  <div className="text-[10px] font-bold text-amber-400 bg-amber-500/10 p-2 rounded-xl text-center">
+                    Muitas tentativas. Tente novamente em {tempoBloqueio}s.
+                  </div>
+                )}
+
+                {loginError && tempoBloqueio === 0 && (
+                  <p className="text-[10px] font-bold text-red-400 bg-red-500/10 p-2 rounded-xl text-center">
+                    {loginError}
+                  </p>
+                )}
+
+                <button
+                  disabled={authLoading || tempoBloqueio > 0}
+                  className="w-full bg-orange-500 text-white h-[40px] rounded-xl font-bold hover:bg-orange-600 transition shadow-lg text-[10px] uppercase tracking-wider disabled:opacity-50 mt-1 cursor-pointer"
+                >
+                  {authLoading ? "Verificando..." : tempoBloqueio > 0 ? `Aguarde (${tempoBloqueio}s)` : "Acessar Plataforma"}
+                </button>
+              </form>
+            </div>
+          ) : (
+            <div className="col-span-2 bg-gray-900 p-5 rounded-[1.8rem] relative overflow-hidden block">
+              <div className="flex items-center justify-between relative z-10 mb-3">
+                <div className="flex items-center gap-2.5">
+                  <Star size={18} className="text-orange-500" fill="currentColor" />
+                  <div>
+                    <p className="text-orange-400 text-[8px] font-black uppercase tracking-widest">{currentMobileCard.subtitle}</p>
+                    <h4 className="font-bold text-white text-sm">{currentMobileCard.title}</h4>
+                  </div>
+                </div>
+                <div className="flex gap-1.5" onClick={(e) => e.preventDefault()}>
+                  <button onClick={prevMobileCard} className="p-1.5 bg-white/5 rounded-full text-white active:bg-white/20 cursor-pointer"><ChevronLeft size={14} /></button>
+                  <button onClick={nextMobileCard} className="p-1.5 bg-white/5 rounded-full text-white active:bg-white/20 cursor-pointer"><ChevronRight size={14} /></button>
+                </div>
+              </div>
+
+              <div className="relative z-10 py-1.5 border-y border-white/5 mb-1">
+                {currentMobileCard.type === "pilares" ? (
+                  <p className="text-orange-100 text-[11px] font-medium italic opacity-80 leading-relaxed">
+                    "{currentMobileCard.content?.[pilarAtivo]?.fullDesc}"
+                  </p>
+                ) : (
+                  <p className="text-orange-100 text-[11px] font-medium italic opacity-80 leading-relaxed">
+                    "{currentMobileCard.text}"
+                  </p>
+                )}
+              </div>
+
+              {/* Paginação manual dos cards mobile */}
+              <div className="flex justify-center items-center gap-1.5 mt-3">
+                {mobileCards.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setMobileCardIndex(idx)}
+                    className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${idx === mobileCardIndex ? "w-5 bg-orange-500" : "w-1.5 bg-white/30"}`}
+                    aria-label={`Ir para card ${idx + 1}`}
+                  />
+                ))}
               </div>
             </div>
-
-            <div className="relative z-10 py-1.5 border-y border-white/5 mb-1">
-              {currentMobileCard.type === "pilares" ? (
-                <p className="text-orange-100 text-[11px] font-medium italic opacity-80 leading-relaxed">
-                  "{currentMobileCard.content?.[pilarAtivo]?.fullDesc}"
-                </p>
-              ) : (
-                <p className="text-orange-100 text-[11px] font-medium italic opacity-80 leading-relaxed">
-                  "{currentMobileCard.text}"
-                </p>
-              )}
-            </div>
-
-            {/* Paginação manual dos cards mobile */}
-            <div className="flex justify-center items-center gap-1.5 mt-3">
-              {mobileCards.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setMobileCardIndex(idx)}
-                  className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${idx === mobileCardIndex ? "w-5 bg-orange-500" : "w-1.5 bg-white/30"}`}
-                  aria-label={`Ir para card ${idx + 1}`}
-                />
-              ))}
-            </div>
-          </div>
+          )}
 
           <div className="col-span-2 bg-orange-50/60 border border-orange-100 p-3.5 rounded-2xl my-1 text-center">
             <p className="text-xs text-orange-950 font-medium leading-relaxed">
@@ -463,7 +632,7 @@ export default function ControleFinanceiroHome() {
             <div className="bg-orange-50/40 border-l-4 border-orange-500 p-5 md:p-8 my-0 rounded-2xl md:rounded-r-[2.5rem] relative overflow-hidden group transition-all hover:bg-orange-50/60 flex flex-col justify-center">
               <ShieldCheck className="absolute -right-6 -bottom-6 text-orange-500 opacity-5 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-700" size={150} />
               <p className="font-medium text-orange-950 text-base md:text-xl leading-relaxed relative z-10 tracking-tight">
-                "Nosso objetivo é transformar números brutos em decisões práticas para o seu dia a dia, permitindo que o seu foco esteja em entender o melhor momento para que sejam tomadas decisões inteligentes de compra." <br />
+                "Nosso objetivo é transformar números brutos em decisões em seu dia a dia, permitindo foco no entendimento em como você pode controlar suas finanças." <br />
                 <Link href="/cadastro" onClick={() => trackClick("Crie sua conta gratuitamente", "/cadastro")} className="text-orange-600 font-bold underline hover:text-orange-800 transition-colors text-xs md:text-sm">
                   <span className="inline md:hidden">Crie sua conta gratuitamente</span>
                 </Link>

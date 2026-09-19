@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import { supabase } from "@/lib/supabase";
+import { useLoginProtegido } from "@/hooks/useLoginProtegido";
 import {
     ShieldCheck,
     Target,
@@ -24,13 +25,32 @@ import {
     X,
     MessageSquarePlus,
     Sparkles,
-    Layers
+    Layers,
+    AtSign,
+    Key,
+    Eye,
+    EyeOff
 } from "lucide-react";
 
 export default function NucleobaseCondo() {
+    const {
+        emailOrSlug,
+        setEmailOrSlug,
+        password,
+        setPassword,
+        authLoading,
+        setAuthLoading,
+        loginError,
+        setLoginError,
+        tempoBloqueio,
+        tratarErroLogin,
+        resetarBloqueio
+    } = useLoginProtegido();
+
     const [pilarAtivo, setPilarAtivo] = useState(0);
     const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     // Estado para controlar o índice do carrossel vivo (apenas um card visível por vez)
     const [cardAtivoIndex, setCardAtivoIndex] = useState(0);
@@ -122,6 +142,51 @@ export default function NucleobaseCondo() {
         else setPilarAtivo(pilares.length - 1);
     };
 
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (tempoBloqueio > 0) return;
+
+        setAuthLoading(true);
+        setLoginError("");
+        const inputAcesso = emailOrSlug.trim().toLowerCase();
+        const isEmail = inputAcesso.includes("@");
+
+        try {
+            let emailParaLogin = "";
+            if (isEmail) {
+                emailParaLogin = inputAcesso;
+            } else {
+                const { data: emailEncontrado, error: profileError } = await supabase
+                    .rpc('get_email_by_slug', { p_slug: inputAcesso });
+
+                if (profileError) throw profileError;
+                if (!emailEncontrado) {
+                    tratarErroLogin("ID de usuário (Slug) não foi localizado.");
+                    return;
+                }
+                emailParaLogin = emailEncontrado;
+            }
+
+            const { error: authError } = await supabase.auth.signInWithPassword({
+                email: emailParaLogin,
+                password
+            });
+
+            if (authError) {
+                tratarErroLogin("Erro ao acessar: Verifique suas credenciais de acesso.");
+            } else {
+                resetarBloqueio();
+                window.dispatchEvent(new Event("storage"));
+                window.dataLayer?.push({ event: "user_login_success", page_location: "/condo" });
+                window.location.href = "/condo/dashboard";
+            }
+        } catch (err) {
+            tratarErroLogin("Ocorreu um erro inesperado.");
+        } finally {
+            setAuthLoading(false);
+        }
+    };
+
     const handleEnviarSolicitacao = (e: React.FormEvent) => {
         e.preventDefault();
         trackClick("Enviar Solicitação WhatsApp - Condo", "whatsapp_admin");
@@ -188,30 +253,95 @@ export default function NucleobaseCondo() {
     const CardsDestaqueDesktop = () => {
         return (
             <div className="flex flex-col gap-6 h-full justify-between items-end">
-                {/* CARD 1: ÁREA DO CONDÔMINO */}
-                <Link
-                    href="/condo/dashboard"
-                    onClick={() => trackClick("O Futuro do seu Prédio", "/condo/dashboard")}
-                    className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center cursor-pointer block w-full lg:max-w-[340px]"
-                >
-                    <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
-                        <Zap size={180} strokeWidth={1} className="text-blue-500" />
-                    </div>
-                    <div className="relative z-10 w-full">
-                        <div className="flex items-center gap-4 mb-2">
-                            <div className="w-14 h-14 shrink-0 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover:bg-white group-hover:text-blue-600 transition-all duration-500">
-                                <Users size={24} />
-                            </div>
-                            <div>
-                                <p className="text-blue-400 text-[9px] font-black uppercase tracking-[0.2em]">O Futuro do seu Prédio</p>
-                                <h4 className="font-bold text-white text-xl leading-tight">
-                                    {isLoggedIn ? "Área do condômino" : "Gestão inteligente"}
-                                </h4>
-                            </div>
+                {/* CARD 1: ÁREA DO CONDÔMINO / LOGIN */}
+                {!isLoggedIn ? (
+                    <div className="bg-gray-900 p-6 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden w-full lg:max-w-[340px]">
+                        <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
+                            <Zap size={180} strokeWidth={1} className="text-blue-500" />
                         </div>
-                        <BotaoAcessoDinamico isInsideLink={true} />
+                        <div className="relative z-10 w-full">
+                            <h4 className="font-bold text-white text-base mb-3">
+                                Realizar login<span className="text-blue-500">.</span>
+                            </h4>
+                            <form onSubmit={handleLogin} className="flex flex-col gap-2">
+                                <div className="space-y-2">
+                                    <div className="relative group">
+                                        <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-400 transition-colors" size={14} />
+                                        <input
+                                            type="text"
+                                            placeholder="ID de Usuário ou E-mail"
+                                            required
+                                            value={emailOrSlug}
+                                            className="w-full pl-9 pr-3 py-2.5 bg-white/10 border-none rounded-xl focus:ring-2 focus:ring-blue-400 outline-none text-xs text-white placeholder:text-gray-400"
+                                            onChange={(e) => setEmailOrSlug(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="relative group">
+                                        <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-400 transition-colors" size={14} />
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            placeholder="Senha de acesso"
+                                            required
+                                            value={password}
+                                            className="w-full pl-9 pr-9 py-2.5 bg-white/10 border-none rounded-xl focus:ring-2 focus:ring-blue-400 outline-none text-xs text-white placeholder:text-gray-400"
+                                            onChange={(e) => setPassword(e.target.value)}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-400 transition-colors cursor-pointer"
+                                        >
+                                            {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {tempoBloqueio > 0 && (
+                                    <div className="text-[10px] font-bold text-amber-400 bg-amber-500/10 p-2 rounded-xl text-center">
+                                        Muitas tentativas. Tente novamente em {tempoBloqueio}s.
+                                    </div>
+                                )}
+
+                                {loginError && tempoBloqueio === 0 && (
+                                    <p className="text-[10px] font-bold text-red-400 bg-red-500/10 p-2 rounded-xl text-center">
+                                        {loginError}
+                                    </p>
+                                )}
+
+                                <button
+                                    disabled={authLoading || tempoBloqueio > 0}
+                                    className="w-full bg-blue-600 text-white h-[40px] rounded-xl font-bold hover:bg-blue-500 transition shadow-lg text-[10px] uppercase tracking-wider disabled:opacity-50 mt-1 cursor-pointer"
+                                >
+                                    {authLoading ? "Verificando..." : tempoBloqueio > 0 ? `Aguarde (${tempoBloqueio}s)` : "Acessar Plataforma"}
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                </Link>
+                ) : (
+                    <Link
+                        href="/condo/dashboard"
+                        onClick={() => trackClick("O Futuro do seu Prédio", "/condo/dashboard")}
+                        className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center cursor-pointer block w-full lg:max-w-[340px]"
+                    >
+                        <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
+                            <Zap size={180} strokeWidth={1} className="text-blue-500" />
+                        </div>
+                        <div className="relative z-10 w-full">
+                            <div className="flex items-center gap-4 mb-2">
+                                <div className="w-14 h-14 shrink-0 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover:bg-white group-hover:text-blue-600 transition-all duration-500">
+                                    <Users size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-blue-400 text-[9px] font-black uppercase tracking-[0.2em]">O Futuro do seu Prédio</p>
+                                    <h4 className="font-bold text-white text-xl leading-tight">
+                                        Área do condômino
+                                    </h4>
+                                </div>
+                            </div>
+                            <BotaoAcessoDinamico isInsideLink={true} />
+                        </div>
+                    </Link>
+                )}
 
                 {/* CARD 2: CONTABILIDADE */}
                 <Link
@@ -307,30 +437,97 @@ export default function NucleobaseCondo() {
             </p>
 
             <div className="grid grid-cols-2 gap-3">
-                {/* CARD 1 MOBILE: ÁREA DO CONDÔMINO */}
-                <Link href="/condo/dashboard" onClick={() => trackClick("Área do Condômino (Mobile)", "/condo/dashboard")} className="col-span-2 bg-gray-900 p-6 rounded-[2rem] relative overflow-hidden block">
-                    <div className="flex items-center justify-between relative z-10 mb-4">
-                        <div className="flex items-center gap-3">
-                            <Users size={20} className="text-blue-500" />
-                            <div>
-                                <p className="text-blue-400 text-[8px] font-black uppercase tracking-widest">Modernização</p>
-                                <h4 className="font-bold text-white text-sm">Praticidade e Segurança</h4>
+                {/* CARD 1 MOBILE: ÁREA DO CONDÔMINO / LOGIN MOBILE */}
+                {!isLoggedIn ? (
+                    <div className="col-span-2 bg-gray-900 p-6 rounded-[2rem] relative overflow-hidden block">
+                        <div className="flex items-center justify-between relative z-10 mb-4">
+                            <div className="flex items-center gap-3">
+                                <Users size={20} className="text-blue-500" />
+                                <div>
+                                    <p className="text-blue-400 text-[8px] font-black uppercase tracking-widest">Acesso Restrito</p>
+                                    <h4 className="font-bold text-white text-sm">Realizar login</h4>
+                                </div>
                             </div>
                         </div>
-                        <div className="flex gap-2" onClick={(e) => e.preventDefault()}>
-                            <button onClick={anteriorPilar} className="p-2 bg-white/5 rounded-full text-white active:bg-white/20 cursor-pointer"><ChevronLeft size={16} /></button>
-                            <button onClick={proximoPilar} className="p-2 bg-white/5 rounded-full text-white active:bg-white/20 cursor-pointer"><ChevronRight size={16} /></button>
+
+                        <form onSubmit={handleLogin} className="flex flex-col gap-2 relative z-10">
+                            <div className="space-y-2">
+                                <div className="relative group">
+                                    <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-400 transition-colors" size={14} />
+                                    <input
+                                        type="text"
+                                        placeholder="ID de Usuário ou E-mail"
+                                        required
+                                        value={emailOrSlug}
+                                        className="w-full pl-9 pr-3 py-2.5 bg-white/10 border-none rounded-xl focus:ring-2 focus:ring-blue-400 outline-none text-xs text-white placeholder:text-gray-400"
+                                        onChange={(e) => setEmailOrSlug(e.target.value)}
+                                    />
+                                </div>
+                                <div className="relative group">
+                                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-400 transition-colors" size={14} />
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="Senha de acesso"
+                                        required
+                                        value={password}
+                                        className="w-full pl-9 pr-9 py-2.5 bg-white/10 border-none rounded-xl focus:ring-2 focus:ring-blue-400 outline-none text-xs text-white placeholder:text-gray-400"
+                                        onChange={(e) => setPassword(e.target.value)}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-400 transition-colors cursor-pointer"
+                                    >
+                                        {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {tempoBloqueio > 0 && (
+                                <div className="text-[10px] font-bold text-amber-400 bg-amber-500/10 p-2 rounded-xl text-center">
+                                    Muitas tentativas. Tente novamente em {tempoBloqueio}s.
+                                </div>
+                            )}
+
+                            {loginError && tempoBloqueio === 0 && (
+                                <p className="text-[10px] font-bold text-red-400 bg-red-500/10 p-2 rounded-xl text-center">
+                                    {loginError}
+                                </p>
+                            )}
+
+                            <button
+                                disabled={authLoading || tempoBloqueio > 0}
+                                className="w-full bg-blue-600 text-white h-[40px] rounded-xl font-bold hover:bg-blue-500 transition shadow-lg text-[10px] uppercase tracking-wider disabled:opacity-50 mt-1 cursor-pointer"
+                            >
+                                {authLoading ? "Verificando..." : tempoBloqueio > 0 ? `Aguarde (${tempoBloqueio}s)` : "Acessar Plataforma"}
+                            </button>
+                        </form>
+                    </div>
+                ) : (
+                    <Link href="/condo/dashboard" onClick={() => trackClick("Área do Condômino (Mobile)", "/condo/dashboard")} className="col-span-2 bg-gray-900 p-6 rounded-[2rem] relative overflow-hidden block">
+                        <div className="flex items-center justify-between relative z-10 mb-4">
+                            <div className="flex items-center gap-3">
+                                <Users size={20} className="text-blue-500" />
+                                <div>
+                                    <p className="text-blue-400 text-[8px] font-black uppercase tracking-widest">Modernização</p>
+                                    <h4 className="font-bold text-white text-sm">Praticidade e Segurança</h4>
+                                </div>
+                            </div>
+                            <div className="flex gap-2" onClick={(e) => e.preventDefault()}>
+                                <button onClick={anteriorPilar} className="p-2 bg-white/5 rounded-full text-white active:bg-white/20 cursor-pointer"><ChevronLeft size={16} /></button>
+                                <button onClick={proximoPilar} className="p-2 bg-white/5 rounded-full text-white active:bg-white/20 cursor-pointer"><ChevronRight size={16} /></button>
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="relative z-10 py-2 border-y border-white/5 mb-2">
-                        <p className="text-blue-100 text-[11px] font-medium italic opacity-80 leading-relaxed">
-                            "{pilares[pilarAtivo].fullDesc}"
-                        </p>
-                    </div>
+                        <div className="relative z-10 py-2 border-y border-white/5 mb-2">
+                            <p className="text-blue-100 text-[11px] font-medium italic opacity-80 leading-relaxed">
+                                "{pilares[pilarAtivo].fullDesc}"
+                            </p>
+                        </div>
 
-                    <BotaoAcessoDinamico isInsideLink={true} />
-                </Link>
+                        <BotaoAcessoDinamico isInsideLink={true} />
+                    </Link>
+                )}
 
                 {/* CARD 2 MOBILE: CONTABILIDADE */}
                 <Link href="/condo/contabilidade" onClick={() => trackClick("Contabilidade (Mobile)", "/condo/contabilidade")} className="col-span-2 bg-white border border-gray-300 p-6 rounded-[2rem] shadow-md relative overflow-hidden block">

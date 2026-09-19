@@ -202,17 +202,15 @@ export default function LancamentosPage() {
       let emailParaLogin = inputAcesso;
 
       if (!inputAcesso.includes("@")) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('email')
-          .eq('slug', inputAcesso)
-          .maybeSingle();
+        const { data: emailEncontrado, error: profileError } = await supabase
+          .rpc('get_email_by_slug', { p_slug: inputAcesso });
 
-        if (!profile?.email) {
-          tratarErroLogin("E-mail ou ID não localizado.");
+        if (profileError) throw profileError;
+        if (!emailEncontrado) {
+          tratarErroLogin("ID de usuário (Slug) não foi localizado.");
           return;
         }
-        emailParaLogin = profile.email;
+        emailParaLogin = emailEncontrado;
       }
 
       const { data, error } = await supabase.auth.signInWithPassword({

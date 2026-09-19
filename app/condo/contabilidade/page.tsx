@@ -2,7 +2,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 import { useLoginProtegido } from "@/hooks/useLoginProtegido";
 import {
     Building2,
@@ -23,8 +23,15 @@ import {
     Eye,
     EyeOff,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    AtSign,
+    KeyRound
 } from "lucide-react";
+
+const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 interface LinhaRelatorioConsolidado {
     unidade: string;
@@ -382,26 +389,10 @@ export default function ContabilidadeCondoPage() {
             let emailParaLogin = inputAcesso;
 
             if (!inputAcesso.includes("@")) {
-                let emailEncontrado = null;
-                try {
-                    const { data: rpcEmail, error: rpcError } = await supabase
-                        .rpc('get_email_by_slug', { p_slug: inputAcesso });
-                    if (!rpcError && rpcEmail) {
-                        emailEncontrado = rpcEmail;
-                    }
-                } catch (e) {
-                    console.error("Erro na busca por RPC slug:", e);
-                }
+                const { data: emailEncontrado, error: profileError } = await supabase
+                    .rpc('get_email_by_slug', { p_slug: inputAcesso });
 
-                if (!emailEncontrado) {
-                    const { data: profile } = await supabase
-                        .from('profiles')
-                        .select('email_contato')
-                        .eq('slug', inputAcesso)
-                        .maybeSingle();
-                    emailEncontrado = profile?.email_contato;
-                }
-
+                if (profileError) throw profileError;
                 if (!emailEncontrado) {
                     tratarErroLogin("ID de usuário (Slug) não foi localizado.");
                     return;
@@ -409,13 +400,16 @@ export default function ContabilidadeCondoPage() {
                 emailParaLogin = emailEncontrado;
             }
 
-            const { data, error } = await supabase.auth.signInWithPassword({ email: emailParaLogin, password });
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: emailParaLogin,
+                password
+            });
+
             if (error || !data.session) {
                 tratarErroLogin("Credenciais incorretas.");
                 return;
             }
 
-            // Verificar se o usuário autenticado possui o papel de contabilidade ou adm antes de liberar
             const { data: membroDataList } = await supabase
                 .from("condominio_membros")
                 .select("role")
@@ -491,23 +485,27 @@ export default function ContabilidadeCondoPage() {
                     <form onSubmit={handleLogin} className="space-y-3 text-left">
                         <div>
                             <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider ml-1">E-mail ou ID</label>
-                            <input
-                                type="text"
-                                required
-                                placeholder="exemplo@dominio.com"
-                                className="w-full mt-0.5 px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs outline-none focus:border-emerald-400 font-medium"
-                                value={emailOrSlug}
-                                onChange={(e) => setEmailOrSlug(e.target.value)}
-                            />
+                            <div className="relative mt-0.5">
+                                <AtSign className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
+                                <input
+                                    type="text"
+                                    required
+                                    placeholder="exemplo@dominio.com"
+                                    className="w-full pl-10 pr-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs outline-none focus:border-emerald-400 font-medium"
+                                    value={emailOrSlug}
+                                    onChange={(e) => setEmailOrSlug(e.target.value)}
+                                />
+                            </div>
                         </div>
                         <div>
                             <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Senha</label>
                             <div className="relative mt-0.5">
+                                <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     required
                                     placeholder="••••••••"
-                                    className="w-full px-3 py-2.5 pr-10 bg-zinc-50 border border-zinc-200 rounded-xl text-xs outline-none focus:border-emerald-400 font-medium"
+                                    className="w-full pl-10 pr-10 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs outline-none focus:border-emerald-400 font-medium"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                 />

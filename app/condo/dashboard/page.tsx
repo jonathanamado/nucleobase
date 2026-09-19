@@ -198,18 +198,15 @@ export default function CondoDashboard() {
             if (isEmail) {
                 emailParaLogin = inputAcesso;
             } else {
-                const { data: profile, error: profileError } = await supabase
-                    .from('profiles')
-                    .select('email_contato')
-                    .eq('slug', inputAcesso)
-                    .maybeSingle();
+                const { data: emailEncontrado, error: profileError } = await supabase
+                    .rpc('get_email_by_slug', { p_slug: inputAcesso });
 
                 if (profileError) throw profileError;
-                if (!profile || !profile.email_contato) {
-                    tratarErroLogin("ID de usuário ou e-mail não foi localizado.");
+                if (!emailEncontrado) {
+                    tratarErroLogin("ID de usuário (Slug) não foi localizado.");
                     return;
                 }
-                emailParaLogin = profile.email_contato;
+                emailParaLogin = emailEncontrado;
             }
 
             const { data, error } = await supabase.auth.signInWithPassword({
