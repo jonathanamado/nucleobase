@@ -31,6 +31,7 @@ interface ContaCondominio {
     tipo: 'receita' | 'despesa';
     categoria: string;
     descricao: string;
+    detalhamento?: string | null;
     valor_previsto: number;
     valor_realizado: number;
     data_competencia: string;
@@ -645,19 +646,19 @@ export default function PrestacaoContasPage() {
                             <table className="w-full text-left border-collapse whitespace-nowrap">
                                 <thead className="sticky top-0 bg-white z-10">
                                     <tr className="border-b border-zinc-100">
-                                        <th className="pb-3 pr-6 text-[10px] font-black text-zinc-400 uppercase tracking-wider align-top text-left">
+                                        <th className="pb-3 pr-6 text-[10px] font-black text-zinc-400 tracking-wider align-top text-left capitalize">
                                             <button onClick={() => toggleSort('tipo')} className="flex items-center gap-1 hover:text-zinc-700 cursor-pointer">
                                                 Tipo <ArrowUpDown size={12} />
                                             </button>
                                         </th>
-                                        <th className="pb-3 px-6 text-[10px] font-black text-zinc-400 uppercase tracking-wider align-top text-left">
+                                        <th className="pb-3 px-6 text-[10px] font-black text-zinc-400 tracking-wider align-top text-left capitalize">
                                             <button onClick={() => toggleSort('descricao')} className="flex items-center gap-1 hover:text-zinc-700 cursor-pointer">
                                                 Descrição <ArrowUpDown size={12} />
                                             </button>
                                         </th>
-                                        <th className="pb-3 px-6 text-[10px] font-black text-zinc-400 uppercase tracking-wider align-top text-left">Competência</th>
-                                        <th className="pb-3 px-6 text-[10px] font-black text-zinc-400 uppercase tracking-wider align-top text-left">Realizado</th>
-                                        <th className="pb-3 pl-6 text-[10px] font-black text-zinc-400 uppercase tracking-wider align-top text-left">Status</th>
+                                        <th className="pb-3 px-6 text-[10px] font-black text-zinc-400 tracking-wider align-top text-left capitalize">Detalhamento</th>
+                                        <th className="pb-3 px-6 text-[10px] font-black text-zinc-400 tracking-wider align-top text-left capitalize">Realizado</th>
+                                        <th className="pb-3 pl-6 text-[10px] font-black text-zinc-400 tracking-wider align-top text-left capitalize">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-zinc-50 text-sm">
@@ -670,10 +671,9 @@ export default function PrestacaoContasPage() {
                                                 </td>
                                                 <td className={`py-3 px-6 text-xs align-top text-left ${corLinha}`}>
                                                     <div>{conta.descricao}</div>
-                                                    <div className="text-[10px] text-zinc-400 max-w-xs hidden md:block font-normal mt-0.5">{conta.descricao || "Sem observações"}</div>
                                                 </td>
                                                 <td className={`py-3 px-6 text-xs align-top text-left ${corLinha}`}>
-                                                    {conta.data_competencia?.slice(0, 7)}
+                                                    <div>{conta.detalhamento || '-'}</div>
                                                 </td>
                                                 <td className={`py-3 px-6 text-xs align-top text-left ${corLinha}`}>
                                                     R$ {Number(conta.valor_realizado).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}

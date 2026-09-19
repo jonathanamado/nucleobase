@@ -188,7 +188,7 @@ export default function NucleobaseCondo() {
     const CardsDestaqueDesktop = () => {
         return (
             <div className="flex flex-col gap-6 h-full justify-between items-end">
-                {/* CARD 1: ÁREA DO CONDOMÍNIO */}
+                {/* CARD 1: ÁREA DO CONDÔMINO */}
                 <Link
                     href="/condo/dashboard"
                     onClick={() => trackClick("O Futuro do seu Prédio", "/condo/dashboard")}
@@ -205,7 +205,7 @@ export default function NucleobaseCondo() {
                             <div>
                                 <p className="text-blue-400 text-[9px] font-black uppercase tracking-[0.2em]">O Futuro do seu Prédio</p>
                                 <h4 className="font-bold text-white text-xl leading-tight">
-                                    {isLoggedIn ? "Área do condomínio" : "Gestão inteligente"}
+                                    {isLoggedIn ? "Área do condômino" : "Gestão inteligente"}
                                 </h4>
                             </div>
                         </div>
@@ -257,12 +257,12 @@ export default function NucleobaseCondo() {
                     href={itemAtual.link}
                     key={cardAtivoIndex}
                     onClick={() => trackClick(`Carrossel Destaque: ${itemAtual.title}`, itemAtual.link)}
-                    className={`p-5 rounded-[2.2rem] transition-all duration-500 animate-in fade-in zoom-in-95 flex items-start gap-4 h-auto min-h-[110px] block cursor-pointer ${itemAtual.highlight
+                    className={`p-5 rounded-[2.2rem] transition-all duration-300 flex items-start gap-4 h-auto min-h-[110px] block cursor-pointer ${itemAtual.highlight
                         ? "bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xl shadow-blue-600/25 border-2 border-blue-400 hover:opacity-95"
                         : "bg-white border-2 border-gray-200 shadow-lg hover:border-blue-300"
                         }`}
                 >
-                    <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-sm mt-0.5 ${itemAtual.highlight
+                    <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-sm mt-0.5 ${itemAtual.highlight
                         ? "bg-white/15 text-white"
                         : "bg-blue-50 text-blue-600"
                         }`}>
@@ -307,8 +307,8 @@ export default function NucleobaseCondo() {
             </p>
 
             <div className="grid grid-cols-2 gap-3">
-                {/* CARD 1 MOBILE: ÁREA DO CONDOMÍNIO */}
-                <Link href="/condo/dashboard" onClick={() => trackClick("Área do Condomínio (Mobile)", "/condo/dashboard")} className="col-span-2 bg-gray-900 p-6 rounded-[2rem] relative overflow-hidden block">
+                {/* CARD 1 MOBILE: ÁREA DO CONDÔMINO */}
+                <Link href="/condo/dashboard" onClick={() => trackClick("Área do Condômino (Mobile)", "/condo/dashboard")} className="col-span-2 bg-gray-900 p-6 rounded-[2rem] relative overflow-hidden block">
                     <div className="flex items-center justify-between relative z-10 mb-4">
                         <div className="flex items-center gap-3">
                             <Users size={20} className="text-blue-500" />

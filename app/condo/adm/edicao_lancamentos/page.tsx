@@ -23,6 +23,7 @@ interface ContaItem {
     tipo: 'receita' | 'despesa';
     categoria: string;
     descricao: string;
+    detalhamento?: string | null;
     valor_previsto: number;
     valor_realizado: number;
     data_competencia: string;
@@ -41,6 +42,7 @@ export default function EdicaoLancamentosPage() {
     const [itemEditando, setItemEditando] = useState<ContaItem | null>(null);
     const [categoriaInput, setCategoriaInput] = useState("");
     const [descricaoInput, setDescricaoInput] = useState("");
+    const [detalhamentoInput, setDetalhamentoInput] = useState("");
     const [valorRealizadoInput, setValorRealizadoInput] = useState("");
     const [msgSucesso, setMsgSucesso] = useState("");
     const [msgErro, setMsgErro] = useState("");
@@ -224,6 +226,7 @@ export default function EdicaoLancamentosPage() {
         setItemEditando(item);
         setCategoriaInput(item.categoria);
         setDescricaoInput(item.descricao);
+        setDetalhamentoInput(item.detalhamento || "");
         setValorRealizadoInput(item.valor_realizado.toString());
         setMsgSucesso("");
         setMsgErro("");
@@ -243,6 +246,7 @@ export default function EdicaoLancamentosPage() {
                 .update({
                     categoria: categoriaInput.trim(),
                     descricao: descricaoInput.trim(),
+                    detalhamento: detalhamentoInput.trim() || null,
                     valor_realizado: parseFloat(valorRealizadoInput) || 0
                 })
                 .eq("id", itemEditando.id);
@@ -373,6 +377,7 @@ export default function EdicaoLancamentosPage() {
                                     <tr>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Categoria</th>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Descrição</th>
+                                        <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Detalhamento</th>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Competência</th>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider">Realizado</th>
                                         <th className="pb-3 text-[10px] font-black text-zinc-400 uppercase tracking-wider text-right sticky right-0 bg-white z-30 shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.05)] pr-4">Ações</th>
@@ -388,6 +393,9 @@ export default function EdicaoLancamentosPage() {
                                                 </td>
                                                 <td className={`py-3.5 pr-3 text-xs font-bold ${corTextoNatureza}`}>
                                                     {item.descricao || '-'}
+                                                </td>
+                                                <td className={`py-3.5 pr-3 text-xs font-bold ${corTextoNatureza}`}>
+                                                    {item.detalhamento || '-'}
                                                 </td>
                                                 <td className={`py-3.5 pr-3 text-xs font-bold ${corTextoNatureza}`}>
                                                     {item.data_competencia ? new Date(item.data_competencia).toLocaleDateString('pt-BR', { timeZone: 'UTC', month: '2-digit', year: 'numeric' }) : '-'}
@@ -458,6 +466,16 @@ export default function EdicaoLancamentosPage() {
                                     required
                                     value={descricaoInput}
                                     onChange={(e) => setDescricaoInput(e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-medium"
+                                />
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Detalhamento</label>
+                                <input
+                                    type="text"
+                                    value={detalhamentoInput}
+                                    onChange={(e) => setDetalhamentoInput(e.target.value)}
                                     className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-medium"
                                 />
                             </div>

@@ -1,3 +1,4 @@
+// app/condo/adm/prestacao_contas/page.tsx
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
@@ -83,6 +84,7 @@ export default function PrestacaoContasPage() {
     const [tipoConta, setTipoConta] = useState<'receita' | 'despesa'>('receita');
     const [categoriaConta, setCategoriaConta] = useState('Receita Condomínio');
     const [descricaoConta, setDescricaoConta] = useState('Pagamento Condomínio');
+    const [detalhamentoConta, setDetalhamentoConta] = useState('');
     const [valorPrevistoConta, setValorPrevistoConta] = useState('0,00');
     const [valorRealizadoConta, setValorRealizadoConta] = useState('0,00');
     const [dataCompetenciaConta, setDataCompetenciaConta] = useState(new Date().toISOString().slice(0, 7) + '-01');
@@ -559,6 +561,7 @@ export default function PrestacaoContasPage() {
                         tipo: tipoConta,
                         categoria: categoriaConta.trim(),
                         descricao: descricaoConta.trim(),
+                        detalhamento: detalhamentoConta.trim() || null,
                         valor_previsto: previstoNum,
                         valor_realizado: realizadoNum > 0 ? realizadoNum : previstoNum,
                         data_competencia: dataCompetenciaConta,
@@ -573,6 +576,7 @@ export default function PrestacaoContasPage() {
             setContasSuccess("Lançamento financeiro registrado com sucesso!");
             setValorPrevistoConta("0,00");
             setValorRealizadoConta("0,00");
+            setDetalhamentoConta("");
             await carregarDadosCompetencia(condominio.id, competenciaSelecionada);
             setTimeout(() => setContasSuccess(""), 2000);
         } catch (err: any) {
@@ -1187,25 +1191,47 @@ export default function PrestacaoContasPage() {
                                 </button>
                             </div>
 
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Categoria</label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={categoriaConta}
-                                    onChange={(e) => setCategoriaConta(e.target.value)}
-                                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium text-zinc-900"
-                                />
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Categoria</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={categoriaConta}
+                                        onChange={(e) => setCategoriaConta(e.target.value)}
+                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium text-zinc-900"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Descrição</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Ex: Pagamento Condomínio"
+                                        required
+                                        value={descricaoConta}
+                                        onChange={(e) => setDescricaoConta(e.target.value)}
+                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium text-zinc-900"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Mês de Competência</label>
+                                    <input
+                                        type="date"
+                                        required
+                                        value={dataCompetenciaConta}
+                                        onChange={(e) => setDataCompetenciaConta(e.target.value)}
+                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium text-zinc-900"
+                                    />
+                                </div>
                             </div>
 
                             <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Descrição</label>
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Detalhamento</label>
                                 <input
                                     type="text"
-                                    placeholder="Ex: Pagamento Condomínio"
-                                    required
-                                    value={descricaoConta}
-                                    onChange={(e) => setDescricaoConta(e.target.value)}
+                                    placeholder="Ex: Detalhes adicionais do lançamento..."
+                                    value={detalhamentoConta}
+                                    onChange={(e) => setDetalhamentoConta(e.target.value)}
                                     className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium text-zinc-900"
                                 />
                             </div>
@@ -1235,17 +1261,6 @@ export default function PrestacaoContasPage() {
                                         className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium text-zinc-900"
                                     />
                                 </div>
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Mês de Competência</label>
-                                <input
-                                    type="date"
-                                    required
-                                    value={dataCompetenciaConta}
-                                    onChange={(e) => setDataCompetenciaConta(e.target.value)}
-                                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium text-zinc-900"
-                                />
                             </div>
 
                             {contasError && <p className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 p-3 rounded-xl">{contasError}</p>}
