@@ -1,9 +1,7 @@
-Revise e se necessário ajuste antes do deploy:
+// app/acesso-usuario/page.tsx
+"use client";
 
-  // app/acesso-usuario/page.tsx
-  "use client";
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoginProtegido } from "@/hooks/useLoginProtegido";
 import { useSearchParams } from "next/navigation";
@@ -17,7 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-export default function AcessoUsuarioPage() {
+function AcessoUsuarioContent() {
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get("redirect");
 
@@ -216,6 +214,8 @@ export default function AcessoUsuarioPage() {
     setResetLoading(false);
   };
 
+  const cadastroUrlComRedirect = `/cadastro${redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}` : ""}`;
+
   return (
     <div className="w-full pr-0 md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0 pt-0">
 
@@ -228,7 +228,6 @@ export default function AcessoUsuarioPage() {
                 Seja bem vindo <span className="text-orange-500">{isLoggedIn ? "(a)," : "(a)"}</span>
               </span>
             </h1>
-
           </div>
 
           <div className="text-xl md:text-3xl text-gray-900 max-w-none leading-tight mb-4 flex items-center flex-wrap whitespace-nowrap">
@@ -266,7 +265,7 @@ export default function AcessoUsuarioPage() {
             ) : (
               <span>
                 Para prosseguir em sua conta, realize o login. Caso não possua uma conta,{" "}
-                <Link href="/cadastro" onClick={() => trackClick("Cadastre-se Aqui", "/cadastro")} className="text-blue-600 hover:underline inline-flex items-center gap-1 cursor-pointer">
+                <Link href={cadastroUrlComRedirect} onClick={() => trackClick("Cadastre-se Aqui", cadastroUrlComRedirect)} className="text-blue-600 hover:underline inline-flex items-center gap-1 cursor-pointer">
                   <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md shadow-sm inline-block leading-none ml-1 font-bold tracking-tight">
                     cadastre-se aqui
                   </span>
@@ -602,5 +601,13 @@ export default function AcessoUsuarioPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AcessoUsuarioPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white" />}>
+      <AcessoUsuarioContent />
+    </Suspense>
   );
 }
