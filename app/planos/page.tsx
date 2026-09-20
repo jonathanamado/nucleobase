@@ -1,9 +1,10 @@
 // app/planos/page.tsx
 "use client";
 import React, { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 import {
   Zap, ShieldCheck, BarChart3, ShoppingCart,
-  CheckCircle2, Info, Star, TrendingUp, Gem,
+  CheckCircle2, Star, Gem,
   QrCode, X, Copy, Check, MessageCircle, Instagram,
   ChevronLeft, ChevronRight, Headphones, RefreshCcw, Rocket
 } from "lucide-react";
@@ -15,6 +16,7 @@ export default function PaginaDePlanos() {
 
   const [currentCardMobile, setCurrentCardMobile] = useState(0);
   const [currentCardDesktop, setCurrentCardDesktop] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const PIX_KEY = "contato@nucleobase.app";
   const WHATSAPP_LINK_ID = "q46hkm";
@@ -25,6 +27,12 @@ export default function PaginaDePlanos() {
       content_category: "comercial",
       content_name: "planos_e_assinaturas"
     });
+
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    };
+    checkAuth();
   }, []);
 
   const trackClick = (label: string, destination: string) => {
@@ -89,47 +97,75 @@ export default function PaginaDePlanos() {
     discount
   }: {
     lookupKey: string,
-    label: string,
+    label: React.ReactNode,
     className?: string,
     description: string,
     href?: string,
     discount?: string
   }) => {
-    const handleClick = () => {
-      trackClick(`Plano: ${description} (${lookupKey})`, href || "/api/stripe");
+    const [loadingStripe, setLoadingStripe] = useState(false);
+
+    const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+
+      if (href) {
+        trackClick(`Plano: ${description} (${lookupKey})`, href);
+        window.location.href = href;
+        return;
+      }
+
+      setLoadingStripe(true);
+      trackClick(`Plano: ${description} (${lookupKey})`, "/api/stripe");
+
+      try {
+        // Captura o token atual da sessão do Supabase no cliente
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+
+        const response = await fetch("/api/stripe", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { "Authorization": `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify({ lookup_key: lookupKey }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert(data.error || "Erro ao processar assinatura.");
+          setLoadingStripe(false);
+          return;
+        }
+
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          alert("URL de checkout não retornada.");
+          setLoadingStripe(false);
+        }
+      } catch (error) {
+        console.error("Erro na comunicação com a Stripe:", error);
+        alert("Erro de conexão com o servidor. Tente novamente.");
+        setLoadingStripe(false);
+      }
     };
 
-    if (href) {
-      return (
-        <a href={href} onClick={handleClick} className="block w-full no-underline">
-          <button className={`${className} cursor-pointer transition-transform active:scale-[0.98] flex items-center justify-center gap-2`}>
-            {label}
-            {discount && (
-              <span className="bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5 rounded text-[8px] font-black">
-                {discount}
-              </span>
-            )}
-          </button>
-        </a>
-      );
-    }
-
     return (
-      <form action="/api/stripe" method="POST" className="w-full" onSubmit={handleClick}>
-        <input type="hidden" name="lookup_key" value={lookupKey} />
-        <button
-          type="submit"
-          title={description}
-          className={`${className} cursor-pointer transition-transform active:scale-[0.98] flex items-center justify-center gap-2 w-full`}
-        >
-          {label}
-          {discount && (
-            <span className="bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5 rounded text-[8px] font-black">
-              {discount}
-            </span>
-          )}
-        </button>
-      </form>
+      <button
+        onClick={handleClick}
+        disabled={loadingStripe}
+        title={description}
+        className={`${className} cursor-pointer transition-transform active:scale-[0.98] flex items-center justify-center gap-2 w-full disabled:opacity-50`}
+      >
+        {loadingStripe ? "Aguarde..." : label}
+        {discount && !loadingStripe && (
+          <span className="bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5 rounded text-[8px] font-black">
+            {discount}
+          </span>
+        )}
+      </button>
     );
   };
 
@@ -211,7 +247,16 @@ export default function PaginaDePlanos() {
             </ul>
           </div>
           <div className="relative z-10">
-            <a href="/cadastro" onClick={() => trackClick("Começar Degustação (Plano Gratuito)", "/cadastro")} className="block w-full py-4 bg-white border border-slate-200 text-slate-900 text-center rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all shadow-sm">
+            <a
+              href={isLoggedIn ? "/acesso-usuario" : "/cadastro"}
+              onClick={(e) => {
+                e.preventDefault();
+                const destination = isLoggedIn ? "/acesso-usuario" : "/cadastro";
+                trackClick("Começar Degustação", destination);
+                window.location.href = destination;
+              }}
+              className="block w-full py-4 bg-white border border-slate-200 text-slate-900 text-center rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all shadow-sm cursor-pointer"
+            >
               Começar Degustação
             </a>
           </div>
@@ -237,9 +282,9 @@ export default function PaginaDePlanos() {
             </div>
 
             <div className="grid grid-cols-3 gap-2 mb-8">
-              <CheckoutForm lookupKey="essencial_trimestral" label="Trim." description="Trimestral" discount="-9%" className="w-full py-2 bg-slate-50 border border-slate-100 text-slate-600 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white hover:border-slate-300 transition-all" />
-              <CheckoutForm lookupKey="essencial_semestral" label="Semest." description="Semestral" discount="-15%" className="w-full py-2 bg-slate-50 border border-slate-100 text-slate-600 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white hover:border-slate-300 transition-all" />
-              <CheckoutForm lookupKey="essencial_anual" label="Anual" description="Anual" discount="-24%" className="w-full py-2 bg-blue-50 border border-blue-100 text-blue-600 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-blue-600 hover:text-white transition-all" />
+              <CheckoutForm lookupKey="essencial_trimestral" label={<span className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-1"><span>Trim.</span> <span>-9%</span></span>} description="Trimestral" className="w-full py-2 bg-slate-50 border border-slate-100 text-slate-600 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white hover:border-slate-300 transition-all text-center leading-tight" />
+              <CheckoutForm lookupKey="essencial_semestral" label={<span className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-1"><span>Semest.</span> <span>-15%</span></span>} description="Semestral" className="w-full py-2 bg-slate-50 border border-slate-100 text-slate-600 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white hover:border-slate-300 transition-all text-center leading-tight" />
+              <CheckoutForm lookupKey="essencial_anual" label={<span className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-1"><span>Anual</span> <span>-24%</span></span>} description="Anual" className="w-full py-2 bg-blue-50 border border-blue-100 text-blue-600 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-blue-600 hover:text-white transition-all text-center leading-tight" />
             </div>
 
             <ul className="space-y-4 mb-6">
@@ -251,7 +296,7 @@ export default function PaginaDePlanos() {
             </ul>
           </div>
           <div className="mt-auto">
-            <CheckoutForm lookupKey="essencial_mensal" label="Assinar Mensal" href="/planos/essencial" description="Mensal" className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-blue-600 transition-all shadow-sm" />
+            <CheckoutForm lookupKey="essencial_mensal" label="Veja mais detalhes" href="/planos/essencial" description="Veja mais detalhes do Plano Essencial" className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-blue-600 transition-all shadow-sm" />
           </div>
         </div>
 
@@ -277,9 +322,9 @@ export default function PaginaDePlanos() {
             </div>
 
             <div className="grid grid-cols-3 gap-2 mb-8">
-              <CheckoutForm lookupKey="pro_trimestral" label="Trim." description="Trimestral" discount="-12%" className="w-full py-2 bg-white/5 border border-white/10 text-slate-300 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white/10 transition-all" />
-              <CheckoutForm lookupKey="pro_semestral" label="Semest." description="Semestral" discount="-18%" className="w-full py-2 bg-white/5 border border-white/10 text-slate-300 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white/10 transition-all" />
-              <CheckoutForm lookupKey="pro_anual" label="Anual" description="Anual" discount="-25%" className="w-full py-2 bg-white text-slate-900 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-blue-400 hover:text-white transition-all" />
+              <CheckoutForm lookupKey="pro_trimestral" label={<span className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-1"><span>Trim.</span> <span>-12%</span></span>} description="Trimestral" className="w-full py-2 bg-white/5 border border-white/10 text-slate-300 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white/10 transition-all text-center leading-tight" />
+              <CheckoutForm lookupKey="pro_semestral" label={<span className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-1"><span>Semest.</span> <span>-18%</span></span>} description="Semestral" className="w-full py-2 bg-white/5 border border-white/10 text-slate-300 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white/10 transition-all text-center leading-tight" />
+              <CheckoutForm lookupKey="pro_anual" label={<span className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-1"><span>Anual</span> <span>-25%</span></span>} description="Anual" className="w-full py-2 bg-white text-slate-900 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-blue-400 hover:text-white transition-all text-center leading-tight" />
             </div>
 
             <ul className="space-y-4 mb-6">
@@ -291,7 +336,7 @@ export default function PaginaDePlanos() {
             </ul>
           </div>
           <div className="relative z-10 mt-auto">
-            <CheckoutForm lookupKey="pro_mensal" label="Assinar Pro Mensal" href="/planos/pro" description="Mensal" className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-blue-500 transition-all shadow-lg shadow-blue-900/40" />
+            <CheckoutForm lookupKey="pro_mensal" label="Conheça todas as vantagens" href="/planos/pro" description="Conheça todas as vantagens de um Plano Pro" className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-blue-500 transition-all shadow-lg shadow-blue-900/40" />
           </div>
           <div className="absolute -right-20 -top-20 w-80 h-80 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none group-hover:bg-blue-600/20 transition-all duration-700"></div>
         </div>
