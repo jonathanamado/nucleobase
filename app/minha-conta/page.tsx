@@ -859,7 +859,7 @@ export default function MinhaContaPage() {
             Acesso Empresarial <div className="h-px bg-emerald-200/60 flex-1"></div>
           </h3>
           <p className="text-xs text-gray-600 mb-8 leading-relaxed font-medium hidden md:block">
-            As alterações da conta empresarial são gerenciadas pela equipe Nucleobase. Para este perfil, preencha os dados nos campos abaixo e envie as informações diretamente à administração.
+            As alterações da conta empresarial são gerenciadas pela equipe Nucleobase. Para este perfil, preencha os dados nos campos abaixo e realize o envio à administração através do botão 'Enviar dados cadastrais'.
           </p>
           <p className="text-xs text-gray-600 mb-8 leading-relaxed font-medium block md:hidden">
             Gestão de conta empresarial simplificada. Envie os dados abaixo para nossa administração.

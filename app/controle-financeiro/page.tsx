@@ -383,7 +383,7 @@ export default function ControleFinanceiroHome() {
                   </h4>
                 </div>
               </div>
-              <BotaoAcessoDinamico isInsideLink={true} />
+              {BotaoAcessoDinamico({ isInsideLink: true })}
             </div>
           </Link>
         )}
@@ -640,13 +640,13 @@ export default function ControleFinanceiroHome() {
             </div>
 
             <div className="block lg:hidden">
-              <LayoutDestaqueMobile />
+              {LayoutDestaqueMobile()}
             </div>
           </div>
         </div>
 
         <div className="hidden lg:block lg:col-span-5 h-full">
-          <CardsDestaqueDesktop />
+          {CardsDestaqueDesktop()}
         </div>
       </div>
 

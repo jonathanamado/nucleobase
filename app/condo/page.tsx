@@ -253,7 +253,7 @@ export default function NucleobaseCondo() {
 
     const CardsDestaqueDesktop = () => {
         return (
-            <div className="flex flex-col justify-between items-stretch w-full h-full">
+            <div className="flex flex-col justify-between items-stretch w-full h-full gap-6">
                 {/* CARD 1: ÁREA DO CONDÔMINO / LOGIN */}
                 {!isLoggedIn ? (
                     <div className="bg-gray-900 p-6 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden w-full flex flex-col justify-center">
@@ -341,7 +341,7 @@ export default function NucleobaseCondo() {
                                     </h4>
                                 </div>
                             </div>
-                            <BotaoAcessoDinamico isInsideLink={true} />
+                            {BotaoAcessoDinamico({ isInsideLink: true })}
                         </div>
                     </Link>
                 )}
@@ -519,7 +519,7 @@ export default function NucleobaseCondo() {
                             </p>
                         </div>
 
-                        <BotaoAcessoDinamico isInsideLink={true} />
+                        {BotaoAcessoDinamico({ isInsideLink: true })}
                     </Link>
                 )}
 
@@ -630,27 +630,24 @@ export default function NucleobaseCondo() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch mb-6">
                 <div className="lg:col-span-8 text-gray-700 text-lg leading-[1.8] flex flex-col justify-between min-w-0">
-                    <div className="flex flex-col justify-between h-full">
-                        <div>
-                            <p className="mb-4 leading-relaxed text-gray-700 hidden md:block">
-                                A Nucleo Condo nasceu para permitir clareza aos fluxos, e agora trazemos o mesmo rigor para a{" "}
-                                <span className="inline-flex items-center justify-center bg-emerald-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
-                                    Administração
-                                </span>{" "}
-                                de condomínios. Sabendo que o principal calcanhar de Aquiles neste segmento é a histórica e constante dificuldade de transparência, unimos tecnologia e clareza absoluta para a rotina de síndicos e condôminos, unificando e facilitando decisões.
-                            </p>
+                    <div className="flex flex-col justify-between h-full gap-6">
+                        <p className="leading-relaxed text-gray-700 hidden md:block">
+                            A Nucleo Condo nasceu para permitir clareza aos fluxos, e agora trazemos o mesmo rigor para a{" "}
+                            <span className="inline-flex items-center justify-center bg-emerald-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
+                                Administração de condomínios
+                            </span>{" "}
+                            . Sabendo que o principal calcanhar de Aquiles neste segmento é dificuldade de transparência, unimos tecnologia e clareza para a rotina de síndicos e condôminos, unificando e facilitando decisões.
+                        </p>
 
-                            {/* Card reposicionado logo após o primeiro parágrafo com uma única quebra de linha */}
-                            <div className="bg-blue-50/40 border-l-4 border-blue-600 p-4 md:p-6 my-4 rounded-2xl relative overflow-hidden group transition-all hover:bg-blue-50/60 flex flex-col justify-center">
-                                <ShieldCheck className="absolute -right-6 -bottom-6 text-blue-600 opacity-5 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-700" size={140} />
-                                <p className="font-medium text-blue-900 text-base md:text-lg leading-relaxed relative z-10 tracking-tight">
-                                    "Nosso objetivo é transformar rotinas vistas como complexas em processos visuais e simples, garantindo clareza, harmonia e integração entre administração e moradores."<br /><br />
-                                    <Link href="/cadastro" onClick={() => trackClick("Não possui conta - Clique Aqui", "/cadastro")} className="text-blue-600 font-bold underline hover:text-blue-800 transition-colors text-xs md:text-sm">Não possui uma conta? Clique aqui</Link>
-                                </p>
-                            </div>
+                        <div className="bg-blue-50/40 border-l-4 border-blue-600 p-4 md:p-6 rounded-2xl relative overflow-hidden group transition-all hover:bg-blue-50/60 flex flex-col justify-center">
+                            <ShieldCheck className="absolute -right-6 -bottom-6 text-blue-600 opacity-5 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-700" size={140} />
+                            <p className="font-medium text-blue-900 text-base md:text-lg leading-relaxed relative z-10 tracking-tight">
+                                "Nosso objetivo é transformar rotinas vistas anteriormente como complexas em processos visuais e simples, garantindo clareza, harmonia e integração entre administração e moradores."<br /><br />
+                                <Link href="/cadastro" onClick={() => trackClick("Não possui conta - Clique Aqui", "/cadastro")} className="text-blue-600 font-bold underline hover:text-blue-800 transition-colors text-xs md:text-sm">Não possui uma conta? Clique aqui</Link>
+                            </p>
                         </div>
 
-                        <div className="mb-6 md:hidden">
+                        <div className="md:hidden">
                             <p className="text-sm leading-relaxed text-gray-600 font-medium mb-6">
                                 Revolucione a administração do seu condomínio com automação inteligente e processos que simplificam sua rotina.
                             </p>
@@ -667,13 +664,13 @@ export default function NucleobaseCondo() {
                         </div>
 
                         <div className="block lg:hidden">
-                            <LayoutDestaqueMobile />
+                            {LayoutDestaqueMobile()}
                         </div>
                     </div>
                 </div>
 
                 <div className="hidden lg:block lg:col-span-4 h-full">
-                    <CardsDestaqueDesktop />
+                    {CardsDestaqueDesktop()}
                 </div>
             </div>
 
@@ -690,7 +687,7 @@ export default function NucleobaseCondo() {
                         </p>
                     </div>
                     <div className="lg:col-span-4">
-                        <CarrosselRecursosDesktop />
+                        {CarrosselRecursosDesktop()}
                     </div>
                 </div>
 
