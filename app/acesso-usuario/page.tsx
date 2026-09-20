@@ -1,5 +1,7 @@
-// app/acesso-usuario/page.tsx
-"use client";
+Revise e se necessário ajuste antes do deploy:
+
+  // app/acesso-usuario/page.tsx
+  "use client";
 
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";

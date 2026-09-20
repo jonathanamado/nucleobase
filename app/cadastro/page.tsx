@@ -1,8 +1,9 @@
 // app/cadastro/page.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { supabase } from "@/lib/supabase";
+import { useSearchParams } from "next/navigation";
 import {
   ShieldCheck,
   Zap,
@@ -23,7 +24,10 @@ import {
   UserPlus
 } from "lucide-react";
 
-export default function CadastroPage() {
+function CadastroContent() {
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get("redirect");
+
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [slugDesejado, setSlugDesejado] = useState("");
@@ -427,8 +431,7 @@ export default function CadastroPage() {
             className="group relative flex flex-col items-center gap-6 cursor-pointer"
           >
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
-
+              <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-25 group-hover:opacity-45 transition-all duration-500"></div>
               <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
                 <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
               </div>
@@ -442,5 +445,13 @@ export default function CadastroPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CadastroPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white" />}>
+      <CadastroContent />
+    </Suspense>
   );
 }
