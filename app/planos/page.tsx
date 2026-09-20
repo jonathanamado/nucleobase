@@ -85,13 +85,15 @@ export default function PaginaDePlanos() {
     label,
     className,
     description,
-    href
+    href,
+    discount
   }: {
     lookupKey: string,
     label: string,
     className?: string,
     description: string,
-    href?: string
+    href?: string,
+    discount?: string
   }) => {
     const handleClick = () => {
       trackClick(`Plano: ${description} (${lookupKey})`, href || "/api/stripe");
@@ -100,8 +102,13 @@ export default function PaginaDePlanos() {
     if (href) {
       return (
         <a href={href} onClick={handleClick} className="block w-full no-underline">
-          <button className={`${className} cursor-pointer transition-transform active:scale-[0.98]`}>
+          <button className={`${className} cursor-pointer transition-transform active:scale-[0.98] flex items-center justify-center gap-2`}>
             {label}
+            {discount && (
+              <span className="bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5 rounded text-[8px] font-black">
+                {discount}
+              </span>
+            )}
           </button>
         </a>
       );
@@ -110,14 +117,18 @@ export default function PaginaDePlanos() {
     return (
       <form action="/api/stripe" method="POST" className="w-full" onSubmit={handleClick}>
         <input type="hidden" name="lookup_key" value={lookupKey} />
-        <a href={`#checkout-${lookupKey}`} title={description} className="block w-full cursor-pointer decoration-transparent">
-          <button
-            type="submit"
-            className={`${className} cursor-pointer transition-transform active:scale-[0.98]`}
-          >
-            {label}
-          </button>
-        </a>
+        <button
+          type="submit"
+          title={description}
+          className={`${className} cursor-pointer transition-transform active:scale-[0.98] flex items-center justify-center gap-2 w-full`}
+        >
+          {label}
+          {discount && (
+            <span className="bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5 rounded text-[8px] font-black">
+              {discount}
+            </span>
+          )}
+        </button>
       </form>
     );
   };
@@ -214,15 +225,21 @@ export default function PaginaDePlanos() {
               <Star size={18} className="fill-blue-600 text-blue-600 animate-pulse scale-110" /> Uso Pessoal
             </div>
             <h3 className="text-3xl font-bold text-slate-900 mb-4">Essencial</h3>
-            <div className="flex flex-col mb-8">
+            <div className="flex flex-col mb-6">
               <span className="text-4xl font-black text-slate-900 tracking-tighter">R$ 9,90</span>
               <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">/mês</span>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 mb-10">
-              <CheckoutForm lookupKey="essencial_trimestral" label="Trim." description="Trimestral" className="w-full py-2 bg-slate-50 border border-slate-100 text-slate-600 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white hover:border-slate-300 transition-all" />
-              <CheckoutForm lookupKey="essencial_semestral" label="Semest." description="Semestral" className="w-full py-2 bg-slate-50 border border-slate-100 text-slate-600 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white hover:border-slate-300 transition-all" />
-              <CheckoutForm lookupKey="essencial_anual" label="Anual" description="Anual" className="w-full py-2 bg-blue-50 border border-blue-100 text-blue-600 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-blue-600 hover:text-white transition-all" />
+            <div className="mb-6 bg-blue-50 p-2.5 rounded-xl border border-blue-100">
+              <p className="text-[10px] text-center text-blue-900 leading-tight font-medium">
+                Aproveite <strong>90 dias de degustação</strong>.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 mb-8">
+              <CheckoutForm lookupKey="essencial_trimestral" label="Trim." description="Trimestral" discount="-9%" className="w-full py-2 bg-slate-50 border border-slate-100 text-slate-600 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white hover:border-slate-300 transition-all" />
+              <CheckoutForm lookupKey="essencial_semestral" label="Semest." description="Semestral" discount="-15%" className="w-full py-2 bg-slate-50 border border-slate-100 text-slate-600 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white hover:border-slate-300 transition-all" />
+              <CheckoutForm lookupKey="essencial_anual" label="Anual" description="Anual" discount="-24%" className="w-full py-2 bg-blue-50 border border-blue-100 text-blue-600 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-blue-600 hover:text-white transition-all" />
             </div>
 
             <ul className="space-y-4 mb-6">
@@ -248,15 +265,21 @@ export default function PaginaDePlanos() {
               </div>
             </div>
             <h3 className="text-3xl font-bold text-white mb-4">Plano Pro</h3>
-            <div className="flex flex-col mb-8">
+            <div className="flex flex-col mb-6">
               <span className="text-4xl font-black text-white tracking-tighter">R$ 19,90</span>
               <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-1">/mês</span>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 mb-10">
-              <CheckoutForm lookupKey="pro_trimestral" label="Trim." description="Trimestral" className="w-full py-2 bg-white/5 border border-white/10 text-slate-300 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white/10 transition-all" />
-              <CheckoutForm lookupKey="pro_semestral" label="Semest." description="Semestral" className="w-full py-2 bg-white/5 border border-white/10 text-slate-300 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white/10 transition-all" />
-              <CheckoutForm lookupKey="pro_anual" label="Anual" description="Anual" className="w-full py-2 bg-white text-slate-900 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-blue-400 hover:text-white transition-all" />
+            <div className="mb-6 bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20">
+              <p className="text-[10px] text-center text-amber-300 leading-tight font-medium">
+                Aproveite <strong>45 dias de degustação</strong>.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 mb-8">
+              <CheckoutForm lookupKey="pro_trimestral" label="Trim." description="Trimestral" discount="-12%" className="w-full py-2 bg-white/5 border border-white/10 text-slate-300 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white/10 transition-all" />
+              <CheckoutForm lookupKey="pro_semestral" label="Semest." description="Semestral" discount="-18%" className="w-full py-2 bg-white/5 border border-white/10 text-slate-300 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white/10 transition-all" />
+              <CheckoutForm lookupKey="pro_anual" label="Anual" description="Anual" discount="-25%" className="w-full py-2 bg-white text-slate-900 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-blue-400 hover:text-white transition-all" />
             </div>
 
             <ul className="space-y-4 mb-6">

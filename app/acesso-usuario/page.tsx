@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoginProtegido } from "@/hooks/useLoginProtegido";
+import { useSearchParams } from "next/navigation";
 import {
   UserCog, Rocket, ArrowRight,
   CheckCircle2, LogOut, X, Mail, LifeBuoy, AtSign,
@@ -15,6 +16,9 @@ import {
 import Link from "next/link";
 
 export default function AcessoUsuarioPage() {
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get("redirect");
+
   const {
     emailOrSlug,
     setEmailOrSlug,
@@ -130,7 +134,6 @@ export default function AcessoUsuarioPage() {
       if (isEmail) {
         emailParaLogin = inputAcesso;
       } else {
-        // Chamada segura da função RPC que contorna o RLS apenas para buscar o email pelo slug
         const { data: emailEncontrado, error: profileError } = await supabase
           .rpc('get_email_by_slug', { p_slug: inputAcesso });
 
@@ -153,7 +156,10 @@ export default function AcessoUsuarioPage() {
         resetarBloqueio();
         window.dispatchEvent(new Event("storage"));
         window.dataLayer?.push({ event: "user_login_success", page_location: "/acesso-usuario" });
-        window.location.href = "/minha-conta";
+
+        // Redireciona para o destino original (ex: /planos) ou para /minha-conta como padrão
+        const destino = redirectUrl && redirectUrl.startsWith("/") ? redirectUrl : "/minha-conta";
+        window.location.href = destino;
       }
     } catch (err) {
       tratarErroLogin("Ocorreu um erro inesperado.");

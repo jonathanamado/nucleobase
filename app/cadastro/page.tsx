@@ -199,12 +199,12 @@ export default function CadastroPage() {
           event: "user_signed_up",
           method: email.trim() ? "email" : "slug"
         });
-        trackClick("Cadastro Concluído com Sucesso", "/minha-conta");
+        trackClick("Cadastro Concluído com Sucesso", "/planos");
       }
       // ============================================
 
       setTimeout(() => {
-        window.location.href = "/minha-conta";
+        window.location.href = "/planos";
       }, 300);
     }
     setLoading(false);
