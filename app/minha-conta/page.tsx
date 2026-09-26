@@ -424,15 +424,6 @@ export default function MinhaContaPage() {
             Olá<span className="whitespace-nowrap font-bold text-gray-900"> {getPrimeiroNome()},</span> gerencie seus dados e entenda o seu comportamento.
           </h2>
         </div>
-        <div className="hidden md:flex items-center gap-3">
-          <button
-            onClick={() => setShowPassModal(true)}
-            className="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md cursor-pointer flex items-center gap-2"
-          >
-            <KeyRound size={14} />
-            <span>Alterar senha</span>
-          </button>
-        </div>
       </div>
 
       <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-4">
