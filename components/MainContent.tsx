@@ -15,16 +15,23 @@ export function MainContent() {
   const [loading, setLoading] = useState(false);
   const [enviado, setEnviado] = useState(false);
 
+  // Estados para a newsletter direta na tela
+  const [inlineLoading, setInlineLoading] = useState(false);
+  const [inlineEnviado, setInlineEnviado] = useState(false);
+
   const handleSubscribe = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
+    const nome = formData.get("nome") as string;
+
     formData.append("access_key", "9ef5a274-150a-4664-a885-0b052efd06f7");
     formData.append("subject", "Nova Inscrição na Newsletter - Home Nucleobase");
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      // Nota: Mantemos o insert alinhado ao schema atual da tabela. Caso deseje incluir o nome futuramente na tabela, ajustaremos a coluna.
       const { error: dbError } = await supabase
         .from("newsletter")
         .insert([{ email: email, user_id: user?.id || null }]);
@@ -54,6 +61,48 @@ export function MainContent() {
       alert("Erro ao processar assinatura. Tente novamente.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleInlineSubscribe = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setInlineLoading(true);
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+
+    formData.append("access_key", "9ef5a274-150a-4664-a885-0b052efd06f7");
+    formData.append("subject", "Nova Inscrição na Newsletter (Em Tela) - Home Nucleobase");
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error: dbError } = await supabase
+        .from("newsletter")
+        .insert([{ email: email, user_id: user?.id || null }]);
+      if (dbError && dbError.code !== '23505') throw dbError;
+
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setInlineEnviado(true);
+        if (typeof window !== "undefined") {
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({
+            event: "newsletter_subscribed",
+            page_location: "/_inline_section"
+          });
+        }
+      } else {
+        throw new Error("Erro no serviço de e-mail");
+      }
+    } catch (err) {
+      console.error("Erro no processamento:", err);
+      alert("Erro ao processar assinatura. Tente novamente.");
+    } finally {
+      setInlineLoading(false);
     }
   };
 
@@ -89,6 +138,7 @@ export function MainContent() {
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Assinar Newsletter</h3>
                 <p className="text-gray-500 mb-8 font-medium">Insights financeiros e estratégicos toda semana.</p>
                 <form onSubmit={handleSubscribe} className="space-y-4">
+                  <input type="text" name="nome" placeholder="Seu nome" className="w-full bg-gray-50 border-transparent rounded-2xl py-4 px-6 text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all" />
                   <input required type="email" name="email" placeholder="Seu melhor e-mail" className="w-full bg-gray-50 border-transparent rounded-2xl py-4 px-6 text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all" />
                   <button type="submit" disabled={loading} className="w-full py-4 bg-gray-900 text-white rounded-full font-bold text-sm uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50">
                     {loading ? <Loader2 className="animate-spin" size={18} /> : "Inscrever-se agora"}
@@ -322,6 +372,43 @@ export function MainContent() {
               <Users size={20} className="text-orange-600" />
               <span className="font-bold text-[10px] uppercase text-gray-800">Parceria</span>
             </Link>
+          </div>
+        </section>
+
+        {/* --- SEÇÃO DE NEWSLETTER EM TELA (MOBILE) --- */}
+        <section className="pt-2">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50/40 border border-blue-100/80 p-8 rounded-[2.5rem] shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center shadow-md">
+                <Mail size={20} />
+              </div>
+              <div>
+                <h4 className="text-lg font-bold text-gray-900 tracking-tight">Newsletter Nucleobase</h4>
+                <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wider">Insights semanais no seu e-mail</p>
+              </div>
+            </div>
+
+            {!inlineEnviado ? (
+              <form onSubmit={handleInlineSubscribe} className="space-y-3">
+                <input type="text" name="nome" placeholder="Seu nome" className="w-full bg-white border border-gray-200 rounded-2xl py-3 px-5 text-xs text-gray-800 outline-none focus:border-blue-500 transition-all" />
+                <input required type="email" name="email" placeholder="Seu melhor e-mail" className="w-full bg-white border border-gray-200 rounded-2xl py-3 px-5 text-xs text-gray-800 outline-none focus:border-blue-500 transition-all" />
+                <button
+                  type="submit"
+                  disabled={inlineLoading}
+                  className="w-full py-3.5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50"
+                >
+                  {inlineLoading ? <Loader2 className="animate-spin" size={16} /> : "Inscrever-se na Newsletter"}
+                </button>
+              </form>
+            ) : (
+              <div className="py-4 text-center">
+                <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <CheckCircle2 size={24} />
+                </div>
+                <h5 className="font-bold text-gray-900 text-sm">Inscrição confirmada!</h5>
+                <p className="text-gray-500 text-xs">Obrigado por se juntar à nossa lista.</p>
+              </div>
+            )}
           </div>
         </section>
 
@@ -664,7 +751,7 @@ export function MainContent() {
             </div>
           </section>
 
-          <section className="pb-20">
+          <section className="pb-10">
             <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
               Canais e Oportunidades <div className="h-px bg-gray-300 flex-1"></div>
             </h3>
@@ -683,6 +770,50 @@ export function MainContent() {
                   <a href={item.href} onClick={() => trackClick(`Canal: ${item.title}`, item.href)} className="w-fit bg-gray-900 text-white px-6 py-3 rounded-full font-bold text-[10px] uppercase group-hover:bg-white group-hover:text-gray-900 transition-all">{item.label}</a>
                 </div>
               ))}
+            </div>
+
+            {/* --- SEÇÃO DE NEWSLETTER EM TELA (DESKTOP) --- */}
+            <div className="mb-20">
+              <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 rounded-[3rem] p-12 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-10">
+                <div className="absolute -right-16 -bottom-16 opacity-10 pointer-events-none">
+                  <Mail size={280} />
+                </div>
+                <div className="max-w-xl relative z-10">
+                  <div className="inline-flex items-center gap-2 bg-blue-600 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest mb-4">
+                    <Mail size={12} /> Newsletter Exclusiva
+                  </div>
+                  <h4 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">
+                    Receba insights estratégicos e acompanhe nossa evolução.
+                  </h4>
+                  <p className="text-blue-100 text-sm font-medium">
+                    Junte-se à nossa comunidade de gestores e empreendedores digitais
+                  </p>
+                </div>
+
+                <div className="w-full md:w-auto min-w-[340px] relative z-10">
+                  {!inlineEnviado ? (
+                    <form onSubmit={handleInlineSubscribe} className="space-y-3">
+                      <input type="text" name="nome" placeholder="Seu nome" className="w-full bg-white/10 border border-white/20 rounded-2xl py-3.5 px-6 text-white placeholder-blue-200 text-xs outline-none focus:bg-white/20 transition-all" />
+                      <input required type="email" name="email" placeholder="Seu melhor e-mail" className="w-full bg-white/10 border border-white/20 rounded-2xl py-3.5 px-6 text-white placeholder-blue-200 text-xs outline-none focus:bg-white/20 transition-all" />
+                      <button
+                        type="submit"
+                        disabled={inlineLoading}
+                        className="w-full py-4 bg-white text-blue-900 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-50 transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer disabled:opacity-50"
+                      >
+                        {inlineLoading ? <Loader2 className="animate-spin" size={16} /> : "Inscrever-se na Newsletter"}
+                      </button>
+                    </form>
+                  ) : (
+                    <div className="bg-white/10 border border-white/20 rounded-2xl p-6 text-center">
+                      <div className="w-12 h-12 bg-emerald-500 text-white rounded-full flex items-center justify-center mx-auto mb-2">
+                        <CheckCircle2 size={24} />
+                      </div>
+                      <h5 className="font-bold text-white text-sm">Inscrição confirmada!</h5>
+                      <p className="text-blue-200 text-xs">Obrigado por se juntar à nossa lista.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* AJUSTE DESKTOP INSTAGRAM COM DIVISÓRIA */}
