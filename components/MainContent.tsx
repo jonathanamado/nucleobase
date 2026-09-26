@@ -383,8 +383,8 @@ export function MainContent() {
                 <Mail size={20} />
               </div>
               <div>
-                <h4 className="text-lg font-bold text-gray-900 tracking-tight">Newsletter Nucleobase</h4>
-                <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wider">Insights semanais no seu e-mail</p>
+                <h4 className="text-lg font-bold text-gray-900 tracking-tight">Newsletter</h4>
+                <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wider">Insights e novidades</p>
               </div>
             </div>
 
