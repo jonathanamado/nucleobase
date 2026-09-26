@@ -997,7 +997,7 @@ export default function CondoAdm() {
                                         <UserPlus className="w-4 h-4 md:w-5 md:h-5" />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Controle de Acesso</h3>
+                                        <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Controle de acesso</h3>
                                         <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Atualização de uso da Plataforma</p>
                                     </div>
                                 </div>
@@ -1013,7 +1013,7 @@ export default function CondoAdm() {
                                         <FileSpreadsheet className="w-4 h-4 md:w-5 md:h-5" />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Prestação de Contas</h3>
+                                        <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Prestação de contas</h3>
                                         <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Lançamentos financeiros</p>
                                     </div>
                                 </div>
@@ -1045,7 +1045,7 @@ export default function CondoAdm() {
                                         <ShieldAlert className="w-4 h-4 md:w-5 md:h-5" />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Análise de Demandas</h3>
+                                        <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Análise de demandas</h3>
                                         <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Ocorrências e sugestões</p>
                                     </div>
                                 </div>
@@ -1093,7 +1093,7 @@ export default function CondoAdm() {
                                         <Wrench className="w-4 h-4 md:w-5 md:h-5" />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Obras e Melhorias</h3>
+                                        <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Obras e melhorias</h3>
                                         <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Conservação áreas comuns</p>
                                     </div>
                                 </div>
@@ -1125,7 +1125,7 @@ export default function CondoAdm() {
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center justify-between">
-                                            <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Projeto Integração</h3>
+                                            <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Projeto integração condominial</h3>
                                             <span className="text-[9px] text-purple-600 font-bold bg-purple-50 px-1.5 py-0.5 rounded">Em dev</span>
                                         </div>
                                         <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Integração de sistemas e de pessoas</p>
@@ -1157,7 +1157,7 @@ export default function CondoAdm() {
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center justify-between">
-                                            <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Fornecedores</h3>
+                                            <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Fornecedores cadastrados</h3>
                                             <span className="text-[9px] text-orange-600 font-bold bg-orange-50 px-1.5 py-0.5 rounded">Em dev</span>
                                         </div>
                                         <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Contratos e prestadores de serviços</p>
@@ -1205,7 +1205,7 @@ export default function CondoAdm() {
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center justify-between">
-                                            <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Telefones úteis</h3>
+                                            <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Rede de telefones importantes</h3>
                                             <span className="text-[9px] text-teal-600 font-bold bg-teal-50 px-1.5 py-0.5 rounded">Em dev</span>
                                         </div>
                                         <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Contato de apoio e utilidade pública</p>

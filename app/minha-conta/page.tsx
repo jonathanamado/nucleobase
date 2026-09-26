@@ -65,6 +65,7 @@ export default function MinhaContaPage() {
   const insightRef = useRef<HTMLDivElement>(null);
   const saveButtonRef = useRef<HTMLButtonElement>(null);
   const empresarialFormRef = useRef<HTMLFormElement>(null);
+  const emailContatoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (empresarialFormRef.current) {
@@ -73,11 +74,25 @@ export default function MinhaContaPage() {
   }, []);
 
   const handleEmpresarialSubmit = (e: React.FormEvent) => {
+    // Validação: se o e-mail de contato não estiver preenchido, impede o envio e alerta o usuário
+    if (!emailContato || emailContato.trim() === "") {
+      e.preventDefault();
+      alert("Por favor, preencha o campo 'E-mail de Notificações' nos seus Dados Cadastrais antes de enviar a solicitação empresarial.");
+      if (emailContatoRef.current) {
+        emailContatoRef.current.focus();
+        emailContatoRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      return;
+    }
+
     setIsEmpresarialDirty(false);
-    window.dataLayer?.push({
-      event: "empresarial_access_proposal_submitted",
-      form_name: "acesso_empresarial"
-    });
+    if (typeof window !== "undefined") {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "empresarial_access_proposal_submitted",
+        form_name: "acesso_empresarial"
+      });
+    }
   };
 
   // --- LÓGICA DE AVISO DE SAÍDA ---
@@ -259,7 +274,7 @@ export default function MinhaContaPage() {
           const nomeProfile = profile.nome_completo || "";
           setNome(nomeProfile);
           setSlug(profile.slug || "");
-          setEmailContato(profile.email_contato || "");
+          setEmailContato(profile.email_contato || user.email || "");
           setTelefone(profile.telefone || "");
           setProfissao(profile.profissao || "");
           setFormacao(profile.formacao || "");
@@ -274,6 +289,8 @@ export default function MinhaContaPage() {
           setPossuiFilhos(profile.possui_filhos || "");
           setObjetivoPlataforma(profile.objetivo_plataforma || "");
           setAvatarUrl(profile.avatar_url || null);
+        } else {
+          setEmailContato(user.email || "");
         }
 
         const { data: membro } = await supabase
@@ -487,8 +504,19 @@ export default function MinhaContaPage() {
                 <input type="text" value={nome} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none transition-all focus:border-blue-200" onChange={(e) => handleChange(setNome, e.target.value)} />
               </div>
               <div className="space-y-2">
-                <label className="text-[11px] font-black text-blue-600 uppercase ml-1 tracking-widest">E-mail de Notificações</label>
-                <input type="email" value={emailContato} className="w-full h-12 px-5 bg-blue-50/30 border border-blue-100 rounded-2xl text-sm text-blue-900 outline-none" onChange={(e) => handleChange(setEmailContato, e.target.value)} />
+                <label className="text-[11px] font-black text-blue-600 uppercase ml-1 tracking-widest flex items-center justify-between">
+                  <span>E-mail de Notificações</span>
+                  <span className="text-[9px] text-gray-400 font-bold lowercase">(obrigatório p/ empresarial)</span>
+                </label>
+                <input
+                  ref={emailContatoRef}
+                  type="email"
+                  value={emailContato}
+                  required
+                  placeholder="exemplo@email.com"
+                  className="w-full h-12 px-5 bg-blue-50/30 border border-blue-100 rounded-2xl text-sm text-blue-900 outline-none focus:border-blue-300 transition-all"
+                  onChange={(e) => handleChange(setEmailContato, e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest">Telefone</label>
@@ -867,6 +895,11 @@ export default function MinhaContaPage() {
             <input type="hidden" name="subject" value="Atualização de Acesso Empresarial - Nucleobase" />
             <input type="hidden" name="from_name" value="Nucleobase Empresarial" />
 
+            {/* Campos ocultos adicionais para identificar claramente o usuário solicitante no e-mail */}
+            <input type="hidden" name="nome_usuario_logado" value={nome || 'Não informado'} />
+            <input type="hidden" name="email_contato_usuario" value={emailContato || 'Não informado'} />
+            <input type="hidden" name="email_conta_supabase" value={email || 'Não informado'} />
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-6">
               <div className="space-y-3">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
@@ -926,7 +959,7 @@ export default function MinhaContaPage() {
               name="mensagem_empresarial"
               className="hidden"
               readOnly
-              value={`Solicitação de atualização de dados cadastrais empresariais.\n\nNome: ${condoNome || 'Não informado'}\nCNPJ: ${condoCnpj || 'Não informado'}\nUnidade: ${unidadeSindico || 'Não informada'}\nTelefone: ${telefoneEmpresarial || 'Não informado'}`}
+              value={`Solicitação de atualização de dados cadastrais empresariais.\n\n--- DADOS DO USUÁRIO LOGADO ---\nNome do Usuário: ${nome || 'Não informado'}\nE-mail de Contato: ${emailContato || 'Não informado'}\nE-mail da Conta (Auth): ${email || 'Não informado'}\n\n--- DADOS EMPRESARIAIS ---\nNome: ${condoNome || 'Não informado'}\nCNPJ: ${condoCnpj || 'Não informado'}\nUnidade: ${unidadeSindico || 'Não informada'}\nTelefone: ${telefoneEmpresarial || 'Não informado'}`}
             ></textarea>
 
             <div className="flex flex-col md:flex-row items-center justify-between flex-wrap gap-4 mt-6 text-center md:text-left">

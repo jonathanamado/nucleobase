@@ -829,7 +829,7 @@ export default function NucleobaseCondo() {
                                     <input
                                         type="text"
                                         required
-                                        placeholder="Ed. G.Rosa"
+                                        placeholder="Ed. G. Rosa"
                                         value={solicitanteCondo}
                                         onChange={(e) => setSolicitanteCondo(e.target.value)}
                                         className="w-full h-12 px-4 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium placeholder:text-xs"
