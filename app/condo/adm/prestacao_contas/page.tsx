@@ -23,25 +23,9 @@ import {
     ArrowRight,
     Flame,
     PartyPopper,
-    Plus,
-    Trash2,
     Wallet,
-    Calendar,
-    DollarSign,
-    Users,
-    Save,
-    BarChart3
+    Users
 } from "lucide-react";
-
-interface SalaoUsoItem {
-    id: string;
-    unidade: string;
-    taxa: number;
-    responsavel_nome: string;
-    data_reserva: string;
-    status: string;
-    status_cobranca?: string;
-}
 
 export default function PrestacaoContasPage() {
     const [session, setSession] = useState<any>(null);
@@ -50,10 +34,6 @@ export default function PrestacaoContasPage() {
 
     // Estados de loading independentes por seção
     const [loadingContas, setLoadingContas] = useState(false);
-    const [loadingTarifaGas, setLoadingTarifaGas] = useState(false);
-    const [loadingMedicaoGas, setLoadingMedicaoGas] = useState(false);
-    const [loadingFundo, setLoadingFundo] = useState(false);
-    const [loadingRateioSindico, setLoadingRateioSindico] = useState(false);
 
     // Controle de Login
     const [emailOrSlug, setEmailOrSlug] = useState("");
@@ -74,13 +54,7 @@ export default function PrestacaoContasPage() {
     const [condominio, setCondominio] = useState<{ id: string; nome: string } | null>(null);
     const [isApenasMorador, setIsApenasMorador] = useState(false);
 
-    // Filtro de Mês/Ano específico para Consumos e Reservas
-    const [competenciaSelecionada, setCompetenciaSelecionada] = useState(() => {
-        const now = new Date();
-        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    });
-
-    // Estados para Lançamentos de Prestação de Contas
+    // Estados para Lançamentos de Prestação de Contas (Mantidos na página principal)
     const [tipoConta, setTipoConta] = useState<'receita' | 'despesa'>('receita');
     const [categoriaConta, setCategoriaConta] = useState('Receita Condomínio');
     const [descricaoConta, setDescricaoConta] = useState('Pagamento Condomínio');
@@ -90,24 +64,6 @@ export default function PrestacaoContasPage() {
     const [dataCompetenciaConta, setDataCompetenciaConta] = useState(new Date().toISOString().slice(0, 7) + '-01');
     const [contasError, setContasError] = useState('');
     const [contasSuccess, setContasSuccess] = useState('');
-
-    // Estados para Controle de Consumo
-    const [valorMetroCubicoGas, setValorMetroCubicoGas] = useState('0,00');
-    const [tarifaGasSuccess, setTarifaGasSuccess] = useState('');
-
-    const [unidadesCondominio, setUnidadesCondominio] = useState<string[]>([]);
-    const [gasConsumoMap, setGasConsumoMap] = useState<Record<string, { anterior: string; atual: string }>>({});
-    const [medicaoGasSuccess, setMedicaoGasSuccess] = useState('');
-
-    const [salaoUsos, setSalaoUsos] = useState<SalaoUsoItem[]>([]);
-
-    const [valorFundoReserva, setValorFundoReserva] = useState('0,00');
-    const [fundoReservaSuccess, setFundoReservaSuccess] = useState('');
-
-    // Estados para Rateio Síndico
-    const [valorRateioSindico, setValorRateioSindico] = useState('0,00');
-    const [qtdAptosRateioSindico, setQtdAptosRateioSindico] = useState('');
-    const [rateioSindicoSuccess, setRateioSindicoSuccess] = useState('');
 
     const isMountedRef = useRef(true);
 
@@ -125,15 +81,6 @@ export default function PrestacaoContasPage() {
         return num.toFixed(2).replace('.', ',');
     };
 
-    // Formatação específica para medidores (3 casas decimais)
-    const formatarMedicaoGasExibicao = (valor: any): string => {
-        if (valor === null || valor === undefined || valor === '') return '';
-        const num = typeof valor === 'number' ? valor : parseFloat(String(valor).replace(',', '.'));
-        if (isNaN(num)) return '';
-        return num.toFixed(3).replace('.', ',');
-    };
-
-    // Conversão robusta de "442,185" para 442.185 do DB
     const converterParaFloat = (valorStr: string): number => {
         if (!valorStr) return 0;
         let limpo = String(valorStr).trim();
@@ -156,167 +103,6 @@ export default function PrestacaoContasPage() {
         } else {
             setCategoriaConta('Despesa Condomínio');
             setDescricaoConta('Manutenção Geral');
-        }
-    };
-
-    const carregarDadosCompetencia = async (condoId: string, competencia: string) => {
-        try {
-            const dataCompetenciaCompleta = `${competencia}-01`;
-
-            const { data: membrosData } = await supabase
-                .from("condominio_membros")
-                .select("unidade")
-                .eq("condominio_id", condoId);
-
-            const unicas = Array.from(new Set((membrosData || []).map((m: any) => m.unidade?.trim()).filter(Boolean))).sort();
-            setUnidadesCondominio(unicas);
-
-            const { data: tarifaData } = await supabase
-                .from("condominio_contas_gas_metro_cubico")
-                .select("valor_metro_cubico")
-                .eq("condominio_id", condoId)
-                .eq("data_competencia", dataCompetenciaCompleta)
-                .maybeSingle();
-
-            if (tarifaData) {
-                setValorMetroCubicoGas(formatarValorExibicao(tarifaData.valor_metro_cubico));
-            } else {
-                const { data: ultimaTarifa } = await supabase
-                    .from("condominio_contas_gas_metro_cubico")
-                    .select("valor_metro_cubico")
-                    .eq("condominio_id", condoId)
-                    .lte("data_competencia", dataCompetenciaCompleta)
-                    .order("data_competencia", { ascending: false })
-                    .limit(1);
-
-                if (ultimaTarifa && ultimaTarifa.length > 0) {
-                    setValorMetroCubicoGas(formatarValorExibicao(ultimaTarifa[0].valor_metro_cubico));
-                } else {
-                    setValorMetroCubicoGas('0,00');
-                }
-            }
-
-            const { data: medicaoAtualData } = await supabase
-                .from("condominio_contas_gas_medicao")
-                .select("unidade, leitura_anterior, leitura_atual")
-                .eq("condominio_id", condoId)
-                .eq("data_competencia", dataCompetenciaCompleta);
-
-            const [anoStr, mesStr] = competencia.split('-');
-            let anoNum = parseInt(anoStr);
-            let mesNum = parseInt(mesStr) - 1;
-            if (mesNum === 0) {
-                mesNum = 12;
-                anoNum -= 1;
-            }
-            const competenciaAnterior = `${anoNum}-${String(mesNum).padStart(2, '0')}-01`;
-
-            const { data: medicaoAnteriorData } = await supabase
-                .from("condominio_contas_gas_medicao")
-                .select("unidade, leitura_atual")
-                .eq("condominio_id", condoId)
-                .eq("data_competencia", competenciaAnterior);
-
-            const mapaMedicao: Record<string, { anterior: string; atual: string }> = {};
-            unicas.forEach(u => {
-                const atualReg = (medicaoAtualData || []).find((m: any) => m.unidade === u);
-                const anteriorRegDoMes = atualReg ? atualReg.leitura_anterior : null;
-                const anteriorRegDoMesAnterior = (medicaoAnteriorData || []).find((m: any) => m.unidade === u)?.leitura_atual;
-
-                const valAnt = anteriorRegDoMes !== null && anteriorRegDoMes !== undefined ? anteriorRegDoMes : (anteriorRegDoMesAnterior !== undefined ? anteriorRegDoMesAnterior : '');
-                const valAtu = atualReg ? atualReg.leitura_atual : '';
-
-                mapaMedicao[u] = {
-                    anterior: formatarMedicaoGasExibicao(valAnt),
-                    atual: formatarMedicaoGasExibicao(valAtu)
-                };
-            });
-            setGasConsumoMap(mapaMedicao);
-
-            const [anoSel, mesSel] = competencia.split('-').map(Number);
-            const primeiroDia = `${competencia}-01`;
-            const ultimoDiaObj = new Date(anoSel, mesSel, 0);
-            const ultimoDia = `${competencia}-${String(ultimoDiaObj.getDate()).padStart(2, '0')}`;
-
-            const { data: reservasData } = await supabase
-                .from("condominio_reservas")
-                .select("*")
-                .eq("condominio_id", condoId)
-                .gte("data_reserva", primeiroDia)
-                .lte("data_reserva", ultimoDia)
-                .eq("status", "ativa");
-
-            const { data: cobrancasData } = await supabase
-                .from("condominio_reservas_cobrancas")
-                .select("*")
-                .eq("condominio_id", condoId)
-                .eq("data_competencia", dataCompetenciaCompleta);
-
-            const cobrancasMap = new Map((cobrancasData || []).map((c: any) => [c.reserva_id, c]));
-
-            const usosMapeados: SalaoUsoItem[] = (reservasData || []).map((r: any) => {
-                const cobrancaReg = cobrancasMap.get(r.id);
-                const statusCob = cobrancaReg ? cobrancaReg.status : null;
-                let statusExibicao = 'Pendente';
-                if (statusCob === 'cobrado') {
-                    statusExibicao = 'Cobrança ativa';
-                } else if (statusCob === 'cancelado' || statusCob === 'excluido') {
-                    statusExibicao = 'Cobrança cancelada';
-                }
-
-                return {
-                    id: r.id,
-                    unidade: r.unidade || 'N/I',
-                    taxa: 100.00,
-                    responsavel_nome: r.responsavel_nome || 'Morador',
-                    data_reserva: r.data_reserva,
-                    status: r.status,
-                    status_cobranca: statusExibicao
-                };
-            });
-            setSalaoUsos(usosMapeados);
-
-            const { data: fundoData } = await supabase
-                .from("condominio_contas_fundo_de_reservas")
-                .select("valor")
-                .eq("condominio_id", condoId)
-                .eq("data_competencia", dataCompetenciaCompleta)
-                .limit(1);
-
-            if (fundoData && fundoData.length > 0) {
-                setValorFundoReserva(formatarValorExibicao(fundoData[0].valor));
-            } else {
-                const { data: ultimoFundo } = await supabase
-                    .from("condominio_contas_fundo_de_reservas")
-                    .select("valor")
-                    .eq("condominio_id", condoId)
-                    .lte("data_competencia", dataCompetenciaCompleta)
-                    .order("data_competencia", { ascending: false })
-                    .limit(1);
-
-                if (ultimoFundo && ultimoFundo.length > 0) {
-                    setValorFundoReserva(formatarValorExibicao(ultimoFundo[0].valor));
-                } else {
-                    setValorFundoReserva('0,00');
-                }
-            }
-
-            const { data: sindicoPagamentoData } = await supabase
-                .from("condominio_pagamento_sindico")
-                .select("valor, quantidade_apartamentos")
-                .eq("condominio_id", condoId)
-                .eq("data_competencia", dataCompetenciaCompleta)
-                .maybeSingle();
-
-            if (sindicoPagamentoData) {
-                setValorRateioSindico(formatarValorExibicao(sindicoPagamentoData.valor));
-                setQtdAptosRateioSindico(sindicoPagamentoData.quantidade_apartamentos ? String(sindicoPagamentoData.quantidade_apartamentos) : '');
-            } else {
-                setValorRateioSindico('0,00');
-                setQtdAptosRateioSindico('');
-            }
-        } catch (err) {
-            console.error("Erro em carregarDadosCompetencia:", err);
         }
     };
 
@@ -379,7 +165,6 @@ export default function PrestacaoContasPage() {
             if (isMountedRef.current) {
                 setIsApenasMorador(false);
                 setCondominio({ id: vinculoAdm.condominio_id, nome: nomeCondominioOficial });
-                await carregarDadosCompetencia(vinculoAdm.condominio_id, competenciaSelecionada);
             }
         } catch (e: any) {
             console.warn("Exceção tratada em verifySindicoAndLoadData:", e);
@@ -433,12 +218,6 @@ export default function PrestacaoContasPage() {
             if (authSub) authSub.unsubscribe();
         };
     }, []);
-
-    useEffect(() => {
-        if (condominio && condominio.id) {
-            carregarDadosCompetencia(condominio.id, competenciaSelecionada);
-        }
-    }, [competenciaSelecionada]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -577,305 +356,12 @@ export default function PrestacaoContasPage() {
             setValorPrevistoConta("0,00");
             setValorRealizadoConta("0,00");
             setDetalhamentoConta("");
-            await carregarDadosCompetencia(condominio.id, competenciaSelecionada);
             setTimeout(() => setContasSuccess(""), 2000);
         } catch (err: any) {
             console.error("Erro ao salvar conta:", err);
             setContasError(err?.message || "Erro ao registrar lançamento financeiro.");
         } finally {
             setLoadingContas(false);
-        }
-    };
-
-    const handleSalvarTarifaGas = async () => {
-        if (!condominio || !session) return;
-        setLoadingTarifaGas(true);
-        setTarifaGasSuccess("");
-
-        try {
-            const dataCompetenciaCompleta = `${competenciaSelecionada}-01`;
-            const valorGasNum = converterParaFloat(valorMetroCubicoGas);
-
-            const { data: tarifaExistente } = await supabase
-                .from("condominio_contas_gas_metro_cubico")
-                .select("id")
-                .eq("condominio_id", condominio.id)
-                .eq("data_competencia", dataCompetenciaCompleta)
-                .maybeSingle();
-
-            if (tarifaExistente) {
-                const { error: updateErr } = await supabase
-                    .from("condominio_contas_gas_metro_cubico")
-                    .update({
-                        valor_metro_cubico: valorGasNum,
-                        atualizado_em: new Date().toISOString()
-                    })
-                    .eq("id", tarifaExistente.id);
-                if (updateErr) throw updateErr;
-            } else {
-                const { error: insertErr } = await supabase
-                    .from("condominio_contas_gas_metro_cubico")
-                    .insert([{
-                        condominio_id: condominio.id,
-                        valor_metro_cubico: valorGasNum,
-                        data_competencia: dataCompetenciaCompleta,
-                        criado_por: session.user.id,
-                        atualizado_em: new Date().toISOString()
-                    }]);
-                if (insertErr) throw insertErr;
-            }
-
-            setTarifaGasSuccess("Tarifa do gás salva com sucesso!");
-            await carregarDadosCompetencia(condominio.id, competenciaSelecionada);
-            setTimeout(() => setTarifaGasSuccess(""), 3000);
-        } catch (err: any) {
-            console.error("Erro ao salvar tarifa de gás:", err);
-            alert("Erro ao salvar tarifa: " + (err?.message || JSON.stringify(err)));
-        } finally {
-            setLoadingTarifaGas(false);
-        }
-    };
-
-    // NOVA FUNÇÃO: Salva apenas uma linha (unidade) no clique do disquete
-    const handleSalvarMedicaoGasLinha = async (unidade: string) => {
-        if (!condominio || !session) return;
-
-        try {
-            const dataCompetenciaCompleta = `${competenciaSelecionada}-01`;
-            const dadosUnidade = gasConsumoMap[unidade] || { anterior: '', atual: '' };
-            const antNum = converterParaFloat(dadosUnidade.anterior);
-            const atuNum = converterParaFloat(dadosUnidade.atual);
-            const consumoCalc = Math.max(0, atuNum - antNum);
-
-            const tarifaVal = converterParaFloat(valorMetroCubicoGas);
-            const valorTotalGas = consumoCalc * tarifaVal;
-
-            const payload = {
-                condominio_id: condominio.id,
-                unidade: unidade,
-                leitura_anterior: antNum,
-                leitura_atual: atuNum,
-                consumo_calculado: consumoCalc,
-                valor_calculado: valorTotalGas, // Gravando na nova coluna
-                data_competencia: dataCompetenciaCompleta,
-                criado_por: session.user.id,
-                atualizado_em: new Date().toISOString()
-            };
-
-            const { error: upsertErr } = await supabase
-                .from("condominio_contas_gas_medicao")
-                .upsert([payload], {
-                    onConflict: 'condominio_id,unidade,data_competencia'
-                });
-
-            if (upsertErr) throw upsertErr;
-
-            alert(`Medição da unidade ${unidade} salva com sucesso!`);
-        } catch (err: any) {
-            console.error(`Erro ao salvar medição da unidade ${unidade}:`, err);
-            alert(`Erro ao salvar medição da unidade ${unidade}: ` + (err?.message || JSON.stringify(err)));
-        }
-    };
-
-    // ATUALIZADA: Agora também calcula e envia a nova coluna "valor_calculado" no salvamento em lote
-    const handleSalvarMedicaoGas = async () => {
-        if (!condominio || !session) return;
-        setLoadingMedicaoGas(true);
-        setMedicaoGasSuccess("");
-
-        try {
-            const dataCompetenciaCompleta = `${competenciaSelecionada}-01`;
-            const tarifaVal = converterParaFloat(valorMetroCubicoGas);
-
-            const payloads = unidadesCondominio.filter(u => u.toLowerCase() !== 'adm').map((unidade) => {
-                const dadosUnidade = gasConsumoMap[unidade] || { anterior: '', atual: '' };
-                const antNum = converterParaFloat(dadosUnidade.anterior);
-                const atuNum = converterParaFloat(dadosUnidade.atual);
-                const consumoCalc = Math.max(0, atuNum - antNum);
-                const valorTotalGas = consumoCalc * tarifaVal;
-
-                return {
-                    condominio_id: condominio.id,
-                    unidade: unidade,
-                    leitura_anterior: antNum,
-                    leitura_atual: atuNum,
-                    consumo_calculado: consumoCalc,
-                    valor_calculado: valorTotalGas, // Adicionado aqui
-                    data_competencia: dataCompetenciaCompleta,
-                    criado_por: session.user.id,
-                    atualizado_em: new Date().toISOString()
-                };
-            });
-
-            if (payloads.length > 0) {
-                const { error: upsertErr } = await supabase
-                    .from("condominio_contas_gas_medicao")
-                    .upsert(payloads, {
-                        onConflict: 'condominio_id,unidade,data_competencia'
-                    });
-
-                if (upsertErr) throw upsertErr;
-            }
-
-            setMedicaoGasSuccess("Todas as medições de gás foram salvas com sucesso!");
-            await carregarDadosCompetencia(condominio.id, competenciaSelecionada);
-            setTimeout(() => setMedicaoGasSuccess(""), 3000);
-        } catch (err: any) {
-            console.error("Erro ao salvar medição:", err);
-            alert("Erro ao salvar medições: " + (err?.message || JSON.stringify(err)));
-        } finally {
-            setLoadingMedicaoGas(false);
-        }
-    };
-
-    const handleSalvarFundoReserva = async () => {
-        if (!condominio || !session) return;
-        setLoadingFundo(true);
-        setFundoReservaSuccess("");
-
-        try {
-            const dataCompetenciaCompleta = `${competenciaSelecionada}-01`;
-            const valorFundoNum = converterParaFloat(valorFundoReserva);
-
-            const unidadesFiltradas = unidadesCondominio.filter(u => u.toLowerCase() !== 'adm');
-
-            for (const unidade of unidadesFiltradas) {
-                const { data: fundoExistente } = await supabase
-                    .from("condominio_contas_fundo_de_reservas")
-                    .select("id")
-                    .eq("condominio_id", condominio.id)
-                    .eq("unidade", unidade)
-                    .eq("data_competencia", dataCompetenciaCompleta)
-                    .maybeSingle();
-
-                if (fundoExistente) {
-                    const { error: funUpErr } = await supabase
-                        .from("condominio_contas_fundo_de_reservas")
-                        .update({
-                            valor: valorFundoNum,
-                            atualizado_em: new Date().toISOString()
-                        })
-                        .eq("id", fundoExistente.id);
-                    if (funUpErr) throw funUpErr;
-                } else {
-                    const { error: funInsErr } = await supabase
-                        .from("condominio_contas_fundo_de_reservas")
-                        .insert([{
-                            condominio_id: condominio.id,
-                            unidade,
-                            valor: valorFundoNum,
-                            data_competencia: dataCompetenciaCompleta,
-                            criado_por: session.user.id,
-                            atualizado_em: new Date().toISOString()
-                        }]);
-                    if (funInsErr) throw funInsErr;
-                }
-            }
-
-            setFundoReservaSuccess("Fundo de reservas salvo com sucesso para todas as unidades!");
-            await carregarDadosCompetencia(condominio.id, competenciaSelecionada);
-            setTimeout(() => setFundoReservaSuccess(""), 3000);
-        } catch (err: any) {
-            console.error("Erro ao salvar fundo de reserva:", err);
-            alert("Erro ao salvar fundo de reservas: " + (err?.message || JSON.stringify(err)));
-        } finally {
-            setLoadingFundo(false);
-        }
-    };
-
-    const handleSalvarRateioSindico = async () => {
-        if (!condominio || !session) return;
-        setLoadingRateioSindico(true);
-        setRateioSindicoSuccess("");
-
-        try {
-            const valorNum = converterParaFloat(valorRateioSindico);
-            const qtdNum = parseInt(qtdAptosRateioSindico) || 0;
-
-            if (valorNum <= 0 || qtdNum <= 0) {
-                alert("Informe um valor e a quantidade de apartamentos válidos para o rateio.");
-                setLoadingRateioSindico(false);
-                return;
-            }
-
-            const payload = {
-                condominio_id: condominio.id,
-                data_competencia: `${competenciaSelecionada}-01`,
-                valor: valorNum,
-                quantidade_apartamentos: qtdNum,
-                criado_por: session.user.id,
-                atualizado_em: new Date().toISOString()
-            };
-
-            const { error } = await supabase
-                .from("condominio_pagamento_sindico")
-                .upsert([payload], { onConflict: 'condominio_id,data_competencia' });
-
-            if (error) {
-                throw error;
-            }
-
-            setRateioSindicoSuccess("Rateio do Síndico salvo com sucesso!");
-            await carregarDadosCompetencia(condominio.id, competenciaSelecionada);
-            setTimeout(() => setRateioSindicoSuccess(""), 3000);
-        } catch (err: any) {
-            console.error("Erro ao salvar rateio síndico:", err);
-            alert("Erro ao salvar rateio do síndico: " + (err?.message || JSON.stringify(err)));
-        } finally {
-            setLoadingRateioSindico(false);
-        }
-    };
-
-    const handleCobrarReserva = async (reservaId: string, unidade: string, responsavel: string, taxa: number, dataReserva: string) => {
-        if (!condominio || !session) return;
-        if (!confirm(`Deseja registrar a cobrança da taxa do salão de festas (R$ ${taxa.toFixed(2).replace('.', ',')}) para a unidade ${unidade}?`)) return;
-
-        try {
-            const dataCompetenciaCompleta = `${competenciaSelecionada}-01`;
-            const { error } = await supabase
-                .from("condominio_reservas_cobrancas")
-                .upsert([
-                    {
-                        condominio_id: condominio.id,
-                        reserva_id: reservaId,
-                        unidade: unidade,
-                        responsavel_nome: responsavel,
-                        taxa: taxa,
-                        data_reserva: dataReserva,
-                        data_competencia: dataCompetenciaCompleta,
-                        status: 'cobrado',
-                        criado_por: session.user.id,
-                        atualizado_em: new Date().toISOString()
-                    }
-                ], { onConflict: 'reserva_id' });
-
-            if (error) throw error;
-            alert(`Cobrança de R$ ${taxa.toFixed(2).replace('.', ',')} gerada com sucesso na tabela de cobranças!`);
-            await carregarDadosCompetencia(condominio.id, competenciaSelecionada);
-        } catch (err: any) {
-            alert("Erro ao gerar cobrança: " + (err?.message || JSON.stringify(err)));
-        }
-    };
-
-    const handleRemoveReservaSalao = async (reservaId: string) => {
-        if (!condominio || !session) return;
-
-        if (!confirm("Deseja realmente excluir/cancelar o lançamento deste agendamento do salão de festas?")) return;
-        try {
-            const { error: cobrancaError } = await supabase
-                .from("condominio_reservas_cobrancas")
-                .update({
-                    status: 'cancelado',
-                    atualizado_em: new Date().toISOString()
-                })
-                .eq('reserva_id', reservaId);
-
-            if (cobrancaError) throw cobrancaError;
-
-            await carregarDadosCompetencia(condominio.id, competenciaSelecionada);
-            alert("Lançamento atualizado com sucesso para 'Cobrança cancelada'!");
-        } catch (err: any) {
-            alert("Erro ao atualizar cobrança: " + err.message);
         }
     };
 
@@ -1160,7 +646,7 @@ export default function PrestacaoContasPage() {
                         </div>
                     </div>
 
-                    {/* CONTROLE DE CONTAS */}
+                    {/* CONTROLE DE CONTAS (PRINCIPAL) */}
                     <div className="pt-2 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <h2 className="text-xl md:text-2xl font-black tracking-tight text-zinc-900 mb-1">
@@ -1288,470 +774,111 @@ export default function PrestacaoContasPage() {
 
                 <hr className="border-zinc-200 my-8" />
 
-                {/* CONTROLES DE CONSUMO DE GÁS */}
+                {/* PAINEL DE CONTROLES - LINKS PARA SUBPÁGINAS */}
                 <div className="pt-2">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                         <div>
                             <h2 className="text-xl md:text-2xl font-black tracking-tight text-zinc-900 mb-1">
-                                Controles de Consumo
+                                Controles de Consumo e Taxas
                             </h2>
                             <p className="text-xs md:text-sm text-zinc-500 font-medium">
-                                Gerenciamento de consumo de gás para o período de {competenciaSelecionada}.
+                                Acesse as áreas exclusivas para gerenciar medições, fundos e rateios.
                             </p>
-                        </div>
-
-                        {/* Filtro do Mês/Ano */}
-                        <div className="bg-white border border-zinc-200 p-3 rounded-2xl flex items-center gap-3 shadow-sm shrink-0">
-                            <div className="bg-emerald-50 text-emerald-600 p-2 rounded-xl">
-                                <Calendar size={18} />
-                            </div>
-                            <div>
-                                <label className="block text-[9px] font-black text-zinc-400 uppercase tracking-widest">Mês / Ano de Referência</label>
-                                <input
-                                    type="month"
-                                    value={competenciaSelecionada}
-                                    onChange={(e) => setCompetenciaSelecionada(e.target.value)}
-                                    className="text-xs font-bold text-zinc-900 bg-transparent outline-none cursor-pointer mt-0.5"
-                                />
-                            </div>
                         </div>
                     </div>
 
-                    <div className="w-full bg-white border border-zinc-200 p-6 md:p-8 rounded-[2.5rem] shadow-sm space-y-6">
-                        <div className="space-y-4">
-                            <div className="bg-amber-50/60 border border-amber-200/70 p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="bg-amber-500 text-white p-2.5 rounded-xl">
-                                        <Flame size={20} />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-xs font-black uppercase tracking-wider text-amber-900">Tarifa do Gás (Metro Cúbico) - {competenciaSelecionada}</h3>
-                                        <p className="text-xs text-amber-700">Valor unitário aplicado no cálculo de consumo para este mês.</p>
-                                    </div>
-                                </div>
-                                <div className="w-full sm:w-48 shrink-0">
-                                    <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">R$</span>
-                                        <input
-                                            type="text"
-                                            placeholder="0,00"
-                                            value={valorMetroCubicoGas}
-                                            onChange={(e) => setValorMetroCubicoGas(e.target.value)}
-                                            onBlur={(e) => setValorMetroCubicoGas(formatarValorExibicao(e.target.value))}
-                                            className="w-full pl-9 pr-4 py-2.5 bg-white border border-amber-300 rounded-xl text-xs font-bold text-zinc-900 outline-none focus:ring-2 focus:ring-amber-400"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {tarifaGasSuccess && (
-                                <p className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-3 rounded-xl flex items-center gap-2">
-                                    <CheckCircle2 size={14} /> {tarifaGasSuccess}
-                                </p>
-                            )}
-
-                            <div>
-                                <button
-                                    type="button"
-                                    onClick={handleSalvarTarifaGas}
-                                    disabled={loadingTarifaGas}
-                                    className="w-full bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-amber-600/10 flex items-center justify-center gap-2 cursor-pointer"
-                                >
-                                    {loadingTarifaGas ? "Salvando Tarifa..." : "Salvar Tarifa do Gás"}
-                                </button>
-                            </div>
-                        </div>
-
-                        <hr className="border-zinc-100 my-4" />
-
-                        <div className="space-y-3">
-                            <h3 className="text-xs font-black uppercase tracking-wider text-zinc-800">
-                                Medição de Gás por Apartamento (Antes x Depois)
-                            </h3>
-                            <div className="overflow-x-auto border border-zinc-100 rounded-2xl">
-                                <table className="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr className="bg-zinc-50 border-b border-zinc-100 text-[10px] font-black text-zinc-400 uppercase tracking-wider">
-                                            <th className="p-3.5 pl-5">Mês / Ano</th>
-                                            <th className="p-3.5">Unidade / Apartamento</th>
-                                            <th className="p-3.5">Leitura Mês Passado (Antes)</th>
-                                            <th className="p-3.5">Leitura Mês Atual (Depois)</th>
-                                            <th className="p-3.5 pr-5 text-right">Consumo (m³) / Salvar</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-zinc-50">
-                                        {unidadesCondominio.filter(u => u.toLowerCase() !== 'adm').length === 0 ? (
-                                            <tr>
-                                                <td colSpan={5} className="text-center py-8 text-xs text-zinc-400">
-                                                    Nenhuma unidade cadastrada neste condomínio.
-                                                </td>
-                                            </tr>
-                                        ) : (
-                                            unidadesCondominio.filter(u => u.toLowerCase() !== 'adm').map((unidade) => {
-                                                const ant = converterParaFloat(gasConsumoMap[unidade]?.anterior);
-                                                const atu = converterParaFloat(gasConsumoMap[unidade]?.atual);
-                                                const consumo = Math.max(0, atu - ant);
-                                                const tarifaVal = converterParaFloat(valorMetroCubicoGas);
-                                                const valorTotalGas = consumo * tarifaVal;
-
-                                                return (
-                                                    <tr key={unidade} className="hover:bg-zinc-50/50 transition-colors">
-                                                        <td className="p-3.5 pl-5 text-xs font-bold text-emerald-600 font-mono">
-                                                            {competenciaSelecionada}
-                                                        </td>
-                                                        <td className="p-3.5 text-xs font-bold text-zinc-800">
-                                                            Apto {unidade}
-                                                        </td>
-                                                        <td className="p-3.5">
-                                                            <input
-                                                                type="text"
-                                                                placeholder="0,000"
-                                                                value={gasConsumoMap[unidade]?.anterior || ''}
-                                                                onChange={(e) => {
-                                                                    const val = e.target.value;
-                                                                    setGasConsumoMap(prev => ({
-                                                                        ...prev,
-                                                                        [unidade]: { ...(prev[unidade] || { atual: '' }), anterior: val }
-                                                                    }));
-                                                                }}
-                                                                onBlur={() => {
-                                                                    setGasConsumoMap(prev => ({
-                                                                        ...prev,
-                                                                        [unidade]: {
-                                                                            ...(prev[unidade] || { atual: '' }),
-                                                                            anterior: formatarMedicaoGasExibicao(prev[unidade]?.anterior)
-                                                                        }
-                                                                    }));
-                                                                }}
-                                                                className="w-full max-w-[140px] px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium text-zinc-900 outline-none focus:bg-white focus:border-emerald-400"
-                                                            />
-                                                        </td>
-                                                        <td className="p-3.5">
-                                                            <input
-                                                                type="text"
-                                                                placeholder="0,000"
-                                                                value={gasConsumoMap[unidade]?.atual || ''}
-                                                                onChange={(e) => {
-                                                                    const val = e.target.value;
-                                                                    setGasConsumoMap(prev => ({
-                                                                        ...prev,
-                                                                        [unidade]: { ...(prev[unidade] || { anterior: '' }), atual: val }
-                                                                    }));
-                                                                }}
-                                                                onBlur={() => {
-                                                                    setGasConsumoMap(prev => ({
-                                                                        ...prev,
-                                                                        [unidade]: {
-                                                                            ...(prev[unidade] || { anterior: '' }),
-                                                                            atual: formatarMedicaoGasExibicao(prev[unidade]?.atual)
-                                                                        }
-                                                                    }));
-                                                                }}
-                                                                className="w-full max-w-[140px] px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium text-zinc-900 outline-none focus:bg-white focus:border-emerald-400"
-                                                            />
-                                                        </td>
-                                                        <td className="p-3.5 pr-5 flex items-center justify-end gap-3">
-                                                            <div className="text-right text-xs font-black text-emerald-600">
-                                                                {consumo.toFixed(3).replace('.', ',')} m³ <span className="text-[10px] text-zinc-400 font-normal">({valorTotalGas > 0 ? `R$ ${valorTotalGas.toFixed(2).replace('.', ',')}` : 'R$ 0,00'})</span>
-                                                            </div>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleSalvarMedicaoGasLinha(unidade)}
-                                                                className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-xl transition-colors cursor-pointer shadow-sm flex items-center justify-center shrink-0"
-                                                                title="Gravar Leitura (Salvar Linha)"
-                                                            >
-                                                                <Save size={14} />
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        {medicaoGasSuccess && (
-                            <p className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-3 rounded-xl flex items-center gap-2">
-                                <CheckCircle2 size={14} /> {medicaoGasSuccess}
-                            </p>
-                        )}
-
-                        <div className="pt-2 space-y-3">
-                            <button
-                                type="button"
-                                onClick={handleSalvarMedicaoGas}
-                                disabled={loadingMedicaoGas}
-                                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-emerald-600/10 flex items-center justify-center gap-2 cursor-pointer"
-                            >
-                                {loadingMedicaoGas ? "Salvando Todas as Medições..." : "Salvar Todas as Medições de Gás"}
-                            </button>
-
-                            <Link
-                                href="/condo/adm/analise-gas"
-                                className="w-full bg-zinc-900 hover:bg-black text-white py-3.5 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-zinc-900/10 flex items-center justify-center gap-2 cursor-pointer text-center"
-                            >
-                                <BarChart3 size={14} /> Acessar análise de gás
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-
-                {/* FUNDO DE RESERVAS */}
-                <div className="pt-6">
-                    <h2 className="text-xl md:text-2xl font-black tracking-tight text-zinc-900 mb-1">
-                        Fundo de reservas
-                    </h2>
-                    <p className="text-xs md:text-sm text-zinc-500 font-medium mb-6">
-                        Controle e aplicação da taxa de fundo de reservas e fundo de obras para o período de {competenciaSelecionada}.
-                    </p>
-
-                    <div className="w-full bg-white border border-zinc-200 p-6 md:p-8 rounded-[2.5rem] shadow-sm space-y-6">
-                        <div className="bg-emerald-50/60 border border-emerald-200/70 p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                            <div className="flex items-center gap-3">
-                                <div className="bg-emerald-600 text-white p-2.5 rounded-xl">
-                                    <Wallet size={20} />
+                    <div className="space-y-4">
+                        {/* MEDIÇÃO DE GÁS */}
+                        <Link
+                            href="/condo/adm/prestacao_contas/medicao-de-gas"
+                            className="group flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 md:p-8 bg-white border border-zinc-200 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-900/5 rounded-[2.5rem] transition-all duration-300 w-full"
+                        >
+                            <div className="flex items-center gap-5">
+                                <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 shadow-sm shrink-0">
+                                    <Flame size={28} />
                                 </div>
                                 <div>
-                                    <h3 className="text-xs font-black uppercase tracking-wider text-emerald-900">Valor Aplicável por Unidade ({competenciaSelecionada})</h3>
-                                    <p className="text-xs text-emerald-700">Valor padrão herdado do último mês informado ou ajustável para este mês.</p>
-                                </div>
-                            </div>
-                            <div className="w-full sm:w-48 shrink-0">
-                                <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">R$</span>
-                                    <input
-                                        type="text"
-                                        placeholder="100,00"
-                                        value={valorFundoReserva}
-                                        onChange={(e) => setValorFundoReserva(e.target.value)}
-                                        onBlur={(e) => setValorFundoReserva(formatarValorExibicao(e.target.value))}
-                                        className="w-full pl-9 pr-4 py-2.5 bg-white border border-emerald-300 rounded-xl text-xs font-bold text-zinc-900 outline-none focus:ring-2 focus:ring-emerald-400"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="space-y-3">
-                            <h3 className="text-xs font-black uppercase tracking-wider text-zinc-800">
-                                Unidades Aplicadas (Fundo de Reservas)
-                            </h3>
-                            <div className="overflow-x-auto border border-zinc-100 rounded-2xl">
-                                <table className="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr className="bg-zinc-50 border-b border-zinc-100 text-[10px] font-black text-zinc-400 uppercase tracking-wider">
-                                            <th className="p-3.5 pl-5">Mês / Ano</th>
-                                            <th className="p-3.5">Unidade / Apartamento</th>
-                                            <th className="p-3.5">Status da Taxa</th>
-                                            <th className="p-3.5 pr-5 text-right">Valor Definido</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-zinc-50">
-                                        {unidadesCondominio.filter(u => u.toLowerCase() !== 'adm').length === 0 ? (
-                                            <tr>
-                                                <td colSpan={4} className="text-center py-8 text-xs text-zinc-400">
-                                                    Nenhuma unidade cadastrada neste condomínio.
-                                                </td>
-                                            </tr>
-                                        ) : (
-                                            unidadesCondominio.filter(u => u.toLowerCase() !== 'adm').map((unidade) => {
-                                                const valorNumerico = converterParaFloat(valorFundoReserva);
-                                                return (
-                                                    <tr key={unidade} className="hover:bg-zinc-50/50 transition-colors">
-                                                        <td className="p-3.5 pl-5 text-xs font-bold text-emerald-600 font-mono">
-                                                            {competenciaSelecionada}
-                                                        </td>
-                                                        <td className="p-3.5 text-xs font-bold text-zinc-800">
-                                                            Apto {unidade}
-                                                        </td>
-                                                        <td className="p-3.5 text-xs font-medium text-emerald-600 flex items-center gap-1">
-                                                            <CheckCircle2 size={14} /> Aplicável (Fixo)
-                                                        </td>
-                                                        <td className="p-3.5 pr-5 text-right text-xs font-black text-zinc-900">
-                                                            R$ {valorNumerico.toFixed(2).replace('.', ',')}
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        {fundoReservaSuccess && (
-                            <p className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-3 rounded-xl flex items-center gap-2">
-                                <CheckCircle2 size={14} /> {fundoReservaSuccess}
-                            </p>
-                        )}
-
-                        <div className="pt-2">
-                            <button
-                                type="button"
-                                onClick={handleSalvarFundoReserva}
-                                disabled={loadingFundo}
-                                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-emerald-600/10 flex items-center justify-center gap-2 cursor-pointer"
-                            >
-                                {loadingFundo ? "Salvando Fundo..." : "Salvar Fundo de Reservas"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* SALÃO DE FESTAS */}
-                <div className="pt-6">
-                    <h2 className="text-xl md:text-2xl font-black tracking-tight text-zinc-900 mb-1">
-                        Salão de festas
-                    </h2>
-                    <p className="text-xs md:text-sm text-zinc-500 font-medium mb-6">
-                        Controle de locações, agendamentos e geração de cobranças para o período de {competenciaSelecionada}.
-                    </p>
-
-                    <div className="w-full bg-white border border-zinc-200 p-6 md:p-8 rounded-[2.5rem] shadow-sm space-y-6">
-                        <div className="space-y-3">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                <div>
-                                    <h3 className="text-xs font-black uppercase tracking-wider text-zinc-800">
-                                        Agendamentos Ativos ({competenciaSelecionada})
+                                    <h3 className="text-lg font-black text-zinc-900 group-hover:text-emerald-700 transition-colors">
+                                        Medição de Gás
                                     </h3>
-                                    <p className="text-[11px] text-zinc-500">Agendamentos obtidos da tabela de reservas do condomínio.</p>
+                                    <p className="text-xs text-zinc-500 mt-1 max-w-md">
+                                        Gerencie a tarifa do gás, registre as leituras mensais de cada unidade e calcule o valor consumido.
+                                    </p>
                                 </div>
                             </div>
-
-                            <div className="overflow-x-auto border border-zinc-100 rounded-2xl">
-                                <table className="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr className="bg-zinc-50 border-b border-zinc-100 text-[10px] font-black text-zinc-400 uppercase tracking-wider">
-                                            <th className="p-3.5 pl-5">Data / Unidade</th>
-                                            <th className="p-3.5">Responsável</th>
-                                            <th className="p-3.5">Taxa de Locação</th>
-                                            <th className="p-3.5">Status Cobrança</th>
-                                            <th className="p-3.5 pr-5 text-right">Ações (Deletar / Cobrar)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-zinc-50">
-                                        {salaoUsos.length === 0 ? (
-                                            <tr>
-                                                <td colSpan={5} className="text-center py-8 text-xs text-zinc-400">
-                                                    Nenhum agendamento de salão de festas encontrado para este mês.
-                                                </td>
-                                            </tr>
-                                        ) : (
-                                            salaoUsos.map((item) => {
-                                                const isAtivo = item.status_cobranca === 'Cobrança ativa';
-                                                const isCancelado = item.status_cobranca === 'Cobrança cancelada';
-                                                return (
-                                                    <tr key={item.id} className="hover:bg-zinc-50/50 transition-colors">
-                                                        <td className="p-3.5 pl-5 text-xs font-bold text-zinc-800 flex items-center gap-2">
-                                                            <PartyPopper size={16} className="text-purple-600" />
-                                                            <div>
-                                                                <div>Apto {item.unidade}</div>
-                                                                <div className="text-[10px] text-zinc-400 font-normal">{item.data_reserva}</div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="p-3.5 text-xs font-medium text-zinc-700">
-                                                            {item.responsavel_nome}
-                                                        </td>
-                                                        <td className="p-3.5 text-xs font-bold text-zinc-700">
-                                                            R$ {item.taxa.toFixed(2).replace('.', ',')}
-                                                        </td>
-                                                        <td className="p-3.5 text-xs font-bold">
-                                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${isAtivo ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : isCancelado ? 'bg-rose-50 text-rose-600 border border-rose-200' : 'bg-zinc-100 text-zinc-500 border border-zinc-200'}`}>
-                                                                {item.status_cobranca}
-                                                            </span>
-                                                        </td>
-                                                        <td className="p-3.5 pr-5 text-right space-x-2">
-                                                            {(!isAtivo || isCancelado) && (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => handleCobrarReserva(item.id, item.unidade, item.responsavel_nome, item.taxa, item.data_reserva)}
-                                                                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all inline-flex items-center gap-1 cursor-pointer shadow-sm"
-                                                                    title="Cobrar (Gerar Lançamento)"
-                                                                >
-                                                                    <DollarSign size={13} /> Cobrar
-                                                                </button>
-                                                            )}
-
-                                                            {isAtivo && (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => handleRemoveReservaSalao(item.id)}
-                                                                    className="bg-rose-50 hover:bg-rose-100 text-rose-600 p-2 rounded-xl transition-colors cursor-pointer inline-flex items-center"
-                                                                    title="Excluir Lançamento"
-                                                                >
-                                                                    <Trash2 size={15} />
-                                                                </button>
-                                                            )}
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })
-                                        )}
-                                    </tbody>
-                                </table>
+                            <div className="flex items-center justify-center w-12 h-12 bg-zinc-50 rounded-full text-zinc-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors shrink-0">
+                                <ArrowRight size={20} />
                             </div>
-                        </div>
-                    </div>
-                </div>
+                        </Link>
 
-                {/* RATEIO SÍNDICO */}
-                <div className="pt-6">
-                    <h2 className="text-xl md:text-2xl font-black tracking-tight text-zinc-900 mb-1">
-                        Rateio Síndico
-                    </h2>
-                    <p className="text-xs md:text-sm text-zinc-500 font-medium mb-6">
-                        Custo de isenção da Taxa Base do Síndico que é pago pelos demais moradores (aprovação em assembleia) para o período de {competenciaSelecionada}.
-                    </p>
-
-                    <div className="w-full bg-white border border-zinc-200 p-6 md:p-8 rounded-[2.5rem] shadow-sm space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Valor a ser aplicado na cobrança (R$)</label>
-                                <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">R$</span>
-                                    <input
-                                        type="text"
-                                        placeholder="0,00"
-                                        value={valorRateioSindico}
-                                        onChange={(e) => setValorRateioSindico(e.target.value)}
-                                        onBlur={(e) => setValorRateioSindico(formatarValorExibicao(e.target.value))}
-                                        className="w-full pl-9 pr-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-bold text-zinc-900 outline-none focus:bg-white focus:border-emerald-400 transition-all"
-                                    />
+                        {/* FUNDO DE RESERVAS */}
+                        <Link
+                            href="/condo/adm/prestacao_contas/fundo-de-reservas"
+                            className="group flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 md:p-8 bg-white border border-zinc-200 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-900/5 rounded-[2.5rem] transition-all duration-300 w-full"
+                        >
+                            <div className="flex items-center gap-5">
+                                <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 shadow-sm shrink-0">
+                                    <Wallet size={28} />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-black text-zinc-900 group-hover:text-emerald-700 transition-colors">
+                                        Fundo de Reservas
+                                    </h3>
+                                    <p className="text-xs text-zinc-500 mt-1 max-w-md">
+                                        Controle e aplicação da taxa de fundo de reservas e fundo de obras para o condomínio.
+                                    </p>
                                 </div>
                             </div>
+                            <div className="flex items-center justify-center w-12 h-12 bg-zinc-50 rounded-full text-zinc-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors shrink-0">
+                                <ArrowRight size={20} />
+                            </div>
+                        </Link>
 
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Quantidade de apartamentos a ratear</label>
-                                <div className="relative">
-                                    <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
-                                    <input
-                                        type="number"
-                                        placeholder="Ex: 10"
-                                        value={qtdAptosRateioSindico}
-                                        onChange={(e) => setQtdAptosRateioSindico(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-bold text-zinc-900 outline-none focus:bg-white focus:border-emerald-400 transition-all"
-                                    />
+                        {/* SALÃO DE FESTAS */}
+                        <Link
+                            href="/condo/adm/prestacao_contas/salao-de-festas"
+                            className="group flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 md:p-8 bg-white border border-zinc-200 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-900/5 rounded-[2.5rem] transition-all duration-300 w-full"
+                        >
+                            <div className="flex items-center gap-5">
+                                <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 shadow-sm shrink-0">
+                                    <PartyPopper size={28} />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-black text-zinc-900 group-hover:text-emerald-700 transition-colors">
+                                        Salão de Festas
+                                    </h3>
+                                    <p className="text-xs text-zinc-500 mt-1 max-w-md">
+                                        Controle de locações, agendamentos e geração de cobranças.
+                                    </p>
                                 </div>
                             </div>
-                        </div>
+                            <div className="flex items-center justify-center w-12 h-12 bg-zinc-50 rounded-full text-zinc-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors shrink-0">
+                                <ArrowRight size={20} />
+                            </div>
+                        </Link>
 
-                        {rateioSindicoSuccess && (
-                            <p className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-3 rounded-xl flex items-center gap-2">
-                                <CheckCircle2 size={14} /> {rateioSindicoSuccess}
-                            </p>
-                        )}
-
-                        <div className="pt-2">
-                            <button
-                                type="button"
-                                onClick={handleSalvarRateioSindico}
-                                disabled={loadingRateioSindico}
-                                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-emerald-600/10 flex items-center justify-center gap-2 cursor-pointer"
-                            >
-                                {loadingRateioSindico ? "Salvando Rateio..." : "Salvar Lançamento"}
-                            </button>
-                        </div>
+                        {/* RATEIO SÍNDICO */}
+                        <Link
+                            href="/condo/adm/prestacao_contas/rateio-sindico"
+                            className="group flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 md:p-8 bg-white border border-zinc-200 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-900/5 rounded-[2.5rem] transition-all duration-300 w-full"
+                        >
+                            <div className="flex items-center gap-5">
+                                <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 shadow-sm shrink-0">
+                                    <Users size={28} />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-black text-zinc-900 group-hover:text-emerald-700 transition-colors">
+                                        Rateio Síndico
+                                    </h3>
+                                    <p className="text-xs text-zinc-500 mt-1 max-w-md">
+                                        Custo de isenção da Taxa Base do Síndico que é pago pelos demais moradores.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-center w-12 h-12 bg-zinc-50 rounded-full text-zinc-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors shrink-0">
+                                <ArrowRight size={20} />
+                            </div>
+                        </Link>
                     </div>
                 </div>
             </div>

@@ -1,9 +1,11 @@
+// app/planos/pro/page.tsx
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 import {
   Gem, CheckCircle2, QrCode, X, Copy, Check,
   MessageCircle, Instagram, Gift, Star, RefreshCw,
-  BarChart3, Headphones, Globe
+  BarChart3, Headphones, Globe, Rocket, AtSign, Key, User, ArrowRight
 } from "lucide-react";
 
 export default function PaginaPlanoPro() {
@@ -11,8 +13,37 @@ export default function PaginaPlanoPro() {
   const [selectedPlan, setSelectedPlan] = useState<{ name: string, price: string, qrCode: string } | null>(null);
   const [copied, setCopied] = useState(false);
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Estados de Autenticação In-Page
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('register');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authName, setAuthName] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState('');
+
+  // Armazena a ação que o usuário tentou fazer antes de logar
+  const [pendingAction, setPendingAction] = useState<{ lookupKey?: string } | null>(null);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+
   const PIX_KEY = "contato@nucleobase.app";
   const WHATSAPP_LINK_ID = "q46hkm";
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    };
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const openPixModal = (name: string, price: string, qrCode: string) => {
     setSelectedPlan({ name, price, qrCode });
@@ -30,22 +61,330 @@ export default function PaginaPlanoPro() {
     window.open(`https://wa.link/${WHATSAPP_LINK_ID}?text=${message}`, '_blank');
   };
 
-  const CheckoutForm = ({ lookupKey, label, className, description, discount }: { lookupKey: string, label: string, className?: string, description: string, discount?: string }) => (
-    <form action="/api/stripe" method="POST" className="w-full">
-      <input type="hidden" name="lookup_key" value={lookupKey} />
-      <button type="submit" title={description} className={`${className} cursor-pointer transition-transform active:scale-[0.98] flex items-center justify-center gap-2 w-full`}>
-        {label}
-        {discount && (
+  // Funções Auxiliares de Cadastro
+  const formatarSlug = (texto: string) => {
+    return texto
+      .toLowerCase()
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/[^\w-]+/g, '');
+  };
+
+  const enviarNotificacaoAdm = async (nomeNovo: string, emailNovo: string) => {
+    try {
+      await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          access_key: "9ef5a274-150a-4664-a885-0b052efd06f7",
+          subject: "🚀 Novo Cadastro na Nucleobase (Plano Pro)!",
+          message: `O usuário ${nomeNovo || "Anônimo"} se cadastrou na página do Plano Pro.\nE-mail: ${emailNovo}`
+        }),
+      });
+    } catch (e) { console.error("Erro Web3Forms:", e); }
+  };
+
+  const enviarOnboardingUsuario = async (nomeUsuario: string, emailDestino: string) => {
+    try {
+      const res = await fetch("/api/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nome: nomeUsuario || "Investidor(a)",
+          email: emailDestino,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("Erro na rota de e-mail:", errorData);
+      }
+    } catch (e) {
+      console.error("Erro ao conectar com a API interna:", e);
+    }
+  };
+
+  // Processa o Checkout no Stripe com Interceptação de Erro
+  const processStripeCheckout = async (lookupKey: string) => {
+    setLoadingPlan(lookupKey);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      // Interceptação 1: Sessão local não encontrada
+      if (!token) {
+        setIsLoggedIn(false);
+        setPendingAction({ lookupKey });
+        setAuthMode('register');
+        setShowAuthModal(true);
+        setLoadingPlan(null);
+        return;
+      }
+
+      const response = await fetch("/api/stripe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ lookup_key: lookupKey }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Interceptação 2: API rejeitou o token/acesso (Erro 401 ou mensagem explícita)
+        if (response.status === 401 || (data.error && data.error.includes("Usuário não autenticado"))) {
+          setIsLoggedIn(false);
+          setPendingAction({ lookupKey });
+          setAuthMode('login');
+          setShowAuthModal(true);
+          setLoadingPlan(null);
+          return;
+        }
+
+        alert(data.error || "Erro ao processar assinatura.");
+        setLoadingPlan(null);
+        return;
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert("URL de checkout não retornada.");
+        setLoadingPlan(null);
+      }
+    } catch (error) {
+      console.error("Erro na comunicação com a Stripe:", error);
+      alert("Erro de conexão com o servidor. Tente novamente.");
+      setLoadingPlan(null);
+    }
+  };
+
+  // Submissão do Modal de Autenticação In-Page
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError("");
+
+    try {
+      if (authMode === 'register') {
+        const nomeFinal = authName.trim() || "Anônimo";
+        const emailFinal = authEmail.trim();
+        const baseSlug = formatarSlug(emailFinal.split('@')[0]);
+        const slugFinal = `${baseSlug}-${Math.floor(Math.random() * 10000)}`;
+
+        const { data: authData, error: signUpError } = await supabase.auth.signUp({
+          email: emailFinal,
+          password: authPassword,
+          options: { data: { full_name: nomeFinal } }
+        });
+
+        if (signUpError) throw signUpError;
+
+        if (authData.user) {
+          if (authData.session) {
+            await supabase.auth.setSession({
+              access_token: authData.session.access_token,
+              refresh_token: authData.session.refresh_token,
+            });
+          }
+
+          await supabase.from('profiles').upsert([
+            {
+              id: authData.user.id,
+              email: emailFinal,
+              email_contato: emailFinal,
+              nome_completo: nomeFinal,
+              plan_type: 'free',
+              slug: slugFinal
+            }
+          ]);
+
+          try {
+            await supabase.from('usuarios').upsert([
+              {
+                id: authData.user.id,
+                email: emailFinal,
+                nome_completo: nomeFinal
+              }
+            ]);
+          } catch (err) {
+            console.warn("Aviso na tabela usuarios:", err);
+          }
+
+          await enviarNotificacaoAdm(nomeFinal, emailFinal);
+          await enviarOnboardingUsuario(nomeFinal, emailFinal);
+
+          const indicadorId = localStorage.getItem("nucleobase_referral_id");
+          if (indicadorId && indicadorId !== authData.user.id) {
+            await supabase.from("indicacoes").insert([
+              { indicador_id: indicadorId, indicado_id: authData.user.id, status: 'pendente' }
+            ]);
+            localStorage.removeItem("nucleobase_referral_id");
+          }
+        }
+      } else {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: authEmail,
+          password: authPassword
+        });
+        if (signInError) throw signInError;
+      }
+
+      setIsLoggedIn(true);
+      setShowAuthModal(false);
+
+      // Retoma automaticamente a ação do usuário
+      if (pendingAction?.lookupKey) {
+        await processStripeCheckout(pendingAction.lookupKey);
+      }
+      setPendingAction(null);
+
+    } catch (err: any) {
+      setAuthError(err.message || "Erro de autenticação. Verifique os dados.");
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const CheckoutForm = ({ lookupKey, label, className, description, discount }: { lookupKey: string, label: string, className?: string, description: string, discount?: string }) => {
+    const isCurrentlyLoading = loadingPlan === lookupKey;
+
+    const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+
+      if (!isLoggedIn) {
+        setPendingAction({ lookupKey });
+        setAuthMode('register');
+        setShowAuthModal(true);
+        return;
+      }
+
+      await processStripeCheckout(lookupKey);
+    };
+
+    return (
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={isCurrentlyLoading}
+        title={description}
+        className={`${className} cursor-pointer transition-transform active:scale-[0.98] flex items-center justify-center gap-2 w-full disabled:opacity-50`}
+      >
+        {isCurrentlyLoading ? "Aguarde..." : label}
+        {discount && !isCurrentlyLoading && (
           <span className="bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-md text-[10px] font-black">
             {discount}
           </span>
         )}
       </button>
-    </form>
-  );
+    );
+  };
 
   return (
-    <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0 bg-white">
+    <div className="w-full px-4 md:px-12 lg:px-16 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative bg-white">
+
+      {/* MODAL DE AUTENTICAÇÃO IN-PAGE */}
+      {showAuthModal && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 relative border border-slate-100">
+            <button
+              onClick={() => {
+                setShowAuthModal(false);
+                setPendingAction(null);
+              }}
+              className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-900 transition-colors cursor-pointer z-10"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="p-8 md:p-10 flex flex-col items-center">
+              <div className="bg-amber-50 w-16 h-16 rounded-2xl text-amber-600 mb-6 flex items-center justify-center shadow-inner">
+                <Rocket size={32} />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">
+                {authMode === 'register' ? 'Crie sua conta' : 'Acesse sua conta'}
+              </h3>
+              <p className="text-slate-500 text-xs font-medium text-center mb-8 max-w-[260px] leading-relaxed">
+                {authMode === 'register'
+                  ? 'Cadastre-se rapidamente para prosseguir com a ativação do seu plano.'
+                  : 'Insira suas credenciais para continuar com a assinatura.'}
+              </p>
+
+              <form onSubmit={handleAuthSubmit} className="w-full space-y-3">
+                {authMode === 'register' && (
+                  <div className="relative group">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-amber-500 transition-colors" size={16} />
+                    <input
+                      type="text"
+                      placeholder="Seu nome completo"
+                      required
+                      value={authName}
+                      onChange={(e) => setAuthName(e.target.value)}
+                      className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition-all text-sm font-medium"
+                    />
+                  </div>
+                )}
+
+                <div className="relative group">
+                  <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-amber-500 transition-colors" size={16} />
+                  <input
+                    type="email"
+                    placeholder="E-mail de acesso"
+                    required
+                    value={authEmail}
+                    onChange={(e) => setAuthEmail(e.target.value)}
+                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition-all text-sm font-medium"
+                  />
+                </div>
+
+                <div className="relative group">
+                  <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-amber-500 transition-colors" size={16} />
+                  <input
+                    type="password"
+                    placeholder="Sua senha segura"
+                    required
+                    value={authPassword}
+                    onChange={(e) => setAuthPassword(e.target.value)}
+                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition-all text-sm font-medium"
+                  />
+                </div>
+
+                {authError && (
+                  <p className="text-[10px] font-bold text-red-500 bg-red-50 border border-red-100 p-3 rounded-xl text-center mt-2">
+                    {authError}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={authLoading}
+                  className="w-full bg-amber-500 text-white py-4 rounded-xl font-black hover:bg-amber-600 transition-all text-[11px] uppercase tracking-widest shadow-lg shadow-amber-500/20 disabled:opacity-50 mt-4 flex justify-center items-center gap-2 cursor-pointer"
+                >
+                  {authLoading ? "Aguarde..." : (authMode === 'register' ? "Validar e Continuar" : "Entrar e Continuar")}
+                  {!authLoading && <ArrowRight size={16} />}
+                </button>
+              </form>
+
+              <div className="mt-6 text-center">
+                <button
+                  type="button"
+                  onClick={() => setAuthMode(authMode === 'register' ? 'login' : 'register')}
+                  className="text-xs font-bold text-slate-500 hover:text-amber-600 transition-colors cursor-pointer"
+                >
+                  {authMode === 'register' ? 'Já tem uma conta? Faça login' : 'Não tem conta? Cadastre-se'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* HEADER PADRONIZADO */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
@@ -65,13 +404,12 @@ export default function PaginaPlanoPro() {
         Experiência Premium <div className="h-px bg-gray-200 flex-1"></div>
       </h3>
 
-      {/* SEÇÃO PRINCIPAL */}
-      <div className="max-w-4xl mx-auto px-2">
-        <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 items-stretch">
+      {/* SEÇÃO PRINCIPAL - Ocupa toda a largura disponível de forma fluida e balanceada */}
+      <div className="w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
 
           {/* CONTAINER ESQUERDO: TEXTO + BENEFÍCIOS + EXPLICAÇÃO DESKTOP */}
-          <div className="flex-1 flex flex-col justify-between w-full py-2">
-
+          <div className="flex flex-col justify-between w-full py-2">
             <div className="flex flex-col gap-8">
               {/* TEXTO INICIAL */}
               <div className="space-y-4">
@@ -117,12 +455,14 @@ export default function PaginaPlanoPro() {
             </div>
           </div>
 
-          {/* CONTAINER DIREITO: CARD (DESKTOP) */}
-          <div className="hidden lg:block w-full lg:w-[380px] shrink-0">
-            <CardPrecoPro
-              openPixModal={openPixModal}
-              CheckoutForm={CheckoutForm}
-            />
+          {/* CONTAINER DIREITO: CARD (DESKTOP) - Centralizado e dimensionado perfeitamente na segunda coluna */}
+          <div className="hidden lg:flex w-full justify-center items-center">
+            <div className="w-full max-w-[420px]">
+              <CardPrecoPro
+                openPixModal={openPixModal}
+                CheckoutForm={CheckoutForm}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -197,7 +537,7 @@ export default function PaginaPlanoPro() {
 {/* SUBCOMPONENTE CARD PRO PADRONIZADO */ }
 function CardPrecoPro({ openPixModal, CheckoutForm }: any) {
   return (
-    <div className="bg-white border-2 border-amber-500 rounded-[2rem] p-8 shadow-2xl shadow-amber-100 transition-all duration-500 w-full h-full flex flex-col justify-center relative overflow-hidden">
+    <div className="bg-white border-2 border-amber-500 rounded-[2rem] p-8 shadow-2xl shadow-amber-100 transition-all duration-500 w-full h-full flex flex-col justify-center relative overflow-hidden mx-auto">
       <div className="absolute top-0 right-0 bg-amber-500 text-white px-4 py-1 rounded-bl-xl font-black text-[8px] uppercase tracking-tighter">
         Melhor Escolha
       </div>

@@ -68,3 +68,6 @@ projetos/
 # Ignora arquivos temporários do Excel/Word (os que começam com ~$)
 ~$*.xlsx
 ~$*.xls
+
+# Sentry Config File
+.env.sentry-build-plugin

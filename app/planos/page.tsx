@@ -6,7 +6,8 @@ import {
   Zap, ShieldCheck, BarChart3, ShoppingCart,
   CheckCircle2, Star, Gem,
   QrCode, X, Copy, Check, MessageCircle, Instagram,
-  ChevronLeft, ChevronRight, Headphones, RefreshCcw, Rocket
+  ChevronLeft, ChevronRight, Headphones, RefreshCcw, Rocket,
+  AtSign, Key, User, ArrowRight
 } from "lucide-react";
 
 export default function PaginaDePlanos() {
@@ -17,6 +18,19 @@ export default function PaginaDePlanos() {
   const [currentCardMobile, setCurrentCardMobile] = useState(0);
   const [currentCardDesktop, setCurrentCardDesktop] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Estados de Autenticação In-Page
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('register');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authName, setAuthName] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState('');
+
+  // Armazena a ação que o usuário tentou fazer antes de logar
+  const [pendingAction, setPendingAction] = useState<{ lookupKey?: string, href?: string } | null>(null);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   const PIX_KEY = "contato@nucleobase.app";
   const WHATSAPP_LINK_ID = "q46hkm";
@@ -33,6 +47,12 @@ export default function PaginaDePlanos() {
       setIsLoggedIn(!!session);
     };
     checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const trackClick = (label: string, destination: string) => {
@@ -52,19 +72,10 @@ export default function PaginaDePlanos() {
     { icon: <RefreshCcw size={32} />, title: "Update Contínuo", desc: "Novas funções mensalmente." }
   ];
 
-  const nextCardMobile = () => {
-    setCurrentCardMobile((prev) => (prev === diferenciais.length - 1 ? 0 : prev + 1));
-  };
-  const prevCardMobile = () => {
-    setCurrentCardMobile((prev) => (prev === 0 ? diferenciais.length - 1 : prev - 1));
-  };
-
-  const nextCardDesktop = () => {
-    setCurrentCardDesktop((prev) => (prev >= diferenciais.length - 2 ? 0 : prev + 2));
-  };
-  const prevCardDesktop = () => {
-    setCurrentCardDesktop((prev) => (prev <= 0 ? diferenciais.length - 2 : prev - 2));
-  };
+  const nextCardMobile = () => setCurrentCardMobile((prev) => (prev === diferenciais.length - 1 ? 0 : prev + 1));
+  const prevCardMobile = () => setCurrentCardMobile((prev) => (prev === 0 ? diferenciais.length - 1 : prev - 1));
+  const nextCardDesktop = () => setCurrentCardDesktop((prev) => (prev >= diferenciais.length - 2 ? 0 : prev + 2));
+  const prevCardDesktop = () => setCurrentCardDesktop((prev) => (prev <= 0 ? diferenciais.length - 2 : prev - 2));
 
   const openPixModal = (name: string, price: string, qrCode: string) => {
     setSelectedPlan({ name, price, qrCode });
@@ -76,16 +87,214 @@ export default function PaginaDePlanos() {
     navigator.clipboard.writeText(PIX_KEY);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-    window.dataLayer?.push({
-      event: "pix_key_copied",
-      pix_key: PIX_KEY
-    });
   };
 
   const handleSendProof = () => {
     const message = encodeURIComponent(`Olá! Realizei o pagamento via PIX do plano ${selectedPlan?.name} (${selectedPlan?.price}). Segue o comprovante em anexo.`);
     window.open(`https://wa.link/${WHATSAPP_LINK_ID}?text=${message}`, '_blank');
-    trackClick("Enviar Comprovante WhatsApp", "whatsapp");
+  };
+
+  // Funções Auxiliares de Cadastro
+  const formatarSlug = (texto: string) => {
+    return texto
+      .toLowerCase()
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/[^\w-]+/g, '');
+  };
+
+  const enviarNotificacaoAdm = async (nomeNovo: string, emailNovo: string) => {
+    try {
+      await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          access_key: "9ef5a274-150a-4664-a885-0b052efd06f7",
+          subject: "🚀 Novo Cadastro na Nucleobase (Planos)!",
+          message: `O usuário ${nomeNovo || "Anônimo"} se cadastrou na página de planos.\nE-mail: ${emailNovo}`
+        }),
+      });
+    } catch (e) { console.error("Erro Web3Forms:", e); }
+  };
+
+  const enviarOnboardingUsuario = async (nomeUsuario: string, emailDestino: string) => {
+    try {
+      const res = await fetch("/api/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nome: nomeUsuario || "Investidor(a)",
+          email: emailDestino,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("Erro na rota de e-mail:", errorData);
+      }
+    } catch (e) {
+      console.error("Erro ao conectar com a API interna:", e);
+    }
+  };
+
+  // Processa o Checkout no Stripe com Interceptação de Erro
+  const processStripeCheckout = async (lookupKey: string) => {
+    setLoadingPlan(lookupKey);
+    trackClick(`Processando Stripe (${lookupKey})`, "/api/stripe");
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      // Interceptação 1: Sessão local não encontrada
+      if (!token) {
+        setIsLoggedIn(false);
+        setPendingAction({ lookupKey });
+        setAuthMode('register');
+        setShowAuthModal(true);
+        setLoadingPlan(null);
+        return;
+      }
+
+      const response = await fetch("/api/stripe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ lookup_key: lookupKey }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Interceptação 2: API rejeitou o token/acesso (Erro 401 ou mensagem explícita)
+        if (response.status === 401 || (data.error && data.error.includes("Usuário não autenticado"))) {
+          setIsLoggedIn(false);
+          setPendingAction({ lookupKey });
+          setAuthMode('login');
+          setShowAuthModal(true);
+          setLoadingPlan(null);
+          return;
+        }
+
+        alert(data.error || "Erro ao processar assinatura.");
+        setLoadingPlan(null);
+        return;
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert("URL de checkout não retornada.");
+        setLoadingPlan(null);
+      }
+    } catch (error) {
+      console.error("Erro na comunicação com a Stripe:", error);
+      alert("Erro de conexão com o servidor. Tente novamente.");
+      setLoadingPlan(null);
+    }
+  };
+
+  // Submissão do Modal de Autenticação In-Page
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError("");
+
+    try {
+      if (authMode === 'register') {
+        const nomeFinal = authName.trim() || "Anônimo";
+        const emailFinal = authEmail.trim();
+        const baseSlug = formatarSlug(emailFinal.split('@')[0]);
+        const slugFinal = `${baseSlug}-${Math.floor(Math.random() * 10000)}`;
+
+        const { data: authData, error: signUpError } = await supabase.auth.signUp({
+          email: emailFinal,
+          password: authPassword,
+          options: { data: { full_name: nomeFinal } }
+        });
+
+        if (signUpError) throw signUpError;
+
+        if (authData.user) {
+          if (authData.session) {
+            await supabase.auth.setSession({
+              access_token: authData.session.access_token,
+              refresh_token: authData.session.refresh_token,
+            });
+          }
+
+          await supabase.from('profiles').upsert([
+            {
+              id: authData.user.id,
+              email: emailFinal,
+              email_contato: emailFinal,
+              nome_completo: nomeFinal,
+              plan_type: 'free',
+              slug: slugFinal
+            }
+          ]);
+
+          try {
+            await supabase.from('usuarios').upsert([
+              {
+                id: authData.user.id,
+                email: emailFinal,
+                nome_completo: nomeFinal
+              }
+            ]);
+          } catch (err) {
+            console.warn("Aviso na tabela usuarios:", err);
+          }
+
+          await enviarNotificacaoAdm(nomeFinal, emailFinal);
+          await enviarOnboardingUsuario(nomeFinal, emailFinal);
+
+          const indicadorId = localStorage.getItem("nucleobase_referral_id");
+          if (indicadorId && indicadorId !== authData.user.id) {
+            await supabase.from("indicacoes").insert([
+              { indicador_id: indicadorId, indicado_id: authData.user.id, status: 'pendente' }
+            ]);
+            localStorage.removeItem("nucleobase_referral_id");
+          }
+
+          if (typeof window !== "undefined") {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+              event: "user_signed_up",
+              method: "in_page_modal"
+            });
+          }
+        }
+      } else {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: authEmail,
+          password: authPassword
+        });
+        if (signInError) throw signInError;
+      }
+
+      setIsLoggedIn(true);
+      setShowAuthModal(false);
+
+      // Retoma automaticamente a ação do usuário
+      if (pendingAction?.href) {
+        window.location.href = pendingAction.href;
+      } else if (pendingAction?.lookupKey) {
+        await processStripeCheckout(pendingAction.lookupKey);
+      }
+      setPendingAction(null);
+
+    } catch (err: any) {
+      setAuthError(err.message || "Erro de autenticação. Verifique os dados.");
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
   const CheckoutForm = ({
@@ -103,10 +312,18 @@ export default function PaginaDePlanos() {
     href?: string,
     discount?: string
   }) => {
-    const [loadingStripe, setLoadingStripe] = useState(false);
+    const isCurrentlyLoading = loadingPlan === lookupKey;
 
     const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
+
+      if (!isLoggedIn) {
+        setPendingAction({ lookupKey, href });
+        setAuthMode('register');
+        setShowAuthModal(true);
+        trackClick(`Intercepção Auth - ${description}`, "auth_modal");
+        return;
+      }
 
       if (href) {
         trackClick(`Plano: ${description} (${lookupKey})`, href);
@@ -114,53 +331,18 @@ export default function PaginaDePlanos() {
         return;
       }
 
-      setLoadingStripe(true);
-      trackClick(`Plano: ${description} (${lookupKey})`, "/api/stripe");
-
-      try {
-        // Captura o token atual da sessão do Supabase no cliente
-        const { data: { session } } = await supabase.auth.getSession();
-        const token = session?.access_token;
-
-        const response = await fetch("/api/stripe", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { "Authorization": `Bearer ${token}` } : {})
-          },
-          body: JSON.stringify({ lookup_key: lookupKey }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          alert(data.error || "Erro ao processar assinatura.");
-          setLoadingStripe(false);
-          return;
-        }
-
-        if (data.url) {
-          window.location.href = data.url;
-        } else {
-          alert("URL de checkout não retornada.");
-          setLoadingStripe(false);
-        }
-      } catch (error) {
-        console.error("Erro na comunicação com a Stripe:", error);
-        alert("Erro de conexão com o servidor. Tente novamente.");
-        setLoadingStripe(false);
-      }
+      await processStripeCheckout(lookupKey);
     };
 
     return (
       <button
         onClick={handleClick}
-        disabled={loadingStripe}
+        disabled={isCurrentlyLoading}
         title={description}
         className={`${className} cursor-pointer transition-transform active:scale-[0.98] flex items-center justify-center gap-2 w-full disabled:opacity-50`}
       >
-        {loadingStripe ? "Aguarde..." : label}
-        {discount && !loadingStripe && (
+        {isCurrentlyLoading ? "Aguarde..." : label}
+        {discount && !isCurrentlyLoading && (
           <span className="bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5 rounded text-[8px] font-black">
             {discount}
           </span>
@@ -171,6 +353,102 @@ export default function PaginaDePlanos() {
 
   return (
     <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
+
+      {/* MODAL DE AUTENTICAÇÃO IN-PAGE */}
+      {showAuthModal && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 relative border border-slate-100">
+            <button
+              onClick={() => {
+                setShowAuthModal(false);
+                setPendingAction(null);
+              }}
+              className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-900 transition-colors cursor-pointer z-10"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="p-8 md:p-10 flex flex-col items-center">
+              <div className="bg-blue-50 w-16 h-16 rounded-2xl text-blue-600 mb-6 flex items-center justify-center shadow-inner">
+                <Rocket size={32} />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">
+                {authMode === 'register' ? 'Crie sua conta' : 'Acesse sua conta'}
+              </h3>
+              <p className="text-slate-500 text-xs font-medium text-center mb-8 max-w-[260px] leading-relaxed">
+                {authMode === 'register'
+                  ? 'Cadastre-se rapidamente para prosseguir com a ativação do seu plano.'
+                  : 'Insira suas credenciais para continuar com a assinatura.'}
+              </p>
+
+              <form onSubmit={handleAuthSubmit} className="w-full space-y-3">
+                {authMode === 'register' && (
+                  <div className="relative group">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={16} />
+                    <input
+                      type="text"
+                      placeholder="Seu nome completo"
+                      required
+                      value={authName}
+                      onChange={(e) => setAuthName(e.target.value)}
+                      className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium"
+                    />
+                  </div>
+                )}
+
+                <div className="relative group">
+                  <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={16} />
+                  <input
+                    type="email"
+                    placeholder="E-mail de acesso"
+                    required
+                    value={authEmail}
+                    onChange={(e) => setAuthEmail(e.target.value)}
+                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium"
+                  />
+                </div>
+
+                <div className="relative group">
+                  <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={16} />
+                  <input
+                    type="password"
+                    placeholder="Sua senha segura"
+                    required
+                    value={authPassword}
+                    onChange={(e) => setAuthPassword(e.target.value)}
+                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium"
+                  />
+                </div>
+
+                {authError && (
+                  <p className="text-[10px] font-bold text-red-500 bg-red-50 border border-red-100 p-3 rounded-xl text-center mt-2">
+                    {authError}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={authLoading}
+                  className="w-full bg-blue-600 text-white py-4 rounded-xl font-black hover:bg-blue-700 transition-all text-[11px] uppercase tracking-widest shadow-lg shadow-blue-600/20 disabled:opacity-50 mt-4 flex justify-center items-center gap-2 cursor-pointer"
+                >
+                  {authLoading ? "Aguarde..." : (authMode === 'register' ? "Validar e Continuar" : "Entrar e Continuar")}
+                  {!authLoading && <ArrowRight size={16} />}
+                </button>
+              </form>
+
+              <div className="mt-6 text-center">
+                <button
+                  type="button"
+                  onClick={() => setAuthMode(authMode === 'register' ? 'login' : 'register')}
+                  className="text-xs font-bold text-slate-500 hover:text-blue-600 transition-colors cursor-pointer"
+                >
+                  {authMode === 'register' ? 'Já tem uma conta? Faça login' : 'Não tem conta? Cadastre-se'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL PIX */}
       {isModalOpen && (
@@ -248,12 +526,18 @@ export default function PaginaDePlanos() {
           </div>
           <div className="relative z-10">
             <a
-              href={isLoggedIn ? "/acesso-usuario" : "/cadastro"}
+              href={isLoggedIn ? "/acesso-usuario" : "#"}
               onClick={(e) => {
                 e.preventDefault();
-                const destination = isLoggedIn ? "/acesso-usuario" : "/cadastro";
-                trackClick("Começar Degustação", destination);
-                window.location.href = destination;
+                if (!isLoggedIn) {
+                  setPendingAction({ href: "/acesso-usuario" });
+                  setAuthMode('register');
+                  setShowAuthModal(true);
+                  trackClick("Intercepção Auth - Degustação", "auth_modal");
+                } else {
+                  trackClick("Começar Degustação", "/acesso-usuario");
+                  window.location.href = "/acesso-usuario";
+                }
               }}
               className="block w-full py-4 bg-white border border-slate-200 text-slate-900 text-center rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all shadow-sm cursor-pointer"
             >
@@ -303,10 +587,12 @@ export default function PaginaDePlanos() {
         {/* PLANO PRO */}
         <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-10 shadow-2xl flex flex-col relative overflow-hidden group transition-all border-b-4 border-b-transparent hover:border-b-orange-500">
           <div className="relative z-10 flex-grow">
-            <div className="flex items-center w-full mb-8">
-              <div className="px-3 py-1 rounded-full bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest">Empresarial</div>
-              <div className="flex-1 flex justify-center items-center">
-                <Gem size={18} className="text-orange-500" />
+            <div className="flex items-center justify-center gap-3 w-full mb-8">
+              <div className="px-3 py-1 text-center rounded-full bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest">
+                Acesso Empresarial
+              </div>
+              <div className="px-3 py-1 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-[0_0_15px_rgba(249,115,22,0.5)]">
+                <Zap size={12} className="fill-white" /> Recomendado
               </div>
             </div>
             <h3 className="text-3xl font-bold text-white mb-4">Plano Pro</h3>

@@ -44,7 +44,7 @@ export async function POST(req: Request) {
 
     if (!user) {
       return NextResponse.json(
-        { error: "Usuário não autenticado. Clique em 'Criar Conta' ou 'Realizar login' antes de prosseguir com sua assinatura" },
+        { error: "Usuário não autenticado. Clique em 'Criar Conta' ou 'Realizar login' antes de prosseguir com sua assinatura." },
         { status: 401 }
       );
     }
