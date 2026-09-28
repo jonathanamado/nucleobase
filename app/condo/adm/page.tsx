@@ -1117,21 +1117,21 @@ export default function CondoAdm() {
 
                             {/* --- NOVOS CARDS SOLICITADOS --- */}
 
-                            {/* a) Projeto Integração */}
-                            <div className="bg-white border border-zinc-200 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left md:w-[280px] shrink-0 opacity-80 select-none">
+                            {/* a) Controle de inadimplência (Substituindo Projeto Integração) */}
+                            <Link
+                                href="/condo/adm/prestacao_contas/cobranca"
+                                className="bg-white border border-zinc-200 hover:border-rose-400 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left cursor-pointer md:w-[280px] shrink-0"
+                            >
                                 <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
-                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shrink-0">
-                                        <Network className="w-4 h-4 md:w-5 md:h-5" />
+                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center group-hover:bg-rose-600 group-hover:text-white transition-all shrink-0">
+                                        <BadgeAlert className="w-4 h-4 md:w-5 md:h-5" />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <div className="flex items-center justify-between">
-                                            <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Projeto integração condominial</h3>
-                                            <span className="text-[9px] text-purple-600 font-bold bg-purple-50 px-1.5 py-0.5 rounded">Em dev</span>
-                                        </div>
-                                        <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Integração de sistemas e de pessoas</p>
+                                        <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Controle de inadimplência</h3>
+                                        <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Atualizações de pagamentos</p>
                                     </div>
                                 </div>
-                            </div>
+                            </Link>
 
                             {/* b) Relatórios internos (vinculado a /condo/adm/rateio_condominio) */}
                             <Link
@@ -1165,18 +1165,18 @@ export default function CondoAdm() {
                                 </div>
                             </div>
 
-                            {/* d) Controle de inadimplencia */}
+                            {/* d) Projeto Integração (Substituindo Controle de inadimplência) */}
                             <div className="bg-white border border-zinc-200 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center group transition-all text-left md:w-[280px] shrink-0 opacity-80 select-none">
                                 <div className="flex items-center gap-2.5 md:gap-3.5 text-left min-w-0 w-full">
-                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center shrink-0">
-                                        <BadgeAlert className="w-4 h-4 md:w-5 md:h-5" />
+                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shrink-0">
+                                        <Network className="w-4 h-4 md:w-5 md:h-5" />
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center justify-between">
-                                            <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Controle de inadimplência</h3>
-                                            <span className="text-[9px] text-rose-600 font-bold bg-rose-50 px-1.5 py-0.5 rounded">Em dev</span>
+                                            <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Projeto integração condominial</h3>
+                                            <span className="text-[9px] text-purple-600 font-bold bg-purple-50 px-1.5 py-0.5 rounded">Em dev</span>
                                         </div>
-                                        <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Atualizações de pagamentos</p>
+                                        <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Integração de sistemas e de pessoas</p>
                                     </div>
                                 </div>
                             </div>
