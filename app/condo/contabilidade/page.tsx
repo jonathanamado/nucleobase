@@ -76,7 +76,7 @@ export default function ContabilidadeCondoPage() {
         return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     });
 
-    const [valorTaxaBase, setValorTaxaBase] = useState<number>(0);
+    const [isRateioSalvo, setIsRateioSalvo] = useState(false);
     const [linhasRelatorio, setLinhasRelatorio] = useState<LinhaRelatorioConsolidado[]>([]);
     const [totalGeralCondominio, setTotalGeralCondominio] = useState(0);
 
@@ -97,6 +97,23 @@ export default function ContabilidadeCondoPage() {
         return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     };
 
+    // Funções para formatar a visualização da competência (Desktop e Mobile)
+    const formatMesAnoDesktop = (competencia: string) => {
+        if (!competencia) return "";
+        const [ano, mes] = competencia.split('-');
+        const date = new Date(Number(ano), Number(mes) - 1, 15);
+        const mesExtenso = date.toLocaleString('pt-BR', { month: 'long' });
+        return `${mesExtenso.charAt(0).toUpperCase() + mesExtenso.slice(1)} de ${ano}`;
+    };
+
+    const formatMesAnoMobile = (competencia: string) => {
+        if (!competencia) return "";
+        const [ano, mes] = competencia.split('-');
+        const date = new Date(Number(ano), Number(mes) - 1, 15);
+        const mesCurto = date.toLocaleString('pt-BR', { month: 'short' }).replace('.', '');
+        return `${mesCurto.charAt(0).toUpperCase() + mesCurto.slice(1)} / ${ano}`;
+    };
+
     const carregarTaxaBase = async (condoId: string, competencia: string) => {
         try {
             const dataCompetenciaCompleta = `${competencia}-01`;
@@ -108,11 +125,8 @@ export default function ContabilidadeCondoPage() {
                 .maybeSingle();
 
             if (data) {
-                const val = Number(data.valor || 0);
-                setValorTaxaBase(val);
-                return val;
+                return Number(data.valor || 0);
             } else {
-                setValorTaxaBase(0);
                 return 0;
             }
         } catch (err) {
@@ -124,6 +138,51 @@ export default function ContabilidadeCondoPage() {
     const carregarRelatorioConsolidado = async (condoId: string, competencia: string) => {
         try {
             const dataCompetenciaCompleta = `${competencia}-01`;
+
+            // 1. Verifica se já existe um rateio consolidado salvo (CONCLUÍDO)
+            const { data: savedData, error: savedError } = await supabase
+                .from("condominio_rateio_boletos")
+                .select("*")
+                .eq("condominio_id", condoId)
+                .eq("data_competencia", dataCompetenciaCompleta);
+
+            if (savedData && savedData.length > 0) {
+                setIsRateioSalvo(true);
+                let somaGeralConsolidada = 0;
+
+                const linhas: LinhaRelatorioConsolidado[] = savedData.map((s: any) => {
+                    const total = Number(s.total_geral) || 0;
+                    somaGeralConsolidada += total;
+                    return {
+                        unidade: s.unidade,
+                        moradorNome: s.morador_nome,
+                        taxaBase: Number(s.taxa_base) || 0,
+                        rateioReceitaDespesa: Number(s.rateio_receita_despesa) || 0,
+                        consumoGasValor: Number(s.consumo_gas_valor) || 0,
+                        consumoGasMetros: Number(s.consumo_gas_metros) || 0,
+                        fundoReserva: Number(s.fundo_reserva) || 0,
+                        salaoFestas: Number(s.salao_festas) || 0,
+                        rateioSindico: Number(s.rateio_sindico) || 0,
+                        totalGeral: total,
+                        resumoBoleto: s.resumo_boleto
+                    };
+                });
+
+                linhas.sort((a, b) => {
+                    const numA = parseInt(a.unidade);
+                    const numB = parseInt(b.unidade);
+                    if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+                    return a.unidade.localeCompare(b.unidade);
+                });
+
+                setLinhasRelatorio(linhas);
+                setTotalGeralCondominio(somaGeralConsolidada);
+                return;
+            }
+
+            // SE NÃO FOI SALVO, marca como PENDENTE e realiza o cálculo em tempo real
+            setIsRateioSalvo(false);
+
             const taxaBaseAtual = await carregarTaxaBase(condoId, competencia);
 
             const { data: membrosData } = await supabase
@@ -345,7 +404,7 @@ export default function ContabilidadeCondoPage() {
             if (isMountedRef.current) {
                 setIsAcessoNegado(false);
                 setCondominio({ id: vinculoContabilidade.condominio_id, nome: nomeCondominioOficial });
-                await carregarRelatorioConsolidado(vinculoContabilidade.condominio_id, competenciaSelecionada);
+                // Apenas define o condomínio. O carregamento do relatório fica sob a responsabilidade exclusiva do useEffect que observa a competência.
             }
         } catch (e) {
             if (isMountedRef.current) setCondominio(null);
@@ -374,7 +433,7 @@ export default function ContabilidadeCondoPage() {
         if (condominio?.id) {
             carregarRelatorioConsolidado(condominio.id, competenciaSelecionada);
         }
-    }, [competenciaSelecionada]);
+    }, [competenciaSelecionada, condominio?.id]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -693,28 +752,63 @@ export default function ContabilidadeCondoPage() {
                 </div>
 
                 {/* Controles de Filtro e Exportação para o Rateio */}
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full">
-                    <div className="bg-white border border-zinc-200 p-4 rounded-2xl shadow-sm flex flex-col md:flex-row items-stretch md:items-center gap-4 w-full md:w-auto justify-between md:justify-start">
-                        <div className="bg-white border border-zinc-200 p-2.5 rounded-xl flex items-center gap-3 shadow-sm">
+                <div className="flex flex-col md:flex-row justify-end items-center gap-4 w-full">
+
+                    {/* Agrupamento: Calendário e Status de Conclusão */}
+                    <div className="bg-white border border-zinc-200 p-4 rounded-2xl shadow-sm flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+                        {/* Container do Calendário */}
+                        <div className="bg-white border border-zinc-200 p-2.5 rounded-xl flex items-center justify-center md:justify-start gap-3 shadow-sm relative overflow-hidden min-w-[120px] md:min-w-0">
                             <Calendar size={16} className="text-emerald-600 shrink-0" />
+
+                            {/* Visualização customizada: Desktop */}
+                            <span className="text-xs font-bold text-zinc-900 hidden md:block pointer-events-none">
+                                {formatMesAnoDesktop(competenciaSelecionada)}
+                            </span>
+
+                            {/* Visualização customizada: Mobile */}
+                            <span className="text-xs font-bold text-zinc-900 block md:hidden pointer-events-none">
+                                {formatMesAnoMobile(competenciaSelecionada)}
+                            </span>
+
                             <input
                                 type="month"
                                 value={competenciaSelecionada}
                                 onChange={(e) => setCompetenciaSelecionada(e.target.value)}
-                                className="text-xs font-bold text-zinc-900 bg-transparent outline-none cursor-pointer w-full"
+                                onClick={(e) => {
+                                    try {
+                                        (e.target as HTMLInputElement).showPicker?.();
+                                    } catch (err) {
+                                        // Silencioso
+                                    }
+                                }}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             />
                         </div>
-                        <button
-                            onClick={exportarCSV}
-                            className="flex items-center justify-center gap-1.5 h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm cursor-pointer"
-                        >
-                            <Download size={14} /> Exportar CSV
-                        </button>
+
+                        {/* Status Indicator */}
+                        {isRateioSalvo ? (
+                            <div className="flex items-center gap-1.5 px-3 py-2.5 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100 shrink-0" title="Rateio salvo e concluído">
+                                <CheckCircle2 size={16} />
+                                <span className="text-[10px] font-black uppercase tracking-wider hidden md:inline">Concluído</span>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-1.5 px-3 py-2.5 bg-amber-50 text-amber-600 rounded-xl border border-amber-100 shrink-0" title="Pendente de gravação">
+                                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
+                                <span className="text-[10px] font-black uppercase tracking-wider hidden md:inline">Pendente</span>
+                            </div>
+                        )}
                     </div>
 
-                    <div className="bg-white border border-zinc-200 px-5 py-3.5 rounded-2xl shadow-sm flex items-center gap-3 w-full md:w-auto justify-between">
-                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-wider">Taxa Base Vigente:</span>
-                        <span className="text-sm font-black text-zinc-900">{formatarMoeda(valorTaxaBase)}</span>
+                    {/* Botões de Ação */}
+                    <div className="bg-white border border-zinc-200 p-4 rounded-2xl shadow-sm flex items-center gap-2 w-full md:w-auto justify-end">
+                        <button
+                            onClick={exportarCSV}
+                            className="flex items-center justify-center gap-1.5 h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm cursor-pointer w-full md:w-auto"
+                        >
+                            <Download size={14} />
+                            <span className="hidden md:inline">Exportar CSV</span>
+                            <span className="md:hidden">CSV</span>
+                        </button>
                     </div>
                 </div>
 
@@ -738,19 +832,19 @@ export default function ContabilidadeCondoPage() {
                     </div>
 
                     <div className="overflow-x-auto border border-zinc-100 rounded-2xl">
-                        <table className="w-full text-center border-collapse">
+                        <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-zinc-50 border-b border-zinc-100 text-[10px] font-black text-zinc-400 uppercase tracking-wider">
-                                    <th className="p-3.5 pl-5 text-center">Unidade</th>
-                                    <th className="p-3.5 text-center">Morador</th>
-                                    <th className="p-3.5 text-center">Taxa Base</th>
-                                    <th className="p-3.5 text-center">Fundo de Reservas</th>
-                                    <th className="p-3.5 text-center">Salão de Festas</th>
-                                    <th className="p-3.5 text-center">Receita - Despesa (Rateio)</th>
-                                    <th className="p-3.5 text-center">Rateio Síndico</th>
-                                    <th className="p-3.5 text-center">Medição Gás (m³ / R$)</th>
-                                    <th className="p-3.5 text-center">Total a Pagar</th>
-                                    <th className="p-3.5 pr-5 text-center">Resumo Texto Boleto</th>
+                                    <th className="p-3.5 pl-5">Unidade</th>
+                                    <th className="p-3.5">Morador</th>
+                                    <th className="p-3.5 text-right">Taxa Base</th>
+                                    <th className="p-3.5 text-right">Fundo de Reservas</th>
+                                    <th className="p-3.5 text-right">Salão de Festas</th>
+                                    <th className="p-3.5 text-right">Receita - Despesa (Rateio)</th>
+                                    <th className="p-3.5 text-right">Rateio Síndico</th>
+                                    <th className="p-3.5 text-right">Medição Gás (m³ / R$)</th>
+                                    <th className="p-3.5 text-right">Total a Pagar</th>
+                                    <th className="p-3.5 pr-5">Resumo Texto Boleto</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-50">
@@ -763,18 +857,18 @@ export default function ContabilidadeCondoPage() {
                                 ) : (
                                     linhasRelatorio.map((linha) => (
                                         <tr key={linha.unidade} className="hover:bg-zinc-50/50 transition-colors">
-                                            <td className="p-3.5 pl-5 text-xs font-bold text-zinc-800 text-center">Apto {linha.unidade}</td>
-                                            <td className="p-3.5 text-xs font-medium text-zinc-600 text-center">{linha.moradorNome}</td>
-                                            <td className="p-3.5 text-xs font-medium text-zinc-700 text-center">{formatarMoeda(linha.taxaBase)}</td>
-                                            <td className="p-3.5 text-xs font-medium text-zinc-700 text-center">{formatarMoeda(linha.fundoReserva)}</td>
-                                            <td className="p-3.5 text-xs font-medium text-zinc-700 text-center">{formatarMoeda(linha.salaoFestas)}</td>
-                                            <td className="p-3.5 text-xs font-medium text-zinc-700 text-center">{formatarMoeda(linha.rateioReceitaDespesa)}</td>
-                                            <td className="p-3.5 text-xs font-medium text-zinc-700 text-center">{formatarMoeda(linha.rateioSindico)}</td>
-                                            <td className="p-3.5 text-xs font-medium text-zinc-700 text-center">
+                                            <td className="p-3.5 pl-5 text-xs font-bold text-zinc-800">Apto {linha.unidade}</td>
+                                            <td className="p-3.5 text-xs font-medium text-zinc-600">{linha.moradorNome}</td>
+                                            <td className="p-3.5 text-right text-xs font-medium text-zinc-700">{formatarMoeda(linha.taxaBase)}</td>
+                                            <td className="p-3.5 text-right text-xs font-medium text-zinc-700">{formatarMoeda(linha.fundoReserva)}</td>
+                                            <td className="p-3.5 text-right text-xs font-medium text-zinc-700">{formatarMoeda(linha.salaoFestas)}</td>
+                                            <td className="p-3.5 text-right text-xs font-medium text-zinc-700">{formatarMoeda(linha.rateioReceitaDespesa)}</td>
+                                            <td className="p-3.5 text-right text-xs font-medium text-zinc-700">{formatarMoeda(linha.rateioSindico)}</td>
+                                            <td className="p-3.5 text-right text-xs font-medium text-zinc-700">
                                                 {linha.consumoGasMetros.toFixed(2)} m³ <span className="text-[10px] text-zinc-400">({formatarMoeda(linha.consumoGasValor)})</span>
                                             </td>
-                                            <td className="p-3.5 text-xs font-black text-emerald-600 text-center">{formatarMoeda(linha.totalGeral)}</td>
-                                            <td className="p-3.5 pr-5 text-[10px] font-mono text-zinc-500 whitespace-nowrap text-center">{linha.resumoBoleto}</td>
+                                            <td className="p-3.5 text-right text-xs font-black text-emerald-600">{formatarMoeda(linha.totalGeral)}</td>
+                                            <td className="p-3.5 pr-5 text-[10px] font-mono text-zinc-500 whitespace-nowrap">{linha.resumoBoleto}</td>
                                         </tr>
                                     ))
                                 )}

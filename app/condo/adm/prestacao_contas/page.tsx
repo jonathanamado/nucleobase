@@ -24,7 +24,8 @@ import {
     Flame,
     PartyPopper,
     Wallet,
-    Users
+    Users,
+    DollarSign
 } from "lucide-react";
 
 export default function PrestacaoContasPage() {
@@ -878,6 +879,48 @@ export default function PrestacaoContasPage() {
                             <div className="flex items-center justify-center w-12 h-12 bg-zinc-50 rounded-full text-zinc-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors shrink-0">
                                 <ArrowRight size={20} />
                             </div>
+                        </Link>
+
+                        {/* TAXA-BASE (ASSEMBLEIA) */}
+                        <Link
+                            href="/condo/adm/prestacao_contas/taxa-base"
+                            className="group flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 md:p-8 bg-white border border-zinc-200 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-900/5 rounded-[2.5rem] transition-all duration-300 w-full"
+                        >
+                            <div className="flex items-center gap-5">
+                                <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 shadow-sm shrink-0">
+                                    <DollarSign size={28} />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-black text-zinc-900 group-hover:text-emerald-700 transition-colors">
+                                        Taxa Base (Assembleia)
+                                    </h3>
+                                    <p className="text-xs text-zinc-500 mt-1 max-w-md">
+                                        Definição e configuração do valor da taxa base aprovada em assembleia para o período.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-center w-12 h-12 bg-zinc-50 rounded-full text-zinc-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors shrink-0">
+                                <ArrowRight size={20} />
+                            </div>
+                        </Link>
+                    </div>
+
+                    {/* ALERTA: ETAPA FINAL - CONSOLIDAÇÃO */}
+                    <div className="mt-8 bg-emerald-50/80 border border-emerald-200 rounded-[2.5rem] p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-inner">
+                        <div>
+                            <h3 className="text-lg font-black text-emerald-900 flex items-center gap-2">
+                                <CheckCircle2 className="text-emerald-600" size={24} />
+                                Etapa Final: Concluir e Gravar Rateio
+                            </h3>
+                            <p className="text-xs text-emerald-700 mt-2 max-w-3xl font-medium leading-relaxed">
+                                Lembre-se: após registrar as receitas, despesas, medições de gás, fundo de reservas, salão de festas e rateio do síndico, é <strong>fundamental acessar a página de Rateio</strong> para visualizar a consolidação de todos os valores e gravar definitivamente os dados da competência.
+                            </p>
+                        </div>
+                        <Link
+                            href="/condo/adm/rateio_condominio"
+                            className="flex items-center justify-center gap-2 h-12 px-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-600/20 shrink-0 cursor-pointer"
+                        >
+                            Concluir Rateio <ArrowRight size={16} />
                         </Link>
                     </div>
                 </div>

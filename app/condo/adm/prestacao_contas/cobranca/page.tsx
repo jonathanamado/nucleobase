@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import {
@@ -36,12 +36,16 @@ export default function GestaoCobrancasPage() {
     const [loading, setLoading] = useState(true);
     const [authLoading, setAuthLoading] = useState(false);
 
-    // Estados de loading e listagem
+    // Estados de loading, listagem e cache RPC
     const [loadingCobrancas, setLoadingCobrancas] = useState(false);
     const [listaCobrancas, setListaCobrancas] = useState<any[]>([]);
+    const [resumoCards, setResumoCards] = useState({ arrecadado: 0, inadimplente: 0, taxa: "0.00" });
+
+    // Filtros de busca e debounce
     const [filtroMesInicio, setFiltroMesInicio] = useState(new Date().toISOString().slice(0, 7));
     const [filtroMesFim, setFiltroMesFim] = useState(new Date().toISOString().slice(0, 7));
     const [buscaUnidade, setBuscaUnidade] = useState("");
+    const [termoBuscaReal, setTermoBuscaReal] = useState("");
 
     // Estado do Modal de Cadastro Manual / Retroativo
     const [showModalNovoBoleto, setShowModalNovoBoleto] = useState(false);
@@ -83,6 +87,14 @@ export default function GestaoCobrancasPage() {
         const num = parseFloat(limpo);
         return isNaN(num) ? 0 : num;
     };
+
+    // Debounce da digitação (evita sobrecarregar o DB a cada tecla)
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setTermoBuscaReal(buscaUnidade);
+        }, 400); // 400ms de delay
+        return () => clearTimeout(handler);
+    }, [buscaUnidade]);
 
     const verifySindicoAndLoadData = async (currentSession: any) => {
         try {
@@ -144,7 +156,7 @@ export default function GestaoCobrancasPage() {
                 setIsApenasMorador(false);
                 const condoObj = { id: vinculoAdm.condominio_id, nome: nomeCondominioOficial };
                 setCondominio(condoObj);
-                await carregarCobrancas(condoObj.id, filtroMesInicio, filtroMesFim);
+                await carregarCobrancas(condoObj.id, filtroMesInicio, filtroMesFim, termoBuscaReal);
             }
         } catch (e: any) {
             console.warn("Exceção tratada em verifySindicoAndLoadData:", e);
@@ -154,18 +166,19 @@ export default function GestaoCobrancasPage() {
         }
     };
 
-    const carregarCobrancas = async (condoId: string, mesInicio: string, mesFim: string) => {
-        setLoadingCobrancas(true);
+    const carregarCobrancas = async (condoId: string, mesInicio: string, mesFim: string, busca: string = "", isBackgroundRefresh: boolean = false) => {
+        if (!isBackgroundRefresh) setLoadingCobrancas(true);
+
         try {
             const dataInicio = `${mesInicio}-01`;
-
             const [anoFimStr, mesFimStr] = mesFim.split('-');
             const anoFim = parseInt(anoFimStr, 10);
             const mesFimNum = parseInt(mesFimStr, 10);
             const ultimoDiaFim = new Date(anoFim, mesFimNum, 0).getDate();
             const dataFim = `${mesFim}-${ultimoDiaFim.toString().padStart(2, '0')}`;
 
-            const { data, error } = await supabase
+            // 1. Busca a lista com paginação/limite direto no DB
+            let queryLista = supabase
                 .from("condominio_cobrancas")
                 .select("*")
                 .eq("condominio_id", condoId)
@@ -173,25 +186,54 @@ export default function GestaoCobrancasPage() {
                 .lte("data_competencia", dataFim)
                 .order("unidade", { ascending: true });
 
-            if (error) {
-                console.warn("Aviso ao carregar cobranças:", error.message);
+            if (busca) queryLista = queryLista.ilike("unidade", `%${busca}%`);
+
+            // 2. Aciona os cálculos pesados via RPC no DB
+            const queryResumo = supabase.rpc("obter_resumo_cobrancas", {
+                p_condominio_id: condoId,
+                p_data_inicio: dataInicio,
+                p_data_fim: dataFim,
+                p_busca: busca
+            });
+
+            // Promisse.all para máxima velocidade (ambas correm juntas)
+            const [resultLista, resultResumo] = await Promise.all([queryLista, queryResumo]);
+
+            if (resultLista.error) {
+                console.warn("Aviso ao carregar cobranças:", resultLista.error.message);
                 setListaCobrancas([]);
             } else {
-                setListaCobrancas(data || []);
+                setListaCobrancas(resultLista.data || []);
             }
+
+            if (resultResumo.error) {
+                console.warn("Erro ao carregar resumo RPC:", resultResumo.error.message);
+                setResumoCards({ arrecadado: 0, inadimplente: 0, taxa: "0.00" });
+            } else if (resultResumo.data && resultResumo.data.length > 0) {
+                setResumoCards({
+                    arrecadado: resultResumo.data[0].total_arrecadado || 0,
+                    inadimplente: resultResumo.data[0].total_inadimplente || 0,
+                    taxa: resultResumo.data[0].taxa_inadimplencia || "0.00"
+                });
+            } else {
+                setResumoCards({ arrecadado: 0, inadimplente: 0, taxa: "0.00" });
+            }
+
         } catch (err) {
-            console.error("Erro ao buscar dados de cobrança:", err);
+            console.error("Erro geral na busca de dados:", err);
             setListaCobrancas([]);
+            setResumoCards({ arrecadado: 0, inadimplente: 0, taxa: "0.00" });
         } finally {
-            setLoadingCobrancas(false);
+            if (!isBackgroundRefresh) setLoadingCobrancas(false);
         }
     };
 
+    // Monitora alterações nos filtros para buscar os dados novamente
     useEffect(() => {
         if (condominio?.id) {
-            carregarCobrancas(condominio.id, filtroMesInicio, filtroMesFim);
+            carregarCobrancas(condominio.id, filtroMesInicio, filtroMesFim, termoBuscaReal);
         }
-    }, [filtroMesInicio, filtroMesFim]);
+    }, [filtroMesInicio, filtroMesFim, termoBuscaReal]);
 
     useEffect(() => {
         isMountedRef.current = true;
@@ -321,7 +363,7 @@ export default function GestaoCobrancasPage() {
                 setFiltroMesInicio(mesCompetenciaCadastrada);
                 setFiltroMesFim(mesCompetenciaCadastrada);
             } else {
-                await carregarCobrancas(condominio.id, filtroMesInicio, filtroMesFim);
+                await carregarCobrancas(condominio.id, filtroMesInicio, filtroMesFim, termoBuscaReal);
             }
         } catch (err: any) {
             alert("Erro ao cadastrar boleto: " + (err.message || "Erro desconhecido"));
@@ -340,7 +382,6 @@ export default function GestaoCobrancasPage() {
         }
 
         const novoStatus = statusAtual === 'pago' ? 'pendente' : 'pago';
-
         setListaCobrancas(prev => prev.map(item => item.id === id ? { ...item, status_pagamento: novoStatus } : item));
 
         try {
@@ -350,10 +391,12 @@ export default function GestaoCobrancasPage() {
                 .eq("id", id);
 
             if (error) throw error;
+            // Atualiza os totais de cards sem mostrar a tela de loading principal
+            if (condominio?.id) carregarCobrancas(condominio.id, filtroMesInicio, filtroMesFim, termoBuscaReal, true);
         } catch (err: any) {
             console.error("Erro ao atualizar status:", err);
             alert("Erro ao atualizar status de pagamento: " + (err.message || 'Falha na requisição'));
-            if (condominio?.id) carregarCobrancas(condominio.id, filtroMesInicio, filtroMesFim);
+            if (condominio?.id) carregarCobrancas(condominio.id, filtroMesInicio, filtroMesFim, termoBuscaReal, true);
         }
     };
 
@@ -362,7 +405,6 @@ export default function GestaoCobrancasPage() {
         if (!confirmacao) return;
 
         try {
-            // Requisita a deleção no banco e usa .select() para garantir que retorne a linha deletada caso sucesso.
             const { data, error } = await supabase
                 .from("condominio_cobrancas")
                 .delete()
@@ -370,20 +412,17 @@ export default function GestaoCobrancasPage() {
                 .select();
 
             if (error) throw error;
-
-            // Se o data voltar vazio, significa que o RLS ou algum outro processo bloqueou de deletar a linha no banco.
             if (!data || data.length === 0) {
                 throw new Error("Não foi possível excluir o registro. Verifique se você tem permissão (RLS).");
             }
 
-            // Atualizamos a lista apenas DEPOIS que o banco confirmar que a linha de fato foi apagada
             setListaCobrancas(prev => prev.filter(item => item.id !== id));
+            if (condominio?.id) carregarCobrancas(condominio.id, filtroMesInicio, filtroMesFim, termoBuscaReal, true);
 
         } catch (err: any) {
             console.error("Erro ao excluir cobrança:", err);
             alert("Erro ao excluir cobrança: " + (err.message || 'Falha na exclusão'));
-            // Recarrega do banco em caso de erro para manter integridade
-            if (condominio?.id) carregarCobrancas(condominio.id, filtroMesInicio, filtroMesFim);
+            if (condominio?.id) carregarCobrancas(condominio.id, filtroMesInicio, filtroMesFim, termoBuscaReal, true);
         }
     };
 
@@ -417,24 +456,15 @@ export default function GestaoCobrancasPage() {
         window.dispatchEvent(new Event("storage"));
     };
 
-    const itensFiltrados = listaCobrancas.filter(item =>
-        String(item.unidade || "").toLowerCase().includes(buscaUnidade.toLowerCase())
-    );
-
-    // Cálculos do Dashboard
-    const totalGeral = itensFiltrados.reduce((acc, item) => acc + (Number(item.valor_total) || 0), 0);
-
-    const totalArrecadado = itensFiltrados
-        .filter(item => item.status_pagamento === 'pago')
-        .reduce((acc, item) => acc + (Number(item.valor_total) || 0), 0);
-
-    const totalInadimplente = itensFiltrados
-        .filter(item => item.status_pagamento === 'pendente')
-        .reduce((acc, item) => acc + (Number(item.valor_total) || 0), 0);
-
-    const taxaInadimplencia = totalGeral > 0
-        ? ((totalInadimplente / totalGeral) * 100).toFixed(2)
-        : "0.00";
+    // Otimização de renderização no React (useMemo).
+    // Garante que a formatação monetária (recurso mais pesado) só seja feita se o DB entregar números novos.
+    const cardsMemoizados = useMemo(() => {
+        return {
+            arrecadado: formatarValorExibicao(resumoCards.arrecadado),
+            inadimplente: formatarValorExibicao(resumoCards.inadimplente),
+            taxa: String(resumoCards.taxa).replace('.', ',')
+        };
+    }, [resumoCards]);
 
     if (loading) {
         return (
@@ -555,7 +585,7 @@ export default function GestaoCobrancasPage() {
                                         Gestão Financeira
                                     </span>
                                     <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5">
-                                        Controle de Cobranças e Inadimplência
+                                        {condominio?.nome || "Carregando..."}
                                     </h1>
                                 </div>
                             </div>
@@ -566,11 +596,12 @@ export default function GestaoCobrancasPage() {
                                     className="group relative flex items-center justify-center gap-1.5 h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm cursor-pointer"
                                 >
                                     <Plus size={14} />
-                                    <span>Inserir Boleto / Histórico</span>
+                                    <span className="hidden md:inline">Inserir Boleto / Histórico</span>
+                                    <span className="md:hidden">Inserir</span>
                                 </button>
                                 <Link
                                     href="/condo/adm"
-                                    className="group relative flex items-center justify-center gap-1.5 h-10 px-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm cursor-pointer"
+                                    className="group relative hidden md:flex items-center justify-center gap-1.5 h-10 px-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm cursor-pointer"
                                 >
                                     <ArrowLeft size={14} />
                                     <span>Voltar</span>
@@ -579,36 +610,51 @@ export default function GestaoCobrancasPage() {
                         </div>
                     </div>
 
-                    {/* DASHBOARD SUMÁRIO */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div className="bg-white border border-zinc-200 p-5 rounded-[2rem] shadow-sm flex flex-col relative overflow-hidden">
-                            <div className="flex items-center justify-between mb-3">
+                    {/* DASHBOARD SUMÁRIO COM CACHE DO REACT (USEMEMO) E RPC */}
+                    <div className="grid grid-cols-3 gap-2 md:gap-4 mb-6">
+                        <div className="bg-white border border-zinc-200 p-3 md:p-5 rounded-2xl md:rounded-[2rem] shadow-sm flex flex-col relative overflow-hidden">
+                            <div className="hidden md:flex items-center justify-between mb-3">
                                 <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
                                     <DollarSign size={20} />
                                 </div>
                             </div>
-                            <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-wider">Total Arrecadado</h3>
-                            <p className="text-2xl font-black text-zinc-900 mt-1">R$ {formatarValorExibicao(totalArrecadado)}</p>
+                            <h3 className="text-zinc-500 text-[9px] md:text-xs font-bold uppercase tracking-wider truncate">
+                                <span className="hidden md:inline">Total Arrecadado</span>
+                                <span className="md:hidden">Arrecadado</span>
+                            </h3>
+                            <p className="text-xs md:text-2xl font-black text-zinc-900 mt-1 truncate" title={`R$ ${cardsMemoizados.arrecadado}`}>
+                                R$ {cardsMemoizados.arrecadado}
+                            </p>
                         </div>
 
-                        <div className="bg-white border border-zinc-200 p-5 rounded-[2rem] shadow-sm flex flex-col relative overflow-hidden">
-                            <div className="flex items-center justify-between mb-3">
+                        <div className="bg-white border border-zinc-200 p-3 md:p-5 rounded-2xl md:rounded-[2rem] shadow-sm flex flex-col relative overflow-hidden">
+                            <div className="hidden md:flex items-center justify-between mb-3">
                                 <div className="w-10 h-10 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center">
                                     <AlertCircle size={20} />
                                 </div>
                             </div>
-                            <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-wider">Total Inadimplente</h3>
-                            <p className="text-2xl font-black text-rose-600 mt-1">R$ {formatarValorExibicao(totalInadimplente)}</p>
+                            <h3 className="text-zinc-500 text-[9px] md:text-xs font-bold uppercase tracking-wider truncate">
+                                <span className="hidden md:inline">Total Inadimplente</span>
+                                <span className="md:hidden">Inadimplente</span>
+                            </h3>
+                            <p className="text-xs md:text-2xl font-black text-rose-600 mt-1 truncate" title={`R$ ${cardsMemoizados.inadimplente}`}>
+                                R$ {cardsMemoizados.inadimplente}
+                            </p>
                         </div>
 
-                        <div className="bg-white border border-zinc-200 p-5 rounded-[2rem] shadow-sm flex flex-col relative overflow-hidden">
-                            <div className="flex items-center justify-between mb-3">
+                        <div className="bg-white border border-zinc-200 p-3 md:p-5 rounded-2xl md:rounded-[2rem] shadow-sm flex flex-col relative overflow-hidden">
+                            <div className="hidden md:flex items-center justify-between mb-3">
                                 <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
                                     <Activity size={20} />
                                 </div>
                             </div>
-                            <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-wider">Taxa de Inadimplência</h3>
-                            <p className="text-2xl font-black text-zinc-900 mt-1">{taxaInadimplencia.replace('.', ',')}%</p>
+                            <h3 className="text-zinc-500 text-[9px] md:text-xs font-bold uppercase tracking-wider truncate">
+                                <span className="hidden md:inline">Taxa de Inadimplência</span>
+                                <span className="md:hidden">Taxa</span>
+                            </h3>
+                            <p className="text-xs md:text-2xl font-black text-zinc-900 mt-1 truncate" title={`${cardsMemoizados.taxa}%`}>
+                                {cardsMemoizados.taxa}%
+                            </p>
                         </div>
                     </div>
 
@@ -657,15 +703,15 @@ export default function GestaoCobrancasPage() {
                                 Unidades e Status de Pagamento
                             </h3>
                             <span className="text-xs font-bold text-zinc-500 bg-zinc-100 px-3 py-1.5 rounded-xl">
-                                Total: {itensFiltrados.length} registros
+                                Total: {listaCobrancas.length} registros
                             </span>
                         </div>
 
                         {loadingCobrancas ? (
                             <div className="p-12 text-center text-xs font-bold text-zinc-400 uppercase tracking-widest">
-                                Carregando cobranças da competência...
+                                Carregando dados da tabela...
                             </div>
-                        ) : itensFiltrados.length === 0 ? (
+                        ) : listaCobrancas.length === 0 ? (
                             <div className="p-12 text-center space-y-2">
                                 <Clock size={32} className="mx-auto text-zinc-300" />
                                 <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Nenhum registro de cobrança encontrado para este período.</p>
@@ -684,7 +730,7 @@ export default function GestaoCobrancasPage() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-zinc-100 text-xs">
-                                        {itensFiltrados.map((item) => {
+                                        {listaCobrancas.map((item) => {
                                             const status = item.status_pagamento || 'pendente';
                                             const isPago = status === 'pago';
 

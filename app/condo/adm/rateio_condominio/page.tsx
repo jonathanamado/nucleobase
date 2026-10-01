@@ -6,7 +6,6 @@ import { supabase } from "@/lib/supabase";
 import {
     Building2,
     CheckCircle2,
-    ArrowLeft,
     Instagram,
     FileSpreadsheet,
     Edit3,
@@ -44,7 +43,7 @@ export default function PrestacaoContasConsolidadoPage() {
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [authLoading, setAuthLoading] = useState(false);
-    const [salvandoTaxa, setSalvandoTaxa] = useState(false);
+    const [salvandoRateio, setSalvandoRateio] = useState(false);
 
     // Controle de Login e Restrições
     const [emailOrSlug, setEmailOrSlug] = useState("");
@@ -54,14 +53,12 @@ export default function PrestacaoContasConsolidadoPage() {
     const [isApenasMorador, setIsApenasMorador] = useState(false);
     const [condominio, setCondominio] = useState<{ id: string; nome: string } | null>(null);
 
-    // Filtro de Mês/Ano
+    // Filtro de Mês/Ano e Status de Conclusão
     const [competenciaSelecionada, setCompetenciaSelecionada] = useState(() => {
         const now = new Date();
         return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     });
-
-    // Campo de Taxa Base do Condomínio
-    const [valorTaxaBase, setValorTaxaBase] = useState<number>(0);
+    const [isRateioSalvo, setIsRateioSalvo] = useState(false);
 
     // Dados Consolidados para a Tabela
     const [linhasRelatorio, setLinhasRelatorio] = useState<LinhaRelatorioConsolidado[]>([]);
@@ -81,39 +78,83 @@ export default function PrestacaoContasConsolidadoPage() {
         return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     };
 
-    // Função para carregar o valor gravado na tabela condominio_contas_taxa_base
-    const carregarTaxaBaseSalva = async (condoId: string, competencia: string) => {
-        try {
-            const dataCompetenciaCompleta = `${competencia}-01`;
-            const { data, error } = await supabase
-                .from("condominio_contas_taxa_base")
-                .select("valor")
-                .eq("condominio_id", condoId)
-                .eq("data_competencia", dataCompetenciaCompleta)
-                .maybeSingle();
+    // Funções para formatar a visualização da competência (Desktop e Mobile)
+    const formatMesAnoDesktop = (competencia: string) => {
+        if (!competencia) return "";
+        const [ano, mes] = competencia.split('-');
+        const date = new Date(Number(ano), Number(mes) - 1, 15);
+        const mesExtenso = date.toLocaleString('pt-BR', { month: 'long' });
+        return `${mesExtenso.charAt(0).toUpperCase() + mesExtenso.slice(1)} de ${ano}`;
+    };
 
-            if (!error && data) {
-                const val = Number(data.valor || 0);
-                setValorTaxaBase(val);
-                return val;
-            } else {
-                setValorTaxaBase(0);
-                return 0;
-            }
-        } catch (err) {
-            console.error("Erro ao carregar taxa base:", err);
-            return 0;
-        }
+    const formatMesAnoMobile = (competencia: string) => {
+        if (!competencia) return "";
+        const [ano, mes] = competencia.split('-');
+        const date = new Date(Number(ano), Number(mes) - 1, 15);
+        const mesCurto = date.toLocaleString('pt-BR', { month: 'short' }).replace('.', '');
+        return `${mesCurto.charAt(0).toUpperCase() + mesCurto.slice(1)} / ${ano}`;
     };
 
     const carregarRelatorioConsolidado = async (condoId: string, competencia: string) => {
         try {
             const dataCompetenciaCompleta = `${competencia}-01`;
 
-            // Buscar taxa base salva primeiro para garantir sincronia
-            const taxaBaseAtual = await carregarTaxaBaseSalva(condoId, competencia);
+            // Buscar taxa base salva do banco
+            const { data: taxaData } = await supabase
+                .from("condominio_contas_taxa_base")
+                .select("valor")
+                .eq("condominio_id", condoId)
+                .eq("data_competencia", dataCompetenciaCompleta)
+                .maybeSingle();
+            const taxaBaseAtual = Number(taxaData?.valor || 0);
 
-            // 1. Buscar membros, papéis (role) e fazer o join com profiles para pegar o nome completo e o papel no condomínio
+            // 1. Verifica se já existe um rateio consolidado salvo (CONCLUÍDO)
+            const { data: savedData, error: savedError } = await supabase
+                .from("condominio_rateio_boletos")
+                .select("*")
+                .eq("condominio_id", condoId)
+                .eq("data_competencia", dataCompetenciaCompleta);
+
+            if (savedData && savedData.length > 0) {
+                // Rateio já foi salvo. Carrega os dados fixos do banco para não sumirem da tela.
+                setIsRateioSalvo(true);
+                let somaGeralConsolidada = 0;
+
+                const linhas: LinhaRelatorioConsolidado[] = savedData.map((s: any) => {
+                    const total = Number(s.total_geral) || 0;
+                    somaGeralConsolidada += total;
+                    return {
+                        unidade: s.unidade,
+                        moradorNome: s.morador_nome,
+                        taxaBase: Number(s.taxa_base) || 0,
+                        rateioReceitaDespesa: Number(s.rateio_receita_despesa) || 0,
+                        consumoGasValor: Number(s.consumo_gas_valor) || 0,
+                        consumoGasMetros: Number(s.consumo_gas_metros) || 0,
+                        fundoReserva: Number(s.fundo_reserva) || 0,
+                        salaoFestas: Number(s.salao_festas) || 0,
+                        rateioSindico: Number(s.rateio_sindico) || 0,
+                        totalGeral: total,
+                        resumoBoleto: s.resumo_boleto
+                    };
+                });
+
+                // Ordenar por unidade
+                linhas.sort((a, b) => {
+                    const numA = parseInt(a.unidade);
+                    const numB = parseInt(b.unidade);
+                    if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+                    return a.unidade.localeCompare(b.unidade);
+                });
+
+                setLinhasRelatorio(linhas);
+                setTotalGeralCondominio(somaGeralConsolidada);
+                return; // Encerra aqui para exibir os dados exatos de como foram gravados
+            }
+
+            // SE NÃO FOI SALVO, marca como PENDENTE e realiza o cálculo em tempo real
+            setIsRateioSalvo(false);
+
+            // 1. Buscar membros, papéis (role) e fazer o join com profiles para pegar o nome completo
             const { data: membrosData } = await supabase
                 .from("condominio_membros")
                 .select("unidade, role, user_id, profiles(nome_completo)")
@@ -151,7 +192,7 @@ export default function PrestacaoContasConsolidadoPage() {
             const unidadesUnicas = Array.from(unidadesSet).filter(u => u.toLowerCase() !== "adm").sort();
             const qtdUnidades = unidadesUnicas.length > 0 ? unidadesUnicas.length : 1;
 
-            // 2. Buscar Contas (Receitas e Despesas) do mês com normalização rigorosa do tipo
+            // 2. Buscar Contas (Receitas e Despesas)
             const { data: contasData } = await supabase
                 .from("condominio_contas")
                 .select("tipo, valor_realizado, valor_previsto")
@@ -175,7 +216,7 @@ export default function PrestacaoContasConsolidadoPage() {
             const saldoLiquidoCondominio = totalReceitasRealizado - totalDespesasRealizado;
             const rateioBasePorUnidade = qtdUnidades > 0 ? (Math.abs(saldoLiquidoCondominio) / qtdUnidades) : 0;
 
-            // 3. Buscar Tarifa de Gás do mês
+            // 3. Buscar Tarifa de Gás
             const { data: tarifaData } = await supabase
                 .from("condominio_contas_gas_metro_cubico")
                 .select("valor_metro_cubico")
@@ -185,7 +226,7 @@ export default function PrestacaoContasConsolidadoPage() {
 
             const valorMetroCubico = Number(tarifaData?.valor_metro_cubico || 0);
 
-            // 4. Buscar Medições de Gás do mês
+            // 4. Buscar Medições de Gás
             const { data: medicaoData } = await supabase
                 .from("condominio_contas_gas_medicao")
                 .select("unidade, consumo_calculado")
@@ -197,7 +238,7 @@ export default function PrestacaoContasConsolidadoPage() {
                 consumoGasMap.set(m.unidade?.trim(), Number(m.consumo_calculado || 0));
             });
 
-            // 5. Buscar Fundo de Reservas por unidade
+            // 5. Buscar Fundo de Reservas
             const { data: fundoData } = await supabase
                 .from("condominio_contas_fundo_de_reservas")
                 .select("unidade, valor")
@@ -209,7 +250,7 @@ export default function PrestacaoContasConsolidadoPage() {
                 fundoMap.set(f.unidade?.trim(), Number(f.valor || 0));
             });
 
-            // 6. Buscar Cobranças do Salão de Festas do mês
+            // 6. Buscar Cobranças do Salão de Festas
             const { data: salaoData } = await supabase
                 .from("condominio_reservas_cobrancas")
                 .select("unidade, taxa")
@@ -224,7 +265,7 @@ export default function PrestacaoContasConsolidadoPage() {
                 salaoMap.set(u, atual + Number(s.taxa || 0));
             });
 
-            // 7. Buscar Rateio do Síndico (Valor / Quantidade de Aptos a Ratear)
+            // 7. Buscar Rateio do Síndico
             const { data: sindicoData } = await supabase
                 .from("condominio_pagamento_sindico")
                 .select("valor, quantidade_apartamentos")
@@ -287,31 +328,49 @@ export default function PrestacaoContasConsolidadoPage() {
         }
     };
 
-    const handleSalvarTaxaBase = async () => {
-        if (!condominio?.id) return;
-        setSalvandoTaxa(true);
+    const handleSalvarRateioBoletos = async () => {
+        if (!condominio?.id || linhasRelatorio.length === 0) return;
+        setSalvandoRateio(true);
+
         try {
             const dataCompetenciaCompleta = `${competenciaSelecionada}-01`;
+
+            // Mapeando os dados forçando a tipagem numérica correta para evitar envios zerados
+            const payload = linhasRelatorio.map((linha) => ({
+                condominio_id: condominio.id,
+                data_competencia: dataCompetenciaCompleta,
+                unidade: linha.unidade,
+                morador_nome: linha.moradorNome,
+                taxa_base: Number(linha.taxaBase) || 0,
+                fundo_reserva: Number(linha.fundoReserva) || 0,
+                salao_festas: Number(linha.salaoFestas) || 0,
+                rateio_receita_despesa: Number(linha.rateioReceitaDespesa) || 0,
+                rateio_sindico: Number(linha.rateioSindico) || 0,
+                consumo_gas_metros: Number(linha.consumoGasMetros) || 0,
+                consumo_gas_valor: Number(linha.consumoGasValor) || 0,
+                total_geral: Number(linha.totalGeral) || 0,
+                resumo_boleto: linha.resumoBoleto,
+                atualizado_em: new Date().toISOString()
+            }));
+
+            // Inserção em lote (Upsert para atualizar caso já exista)
             const { error } = await supabase
-                .from("condominio_contas_taxa_base")
-                .upsert({
-                    condominio_id: condominio.id,
-                    data_competencia: dataCompetenciaCompleta,
-                    valor: valorTaxaBase,
-                    atualizado_em: new Date().toISOString()
-                }, { onConflict: 'condominio_id, data_competencia' });
+                .from("condominio_rateio_boletos")
+                .upsert(payload, { onConflict: 'condominio_id, data_competencia, unidade' });
 
             if (error) {
-                alert("Erro ao gravar taxa base: " + error.message);
-            } else {
-                alert("Taxa base gravada com sucesso!");
-                await carregarRelatorioConsolidado(condominio.id, competenciaSelecionada);
+                console.error("Erro detalhado do Supabase:", error);
+                throw error;
             }
+
+            setIsRateioSalvo(true); // Atualiza instantaneamente o status em tela
+            alert("Rateio dos boletos salvo e atualizado com sucesso!");
+
         } catch (err) {
-            console.error("Erro ao salvar taxa base:", err);
-            alert("Erro inesperado ao gravar taxa base.");
+            console.error("Erro ao salvar rateio:", err);
+            alert("Erro ao gravar rateio no banco de dados. Verifique o console.");
         } finally {
-            setSalvandoTaxa(false);
+            setSalvandoRateio(false);
         }
     };
 
@@ -365,7 +424,7 @@ export default function PrestacaoContasConsolidadoPage() {
             if (isMountedRef.current) {
                 setIsApenasMorador(false);
                 setCondominio({ id: vinculoAdm.condominio_id, nome: nomeCondominioOficial });
-                await carregarRelatorioConsolidado(vinculoAdm.condominio_id, competenciaSelecionada);
+                // O carregamento do relatório agora é gerido exclusivamente pelo useEffect que observa competenciaSelecionada
             }
         } catch (e) {
             if (isMountedRef.current) setCondominio(null);
@@ -394,7 +453,7 @@ export default function PrestacaoContasConsolidadoPage() {
         if (condominio?.id) {
             carregarRelatorioConsolidado(condominio.id, competenciaSelecionada);
         }
-    }, [competenciaSelecionada]);
+    }, [competenciaSelecionada, condominio?.id]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -515,69 +574,93 @@ export default function PrestacaoContasConsolidadoPage() {
                             <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5">{condominio?.nome}</h1>
                         </div>
                     </div>
-
-                    <Link
-                        href="/condo/adm/prestacao_contas"
-                        className="flex items-center gap-1.5 h-10 px-4 bg-zinc-900 hover:bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm cursor-pointer self-start md:self-auto"
-                    >
-                        <ArrowLeft size={14} /> Voltar
-                    </Link>
                 </div>
 
                 {/* Cards de Controles Alinhados lado a lado */}
                 <div className="flex flex-col md:flex-row justify-end items-center gap-4 w-full">
-                    {/* Filtro de Mês/Ano e Botão Exportar */}
-                    <div className="bg-white border border-zinc-200 p-4 rounded-2xl shadow-sm flex items-center gap-4 w-full md:w-auto justify-between md:justify-start">
-                        <div className="bg-white border border-zinc-200 p-2.5 rounded-xl flex items-center gap-3 shadow-sm">
-                            <Calendar size={16} className="text-emerald-600" />
+
+                    {/* Agrupamento: Calendário e Status de Conclusão */}
+                    <div className="bg-white border border-zinc-200 p-4 rounded-2xl shadow-sm flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+                        {/* Container do Calendário */}
+                        <div className="bg-white border border-zinc-200 p-2.5 rounded-xl flex items-center justify-center md:justify-start gap-3 shadow-sm relative overflow-hidden min-w-[120px] md:min-w-0">
+                            <Calendar size={16} className="text-emerald-600 shrink-0" />
+
+                            {/* Visualização customizada: Desktop */}
+                            <span className="text-xs font-bold text-zinc-900 hidden md:block pointer-events-none">
+                                {formatMesAnoDesktop(competenciaSelecionada)}
+                            </span>
+
+                            {/* Visualização customizada: Mobile */}
+                            <span className="text-xs font-bold text-zinc-900 block md:hidden pointer-events-none">
+                                {formatMesAnoMobile(competenciaSelecionada)}
+                            </span>
+
                             <input
                                 type="month"
                                 value={competenciaSelecionada}
                                 onChange={(e) => setCompetenciaSelecionada(e.target.value)}
-                                className="text-xs font-bold text-zinc-900 bg-transparent outline-none cursor-pointer"
+                                onClick={(e) => {
+                                    try {
+                                        (e.target as HTMLInputElement).showPicker?.();
+                                    } catch (err) {
+                                        // Silencioso
+                                    }
+                                }}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             />
                         </div>
+
+                        {/* Status Indicator */}
+                        {isRateioSalvo ? (
+                            <div className="flex items-center gap-1.5 px-3 py-2.5 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100 shrink-0" title="Rateio salvo e concluído">
+                                <CheckCircle2 size={16} />
+                                <span className="text-[10px] font-black uppercase tracking-wider hidden md:inline">Concluído</span>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-1.5 px-3 py-2.5 bg-amber-50 text-amber-600 rounded-xl border border-amber-100 shrink-0" title="Pendente de gravação">
+                                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
+                                <span className="text-[10px] font-black uppercase tracking-wider hidden md:inline">Pendente</span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Botões de Ação */}
+                    <div className="bg-white border border-zinc-200 p-4 rounded-2xl shadow-sm flex items-center gap-2 w-full md:w-auto justify-end">
                         <button
                             onClick={exportarCSV}
-                            className="flex items-center gap-1.5 h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm cursor-pointer"
+                            className="flex items-center justify-center gap-1.5 h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm cursor-pointer w-full md:w-auto"
                         >
-                            <Download size={14} /> Exportar
+                            <Download size={14} />
+                            <span className="hidden md:inline">Exportar</span>
+                            <span className="md:hidden">CSV</span>
+                        </button>
+
+                        <button
+                            onClick={handleSalvarRateioBoletos}
+                            disabled={salvandoRateio || linhasRelatorio.length === 0 || isRateioSalvo}
+                            className="flex items-center justify-center gap-1.5 h-10 px-4 bg-zinc-900 hover:bg-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm cursor-pointer disabled:opacity-50 w-full md:w-auto"
+                        >
+                            <Save size={14} />
+                            <span className="hidden md:inline">{salvandoRateio ? "Salvando..." : (isRateioSalvo ? "Salvo" : "Salvar Rateio")}</span>
+                            <span className="md:hidden">{salvandoRateio ? "..." : (isRateioSalvo ? "Salvo" : "Salvar")}</span>
                         </button>
                     </div>
 
-                    {/* Campo para inserção do Valor da Taxa Base e Botão de Gravar */}
-                    <div className="bg-white border border-zinc-200 p-4 rounded-2xl shadow-sm flex items-center gap-4 w-full md:w-auto justify-between md:justify-start">
-                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-wider">Valor da Taxa Base (Assembleia):</span>
-                        <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">R$</span>
-                            <input
-                                type="number"
-                                step="0.01"
-                                placeholder="0,00"
-                                value={valorTaxaBase || ""}
-                                onChange={(e) => setValorTaxaBase(parseFloat(e.target.value) || 0)}
-                                className="w-36 pl-9 pr-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-black text-zinc-900 outline-none focus:border-emerald-400"
-                            />
-                        </div>
-                        <button
-                            onClick={handleSalvarTaxaBase}
-                            disabled={salvandoTaxa}
-                            className="flex items-center gap-1.5 h-9 px-4 bg-zinc-900 hover:bg-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm cursor-pointer disabled:opacity-50"
-                        >
-                            <Save size={14} /> {salvandoTaxa ? "Gravando..." : "Gravar"}
-                        </button>
-                    </div>
                 </div>
 
                 {/* Tabela de Relatório Consolidado */}
                 <div className="w-full bg-white border border-zinc-200 p-6 md:p-8 rounded-[2.5rem] shadow-sm space-y-6">
                     <div className="flex justify-between items-center">
                         <div>
-                            <h2 className="text-xl font-black tracking-tight text-zinc-900">Demonstrativo por Unidade</h2>
+                            <h2 className="text-xl font-black tracking-tight text-zinc-900">
+                                Demonstrativo<span className="hidden md:inline"> por Unidade</span>
+                            </h2>
                             <p className="text-xs text-zinc-500 font-medium">Rateio consolidado referente à competência {competenciaSelecionada}.</p>
                         </div>
                         <div className="text-right">
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Consolidado Geral</span>
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+                                Consolidado<span className="hidden md:inline"> Geral</span>
+                            </span>
                             <span className="text-lg font-black text-emerald-600">{formatarMoeda(totalGeralCondominio)}</span>
                         </div>
                     </div>
@@ -629,7 +712,7 @@ export default function PrestacaoContasConsolidadoPage() {
                 </div>
             </div>
 
-            {/* Rodapé institucional com o bloco Instagram atualizado */}
+            {/* Rodapé institucional */}
             <div className="mt-24">
                 <div className="flex items-center gap-4 mb-12">
                     <div className="h-px bg-zinc-200 flex-1"></div>
