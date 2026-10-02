@@ -933,7 +933,7 @@ export default function CondoAdm() {
                             </div>
                             <div>
                                 <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">
-                                    <span className="md:hidden">Controle de acessos</span>
+                                    <span className="md:hidden">Painel de Gestão</span>
                                     <span className="hidden md:inline">Painel de Gestão - Controles internos</span>
                                 </span>
                                 <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5">
@@ -1173,7 +1173,7 @@ export default function CondoAdm() {
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center justify-between">
-                                            <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Projeto integração condominial</h3>
+                                            <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Projeto Integração Condo</h3>
                                             <span className="text-[9px] text-purple-600 font-bold bg-purple-50 px-1.5 py-0.5 rounded">Em dev</span>
                                         </div>
                                         <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Integração de sistemas e de pessoas</p>
@@ -1205,7 +1205,7 @@ export default function CondoAdm() {
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center justify-between">
-                                            <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Rede de telefones importantes</h3>
+                                            <h3 className="font-bold text-xs md:text-sm text-zinc-800 leading-tight">Telefones importantes</h3>
                                             <span className="text-[9px] text-teal-600 font-bold bg-teal-50 px-1.5 py-0.5 rounded">Em dev</span>
                                         </div>
                                         <p className="text-[10px] md:text-[11px] text-zinc-400 mt-0.5 leading-tight">Contato de apoio e utilidade pública</p>

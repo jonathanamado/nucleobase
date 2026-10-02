@@ -255,8 +255,12 @@ export default function NucleobaseCondo() {
         return (
             <div className="flex flex-col justify-between items-stretch w-full h-full gap-6">
                 {/* CARD 1: ÁREA DO CONDÔMINO / LOGIN */}
-                {!isLoggedIn ? (
-                    <div className="bg-gray-900 p-6 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden w-full flex flex-col justify-center">
+                {isLoggedIn === null ? (
+                    <div className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 flex items-center justify-center w-full min-h-[250px]">
+                        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                ) : !isLoggedIn ? (
+                    <div className="bg-gray-900 p-6 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden w-full flex flex-col justify-center min-h-[250px]">
                         <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
                             <Zap size={180} strokeWidth={1} className="text-blue-500" />
                         </div>
@@ -324,7 +328,7 @@ export default function NucleobaseCondo() {
                     <Link
                         href="/condo/dashboard"
                         onClick={() => trackClick("O Futuro do seu Prédio", "/condo/dashboard")}
-                        className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center cursor-pointer block w-full"
+                        className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center cursor-pointer block w-full min-h-[250px]"
                     >
                         <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
                             <Zap size={180} strokeWidth={1} className="text-blue-500" />
@@ -357,8 +361,7 @@ export default function NucleobaseCondo() {
                             <LockKeyhole size={20} />
                         </div>
                         <div className="flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 py-2 px-3 rounded-xl transition-all group/btn shadow-lg shadow-emerald-600/20 flex-1 min-w-0">
-                            <UserCircle size={14} className="text-white shrink-0" />
-                            <span className="text-white text-[9px] font-black uppercase tracking-wider truncate">Acesso Administração</span>
+                            <span className="text-white text-[11px] font-black uppercase tracking-wider truncate">Acesso Administração</span>
                         </div>
                     </div>
                 </Link>
@@ -430,8 +433,12 @@ export default function NucleobaseCondo() {
 
             <div className="grid grid-cols-2 gap-3">
                 {/* CARD 1 MOBILE: ÁREA DO CONDÔMINO / LOGIN MOBILE */}
-                {!isLoggedIn ? (
-                    <div className="col-span-2 bg-gray-900 p-6 rounded-[2rem] relative overflow-hidden block">
+                {isLoggedIn === null ? (
+                    <div className="col-span-2 bg-gray-900 p-6 rounded-[2rem] flex items-center justify-center min-h-[220px]">
+                        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                ) : !isLoggedIn ? (
+                    <div className="col-span-2 bg-gray-900 p-6 rounded-[2rem] relative overflow-hidden block min-h-[220px]">
                         <div className="flex items-center justify-between relative z-10 mb-4">
                             <div className="flex items-center gap-3">
                                 <Users size={20} className="text-blue-500" />
@@ -498,7 +505,7 @@ export default function NucleobaseCondo() {
                         </form>
                     </div>
                 ) : (
-                    <Link href="/condo/dashboard" onClick={() => trackClick("Área do Condômino (Mobile)", "/condo/dashboard")} className="col-span-2 bg-gray-900 p-6 rounded-[2rem] relative overflow-hidden block">
+                    <Link href="/condo/dashboard" onClick={() => trackClick("Área do Condômino (Mobile)", "/condo/dashboard")} className="col-span-2 bg-gray-900 p-6 rounded-[2rem] relative overflow-hidden block min-h-[220px]">
                         <div className="flex items-center justify-between relative z-10 mb-4">
                             <div className="flex items-center gap-3">
                                 <Users size={20} className="text-blue-500" />
@@ -525,13 +532,10 @@ export default function NucleobaseCondo() {
 
                 {/* CARD 2 MOBILE: CONTABILIDADE */}
                 <Link href="/condo/contabilidade" onClick={() => trackClick("Contabilidade (Mobile)", "/condo/contabilidade")} className="col-span-2 bg-white border border-gray-300 p-5 rounded-[2rem] shadow-md relative overflow-hidden block">
-                    <div className="flex items-center justify-center relative z-10 gap-3 w-full">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                            <LockKeyhole size={18} />
-                        </div>
-                        <div className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 py-2 px-4 rounded-xl transition-all shadow-md shadow-emerald-600/20 min-w-0">
-                            <UserCircle size={14} className="text-white shrink-0" />
-                            <span className="text-white text-[10px] font-black uppercase tracking-widest truncate">Acesso Administração</span>
+                    <div className="flex items-center justify-center relative z-10 w-full">
+                        <div className="flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-700 py-3 px-4 rounded-xl transition-all shadow-md shadow-emerald-600/20 text-center">
+                            <LockKeyhole size={14} className="text-white shrink-0" />
+                            <span className="text-white text-[10px] font-black uppercase tracking-widest">Acesso Administração</span>
                         </div>
                     </div>
                 </Link>
@@ -560,10 +564,10 @@ export default function NucleobaseCondo() {
                         key={idx}
                         href="/cadastro"
                         onClick={() => trackClick(`Funcionalidade Mobile: ${item.title}`, "/cadastro")}
-                        className={`bg-white border border-gray-100 p-4 rounded-[1.5rem] flex flex-col items-center text-center gap-2 block ${idx === 0 ? "col-span-2 bg-gradient-to-br from-blue-600 to-indigo-700 text-white border-blue-400 shadow-md" : ""}`}
+                        className={`bg-white border border-gray-100 p-4 rounded-[1.5rem] flex items-center gap-2 block ${idx === 0 ? "col-span-2 flex-row justify-center bg-gradient-to-br from-blue-600 to-indigo-700 text-white border-blue-400 shadow-md text-left" : "flex-col text-center"}`}
                     >
                         <div className={`${idx === 0 ? "bg-white/15 text-white" : "text-blue-600 bg-blue-50"} p-2.5 rounded-xl`}>{item.icon}</div>
-                        <h4 className={`font-bold text-[10px] leading-tight uppercase tracking-tight ${idx === 0 ? "text-white" : "text-gray-900"}`}>{item.title}</h4>
+                        <h4 className={`font-bold leading-tight uppercase tracking-tight ${idx === 0 ? "text-white text-[11px]" : "text-gray-900 text-[10px]"}`}>{item.title}</h4>
                     </Link>
                 ))}
             </div>
