@@ -36,7 +36,7 @@ export default function GestaoCobrancasPage() {
     const [loading, setLoading] = useState(true);
     const [authLoading, setAuthLoading] = useState(false);
 
-    // Estados de loading, listagem e cache RPC
+    // Estados de loading, listagem e cache
     const [loadingCobrancas, setLoadingCobrancas] = useState(false);
     const [listaCobrancas, setListaCobrancas] = useState<any[]>([]);
     const [resumoCards, setResumoCards] = useState({ arrecadado: 0, inadimplente: 0, taxa: "0.00" });
@@ -177,7 +177,7 @@ export default function GestaoCobrancasPage() {
             const ultimoDiaFim = new Date(anoFim, mesFimNum, 0).getDate();
             const dataFim = `${mesFim}-${ultimoDiaFim.toString().padStart(2, '0')}`;
 
-            // 1. Busca a lista com paginação/limite direto no DB
+            // 1. Busca a lista de inadimplências/cobranças lançadas manualmente no DB
             let queryLista = supabase
                 .from("condominio_cobrancas")
                 .select("*")
@@ -188,16 +188,18 @@ export default function GestaoCobrancasPage() {
 
             if (busca) queryLista = queryLista.ilike("unidade", `%${busca}%`);
 
-            // 2. Aciona os cálculos pesados via RPC no DB
-            const queryResumo = supabase.rpc("obter_resumo_cobrancas", {
-                p_condominio_id: condoId,
-                p_data_inicio: dataInicio,
-                p_data_fim: dataFim,
-                p_busca: busca
-            });
+            // 2. Busca o montante projetado/esperado da tabela de rateio_boletos
+            let queryRateio = supabase
+                .from("condominio_rateio_boletos")
+                .select("total_geral")
+                .eq("condominio_id", condoId)
+                .gte("data_competencia", dataInicio)
+                .lte("data_competencia", dataFim);
+
+            if (busca) queryRateio = queryRateio.ilike("unidade", `%${busca}%`);
 
             // Promisse.all para máxima velocidade (ambas correm juntas)
-            const [resultLista, resultResumo] = await Promise.all([queryLista, queryResumo]);
+            const [resultLista, resultRateio] = await Promise.all([queryLista, queryRateio]);
 
             if (resultLista.error) {
                 console.warn("Aviso ao carregar cobranças:", resultLista.error.message);
@@ -206,18 +208,35 @@ export default function GestaoCobrancasPage() {
                 setListaCobrancas(resultLista.data || []);
             }
 
-            if (resultResumo.error) {
-                console.warn("Erro ao carregar resumo RPC:", resultResumo.error.message);
-                setResumoCards({ arrecadado: 0, inadimplente: 0, taxa: "0.00" });
-            } else if (resultResumo.data && resultResumo.data.length > 0) {
-                setResumoCards({
-                    arrecadado: resultResumo.data[0].total_arrecadado || 0,
-                    inadimplente: resultResumo.data[0].total_inadimplente || 0,
-                    taxa: resultResumo.data[0].taxa_inadimplencia || "0.00"
-                });
-            } else {
-                setResumoCards({ arrecadado: 0, inadimplente: 0, taxa: "0.00" });
+            // Cálculos da lógica: Arrecadado = (Soma Receita Esperada) - (Soma Dívida Pendente)
+            let receitaEsperada = 0;
+            if (resultRateio.data && !resultRateio.error) {
+                receitaEsperada = resultRateio.data.reduce((acc, curr) => acc + Number(curr.total_geral || 0), 0);
             }
+
+            let totalInadimplente = 0;
+            if (resultLista.data && !resultLista.error) {
+                totalInadimplente = resultLista.data.reduce((acc, curr) => {
+                    // Soma apenas as dívidas lançadas que estão 'pendentes'
+                    if (curr.status_pagamento === 'pendente') {
+                        return acc + Number(curr.valor_total || 0);
+                    }
+                    return acc;
+                }, 0);
+            }
+
+            const totalArrecadado = Math.max(0, receitaEsperada - totalInadimplente);
+
+            let taxaInadimplencia = 0;
+            if (receitaEsperada > 0) {
+                taxaInadimplencia = (totalInadimplente / receitaEsperada) * 100;
+            }
+
+            setResumoCards({
+                arrecadado: totalArrecadado,
+                inadimplente: totalInadimplente,
+                taxa: taxaInadimplencia.toFixed(2)
+            });
 
         } catch (err) {
             console.error("Erro geral na busca de dados:", err);
@@ -610,7 +629,7 @@ export default function GestaoCobrancasPage() {
                         </div>
                     </div>
 
-                    {/* DASHBOARD SUMÁRIO COM CACHE DO REACT (USEMEMO) E RPC */}
+                    {/* DASHBOARD SUMÁRIO COM CACHE DO REACT (USEMEMO) E NOVA LÓGICA DE DÍVIDA ABATIDA DA RECEITA */}
                     <div className="grid grid-cols-3 gap-2 md:gap-4 mb-6">
                         <div className="bg-white border border-zinc-200 p-3 md:p-5 rounded-2xl md:rounded-[2rem] shadow-sm flex flex-col relative overflow-hidden">
                             <div className="hidden md:flex items-center justify-between mb-3">

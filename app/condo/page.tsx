@@ -525,15 +525,13 @@ export default function NucleobaseCondo() {
 
                 {/* CARD 2 MOBILE: CONTABILIDADE */}
                 <Link href="/condo/contabilidade" onClick={() => trackClick("Contabilidade (Mobile)", "/condo/contabilidade")} className="col-span-2 bg-white border border-gray-300 p-5 rounded-[2rem] shadow-md relative overflow-hidden block">
-                    <div className="flex items-center justify-between relative z-10 gap-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                                <LockKeyhole size={18} />
-                            </div>
-                            <div className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 py-2 px-4 rounded-xl transition-all shadow-md shadow-emerald-600/20">
-                                <UserCircle size={14} className="text-white" />
-                                <span className="text-white text-[10px] font-black uppercase tracking-widest whitespace-nowrap">Acesso Administração</span>
-                            </div>
+                    <div className="flex items-center justify-center relative z-10 gap-3 w-full">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                            <LockKeyhole size={18} />
+                        </div>
+                        <div className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 py-2 px-4 rounded-xl transition-all shadow-md shadow-emerald-600/20 min-w-0">
+                            <UserCircle size={14} className="text-white shrink-0" />
+                            <span className="text-white text-[10px] font-black uppercase tracking-widest truncate">Acesso Administração</span>
                         </div>
                     </div>
                 </Link>
