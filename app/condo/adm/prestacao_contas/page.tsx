@@ -55,6 +55,9 @@ export default function PrestacaoContasPage() {
     const [condominio, setCondominio] = useState<{ id: string; nome: string } | null>(null);
     const [isApenasMorador, setIsApenasMorador] = useState(false);
 
+    // Histórico para Autocomplete de Detalhamento e Descrição
+    const [historicoDescDet, setHistoricoDescDet] = useState<{ descricao: string, detalhamento: string }[]>([]);
+
     // Estados para Lançamentos de Prestação de Contas (Mantidos na página principal)
     const [tipoConta, setTipoConta] = useState<'receita' | 'despesa'>('receita');
     const [categoriaConta, setCategoriaConta] = useState('Receita Condomínio');
@@ -166,6 +169,19 @@ export default function PrestacaoContasPage() {
             if (isMountedRef.current) {
                 setIsApenasMorador(false);
                 setCondominio({ id: vinculoAdm.condominio_id, nome: nomeCondominioOficial });
+
+                // Fetch do histórico de descrições e detalhamentos para o Autocomplete restrito ao condomínio
+                const { data: histData } = await supabase
+                    .from('condominio_contas')
+                    .select('descricao, detalhamento')
+                    .eq('condominio_id', vinculoAdm.condominio_id);
+
+                if (histData) {
+                    setHistoricoDescDet(histData.map((item: any) => ({
+                        descricao: item.descricao || "",
+                        detalhamento: item.detalhamento || ""
+                    })));
+                }
             }
         } catch (e: any) {
             console.warn("Exceção tratada em verifySindicoAndLoadData:", e);
@@ -323,13 +339,22 @@ export default function PrestacaoContasPage() {
 
     const handleSaveContas = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!condominio || !session) return;
+
+        if (!condominio) {
+            setContasError("Condomínio não identificado. Atualize a página e tente novamente.");
+            return;
+        }
 
         setLoadingContas(true);
         setContasError("");
         setContasSuccess("");
 
         try {
+            // Garante que a sessão está ativa (usando o estado já monitorado para evitar travamento em lock ao retornar para a aba)
+            if (!session || !session.user) {
+                throw new Error("Sessão expirada. Atualize a página e faça login novamente para continuar.");
+            }
+
             const previstoNum = converterParaFloat(valorPrevistoConta);
             const realizadoNum = converterParaFloat(valorRealizadoConta);
 
@@ -354,6 +379,13 @@ export default function PrestacaoContasPage() {
             if (error) throw error;
 
             setContasSuccess("Lançamento financeiro registrado com sucesso!");
+
+            // Adiciona localmente os novos valores na lista para o autocomplete do próximo lançamento
+            setHistoricoDescDet(prev => [...prev, {
+                descricao: descricaoConta.trim(),
+                detalhamento: detalhamentoConta.trim()
+            }]);
+
             setValorPrevistoConta("0,00");
             setValorRealizadoConta("0,00");
             setDetalhamentoConta("");
@@ -613,6 +645,42 @@ export default function PrestacaoContasPage() {
         );
     }
 
+    // Calcula as descrições sugeridas (únicas)
+    let sugestoesDescricao: string[] = [];
+    // Calcula os detalhamentos sugeridos filtrando pela descrição atual
+    let sugestoesDetalhamento: string[] = [];
+
+    if (session && !isApenasMorador && condominio) {
+        // Popula as descrições (ignorando itens vazios)
+        sugestoesDescricao = Array.from(
+            new Set(
+                historicoDescDet
+                    .map(item => item.descricao.trim())
+                    .filter(desc => desc !== "")
+            )
+        );
+
+        // Popula detalhamentos associados à descrição digitada
+        sugestoesDetalhamento = Array.from(
+            new Set(
+                historicoDescDet
+                    .filter(item => item.descricao.trim().toLowerCase() === descricaoConta.trim().toLowerCase())
+                    .map(item => item.detalhamento.trim())
+                    .filter(det => det !== "")
+            )
+        );
+        // Se a descrição nova não tiver histórico, exibe todos os detalhamentos únicos já usados
+        if (sugestoesDetalhamento.length === 0) {
+            sugestoesDetalhamento = Array.from(
+                new Set(
+                    historicoDescDet
+                        .map(item => item.detalhamento.trim())
+                        .filter(det => det !== "")
+                )
+            );
+        }
+    }
+
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-4 md:p-10 flex flex-col justify-between">
             <div className="space-y-8">
@@ -693,12 +761,18 @@ export default function PrestacaoContasPage() {
                                     <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Descrição</label>
                                     <input
                                         type="text"
+                                        list="sugestoes-descricao"
                                         placeholder="Ex: Pagamento Condomínio"
                                         required
                                         value={descricaoConta}
                                         onChange={(e) => setDescricaoConta(e.target.value)}
                                         className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium text-zinc-900"
                                     />
+                                    <datalist id="sugestoes-descricao">
+                                        {sugestoesDescricao.map((sugestao, idx) => (
+                                            <option key={idx} value={sugestao} />
+                                        ))}
+                                    </datalist>
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Mês de Competência</label>
@@ -716,11 +790,17 @@ export default function PrestacaoContasPage() {
                                 <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Detalhamento</label>
                                 <input
                                     type="text"
+                                    list="sugestoes-detalhamento"
                                     placeholder="Ex: Detalhes adicionais do lançamento..."
                                     value={detalhamentoConta}
                                     onChange={(e) => setDetalhamentoConta(e.target.value)}
                                     className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium text-zinc-900"
                                 />
+                                <datalist id="sugestoes-detalhamento">
+                                    {sugestoesDetalhamento.map((sugestao, idx) => (
+                                        <option key={idx} value={sugestao} />
+                                    ))}
+                                </datalist>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
