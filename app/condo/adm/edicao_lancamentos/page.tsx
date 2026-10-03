@@ -14,7 +14,8 @@ import {
     AlertCircle,
     Edit3,
     X,
-    Filter
+    Filter,
+    Calendar
 } from "lucide-react";
 
 interface ContaItem {
@@ -36,14 +37,22 @@ export default function EdicaoLancamentosPage() {
     const [actionLoading, setActionLoading] = useState(false);
     const [condominio, setCondominio] = useState<{ id: string; nome: string } | null>(null);
     const [lancamentos, setLancamentos] = useState<ContaItem[]>([]);
+
+    // Filtros
     const [filtroTipo, setFiltroTipo] = useState<string>('todos');
+    const [filtroMes, setFiltroMes] = useState<string>('todos');
 
     // Estados de Edição
     const [itemEditando, setItemEditando] = useState<ContaItem | null>(null);
+    const [tipoInput, setTipoInput] = useState<'receita' | 'despesa'>('receita');
     const [categoriaInput, setCategoriaInput] = useState("");
     const [descricaoInput, setDescricaoInput] = useState("");
     const [detalhamentoInput, setDetalhamentoInput] = useState("");
+    const [valorPrevistoInput, setValorPrevistoInput] = useState("");
     const [valorRealizadoInput, setValorRealizadoInput] = useState("");
+    const [dataCompetenciaInput, setDataCompetenciaInput] = useState("");
+    const [statusInput, setStatusInput] = useState("pendente");
+
     const [msgSucesso, setMsgSucesso] = useState("");
     const [msgErro, setMsgErro] = useState("");
 
@@ -144,19 +153,17 @@ export default function EdicaoLancamentosPage() {
 
         const initAuth = async () => {
             try {
-                const timeoutId = setTimeout(() => {
-                    if (isMountedRef.current && loading) {
-                        setLoading(false);
-                    }
-                }, 5000);
-
+                // Removido o timeout hardcoded que causava falhas na persistência de login
                 const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-                clearTimeout(timeoutId);
 
                 if (sessionError && !currentSession) throw sessionError;
 
-                if (isMountedRef.current) {
-                    await verifyAndLoad(currentSession);
+                if (currentSession) {
+                    if (isMountedRef.current) {
+                        await verifyAndLoad(currentSession);
+                    }
+                } else {
+                    if (isMountedRef.current) setLoading(false);
                 }
             } catch (err: any) {
                 const errString = err?.message || JSON.stringify(err);
@@ -191,7 +198,6 @@ export default function EdicaoLancamentosPage() {
         };
     }, []);
 
-    // Função de Logout blindada e completa
     const handleLogout = async () => {
         setLoading(true);
         try {
@@ -224,10 +230,14 @@ export default function EdicaoLancamentosPage() {
 
     const abrirEdicao = (item: ContaItem) => {
         setItemEditando(item);
+        setTipoInput(item.tipo);
         setCategoriaInput(item.categoria);
         setDescricaoInput(item.descricao);
         setDetalhamentoInput(item.detalhamento || "");
-        setValorRealizadoInput(item.valor_realizado.toString());
+        setValorPrevistoInput(item.valor_previsto?.toString() || "0");
+        setValorRealizadoInput(item.valor_realizado?.toString() || "0");
+        setDataCompetenciaInput(item.data_competencia ? item.data_competencia.split('T')[0] : "");
+        setStatusInput(item.status || "pendente");
         setMsgSucesso("");
         setMsgErro("");
     };
@@ -244,10 +254,14 @@ export default function EdicaoLancamentosPage() {
             const { error } = await supabase
                 .from("condominio_contas")
                 .update({
+                    tipo: tipoInput,
                     categoria: categoriaInput.trim(),
                     descricao: descricaoInput.trim(),
                     detalhamento: detalhamentoInput.trim() || null,
-                    valor_realizado: parseFloat(valorRealizadoInput) || 0
+                    valor_previsto: parseFloat(valorPrevistoInput) || 0,
+                    valor_realizado: parseFloat(valorRealizadoInput) || 0,
+                    data_competencia: dataCompetenciaInput,
+                    status: statusInput
                 })
                 .eq("id", itemEditando.id);
 
@@ -281,9 +295,36 @@ export default function EdicaoLancamentosPage() {
         setActionLoading(false);
     };
 
+    // Gera os meses disponíveis baseado nos lançamentos retornados
+    const mesesDisponiveis = Array.from(new Set(lancamentos.map(l => {
+        if (!l.data_competencia) return null;
+        const d = new Date(l.data_competencia);
+        return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+    }).filter(Boolean))) as string[];
+
+    mesesDisponiveis.sort((a, b) => b.localeCompare(a)); // Ordem decrescente
+
+    const formatarMesCapitalizado = (anoMes: string) => {
+        const [ano, mes] = anoMes.split('-');
+        const data = new Date(Date.UTC(Number(ano), Number(mes) - 1, 1));
+        const formatador = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+        const formatado = formatador.format(data).replace(' de ', ' de ');
+        return formatado.charAt(0).toUpperCase() + formatado.slice(1);
+    };
+
     const lancamentosFiltrados = lancamentos.filter(l => {
-        if (filtroTipo === 'todos') return true;
-        return l.tipo === filtroTipo;
+        // Filtro de Tipo
+        const matchTipo = filtroTipo === 'todos' || l.tipo === filtroTipo;
+
+        // Filtro de Mês
+        let matchMes = true;
+        if (filtroMes !== 'todos' && l.data_competencia) {
+            const d = new Date(l.data_competencia);
+            const anoMesItem = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+            matchMes = anoMesItem === filtroMes;
+        }
+
+        return matchTipo && matchMes;
     });
 
     if (loading) {
@@ -347,7 +388,8 @@ export default function EdicaoLancamentosPage() {
                         Visualize, edite ou exclua os lançamentos de receitas e despesas registradas.
                     </p>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        {/* Filtro Tipo */}
                         <div className="flex items-center gap-1 bg-white border border-zinc-200 px-3 py-2 rounded-xl shadow-sm">
                             <Filter size={14} className="text-zinc-400" />
                             <select
@@ -358,6 +400,21 @@ export default function EdicaoLancamentosPage() {
                                 <option value="todos">Todos os Tipos</option>
                                 <option value="receita">Receitas</option>
                                 <option value="despesa">Despesas</option>
+                            </select>
+                        </div>
+
+                        {/* Filtro Mês */}
+                        <div className="flex items-center gap-1 bg-white border border-zinc-200 px-3 py-2 rounded-xl shadow-sm">
+                            <Calendar size={14} className="text-zinc-400" />
+                            <select
+                                value={filtroMes}
+                                onChange={(e) => setFiltroMes(e.target.value)}
+                                className="bg-transparent text-xs font-bold uppercase tracking-wider text-zinc-700 outline-none cursor-pointer max-w-[150px] md:max-w-none"
+                            >
+                                <option value="todos">Todos os Meses</option>
+                                {mesesDisponiveis.map(mes => (
+                                    <option key={mes} value={mes}>{formatarMesCapitalizado(mes)}</option>
+                                ))}
                             </select>
                         </div>
                     </div>
@@ -431,10 +488,10 @@ export default function EdicaoLancamentosPage() {
                 </div>
             </div>
 
-            {/* MODAL DE EDIÇÃO DE LANÇAMENTO */}
+            {/* MODAL DE EDIÇÃO DE LANÇAMENTO COMPLETA */}
             {itemEditando && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-6 md:p-8 relative border border-zinc-100 animate-in zoom-in-95 duration-200 my-auto">
+                    <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-6 md:p-8 relative border border-zinc-100 animate-in zoom-in-95 duration-200 my-auto max-h-[90vh] overflow-y-auto">
                         <button
                             onClick={() => setItemEditando(null)}
                             className="absolute right-6 top-6 text-zinc-400 hover:text-zinc-900 transition-colors cursor-pointer"
@@ -442,12 +499,38 @@ export default function EdicaoLancamentosPage() {
                             <X size={20} />
                         </button>
 
-                        <div className="flex items-center gap-3 border-b border-zinc-100 pb-3 mb-4">
+                        <div className="flex items-center gap-3 border-b border-zinc-100 pb-3 mb-4 mt-2">
                             <Edit3 className="text-indigo-600" size={20} />
                             <h2 className="font-bold text-base">Editar Lançamento</h2>
                         </div>
 
                         <form onSubmit={handleSalvarEdicao} className="space-y-3">
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Tipo</label>
+                                    <select
+                                        value={tipoInput}
+                                        onChange={(e) => setTipoInput(e.target.value as 'receita' | 'despesa')}
+                                        className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-medium"
+                                    >
+                                        <option value="receita">Receita</option>
+                                        <option value="despesa">Despesa</option>
+                                    </select>
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Competência</label>
+                                    <input
+                                        type="date"
+                                        required
+                                        value={dataCompetenciaInput}
+                                        onChange={(e) => setDataCompetenciaInput(e.target.value)}
+                                        className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-medium"
+                                    />
+                                </div>
+                            </div>
+
                             <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Categoria</label>
                                 <input
@@ -480,28 +563,58 @@ export default function EdicaoLancamentosPage() {
                                 />
                             </div>
 
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Realizado (R$)</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    required
-                                    value={valorRealizadoInput}
-                                    onChange={(e) => setValorRealizadoInput(e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-medium"
-                                />
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Previsto (R$)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        required
+                                        value={valorPrevistoInput}
+                                        onChange={(e) => setValorPrevistoInput(e.target.value)}
+                                        className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-medium"
+                                    />
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Realizado (R$)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        required
+                                        value={valorRealizadoInput}
+                                        onChange={(e) => setValorRealizadoInput(e.target.value)}
+                                        className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-medium"
+                                    />
+                                </div>
                             </div>
 
-                            {msgErro && <p className="text-xs font-bold text-red-600 bg-red-50 p-2.5 rounded-xl">{msgErro}</p>}
-                            {msgSucesso && <p className="text-xs font-bold text-emerald-600 bg-emerald-50 p-2.5 rounded-xl flex items-center gap-2"><CheckCircle2 size={14} /> {msgSucesso}</p>}
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Status</label>
+                                <select
+                                    value={statusInput}
+                                    onChange={(e) => setStatusInput(e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-indigo-400 text-xs font-medium cursor-pointer"
+                                >
+                                    <option value="pendente">Pendente</option>
+                                    <option value="pago">Pago</option>
+                                    <option value="recebido">Recebido</option>
+                                    <option value="atrasado">Atrasado</option>
+                                </select>
+                            </div>
 
-                            <button
-                                type="submit"
-                                disabled={actionLoading}
-                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-indigo-600/10 flex items-center justify-center gap-2 cursor-pointer"
-                            >
-                                {actionLoading ? "Salvando..." : "Salvar Alterações"}
-                            </button>
+                            {msgErro && <p className="text-xs font-bold text-red-600 bg-red-50 p-2.5 rounded-xl mt-2">{msgErro}</p>}
+                            {msgSucesso && <p className="text-xs font-bold text-emerald-600 bg-emerald-50 p-2.5 rounded-xl flex items-center gap-2 mt-2"><CheckCircle2 size={14} /> {msgSucesso}</p>}
+
+                            <div className="pt-2">
+                                <button
+                                    type="submit"
+                                    disabled={actionLoading}
+                                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-indigo-600/10 flex items-center justify-center gap-2 cursor-pointer"
+                                >
+                                    {actionLoading ? "Salvando..." : "Salvar Alterações"}
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>

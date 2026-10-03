@@ -8,8 +8,8 @@ import {
     Loader2,
     ArrowLeft,
     Instagram,
-    TrendingUp,
-    TrendingDown,
+    ArrowUpRight,
+    ArrowDownRight,
     DollarSign,
     FileSpreadsheet,
     BarChart3,
@@ -48,6 +48,9 @@ export default function PrestacaoContasPage() {
     const [actionLoading, setActionLoading] = useState(false);
     const [condominio, setCondominio] = useState<{ id: string; nome: string } | null>(null);
     const [contas, setContas] = useState<ContaCondominio[]>([]);
+
+    // Controle para exibir nomenclaturas adequadas de acordo com o tamanho da tela
+    const [isMobileView, setIsMobileView] = useState(false);
 
     // Estados para Rateio e Inadimplência via View
     const [unidadesElegiveis, setUnidadesElegiveis] = useState(0);
@@ -259,6 +262,11 @@ export default function PrestacaoContasPage() {
     useEffect(() => {
         isMountedRef.current = true;
 
+        // Listener para detectar layout mobile/desktop
+        const handleResize = () => setIsMobileView(window.innerWidth < 768);
+        handleResize();
+        window.addEventListener('resize', handleResize);
+
         const initAuth = async () => {
             try {
                 const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
@@ -299,6 +307,7 @@ export default function PrestacaoContasPage() {
         return () => {
             isMountedRef.current = false;
             subscription.unsubscribe();
+            window.removeEventListener('resize', handleResize);
         };
     }, []);
 
@@ -436,7 +445,7 @@ export default function PrestacaoContasPage() {
 
     const periodoInadimplencia = obterMesAnterior(filtroPeriodo);
 
-    const obterTextoMesAnterior = (periodoStr: string) => {
+    const obterTextoMesAnterior = (periodoStr: string, isMobile: boolean = false) => {
         if (!periodoStr || periodoStr === 'acumulado') return '';
         const parts = periodoStr.split('-');
         if (parts.length !== 2) return '';
@@ -445,10 +454,13 @@ export default function PrestacaoContasPage() {
             '05': 'Mai', '06': 'Jun', '07': 'Jul', '08': 'Ago',
             '09': 'Set', '10': 'Out', '11': 'Nov', '12': 'Dez'
         };
-        return `(${mesesAbreviados[parts[1]] || parts[1]}/${parts[0]})`;
+        const mesNome = mesesAbreviados[parts[1]] || parts[1];
+        const anoFormatado = isMobile ? parts[0].slice(-2) : parts[0];
+        return `(${mesNome}/${anoFormatado})`;
     };
 
-    const textoMesAnteriorFormatado = obterTextoMesAnterior(periodoInadimplencia);
+    const textoMesAnteriorFormatadoDesktop = obterTextoMesAnterior(periodoInadimplencia, false);
+    const textoMesAnteriorFormatadoMobile = obterTextoMesAnterior(periodoInadimplencia, true);
 
     // Encontra o registro da View correspondente ao período desejado
     const dadosInadimplencia = resumoMensal.find(r => {
@@ -461,6 +473,56 @@ export default function PrestacaoContasPage() {
     const taxaInadimplenciaBruta = hasDadosInadimplencia ? Number(dadosInadimplencia.taxa_inadimplencia_perc) : 0;
     const taxaInadimplencia = Math.round(taxaInadimplenciaBruta);
     const taxaPagamentosEmDia = hasDadosInadimplencia ? Math.max(0, 100 - taxaInadimplencia) : 0;
+
+    // Obter intervalo de meses disponíveis para o botão de Visão Acumulado Desktop
+    const obterRotuloAcumuladoDesktop = () => {
+        const mesesDisponiveis = contas
+            .map(c => c.data_competencia ? c.data_competencia.slice(0, 7) : '')
+            .filter(Boolean);
+
+        if (mesesDisponiveis.length === 0) return "Visão Acumulado (Meses totais)";
+
+        mesesDisponiveis.sort();
+        const maisAntigo = mesesDisponiveis[0];
+        const maisRecente = mesesDisponiveis[mesesDisponiveis.length - 1];
+
+        const formatarMesAno = (anoMes: string) => {
+            const [ano, mes] = anoMes.split('-');
+            const mesesAbreviados: { [key: string]: string } = {
+                '01': 'Jan', '02': 'Fev', '03': 'Mar', '04': 'Abr',
+                '05': 'Mai', '06': 'Jun', '07': 'Jul', '08': 'Ago',
+                '09': 'Set', '10': 'Out', '11': 'Nov', '12': 'Dez'
+            };
+            return `${mesesAbreviados[mes] || mes}/${ano}`;
+        };
+
+        return `De ${formatarMesAno(maisAntigo)} até ${formatarMesAno(maisRecente)}`;
+    };
+
+    // Obter intervalo de meses disponíveis para o botão de Visão Acumulado Mobile
+    const obterRotuloAcumuladoMobile = () => {
+        const mesesDisponiveis = contas
+            .map(c => c.data_competencia ? c.data_competencia.slice(0, 7) : '')
+            .filter(Boolean);
+
+        if (mesesDisponiveis.length === 0) return "Acumulado";
+
+        mesesDisponiveis.sort();
+        const maisAntigo = mesesDisponiveis[0];
+        const maisRecente = mesesDisponiveis[mesesDisponiveis.length - 1];
+
+        const formatarMesAno = (anoMes: string) => {
+            const [ano, mes] = anoMes.split('-');
+            const mesesAbreviados: { [key: string]: string } = {
+                '01': 'Jan', '02': 'Fev', '03': 'Mar', '04': 'Abr',
+                '05': 'Mai', '06': 'Jun', '07': 'Jul', '08': 'Ago',
+                '09': 'Set', '10': 'Out', '11': 'Nov', '12': 'Dez'
+            };
+            return `${mesesAbreviados[mes] || mes}/${ano.slice(-2)}`;
+        };
+
+        return `${formatarMesAno(maisAntigo)} a ${formatarMesAno(maisRecente)}`;
+    };
 
     // Listas de descrições únicas para o filtro do gráfico acumulado/mensal
     const descricoesDisponiveis = Array.from(new Set(contas.map(c => c.descricao).filter(Boolean)));
@@ -591,9 +653,9 @@ export default function PrestacaoContasPage() {
                 </div>
 
                 <div className="flex flex-col md:flex-row justify-center md:justify-end mb-5 gap-2">
-                    <div className="w-full md:w-[calc(25%-12px)] flex items-center justify-between gap-2 bg-white border border-zinc-200 px-3.5 py-1.5 rounded-full shadow-sm">
+                    <div className="w-full md:w-[calc(25%-12px)] flex items-center justify-center gap-2 bg-white border border-zinc-200 px-3.5 py-1.5 rounded-full shadow-sm">
                         <div
-                            className="flex items-center gap-2 overflow-hidden relative cursor-pointer w-full"
+                            className="flex items-center justify-center gap-2 overflow-hidden relative cursor-pointer w-full text-center"
                             onClick={() => {
                                 if (inputMesRef.current) {
                                     if (typeof inputMesRef.current.showPicker === 'function') {
@@ -605,9 +667,10 @@ export default function PrestacaoContasPage() {
                             }}
                         >
                             <Filter size={12} className="text-zinc-800 shrink-0" />
-                            <span className="text-xs font-bold text-zinc-800 uppercase whitespace-nowrap">Filtro:</span>
+                            <span className="hidden md:inline text-xs font-bold text-zinc-800 uppercase whitespace-nowrap">Filtro:</span>
+                            <span className="md:hidden text-[11px] font-bold text-zinc-800 whitespace-nowrap">FILTRO:</span>
 
-                            <span className="md:hidden text-xs font-normal text-zinc-800 whitespace-nowrap">
+                            <span className="md:hidden text-[11px] font-normal text-zinc-800 whitespace-nowrap">
                                 {formatarPeriodoExibicao(filtroPeriodo)}
                             </span>
 
@@ -637,9 +700,9 @@ export default function PrestacaoContasPage() {
                                     setFiltroPeriodo('acumulado');
                                 }
                             }}
-                            className={`md:hidden text-[9px] font-black uppercase px-2 py-0.5 rounded-full transition-all shrink-0 cursor-pointer ${filtroPeriodo === 'acumulado' ? 'bg-blue-600 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}
+                            className={`md:hidden text-[9px] font-black uppercase px-2 py-1 rounded-full transition-all shrink-0 cursor-pointer text-center ${filtroPeriodo === 'acumulado' ? 'bg-blue-600 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}
                         >
-                            Acumulado
+                            {filtroPeriodo === 'acumulado' ? obterRotuloAcumuladoMobile() : "Acumulado"}
                         </button>
                     </div>
                     <div className="hidden md:flex w-full md:w-[calc(25%-12px)] justify-end">
@@ -654,7 +717,7 @@ export default function PrestacaoContasPage() {
                             }}
                             className={`w-full text-[9px] font-black uppercase px-3 py-1.5 rounded-full transition-all cursor-pointer text-center ${filtroPeriodo === 'acumulado' ? 'bg-blue-600 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}
                         >
-                            Visão Acumulado (Meses totais)
+                            {filtroPeriodo === 'acumulado' ? obterRotuloAcumuladoDesktop() : "Visão Acumulado (Meses totais)"}
                         </button>
                     </div>
                 </div>
@@ -664,14 +727,15 @@ export default function PrestacaoContasPage() {
                         <div className="flex items-center justify-between">
                             <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Receitas</span>
                             <div className="w-7 h-7 md:w-8 md:h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
-                                <TrendingUp size={14} />
+                                <ArrowUpRight size={14} />
                             </div>
                         </div>
                         <div className="mt-3 md:mt-4 whitespace-nowrap overflow-hidden">
                             <h3 className="text-xs sm:text-base md:text-[1rem] lg:text-xl font-black text-emerald-600 truncate">
                                 R$ {totalRealizadoReceitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                 <span className="block text-[10px] md:text-xs font-semibold text-zinc-500 mt-1">
-                                    Referente à Taxa base
+                                    <span className="md:hidden">Taxa base</span>
+                                    <span className="hidden md:inline">Referente à taxa base</span>
                                 </span>
                             </h3>
                         </div>
@@ -681,14 +745,15 @@ export default function PrestacaoContasPage() {
                         <div className="flex items-center justify-between">
                             <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Despesas</span>
                             <div className="w-7 h-7 md:w-8 md:h-8 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center shrink-0">
-                                <TrendingDown size={14} />
+                                <ArrowDownRight size={14} />
                             </div>
                         </div>
                         <div className="mt-3 md:mt-4 whitespace-nowrap overflow-hidden">
                             <h3 className="text-xs sm:text-base md:text-[1rem] lg:text-xl font-black text-rose-600 truncate">
                                 R$ {totalRealizadoDespesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                 <span className="block text-[10px] md:text-xs font-semibold text-zinc-500 mt-1">
-                                    Referente à despesas gerais
+                                    <span className="md:hidden">Despesas gerais</span>
+                                    <span className="hidden md:inline">Referente à despesas gerais</span>
                                 </span>
                             </h3>
                         </div>
@@ -706,7 +771,8 @@ export default function PrestacaoContasPage() {
                                 R$ {saldoLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                 {unidadesElegiveis > 0 && (
                                     <span className="block text-[10px] md:text-xs font-semibold text-zinc-500 mt-1">
-                                        (R$ {(saldoLiquido / unidadesElegiveis).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / {unidadesElegiveis} unidades)
+                                        <span className="md:hidden">(R$ {(saldoLiquido / unidadesElegiveis).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / {unidadesElegiveis} un)</span>
+                                        <span className="hidden md:inline">(R$ {(saldoLiquido / unidadesElegiveis).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / {unidadesElegiveis} unidades)</span>
                                     </span>
                                 )}
                             </h3>
@@ -716,7 +782,10 @@ export default function PrestacaoContasPage() {
                     <div className="bg-zinc-900 text-white p-4 md:p-5 rounded-3xl shadow-md flex flex-col justify-between relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-600/20 rounded-full blur-2xl"></div>
                         <div className="flex items-center justify-between relative z-10">
-                            <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Boletos Condo (M-1)</span>
+                            <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                                <span className="md:hidden">Boletos (M-1)</span>
+                                <span className="hidden md:inline">Boletos Condo (M-1)</span>
+                            </span>
                             <div className={`w-7 h-7 md:w-8 md:h-8 rounded-xl flex items-center justify-center shrink-0 ${!hasDadosInadimplencia ? 'bg-zinc-800 text-zinc-500' : (taxaPagamentosEmDia >= 90 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400')}`}>
                                 <div className="relative flex items-center justify-center">
                                     <CreditCard size={14} />
@@ -727,23 +796,28 @@ export default function PrestacaoContasPage() {
                         <div className="mt-3 md:mt-4 whitespace-nowrap overflow-hidden relative z-10">
                             {filtroPeriodo === 'acumulado' ? (
                                 <h3 className="text-xs sm:text-base md:text-[1rem] lg:text-xl font-black text-zinc-400 truncate">
-                                    Selecione um mês
+                                    Indisponível
                                     <span className="block text-[10px] md:text-xs font-semibold text-zinc-500 mt-1">
-                                        Análise indisponível na visão acumulada.
+                                        Em construção.
                                     </span>
                                 </h3>
                             ) : !hasDadosInadimplencia ? (
                                 <h3 className="text-xs sm:text-base md:text-[1rem] lg:text-xl font-black text-zinc-400 truncate">
                                     Indisponível
                                     <span className="block text-[10px] md:text-xs font-semibold text-zinc-500 mt-1">
-                                        Sem dados para cálculo.
+                                        <span className="md:hidden">Sem dados.</span>
+                                        <span className="hidden md:inline">Sem dados para cálculo.</span>
                                     </span>
                                 </h3>
                             ) : (
                                 <h3 className="text-xs sm:text-base md:text-[1rem] lg:text-xl font-black text-white truncate">
-                                    {taxaPagamentosEmDia}% <span className="text-xs md:text-sm font-bold text-zinc-400 ml-0.5">{textoMesAnteriorFormatado}</span>
+                                    {taxaPagamentosEmDia}% <span className="text-xs md:text-sm font-bold text-zinc-400 ml-0.5">
+                                        <span className="md:hidden">{textoMesAnteriorFormatadoMobile}</span>
+                                        <span className="hidden md:inline">{textoMesAnteriorFormatadoDesktop}</span>
+                                    </span>
                                     <span className="block text-[10px] md:text-xs font-semibold text-zinc-400 mt-1">
-                                        Taxa inadimplência: {taxaInadimplencia}%
+                                        <span className="md:hidden">Inadimplência: {taxaInadimplencia}%</span>
+                                        <span className="hidden md:inline">Taxa de inadimplência: {taxaInadimplencia}%</span>
                                     </span>
                                 </h3>
                             )}
@@ -845,7 +919,7 @@ export default function PrestacaoContasPage() {
                         <div className="space-y-2">
                             <div className="flex justify-between items-center text-xs font-bold whitespace-nowrap gap-4">
                                 <span className="flex items-center gap-1.5 text-emerald-600 uppercase tracking-wider overflow-hidden text-ellipsis">
-                                    <TrendingUp size={14} className="shrink-0" />
+                                    <ArrowUpRight size={14} className="shrink-0" />
                                     <span className="truncate">Receitas</span>
                                 </span>
                                 <span className="text-emerald-600 font-black shrink-0">
@@ -863,7 +937,7 @@ export default function PrestacaoContasPage() {
                         <div className="space-y-2">
                             <div className="flex justify-between items-center text-xs font-bold whitespace-nowrap gap-4">
                                 <span className="flex items-center gap-1.5 text-rose-600 uppercase tracking-wider overflow-hidden text-ellipsis">
-                                    <TrendingDown size={14} className="shrink-0" />
+                                    <ArrowDownRight size={14} className="shrink-0" />
                                     <span className="truncate">Despesas</span>
                                 </span>
                                 <span className="text-rose-600 font-black shrink-0">
@@ -900,8 +974,11 @@ export default function PrestacaoContasPage() {
                                 value={filtroDescricaoGrafico}
                                 onChange={(e) => setFiltroDescricaoGrafico(e.target.value)}
                                 className="bg-transparent text-xs font-bold text-zinc-800 outline-none cursor-pointer"
+                                suppressHydrationWarning
                             >
-                                <option value="todas">Todas as descrições</option>
+                                <option value="todas" suppressHydrationWarning>
+                                    {isMobileView ? "Seleção" : "Todas as descrições"}
+                                </option>
                                 {descricoesDisponiveis.map((desc, idx) => (
                                     <option key={idx} value={desc}>{desc}</option>
                                 ))}

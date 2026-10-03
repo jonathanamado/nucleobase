@@ -48,7 +48,24 @@ export default function NucleobaseCondo() {
     } = useLoginProtegido();
 
     const [pilarAtivo, setPilarAtivo] = useState(0);
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
+    // Verificação síncrona otimista para eliminar qualquer delay de carregamento (Zero flash) 
+    // na navegação client-side (ao voltar para a página).
+    const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('sb-') && key.includes('-auth-token')) {
+                        return true;
+                    }
+                }
+            } catch (e) { }
+            return false;
+        }
+        return null;
+    });
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
@@ -101,6 +118,7 @@ export default function NucleobaseCondo() {
             content_name: "nucleobase_condo"
         });
 
+        // Verificação assíncrona para confirmar o token em background
         const checkUser = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             setIsLoggedIn(!!session);
@@ -255,20 +273,47 @@ export default function NucleobaseCondo() {
         return (
             <div className="flex flex-col justify-between items-stretch w-full h-full gap-6">
                 {/* CARD 1: ÁREA DO CONDÔMINO / LOGIN */}
-                {isLoggedIn === null ? (
-                    <div className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 flex items-center justify-center w-full min-h-[250px]">
-                        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <div className="bg-gray-900 p-6 md:p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden w-full flex flex-col justify-center min-h-[250px]">
+                    <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
+                        <Zap size={180} strokeWidth={1} className="text-blue-500" />
                     </div>
-                ) : !isLoggedIn ? (
-                    <div className="bg-gray-900 p-6 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden w-full flex flex-col justify-center min-h-[250px]">
-                        <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
-                            <Zap size={180} strokeWidth={1} className="text-blue-500" />
+
+                    <div className="relative z-10 w-full">
+                        {/* Cabeçalho Fixo - Renderizado Imediatamente */}
+                        <div className="flex items-center gap-3 md:gap-4 mb-4">
+                            <div className="w-12 h-12 md:w-14 md:h-14 shrink-0 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover:bg-white group-hover:text-blue-600 transition-all duration-500">
+                                <Users size={20} className="md:w-6 md:h-6" />
+                            </div>
+                            <div>
+                                <p className="text-blue-400 text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em]">
+                                    {isLoggedIn ? "O Futuro do seu Prédio" : "Acesso Restrito"}
+                                </p>
+                                <h4 className="font-bold text-white text-lg md:text-xl leading-tight">
+                                    Área do condômino
+                                </h4>
+                            </div>
                         </div>
-                        <div className="relative z-10 w-full">
-                            <h4 className="font-bold text-white text-base mb-3">
-                                Realizar login<span className="text-blue-500">.</span>
-                            </h4>
-                            <form onSubmit={handleLogin} className="flex flex-col gap-2">
+
+                        {/* Corpo Dinâmico */}
+                        {isLoggedIn === null ? (
+                            <div className="h-[120px] flex items-center justify-center">
+                                <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                        ) : isLoggedIn ? (
+                            <div className="mt-4 pt-4 border-t border-white/5">
+                                <Link
+                                    href="/condo/dashboard"
+                                    onClick={() => trackClick("Acessar Painel Morador", "/condo/dashboard")}
+                                    className="w-full flex items-center justify-between bg-blue-600 hover:bg-blue-500 text-white py-3.5 px-5 rounded-xl transition-all shadow-lg shadow-blue-600/20 group/btn"
+                                >
+                                    <span className="text-[11px] font-black uppercase tracking-widest flex items-center gap-2">
+                                        <UserCircle size={16} /> Acessar Painel
+                                    </span>
+                                    <ArrowUpRight size={16} className="text-white/50 group-hover/btn:text-white group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-all" />
+                                </Link>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleLogin} className="flex flex-col gap-2 mt-2">
                                 <div className="space-y-2">
                                     <div className="relative group">
                                         <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" size={14} />
@@ -322,33 +367,9 @@ export default function NucleobaseCondo() {
                                     {authLoading ? "Verificando..." : tempoBloqueio > 0 ? `Aguarde (${tempoBloqueio}s)` : "Acessar Plataforma"}
                                 </button>
                             </form>
-                        </div>
+                        )}
                     </div>
-                ) : (
-                    <Link
-                        href="/condo/dashboard"
-                        onClick={() => trackClick("O Futuro do seu Prédio", "/condo/dashboard")}
-                        className="bg-gray-900 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 group relative overflow-hidden transition-all hover:scale-[1.01] flex flex-col justify-center cursor-pointer block w-full min-h-[250px]"
-                    >
-                        <div className="absolute -top-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
-                            <Zap size={180} strokeWidth={1} className="text-blue-500" />
-                        </div>
-                        <div className="relative z-10 w-full">
-                            <div className="flex items-center gap-4 mb-2">
-                                <div className="w-14 h-14 shrink-0 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover:bg-white group-hover:text-blue-600 transition-all duration-500">
-                                    <Users size={24} />
-                                </div>
-                                <div>
-                                    <p className="text-blue-400 text-[9px] font-black uppercase tracking-[0.2em]">O Futuro do seu Prédio</p>
-                                    <h4 className="font-bold text-white text-xl leading-tight">
-                                        Área do condômino
-                                    </h4>
-                                </div>
-                            </div>
-                            {BotaoAcessoDinamico({ isInsideLink: true })}
-                        </div>
-                    </Link>
-                )}
+                </div>
 
                 {/* CARD 2: CONTABILIDADE */}
                 <Link
@@ -432,23 +453,49 @@ export default function NucleobaseCondo() {
             </p>
 
             <div className="grid grid-cols-2 gap-3">
-                {/* CARD 1 MOBILE: ÁREA DO CONDÔMINO / LOGIN MOBILE */}
-                {isLoggedIn === null ? (
-                    <div className="col-span-2 bg-gray-900 p-6 rounded-[2rem] flex items-center justify-center min-h-[220px]">
-                        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                ) : !isLoggedIn ? (
-                    <div className="col-span-2 bg-gray-900 p-6 rounded-[2rem] relative overflow-hidden block min-h-[220px]">
-                        <div className="flex items-center justify-between relative z-10 mb-4">
-                            <div className="flex items-center gap-3">
-                                <Users size={20} className="text-blue-500" />
-                                <div>
-                                    <p className="text-blue-400 text-[8px] font-black uppercase tracking-widest">Acesso Restrito</p>
-                                    <h4 className="font-bold text-white text-sm">Realizar login</h4>
-                                </div>
+                {/* CARD 1 MOBILE: ÁREA DO CONDÔMINO / LOGIN UNIFICADO */}
+                <div className="col-span-2 bg-gray-900 p-6 rounded-[2rem] relative overflow-hidden block min-h-[220px]">
+                    <div className="flex items-center justify-between relative z-10 mb-4">
+                        <div className="flex items-center gap-3">
+                            <Users size={20} className="text-blue-500" />
+                            <div>
+                                <p className="text-blue-400 text-[8px] font-black uppercase tracking-widest">
+                                    {isLoggedIn ? "Modernização" : "Acesso Restrito"}
+                                </p>
+                                <h4 className="font-bold text-white text-sm">Área do condômino</h4>
                             </div>
                         </div>
+                        {isLoggedIn && (
+                            <div className="flex gap-2" onClick={(e) => e.preventDefault()}>
+                                <button onClick={anteriorPilar} className="p-2 bg-white/5 rounded-full text-white active:bg-white/20 cursor-pointer"><ChevronLeft size={16} /></button>
+                                <button onClick={proximoPilar} className="p-2 bg-white/5 rounded-full text-white active:bg-white/20 cursor-pointer"><ChevronRight size={16} /></button>
+                            </div>
+                        )}
+                    </div>
 
+                    {isLoggedIn === null ? (
+                        <div className="h-[120px] flex items-center justify-center relative z-10">
+                            <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                    ) : isLoggedIn ? (
+                        <div className="relative z-10 flex flex-col gap-4">
+                            <div className="py-2 border-y border-white/5 mb-2">
+                                <p className="text-blue-100 text-[11px] font-medium italic opacity-80 leading-relaxed">
+                                    "{pilares[pilarAtivo].fullDesc}"
+                                </p>
+                            </div>
+                            <Link
+                                href="/condo/dashboard"
+                                onClick={() => trackClick("Área do Condômino (Mobile)", "/condo/dashboard")}
+                                className="w-full flex items-center justify-between bg-blue-600 hover:bg-blue-500 text-white py-3.5 px-4 rounded-xl transition-all shadow-lg shadow-blue-600/20 group/btn"
+                            >
+                                <span className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                    <UserCircle size={14} /> Acessar Painel
+                                </span>
+                                <ArrowUpRight size={14} className="text-white/50 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-all" />
+                            </Link>
+                        </div>
+                    ) : (
                         <form onSubmit={handleLogin} className="flex flex-col gap-2 relative z-10">
                             <div className="space-y-2">
                                 <div className="relative group">
@@ -503,32 +550,8 @@ export default function NucleobaseCondo() {
                                 {authLoading ? "Verificando..." : tempoBloqueio > 0 ? `Aguarde (${tempoBloqueio}s)` : "Acessar Plataforma"}
                             </button>
                         </form>
-                    </div>
-                ) : (
-                    <Link href="/condo/dashboard" onClick={() => trackClick("Área do Condômino (Mobile)", "/condo/dashboard")} className="col-span-2 bg-gray-900 p-6 rounded-[2rem] relative overflow-hidden block min-h-[220px]">
-                        <div className="flex items-center justify-between relative z-10 mb-4">
-                            <div className="flex items-center gap-3">
-                                <Users size={20} className="text-blue-500" />
-                                <div>
-                                    <p className="text-blue-400 text-[8px] font-black uppercase tracking-widest">Modernização</p>
-                                    <h4 className="font-bold text-white text-sm">Praticidade e Segurança</h4>
-                                </div>
-                            </div>
-                            <div className="flex gap-2" onClick={(e) => e.preventDefault()}>
-                                <button onClick={anteriorPilar} className="p-2 bg-white/5 rounded-full text-white active:bg-white/20 cursor-pointer"><ChevronLeft size={16} /></button>
-                                <button onClick={proximoPilar} className="p-2 bg-white/5 rounded-full text-white active:bg-white/20 cursor-pointer"><ChevronRight size={16} /></button>
-                            </div>
-                        </div>
-
-                        <div className="relative z-10 py-2 border-y border-white/5 mb-2">
-                            <p className="text-blue-100 text-[11px] font-medium italic opacity-80 leading-relaxed">
-                                "{pilares[pilarAtivo].fullDesc}"
-                            </p>
-                        </div>
-
-                        {BotaoAcessoDinamico({ isInsideLink: true })}
-                    </Link>
-                )}
+                    )}
+                </div>
 
                 {/* CARD 2 MOBILE: CONTABILIDADE */}
                 <Link href="/condo/contabilidade" onClick={() => trackClick("Contabilidade (Mobile)", "/condo/contabilidade")} className="col-span-2 bg-white border border-gray-300 p-5 rounded-[2rem] shadow-md relative overflow-hidden block">
