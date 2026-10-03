@@ -15,6 +15,7 @@ import {
     BarChart3,
     Filter,
     ShieldAlert,
+    ShieldCheck,
     ArrowUpDown,
     Flame,
     Utensils,
@@ -22,7 +23,9 @@ import {
     FileText,
     ChevronLeft,
     ChevronRight,
-    ArrowRight
+    ArrowRight,
+    CreditCard,
+    AlertTriangle
 } from "lucide-react";
 
 interface ContaCondominio {
@@ -46,13 +49,17 @@ export default function PrestacaoContasPage() {
     const [condominio, setCondominio] = useState<{ id: string; nome: string } | null>(null);
     const [contas, setContas] = useState<ContaCondominio[]>([]);
 
+    // Estados para Rateio e Inadimplência via View
+    const [unidadesElegiveis, setUnidadesElegiveis] = useState(0);
+    const [resumoMensal, setResumoMensal] = useState<any[]>([]);
+
     // Estados de Filtro de Período
     const mesVigentePadrao = new Date().toISOString().slice(0, 7);
     const [filtroPeriodo, setFiltroPeriodo] = useState<string>(mesVigentePadrao);
     const [ultimoMesSelecionado, setUltimoMesSelecionado] = useState<string>(mesVigentePadrao);
 
     // Estados de Ordenação da Tabela Demonstrativo
-    const [orderBy, setOrderBy] = useState<'tipo' | 'descricao'>('tipo');
+    const [orderBy, setOrderBy] = useState<'tipo' | 'descricao' | 'detalhamento' | 'valor_realizado' | 'status'>('tipo');
     const [orderDirection, setOrderDirection] = useState<'asc' | 'desc'>('asc');
 
     // Estados do Gráfico Acumulado / Mensal
@@ -128,6 +135,32 @@ export default function PrestacaoContasPage() {
 
         if (!error && data && isMountedRef.current) {
             setContas(data as ContaCondominio[]);
+        }
+
+        // Buscar dados extras de elegibilidade de unidades
+        const { data: membros } = await supabase
+            .from('condominio_membros')
+            .select('unidade, role')
+            .eq('condominio_id', condoId);
+
+        if (membros && isMountedRef.current) {
+            const unidadesValidas = membros
+                .filter(m => {
+                    const unidadeLower = (m.unidade || "").toLowerCase().trim();
+                    return unidadeLower !== "" && unidadeLower !== "adm";
+                })
+                .map(m => m.unidade.trim());
+            setUnidadesElegiveis(new Set(unidadesValidas).size);
+        }
+
+        // Busca dados de inadimplência direto da View
+        const { data: resumoData } = await supabase
+            .from('vw_condominio_resumo_mensal')
+            .select('*')
+            .eq('condominio_id', condoId);
+
+        if (isMountedRef.current && resumoData) {
+            setResumoMensal(resumoData);
         }
     };
 
@@ -257,6 +290,8 @@ export default function PrestacaoContasPage() {
                 setSession(null);
                 setCondominio(null);
                 setContas([]);
+                setResumoMensal([]);
+                setUnidadesElegiveis(0);
                 setLoading(false);
             }
         });
@@ -293,6 +328,8 @@ export default function PrestacaoContasPage() {
         setSession(null);
         setCondominio(null);
         setContas([]);
+        setResumoMensal([]);
+        setUnidadesElegiveis(0);
         setLoading(false);
         window.dispatchEvent(new Event("storage"));
     };
@@ -349,17 +386,23 @@ export default function PrestacaoContasPage() {
 
     // Ordenação da tabela Demonstrativo
     const contasOrdenadas = [...contasFiltradas].sort((a, b) => {
-        let valA = a[orderBy] || '';
-        let valB = b[orderBy] || '';
-        if (typeof valA === 'string') valA = valA.toLowerCase();
-        if (typeof valB === 'string') valB = valB.toLowerCase();
+        let valA: any = a[orderBy] || '';
+        let valB: any = b[orderBy] || '';
+
+        if (orderBy === 'valor_realizado') {
+            valA = Number(valA) || 0;
+            valB = Number(valB) || 0;
+        } else {
+            valA = typeof valA === 'string' ? valA.toLowerCase() : String(valA || '').toLowerCase();
+            valB = typeof valB === 'string' ? valB.toLowerCase() : String(valB || '').toLowerCase();
+        }
 
         if (valA < valB) return orderDirection === 'asc' ? -1 : 1;
         if (valA > valB) return orderDirection === 'asc' ? 1 : -1;
         return 0;
     });
 
-    const toggleSort = (coluna: 'tipo' | 'descricao') => {
+    const toggleSort = (coluna: 'tipo' | 'descricao' | 'detalhamento' | 'valor_realizado' | 'status') => {
         if (orderBy === coluna) {
             setOrderDirection(orderDirection === 'asc' ? 'desc' : 'asc');
         } else {
@@ -375,6 +418,49 @@ export default function PrestacaoContasPage() {
     const maiorValorGrafico = Math.max(totalRealizadoReceitas, totalRealizadoDespesas, 1);
     const larguraBarraReceita = Math.round((totalRealizadoReceitas / maiorValorGrafico) * 100);
     const larguraBarraDespesa = Math.round((totalRealizadoDespesas / maiorValorGrafico) * 100);
+
+    // Cálculos de Inadimplência extraídos da View (referente ao mês anterior)
+    const obterMesAnterior = (periodoStr: string) => {
+        if (periodoStr === 'acumulado') return periodoStr;
+        const parts = periodoStr.split('-');
+        if (parts.length !== 2) return periodoStr;
+        let year = parseInt(parts[0], 10);
+        let month = parseInt(parts[1], 10);
+        month -= 1;
+        if (month === 0) {
+            month = 12;
+            year -= 1;
+        }
+        return `${year.toString().padStart(4, '0')}-${month.toString().padStart(2, '0')}`;
+    };
+
+    const periodoInadimplencia = obterMesAnterior(filtroPeriodo);
+
+    const obterTextoMesAnterior = (periodoStr: string) => {
+        if (!periodoStr || periodoStr === 'acumulado') return '';
+        const parts = periodoStr.split('-');
+        if (parts.length !== 2) return '';
+        const mesesAbreviados: { [key: string]: string } = {
+            '01': 'Jan', '02': 'Fev', '03': 'Mar', '04': 'Abr',
+            '05': 'Mai', '06': 'Jun', '07': 'Jul', '08': 'Ago',
+            '09': 'Set', '10': 'Out', '11': 'Nov', '12': 'Dez'
+        };
+        return `(${mesesAbreviados[parts[1]] || parts[1]}/${parts[0]})`;
+    };
+
+    const textoMesAnteriorFormatado = obterTextoMesAnterior(periodoInadimplencia);
+
+    // Encontra o registro da View correspondente ao período desejado
+    const dadosInadimplencia = resumoMensal.find(r => {
+        if (periodoInadimplencia === 'acumulado') return false;
+        const compMes = r.mes_competencia ? r.mes_competencia.slice(0, 7) : '';
+        return compMes === periodoInadimplencia;
+    });
+
+    const hasDadosInadimplencia = !!dadosInadimplencia && Number(dadosInadimplencia.receita_esperada) > 0;
+    const taxaInadimplenciaBruta = hasDadosInadimplencia ? Number(dadosInadimplencia.taxa_inadimplencia_perc) : 0;
+    const taxaInadimplencia = Math.round(taxaInadimplenciaBruta);
+    const taxaPagamentosEmDia = hasDadosInadimplencia ? Math.max(0, 100 - taxaInadimplencia) : 0;
 
     // Listas de descrições únicas para o filtro do gráfico acumulado/mensal
     const descricoesDisponiveis = Array.from(new Set(contas.map(c => c.descricao).filter(Boolean)));
@@ -582,7 +668,12 @@ export default function PrestacaoContasPage() {
                             </div>
                         </div>
                         <div className="mt-3 md:mt-4 whitespace-nowrap overflow-hidden">
-                            <h3 className="text-xs sm:text-base md:text-xl font-black text-emerald-600 truncate">R$ {totalRealizadoReceitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+                            <h3 className="text-xs sm:text-base md:text-[1rem] lg:text-xl font-black text-emerald-600 truncate">
+                                R$ {totalRealizadoReceitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                <span className="block text-[10px] md:text-xs font-semibold text-zinc-500 mt-1">
+                                    Referente à Taxa base
+                                </span>
+                            </h3>
                         </div>
                     </div>
 
@@ -594,7 +685,12 @@ export default function PrestacaoContasPage() {
                             </div>
                         </div>
                         <div className="mt-3 md:mt-4 whitespace-nowrap overflow-hidden">
-                            <h3 className="text-xs sm:text-base md:text-xl font-black text-rose-600 truncate">R$ {totalRealizadoDespesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+                            <h3 className="text-xs sm:text-base md:text-[1rem] lg:text-xl font-black text-rose-600 truncate">
+                                R$ {totalRealizadoDespesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                <span className="block text-[10px] md:text-xs font-semibold text-zinc-500 mt-1">
+                                    Referente à despesas gerais
+                                </span>
+                            </h3>
                         </div>
                     </div>
 
@@ -606,20 +702,51 @@ export default function PrestacaoContasPage() {
                             </div>
                         </div>
                         <div className="mt-3 md:mt-4 whitespace-nowrap overflow-hidden">
-                            <h3 className={`text-xs sm:text-base md:text-xl font-black truncate ${saldoLiquido >= 0 ? 'text-zinc-900' : 'text-amber-600'}`}>
+                            <h3 className={`text-xs sm:text-base md:text-[1rem] lg:text-xl font-black truncate ${saldoLiquido >= 0 ? 'text-zinc-900' : 'text-amber-600'}`}>
                                 R$ {saldoLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                {unidadesElegiveis > 0 && (
+                                    <span className="block text-[10px] md:text-xs font-semibold text-zinc-500 mt-1">
+                                        (R$ {(saldoLiquido / unidadesElegiveis).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / {unidadesElegiveis} unidades)
+                                    </span>
+                                )}
                             </h3>
                         </div>
                     </div>
 
                     <div className="bg-zinc-900 text-white p-4 md:p-5 rounded-3xl shadow-md flex flex-col justify-between relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-blue-600/20 rounded-full blur-2xl"></div>
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-600/20 rounded-full blur-2xl"></div>
                         <div className="flex items-center justify-between relative z-10">
-                            <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Registros financeiros</span>
-                            <BarChart3 size={16} className="text-blue-400 shrink-0" />
+                            <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Boletos Condo (M-1)</span>
+                            <div className={`w-7 h-7 md:w-8 md:h-8 rounded-xl flex items-center justify-center shrink-0 ${!hasDadosInadimplencia ? 'bg-zinc-800 text-zinc-500' : (taxaPagamentosEmDia >= 90 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400')}`}>
+                                <div className="relative flex items-center justify-center">
+                                    <CreditCard size={14} />
+                                    <AlertTriangle size={8} className="absolute -bottom-1 -right-1 bg-zinc-900 rounded-full" />
+                                </div>
+                            </div>
                         </div>
-                        <div className="mt-3 md:mt-4 relative z-10 whitespace-nowrap overflow-hidden">
-                            <h3 className="text-xs md:text-sm font-bold text-blue-400 truncate">{contasFiltradas.length} Lançamento(s)</h3>
+                        <div className="mt-3 md:mt-4 whitespace-nowrap overflow-hidden relative z-10">
+                            {filtroPeriodo === 'acumulado' ? (
+                                <h3 className="text-xs sm:text-base md:text-[1rem] lg:text-xl font-black text-zinc-400 truncate">
+                                    Selecione um mês
+                                    <span className="block text-[10px] md:text-xs font-semibold text-zinc-500 mt-1">
+                                        Análise indisponível na visão acumulada.
+                                    </span>
+                                </h3>
+                            ) : !hasDadosInadimplencia ? (
+                                <h3 className="text-xs sm:text-base md:text-[1rem] lg:text-xl font-black text-zinc-400 truncate">
+                                    Indisponível
+                                    <span className="block text-[10px] md:text-xs font-semibold text-zinc-500 mt-1">
+                                        Sem dados para cálculo.
+                                    </span>
+                                </h3>
+                            ) : (
+                                <h3 className="text-xs sm:text-base md:text-[1rem] lg:text-xl font-black text-white truncate">
+                                    {taxaPagamentosEmDia}% <span className="text-xs md:text-sm font-bold text-zinc-400 ml-0.5">{textoMesAnteriorFormatado}</span>
+                                    <span className="block text-[10px] md:text-xs font-semibold text-zinc-400 mt-1">
+                                        Taxa inadimplência: {taxaInadimplencia}%
+                                    </span>
+                                </h3>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -656,9 +783,21 @@ export default function PrestacaoContasPage() {
                                                 Descrição <ArrowUpDown size={12} />
                                             </button>
                                         </th>
-                                        <th className="pb-3 px-6 text-[10px] font-black text-zinc-400 tracking-wider align-top text-left capitalize">Detalhamento</th>
-                                        <th className="pb-3 px-6 text-[10px] font-black text-zinc-400 tracking-wider align-top text-left capitalize">Realizado</th>
-                                        <th className="pb-3 pl-6 text-[10px] font-black text-zinc-400 tracking-wider align-top text-left capitalize">Status</th>
+                                        <th className="pb-3 px-6 text-[10px] font-black text-zinc-400 tracking-wider align-top text-left capitalize">
+                                            <button onClick={() => toggleSort('detalhamento')} className="flex items-center gap-1 hover:text-zinc-700 cursor-pointer">
+                                                Detalhamento <ArrowUpDown size={12} />
+                                            </button>
+                                        </th>
+                                        <th className="pb-3 px-6 text-[10px] font-black text-zinc-400 tracking-wider align-top text-left capitalize">
+                                            <button onClick={() => toggleSort('valor_realizado')} className="flex items-center gap-1 hover:text-zinc-700 cursor-pointer">
+                                                Realizado <ArrowUpDown size={12} />
+                                            </button>
+                                        </th>
+                                        <th className="pb-3 pl-6 text-[10px] font-black text-zinc-400 tracking-wider align-top text-left capitalize">
+                                            <button onClick={() => toggleSort('status')} className="flex items-center gap-1 hover:text-zinc-700 cursor-pointer">
+                                                Status <ArrowUpDown size={12} />
+                                            </button>
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-zinc-50 text-sm">
