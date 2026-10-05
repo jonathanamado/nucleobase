@@ -30,6 +30,7 @@ import {
 interface Morador {
     id: string;
     unidade: string;
+    placa?: string;
     tipo_morador?: string;
     role: string;
     user_id: string;
@@ -84,6 +85,7 @@ export default function CadastroMoradorPage() {
     const [novoMoradorNome, setNovoMoradorNome] = useState("");
     const [novoMoradorEmail, setNovoMoradorEmail] = useState("");
     const [novoMoradorUnidade, setNovoMoradorUnidade] = useState("");
+    const [novoMoradorPlaca, setNovoMoradorPlaca] = useState("");
     const [dataInicio, setDataInicio] = useState("");
     const [dataFim, setDataFim] = useState("");
     const [tipoMorador, setTipoMorador] = useState<string>("proprietario");
@@ -183,6 +185,7 @@ export default function CadastroMoradorPage() {
             .select(`
                 id,
                 unidade,
+                placa,
                 tipo_morador,
                 role,
                 user_id,
@@ -472,6 +475,7 @@ export default function CadastroMoradorPage() {
             unidadeTratada = "Adm";
         }
         setNovoMoradorUnidade(unidadeTratada);
+        setNovoMoradorPlaca(morador.placa || "");
         setDataInicio(morador.data_inicio || "");
         setDataFim(morador.data_fim || "");
         setTipoMorador(morador.tipo_morador || "proprietario");
@@ -486,6 +490,7 @@ export default function CadastroMoradorPage() {
         setNovoMoradorNome("");
         setNovoMoradorEmail("");
         setNovoMoradorUnidade("");
+        setNovoMoradorPlaca("");
         setDataInicio("");
         setDataFim("");
         setTipoMorador("proprietario");
@@ -536,6 +541,7 @@ export default function CadastroMoradorPage() {
                     .from("condominio_membros")
                     .update({
                         unidade: unidadeFinal,
+                        placa: novoMoradorPlaca.trim() || null,
                         tipo_morador: tipoMorador,
                         role: roleMorador,
                         acesso_app: autorizadoApp,
@@ -635,6 +641,7 @@ export default function CadastroMoradorPage() {
                             user_id: targetUserId,
                             role: roleMorador,
                             unidade: unidadeFinal,
+                            placa: novoMoradorPlaca.trim() || null,
                             tipo_morador: tipoMorador,
                             acesso_app: autorizadoApp,
                             data_inicio: dataInicio || null,
@@ -656,6 +663,7 @@ export default function CadastroMoradorPage() {
                 setNovoMoradorNome("");
                 setNovoMoradorEmail("");
                 setNovoMoradorUnidade("");
+                setNovoMoradorPlaca("");
                 setDataInicio("");
                 setDataFim("");
                 setTipoMorador("proprietario");
@@ -1012,14 +1020,13 @@ export default function CadastroMoradorPage() {
                         </div>
 
                         <div className="hidden md:flex items-center gap-3">
-                            <button
-                                type="button"
-                                onClick={() => alert("Em desenvolvimento")}
+                            <Link
+                                href="/condo/adm/cadastro_morador/acesso_visitante"
                                 className="group relative flex items-center justify-center gap-1.5 h-8 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-blue-600/25 active:scale-95 overflow-hidden shrink-0 cursor-pointer"
                             >
                                 <UserPlus size={12} />
                                 <span>+ Autorizar visitante</span>
-                            </button>
+                            </Link>
                             <Link
                                 href="/condo/adm"
                                 className="group relative flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 overflow-hidden shrink-0 cursor-pointer"
@@ -1088,16 +1095,28 @@ export default function CadastroMoradorPage() {
                                     />
                                 </div>
 
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Unidade</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Ex: Apto 102"
-                                        required
-                                        value={novoMoradorUnidade}
-                                        onChange={(e) => setNovoMoradorUnidade(e.target.value)}
-                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium"
-                                    />
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Unidade</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Ex: Apto 102"
+                                            required
+                                            value={novoMoradorUnidade}
+                                            onChange={(e) => setNovoMoradorUnidade(e.target.value)}
+                                            className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Placa(s)</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Ex: ABC-1234, XYZ..."
+                                            value={novoMoradorPlaca}
+                                            onChange={(e) => setNovoMoradorPlaca(e.target.value)}
+                                            className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-2">

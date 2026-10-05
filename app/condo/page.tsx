@@ -50,21 +50,26 @@ export default function NucleobaseCondo() {
     const [pilarAtivo, setPilarAtivo] = useState(0);
 
     // Verificação síncrona otimista para eliminar qualquer delay de carregamento (Zero flash) 
-    // na navegação client-side (ao voltar para a página).
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(() => {
+    // na navegação client-side (ao voltar para a página). Inicializa como null no SSR para evitar Hydration mismatch.
+    const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
+    useEffect(() => {
         if (typeof window !== 'undefined') {
             try {
+                let logged = false;
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
                     if (key && key.startsWith('sb-') && key.includes('-auth-token')) {
-                        return true;
+                        logged = true;
+                        break;
                     }
                 }
-            } catch (e) { }
-            return false;
+                setIsLoggedIn(logged);
+            } catch (e) {
+                setIsLoggedIn(false);
+            }
         }
-        return null;
-    });
+    }, []);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -286,7 +291,7 @@ export default function NucleobaseCondo() {
                             </div>
                             <div>
                                 <p className="text-blue-400 text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em]">
-                                    {isLoggedIn ? "O Futuro do seu Prédio" : "Acesso Restrito"}
+                                    {isLoggedIn === null ? "\u00A0" : isLoggedIn ? "O Futuro do seu Prédio" : "Acesso Restrito"}
                                 </p>
                                 <h4 className="font-bold text-white text-lg md:text-xl leading-tight">
                                     Área do condômino
@@ -460,7 +465,7 @@ export default function NucleobaseCondo() {
                             <Users size={20} className="text-blue-500" />
                             <div>
                                 <p className="text-blue-400 text-[8px] font-black uppercase tracking-widest">
-                                    {isLoggedIn ? "Modernização" : "Acesso Restrito"}
+                                    {isLoggedIn === null ? "\u00A0" : isLoggedIn ? "Modernização" : "Acesso Restrito"}
                                 </p>
                                 <h4 className="font-bold text-white text-sm">Área do condômino</h4>
                             </div>

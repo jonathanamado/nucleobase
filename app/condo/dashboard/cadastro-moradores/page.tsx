@@ -8,11 +8,11 @@ import {
     Search,
     Loader2,
     ArrowLeft,
-    ShieldCheck,
-    Building2,
-    UserCircle,
     Instagram,
-    ShieldAlert
+    MessageCircle,
+    UserPlus,
+    X,
+    UserCircle
 } from "lucide-react";
 
 interface Morador {
@@ -29,11 +29,20 @@ interface Morador {
 export default function ListaMoradoresCondomino() {
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [condominioNome, setCondominioNome] = useState("Meu Condomínio");
+    const [condominioNome, setCondominioNome] = useState("");
 
     // Lista de moradores vinda do banco e controle de busca
     const [moradores, setMoradores] = useState<Morador[]>([]);
     const [filtroBusca, setFiltroBusca] = useState("");
+
+    // Estados do Modal de Solicitação
+    const [showModal, setShowModal] = useState(false);
+    const [solNome, setSolNome] = useState("");
+    const [solUnidade, setSolUnidade] = useState("");
+    const [solPlaca, setSolPlaca] = useState("");
+    const [solDataInicio, setSolDataInicio] = useState("");
+    const [solDataFim, setSolDataFim] = useState("");
+    const [solCategoria, setSolCategoria] = useState("Visitante / Parente");
 
     const isMountedRef = useRef(true);
 
@@ -61,20 +70,17 @@ export default function ListaMoradoresCondomino() {
             }
             const userId = currentSession.user.id;
 
-            let membroData = null;
+            let membroDataList = null;
             let membroError = null;
 
             // Retentativa para evitar falha intermitente de vínculo ativo
             for (let i = 0; i <= retries; i++) {
                 const res = await supabase
                     .from("condominio_membros")
-                    .select("condominio_id, role, condominio:condominios(nome)")
-                    .eq("user_id", userId)
-                    .order("role", { ascending: false })
-                    .order("criado_em", { ascending: false })
-                    .limit(1);
+                    .select("condominio_id, role, unidade, acesso_app, condominio_nome")
+                    .eq("user_id", userId);
 
-                membroData = res.data;
+                membroDataList = res.data;
                 membroError = res.error;
 
                 if (membroError) {
@@ -84,7 +90,7 @@ export default function ListaMoradoresCondomino() {
                     }
                 }
 
-                if (membroData && membroData.length > 0) {
+                if (membroDataList && membroDataList.length > 0) {
                     break;
                 }
 
@@ -93,47 +99,54 @@ export default function ListaMoradoresCondomino() {
                 }
             }
 
-            if (membroData && membroData.length > 0) {
-                const registro = membroData[0];
-
-                const condoRelacionamento = registro.condominio;
-                const nomeCondo = Array.isArray(condoRelacionamento)
-                    ? condoRelacionamento[0]?.nome
-                    : (condoRelacionamento as any)?.nome;
-
-                if (isMountedRef.current) {
-                    setCondominioNome(nomeCondo || "Meu Condomínio");
-                }
-
-                // 2. Carrega membros do mesmo condomínio
-                const { data: lista, error: listaError } = await supabase
-                    .from("condominio_membros")
-                    .select(`
-                        id,
-                        unidade,
-                        role,
-                        profile:profiles(nome_completo, email_contato, slug)
-                    `)
-                    .eq("condominio_id", registro.condominio_id);
-
-                if (listaError) {
-                    const errorMsg = listaError.message || JSON.stringify(listaError);
-                    if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
-                        console.error("Erro na consulta Supabase (lista moradores):", errorMsg);
-                    }
-                }
-
-                if (isMountedRef.current) {
-                    if (lista) {
-                        setMoradores(lista as unknown as Morador[]);
-                    } else {
-                        setMoradores([]);
-                    }
-                }
-            } else {
+            if (!membroDataList || membroDataList.length === 0) {
                 if (isMountedRef.current) {
                     setMoradores([]);
+                    setLoading(false);
                 }
+                return;
+            }
+
+            const vinculo = membroDataList[0];
+            let nomeCondominioOficial = vinculo.condominio_nome || "Condomínio";
+
+            if (vinculo.condominio_id) {
+                const { data: condoData } = await supabase
+                    .from("condominios")
+                    .select("nome")
+                    .eq("id", vinculo.condominio_id)
+                    .maybeSingle();
+
+                if (condoData && condoData.nome) {
+                    nomeCondominioOficial = condoData.nome;
+                }
+            }
+
+            if (isMountedRef.current) {
+                setCondominioNome(nomeCondominioOficial);
+                setSolUnidade(vinculo.unidade || "");
+            }
+
+            // Carrega membros do mesmo condomínio utilizando colunas válidas da tabela
+            const { data: lista, error: listaError } = await supabase
+                .from("condominio_membros")
+                .select(`
+                    id,
+                    unidade,
+                    role,
+                    profile:profiles(nome_completo, email_contato, slug)
+                `)
+                .eq("condominio_id", vinculo.condominio_id);
+
+            if (listaError) {
+                const errorMsg = listaError.message || JSON.stringify(listaError);
+                if (!errorMsg.includes("AbortError") && !errorMsg.includes("Lock broken")) {
+                    console.error("Erro na consulta Supabase (lista moradores):", errorMsg);
+                }
+            }
+
+            if (isMountedRef.current) {
+                setMoradores(lista ? (lista as unknown as Morador[]) : []);
             }
         } catch (e: any) {
             const errString = e?.message || JSON.stringify(e);
@@ -223,6 +236,24 @@ export default function ListaMoradoresCondomino() {
         window.dispatchEvent(new Event("storage"));
     };
 
+    // Formatação de data para os envios de solicitação (YYYY-MM-DD para DD/MM/YYYY)
+    const formatarDataLocal = (dataStr: string) => {
+        if (!dataStr) return "";
+        const [ano, mes, dia] = dataStr.split("-");
+        return `${dia}/${mes}/${ano}`;
+    };
+
+    // Ações do Modal de Solicitação
+    const handleWhatsApp = () => {
+        if (!solNome || !solUnidade || !solDataInicio || !solDataFim) {
+            alert("Preencha os campos obrigatórios (*) para continuar.");
+            return;
+        }
+        const texto = `Olá, Sr(a) Síndico(a)! Gostaria de solicitar a liberação de acesso na portaria do condomínio ${condominioNome || ""}, conforme dados abaixo:%0A%0A*Nome:* ${solNome}%0A*Unidade Destino:* ${solUnidade}%0A*Veículo (Placa):* ${solPlaca || "Não possui"}%0A*Período:* ${formatarDataLocal(solDataInicio)} até ${formatarDataLocal(solDataFim)}%0A*Categoria:* ${solCategoria}%0A%0AAgradeço desde já. Atenciosamente,`;
+        window.open(`https://api.whatsapp.com/send?text=${texto}`, '_blank');
+        setShowModal(false);
+    };
+
     // Função utilitária para limpar e padronizar o número da unidade para ordenação precisa
     const extrairNumeroUnidade = (unidadeStr: string) => {
         if (!unidadeStr) return "";
@@ -283,7 +314,7 @@ export default function ListaMoradoresCondomino() {
     }
 
     return (
-        <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-6 md:p-10 flex flex-col justify-between">
+        <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-6 md:p-10 flex flex-col justify-between relative">
             <div className="max-w-5xl mx-auto w-full space-y-8">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-6">
                     <div className="flex items-center gap-4">
@@ -315,7 +346,8 @@ export default function ListaMoradoresCondomino() {
                 <div className="space-y-4">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
                         <span className="text-xs text-zinc-500 font-medium">
-                            Consulte abaixo a lista atualizada de condôminos/proprietários e unidades vinculadas:
+                            <span className="md:hidden">Consulte a lista atualizada de condôminos/proprietários e unidades:</span>
+                            <span className="hidden md:inline">Consulte abaixo a lista atualizada de condôminos/proprietários e unidades vinculadas:</span>
                         </span>
                     </div>
 
@@ -325,9 +357,39 @@ export default function ListaMoradoresCondomino() {
                             placeholder="Buscar por nome ou unidade..."
                             value={filtroBusca}
                             onChange={(e) => setFiltroBusca(e.target.value)}
-                            className="w-full h-12 pl-12 pr-6 bg-white border border-zinc-200 rounded-2xl outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-sm font-medium shadow-sm"
+                            className="w-full h-12 pl-12 pr-6 bg-white border border-zinc-200 rounded-2xl outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-sm font-medium shadow-sm md:placeholder:text-zinc-400 placeholder:text-transparent [&::placeholder]:md:text-zinc-400"
                         />
+                        <span className="absolute left-12 top-1/2 -translate-y-1/2 text-xs font-medium text-zinc-400 pointer-events-none md:hidden block">
+                            {!filtroBusca && "Busque nome ou unidade"}
+                        </span>
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+                    </div>
+
+                    {/* NOVA SEÇÃO: Solicitação de Visitantes / Prestadores */}
+                    <div className="bg-amber-50/50 border border-amber-200/60 rounded-3xl p-5 md:p-6 flex flex-col lg:flex-row items-center justify-between gap-4 mt-6">
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
+                                <UserPlus size={20} />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-bold text-zinc-900">
+                                    <span className="md:hidden">Autorizações</span>
+                                    <span className="hidden md:inline">Vai receber visitas ou prestadores de serviço?</span>
+                                </h3>
+                                <p className="text-xs text-zinc-500 mt-1 max-w-xl">
+                                    <span className="md:hidden">Solicite a liberação de acesso previamente</span>
+                                    <span className="hidden md:inline">Como condômino, você não possui acesso para inclusão direta no sistema. Solicite a liberação temporária à administração para que a portaria seja devidamente notificada.</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto shrink-0 mt-2 lg:mt-0">
+                            <button
+                                onClick={() => setShowModal(true)}
+                                className="flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-5 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider transition-colors shadow-sm cursor-pointer"
+                            >
+                                <UserPlus size={15} /> Preencher Solicitação
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -368,10 +430,13 @@ export default function ListaMoradoresCondomino() {
                                             <div className="w-10 h-10 bg-zinc-50 rounded-xl flex items-center justify-center text-zinc-400 shrink-0 border border-zinc-100">
                                                 <UserCircle size={24} />
                                             </div>
-                                            <div className="min-w-0">
-                                                <h4 className="font-bold text-zinc-900 truncate">
+                                            <div className="min-w-0 flex-1">
+                                                <h4 className="font-bold text-zinc-900 truncate text-sm">
                                                     {formatarNomePrimeiroEUltimo(morador.profile?.nome_completo || "Sem Nome")}
                                                 </h4>
+                                                <span className="block text-[11px] font-semibold text-zinc-400 truncate mt-0.5">
+                                                    Placa: Não informada
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -421,6 +486,105 @@ export default function ListaMoradoresCondomino() {
                     </div>
                 </div>
             </div>
+
+            {/* MODAL DE PREENCHIMENTO DE SOLICITAÇÃO */}
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/50 backdrop-blur-sm">
+                    <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="flex items-center justify-between p-6 border-b border-zinc-100">
+                            <h3 className="font-bold text-lg text-zinc-900 flex items-center gap-2">
+                                <UserPlus className="text-amber-500" size={20} /> Solicitar Liberação
+                            </h3>
+                            <button onClick={() => setShowModal(false)} className="text-zinc-400 hover:text-zinc-600 transition-colors p-2 rounded-full hover:bg-zinc-100 cursor-pointer">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="p-6 overflow-y-auto space-y-4">
+                            <p className="text-xs text-zinc-500 mb-4 font-medium">
+                                Preencha os dados do visitante ou prestador de serviço. Ao finalizar, você poderá enviar essas informações diretamente para o administrador do seu condomínio via WhatsApp para que ele lance na plataforma.
+                            </p>
+
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Nome Completo *</label>
+                                <input
+                                    type="text"
+                                    placeholder="Ex: Carlos Silva"
+                                    value={solNome}
+                                    onChange={(e) => setSolNome(e.target.value)}
+                                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-amber-400 transition-all text-xs font-medium"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Sua Unidade *</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Ex: Apto 102"
+                                        value={solUnidade}
+                                        onChange={(e) => setSolUnidade(e.target.value)}
+                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-amber-400 transition-all text-xs font-medium"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Veículo (Placa)</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Ex: ABC-1234"
+                                        value={solPlaca}
+                                        onChange={(e) => setSolPlaca(e.target.value)}
+                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-amber-400 transition-all text-xs font-medium"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-amber-600 uppercase tracking-wider ml-1">Data Início *</label>
+                                    <input
+                                        type="date"
+                                        value={solDataInicio}
+                                        onChange={(e) => setSolDataInicio(e.target.value)}
+                                        className="w-full px-3 py-3 bg-amber-50/30 border border-amber-200/50 rounded-xl outline-none focus:bg-white focus:border-amber-400 transition-all text-xs font-medium cursor-text"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-amber-600 uppercase tracking-wider ml-1">Data Fim *</label>
+                                    <input
+                                        type="date"
+                                        value={solDataFim}
+                                        onChange={(e) => setSolDataFim(e.target.value)}
+                                        className="w-full px-3 py-3 bg-amber-50/30 border border-amber-200/50 rounded-xl outline-none focus:bg-white focus:border-amber-400 transition-all text-xs font-medium cursor-text"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Categoria</label>
+                                <select
+                                    value={solCategoria}
+                                    onChange={(e) => setSolCategoria(e.target.value)}
+                                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-amber-400 transition-all text-xs font-medium cursor-pointer"
+                                >
+                                    <option value="Visitante / Parente">Visitante / Parente</option>
+                                    <option value="Prestador de Serviço">Prestador de Serviço</option>
+                                    <option value="Outros">Outros</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="p-6 border-t border-zinc-100 flex flex-col sm:flex-row gap-3">
+                            <button
+                                onClick={handleWhatsApp}
+                                className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-colors shadow-sm cursor-pointer"
+                            >
+                                <MessageCircle size={16} /> Enviar WhatsApp
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
