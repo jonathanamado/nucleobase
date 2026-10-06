@@ -1002,15 +1002,16 @@ export default function CadastroMoradorPage() {
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-4 md:p-10 flex flex-col justify-between">
             <div>
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-5 mb-4">
-                    <div className="flex flex-col md:flex-row md:items-center gap-6 w-full justify-between">
+                <div className="flex flex-col md:flex-row md:items-center gap-6 w-full justify-between border-b border-zinc-200 pb-5 mb-4">
+                    <div className="flex items-center justify-between w-full md:w-auto gap-4">
                         <div className="flex items-center gap-4">
                             <div className="w-auto h-auto bg-blue-600 text-white p-3 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/25 shrink-0 self-stretch">
                                 <UserPlus size={24} />
                             </div>
                             <div>
-                                <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">
-                                    Controle de Acessos à Plataforma
+                                <span className="text-xs font-bold text-blue-600 uppercase tracking-widest block">
+                                    <span className="md:hidden">Controle de Acessos</span>
+                                    <span className="hidden md:inline">Controle de Acessos à Plataforma</span>
                                 </span>
                                 <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5">
                                     <span className="md:hidden text-black">{formatarNomePrimeiroEUltimo(condominio?.nome || "")}</span>
@@ -1019,23 +1020,33 @@ export default function CadastroMoradorPage() {
                             </div>
                         </div>
 
-                        <div className="hidden md:flex items-center gap-3">
-                            <Link
-                                href="/condo/adm/cadastro_morador/acesso_visitante"
-                                className="group relative flex items-center justify-center gap-1.5 h-8 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-blue-600/25 active:scale-95 overflow-hidden shrink-0 cursor-pointer"
-                            >
-                                <UserPlus size={12} />
-                                <span>+ Autorizar visitante</span>
-                            </Link>
-                            <Link
-                                href="/condo/adm"
-                                className="group relative flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 overflow-hidden shrink-0 cursor-pointer"
-                            >
-                                <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
-                                <ArrowLeft size={12} className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out" />
-                                <span>Voltar</span>
-                            </Link>
-                        </div>
+                        {/* Botão Mobile Simplificado */}
+                        <Link
+                            href="/condo/adm/cadastro_morador/acesso_visitante"
+                            className="md:hidden flex flex-col items-center justify-center gap-1 px-2.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-100 rounded-xl shadow-sm active:scale-95 transition-all shrink-0 cursor-pointer"
+                            title="Autorizar visitante"
+                        >
+                            <UserPlus size={16} />
+                            <span className="text-[8px] font-black uppercase tracking-widest text-center mt-0.5">Visitante</span>
+                        </Link>
+                    </div>
+
+                    <div className="hidden md:flex items-center gap-3">
+                        <Link
+                            href="/condo/adm/cadastro_morador/acesso_visitante"
+                            className="group relative flex items-center justify-center gap-1.5 h-8 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-blue-600/25 active:scale-95 overflow-hidden shrink-0 cursor-pointer"
+                        >
+                            <UserPlus size={12} />
+                            <span>+ Autorizar visitante</span>
+                        </Link>
+                        <Link
+                            href="/condo/adm"
+                            className="group relative flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 overflow-hidden shrink-0 cursor-pointer"
+                        >
+                            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
+                            <ArrowLeft size={12} className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out" />
+                            <span>Voltar</span>
+                        </Link>
                     </div>
                 </div>
 
