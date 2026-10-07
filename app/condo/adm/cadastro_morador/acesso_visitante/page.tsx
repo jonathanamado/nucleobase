@@ -14,16 +14,6 @@ import {
     Pencil,
     ArrowLeft,
     Instagram,
-    Lock,
-    KeyRound,
-    X,
-    Key,
-    AtSign,
-    Eye,
-    EyeOff,
-    LifeBuoy,
-    Mail,
-    ArrowRight,
     CalendarClock,
     Clock
 } from "lucide-react";
@@ -55,16 +45,7 @@ export default function AcessoVisitantePage() {
     // Controle de Login
     const [emailOrSlug, setEmailOrSlug] = useState("");
     const [password, setPassword] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
     const [loginError, setLoginError] = useState("");
-
-    const [showForgotModal, setShowForgotModal] = useState(false);
-    const [resetEmail, setResetEmail] = useState("");
-    const [resetLoading, setResetLoading] = useState(false);
-
-    const [showFirstAccessModal, setShowFirstAccessModal] = useState(false);
-    const [firstAccessSlug, setFirstAccessSlug] = useState("");
-    const [firstAccessLoading, setFirstAccessLoading] = useState(false);
 
     // Dados
     const [condominio, setCondominio] = useState<{ id: string; nome: string } | null>(null);
@@ -78,13 +59,12 @@ export default function AcessoVisitantePage() {
     const [novaPlaca, setNovaPlaca] = useState("");
     const [dataInicio, setDataInicio] = useState("");
     const [dataFim, setDataFim] = useState("");
-    const [tipoVisitante, setTipoVisitante] = useState<string>("visitante"); // 'visitante', 'prestador_servico' ou 'outros'
+    const [tipoVisitante, setTipoVisitante] = useState<string>("visitante");
     const [formError, setFormError] = useState("");
     const [formSuccess, setFormSuccess] = useState("");
 
     const [slugCustomizado, setSlugCustomizado] = useState("");
     const [slugDisponivel, setSlugDisponivel] = useState<boolean | null>(null);
-    const [verificandoSlug, setVerificandoSlug] = useState(false);
     const [editandoId, setEditandoId] = useState<string | null>(null);
 
     const isMountedRef = useRef(true);
@@ -97,14 +77,13 @@ export default function AcessoVisitantePage() {
     };
 
     const gerarSlugBase = (nome: string) => {
-        const slugFormatado = nome.trim()
+        return nome.trim()
             .toLowerCase()
             .normalize("NFD")
             .replace(/[\u0300-\u036f]/g, "")
             .replace(/[^a-z0-9]/g, "-")
             .replace(/-+/g, "-")
             .replace(/^-|-$/g, "");
-        return slugFormatado;
     };
 
     useEffect(() => {
@@ -120,36 +99,8 @@ export default function AcessoVisitantePage() {
             return;
         }
 
-        const slugCompleto = base;
-        setSlugCustomizado(slugCompleto);
-
-        const verificarDisponibilidade = async () => {
-            setVerificandoSlug(true);
-            try {
-                const { data, error } = await supabase
-                    .from("profiles")
-                    .select("slug")
-                    .eq("slug", slugCompleto);
-
-                if (error) throw error;
-                setSlugDisponivel(!data || data.length === 0);
-            } catch (err) {
-                console.error("Erro ao validar slug:", err);
-                setSlugDisponivel(true);
-            } finally {
-                setVerificandoSlug(false);
-            }
-        };
-
-        const timer = setTimeout(() => {
-            if (novoNome.trim().length > 0) {
-                verificarDisponibilidade();
-            } else {
-                setSlugDisponivel(null);
-            }
-        }, 400);
-
-        return () => clearTimeout(timer);
+        setSlugCustomizado(base);
+        setSlugDisponivel(true);
     }, [novoNome, editandoId]);
 
     const loadVisitantes = async (condoId: string) => {
@@ -169,8 +120,8 @@ export default function AcessoVisitantePage() {
                 profile:profiles ( nome_completo, email_contato, slug )
             `)
             .eq("condominio_id", condoId)
-            .eq("role", "visitante") // Filtro exclusivo para listar apenas os visitantes
-            .order("criado_em", { ascending: false }); // Ordenado por criado_em garante que novos fiquem no topo
+            .eq("role", "visitante")
+            .order("criado_em", { ascending: false });
 
         if (!error && data && isMountedRef.current) {
             setVisitantes(data as unknown as Visitante[]);
@@ -256,23 +207,6 @@ export default function AcessoVisitantePage() {
         return () => { isMountedRef.current = false; if (authSub) authSub.unsubscribe(); };
     }, []);
 
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setAuthLoading(true); setLoginError("");
-        const inputAcesso = emailOrSlug.trim().toLowerCase();
-        try {
-            let emailParaLogin = inputAcesso;
-            if (!inputAcesso.includes("@")) {
-                const { data: profile } = await supabase.from('profiles').select('email_contato, slug').eq('slug', inputAcesso).maybeSingle();
-                if (!profile) { setLoginError("Credencial não localizada."); setAuthLoading(false); return; }
-                emailParaLogin = profile.email_contato || `${profile.slug}@nucleobase.app`;
-            }
-            const { data, error } = await supabase.auth.signInWithPassword({ email: emailParaLogin, password });
-            if (error || !data.session) { setLoginError("Acesso negado."); return; }
-            await verifySindicoAndLoadData(data.session);
-        } catch (err) { setLoginError("Erro inesperado."); } finally { setAuthLoading(false); }
-    };
-
     const iniciarEdicao = (visitante: Visitante) => {
         setFormError(""); setFormSuccess("");
         setEditandoId(visitante.id);
@@ -287,7 +221,6 @@ export default function AcessoVisitantePage() {
         setDataInicio(visitante.data_inicio ? visitante.data_inicio.split("T")[0] : "");
         setDataFim(visitante.data_fim ? visitante.data_fim.split("T")[0] : "");
         setTipoVisitante(visitante.tipo_morador || "visitante");
-        setSlugDisponivel(true);
     };
 
     const cancelarEdicao = () => {
@@ -311,26 +244,23 @@ export default function AcessoVisitantePage() {
             return;
         }
 
-        if (!editandoId && slugDisponivel === false) {
-            setFormError("O ID gerado já está em uso. Por favor, adicione um sobrenome.");
-            return;
-        }
-
         setActionLoading(true); setFormError(""); setFormSuccess("");
 
         try {
             const unidadeFinal = novaUnidade.trim();
 
             if (editandoId) {
+                const updateData: any = {
+                    unidade: unidadeFinal,
+                    placa: novaPlaca.trim() || null,
+                    tipo_morador: tipoVisitante,
+                    data_inicio: dataInicio,
+                    data_fim: dataFim
+                };
+
                 const { error: updateError } = await supabase
                     .from("condominio_membros")
-                    .update({
-                        unidade: unidadeFinal,
-                        placa: novaPlaca.trim() || null,
-                        tipo_morador: tipoVisitante,
-                        data_inicio: dataInicio,
-                        data_fim: dataFim
-                    })
+                    .update(updateData)
                     .eq("id", editandoId);
 
                 if (updateError) throw updateError;
@@ -347,7 +277,7 @@ export default function AcessoVisitantePage() {
             } else {
                 const nomeFormatado = novoNome.trim();
                 let emailFormatado = novoEmail.trim().toLowerCase();
-                let generatedSlug = slugCustomizado || gerarSlugBase(nomeFormatado);
+                let generatedSlug = `${slugCustomizado || gerarSlugBase(nomeFormatado)}-${Date.now().toString().slice(-6)}`;
 
                 if (!emailFormatado) emailFormatado = `${generatedSlug}@nucleobase.app`;
 
@@ -370,7 +300,6 @@ export default function AcessoVisitantePage() {
 
                 let targetUserId = signUpData.user?.id;
 
-                // Fallback robusto para garantir que o ID foi gerado/localizado, prevenindo falha silenciosa
                 if (!targetUserId) {
                     const profileRes = await supabase.from("profiles").select("id").eq("email_contato", emailFormatado).maybeSingle();
                     targetUserId = profileRes.data?.id;
@@ -388,21 +317,20 @@ export default function AcessoVisitantePage() {
                     p_plan_type: 'free'
                 });
 
-                const { error: insertError } = await supabase
-                    .from("condominio_membros")
-                    .insert([{
-                        condominio_id: condominio.id,
-                        condominio_nome: condominio.nome,
-                        user_id: targetUserId,
-                        role: 'visitante',
-                        unidade: unidadeFinal,
-                        placa: novaPlaca.trim() || null,
-                        tipo_morador: tipoVisitante,
-                        acesso_app: false,
-                        data_inicio: dataInicio,
-                        data_fim: dataFim
-                    }]);
+                const membroData: any = {
+                    condominio_id: condominio.id,
+                    condominio_nome: condominio.nome,
+                    user_id: targetUserId,
+                    role: 'visitante',
+                    unidade: unidadeFinal,
+                    placa: novaPlaca.trim() || null,
+                    tipo_morador: tipoVisitante,
+                    acesso_app: false,
+                    data_inicio: dataInicio,
+                    data_fim: dataFim
+                };
 
+                const { error: insertError } = await supabase.from("condominio_membros").insert([membroData]);
                 if (insertError) throw insertError;
 
                 setFormSuccess("Visitante autorizado com sucesso!");
@@ -431,7 +359,6 @@ export default function AcessoVisitantePage() {
         }
     };
 
-    // Função auxiliar para formatação segura de data vinda do DB, prevenindo exibir "1970"
     const formatarData = (dataStr?: string | null) => {
         if (!dataStr) return '--';
         const partes = dataStr.split('T')[0].split('-');
@@ -439,7 +366,6 @@ export default function AcessoVisitantePage() {
         return `${partes[2]}/${partes[1]}/${partes[0]}`;
     };
 
-    // Tratamento de Timezone rígido para evitar status falso no Brasil
     const getStatusAutorizacao = (inicio?: string | null, fim?: string | null) => {
         if (!inicio || !fim) return { label: "Indefinido", color: "bg-zinc-100 text-zinc-500" };
 
@@ -456,8 +382,6 @@ export default function AcessoVisitantePage() {
         if (hoje > dataOut) return { label: "Expirado", color: "bg-red-50 text-red-600 border-red-100" };
         return { label: "Vigente", color: "bg-emerald-50 text-emerald-600 border-emerald-100" };
     };
-
-    const handleLogout = async () => { /* ... Identico ... */ };
 
     if (loading) {
         return (
@@ -492,7 +416,8 @@ export default function AcessoVisitantePage() {
                             </div>
                             <div>
                                 <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">
-                                    Controle de Visitantes e Terceiros
+                                    <span className="md:hidden">Controle de Visitantes</span>
+                                    <span className="hidden md:inline">Controle de Visitantes e Terceiros</span>
                                 </span>
                                 <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5">
                                     <span className="md:hidden text-black">{formatarNomePrimeiroEUltimo(condominio?.nome || "")}</span>
@@ -512,10 +437,6 @@ export default function AcessoVisitantePage() {
                         </div>
                     </div>
                 </div>
-
-                <p className="text-xs md:text-sm text-zinc-500 font-medium mb-6 max-w-3xl">
-                    Cadastre prestadores de serviço temporários, parentes ou visitantes rotineiros. Determine o período exato de liberação que a portaria irá visualizar para liberar a entrada.
-                </p>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
                     {/* FORMULÁRIO */}
@@ -612,17 +533,6 @@ export default function AcessoVisitantePage() {
                                     </select>
                                 </div>
 
-                                {/* O Visitor não tem Acesso ao APP, então removemos o Toggle visual para evitar confusões */}
-                                <div className="flex items-center justify-between bg-zinc-50 border border-zinc-200 p-3.5 rounded-xl opacity-70">
-                                    <div className="flex flex-col">
-                                        <span className="text-xs font-bold text-zinc-800 uppercase tracking-wide">Acesso APP</span>
-                                        <span className="text-[10px] text-zinc-500 font-medium">Desabilitado para Visitantes</span>
-                                    </div>
-                                    <div className="w-11 h-6 flex items-center justify-start rounded-full p-1 bg-zinc-300">
-                                        <div className="bg-white/80 w-4 h-4 rounded-full shadow-sm"></div>
-                                    </div>
-                                </div>
-
                                 {formError && <p className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 p-3 rounded-xl">{formError}</p>}
                                 {formSuccess && <p className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-3 rounded-xl flex items-center gap-2"><CheckCircle2 size={14} /> {formSuccess}</p>}
                             </form>
@@ -633,7 +543,7 @@ export default function AcessoVisitantePage() {
                                 <button
                                     type="submit"
                                     form="form-visitante"
-                                    disabled={actionLoading || (!editandoId && slugDisponivel === false)}
+                                    disabled={actionLoading}
                                     className={`flex-1 py-3.5 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 text-white cursor-pointer ${editandoId ? 'bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/10' : 'bg-amber-500 hover:bg-amber-600'} disabled:opacity-50`}
                                 >
                                     {actionLoading ? "Processando..." : editandoId ? "Salvar Alterações" : "Autorizar Acesso"}
@@ -657,7 +567,10 @@ export default function AcessoVisitantePage() {
                             <div className="flex items-center justify-between border-b border-zinc-100 pb-4 mb-4">
                                 <div className="flex items-center gap-3">
                                     <Users className="text-amber-500" size={24} />
-                                    <h2 className="font-bold text-lg text-zinc-900">Autorizações Ativas e Agendadas</h2>
+                                    <h2 className="font-bold text-lg text-zinc-900">
+                                        <span className="md:hidden">Autorizações Ativas</span>
+                                        <span className="hidden md:inline">Autorizações Ativas e Agendadas</span>
+                                    </h2>
                                 </div>
                                 <span className="hidden md:inline-block text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1 rounded-full">
                                     {visitantes.length} Registros
@@ -686,22 +599,20 @@ export default function AcessoVisitantePage() {
                                                 const isSemEmail = !email || email.endsWith("@nucleobase.app");
                                                 const status = getStatusAutorizacao(visitante.data_inicio, visitante.data_fim);
 
+                                                const tipoFormatado =
+                                                    visitante.tipo_morador === "prestador_servico" ? "Prestador de Serviço" :
+                                                        visitante.tipo_morador === "outros" ? "Outros" : "Visitante";
+
                                                 return (
                                                     <tr key={visitante.id} className={`group transition-colors ${editandoId === visitante.id ? 'bg-indigo-50/30' : ''}`}>
                                                         <td className="py-3.5 align-top">
-                                                            <div className="text-sm font-bold text-zinc-900">
-                                                                {visitante.unidade}
-                                                            </div>
-                                                            <div className="text-[10px] font-bold text-amber-600 mt-0.5">
-                                                                {visitante.placa || "Sem Veículo"}
-                                                            </div>
+                                                            <div className="text-sm font-bold text-zinc-900">{visitante.unidade}</div>
+                                                            <div className="text-[10px] font-bold text-amber-600 mt-0.5">{visitante.placa || "Sem Veículo"}</div>
                                                         </td>
                                                         <td className="py-3.5 align-top">
-                                                            <div className="text-sm font-bold text-zinc-800 leading-tight">
-                                                                {nomeExibicao}
-                                                            </div>
+                                                            <div className="text-sm font-bold text-zinc-800 leading-tight">{nomeExibicao}</div>
                                                             <div className="text-[10px] text-zinc-400 font-semibold tracking-wide mt-1">
-                                                                {isSemEmail ? (visitante.tipo_morador === "prestador_servico" ? "Prestador de Serviço" : "Visitante") : email}
+                                                                {isSemEmail ? tipoFormatado : email}
                                                             </div>
                                                         </td>
                                                         <td className="py-3.5 hidden md:table-cell align-top text-center">
@@ -746,7 +657,7 @@ export default function AcessoVisitantePage() {
                 </div>
             </div>
 
-            {/* O footer "Conecte-se" foi mantido igual as demais páginas */}
+            {/* SEÇÃO "CONECTE-SE" E INSTAGRAM IDêntica à Página "Sobre" */}
             <div className="mt-24">
                 <div className="flex items-center gap-4 mb-12">
                     <div className="h-px bg-gray-200 flex-1"></div>
