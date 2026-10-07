@@ -475,7 +475,7 @@ export default function AcessoVisitantePage() {
 
                                 <div className="grid grid-cols-2 gap-2">
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Destino (Unidade)</label>
+                                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Unidade</label>
                                         <input
                                             type="text"
                                             placeholder="Ex: Apto 102"
