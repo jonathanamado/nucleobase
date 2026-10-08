@@ -344,11 +344,21 @@ export default function ListaMoradoresCondomino() {
                 </div>
 
                 <div className="space-y-4">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                    <div className="flex flex-row items-center justify-between gap-2">
                         <span className="text-xs text-zinc-500 font-medium">
-                            <span className="md:hidden">Consulte a lista atualizada de condôminos/proprietários e unidades:</span>
+                            <span className="md:hidden">Consultas e autorizações de acesso de moradores, visitantes e fornecedores:</span>
                             <span className="hidden md:inline">Consulte abaixo a lista atualizada de condôminos/proprietários e unidades vinculadas:</span>
                         </span>
+
+                        {/* BOTÃO MOBILE APENAS: Solicitação de Visitantes / Prestadores */}
+                        <div className="md:hidden flex shrink-0">
+                            <button
+                                onClick={() => setShowModal(true)}
+                                className="flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors shadow-sm cursor-pointer"
+                            >
+                                <UserPlus size={14} /> Solicitação
+                            </button>
+                        </div>
                     </div>
 
                     <div className="relative w-full max-w-md">
@@ -365,24 +375,22 @@ export default function ListaMoradoresCondomino() {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
                     </div>
 
-                    {/* NOVA SEÇÃO: Solicitação de Visitantes / Prestadores */}
-                    <div className="bg-amber-50/50 border border-amber-200/60 rounded-3xl p-5 md:p-6 flex flex-col lg:flex-row items-center justify-between gap-4 mt-6">
+                    {/* SEÇÃO DESKTOP: Solicitação de Visitantes / Prestadores */}
+                    <div className="hidden md:flex bg-amber-50/50 border border-amber-200/60 rounded-3xl p-6 flex-row items-center justify-between gap-4 mt-6">
                         <div className="flex items-start gap-4">
                             <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
                                 <UserPlus size={20} />
                             </div>
                             <div>
                                 <h3 className="text-sm font-bold text-zinc-900">
-                                    <span className="md:hidden">Autorizações</span>
-                                    <span className="hidden md:inline">Vai receber visitas ou prestadores de serviço?</span>
+                                    Vai receber visitas ou prestadores de serviço?
                                 </h3>
                                 <p className="text-xs text-zinc-500 mt-1 max-w-xl">
-                                    <span className="md:hidden">Solicite a liberação de acesso previamente</span>
-                                    <span className="hidden md:inline">Como condômino, você não possui acesso para inclusão direta no sistema. Solicite a liberação temporária à administração para que a portaria seja devidamente notificada.</span>
+                                    Como condômino, você não possui acesso para inclusão direta no sistema. Solicite a liberação temporária à administração para que a portaria seja devidamente notificada.
                                 </p>
                             </div>
                         </div>
-                        <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto shrink-0 mt-2 lg:mt-0">
+                        <div className="flex flex-row gap-2 w-auto shrink-0 mt-0">
                             <button
                                 onClick={() => setShowModal(true)}
                                 className="flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-5 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider transition-colors shadow-sm cursor-pointer"
@@ -454,7 +462,7 @@ export default function ListaMoradoresCondomino() {
                     </div>
 
                     {/* BLOCO INSTAGRAM */}
-                    <div className="flex flex-col items-center text-center">
+                    <div className="flex flex-col items-center text-center pb-10">
                         <div className="max-w-3xl mb-12">
                             <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
                                 Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
@@ -502,7 +510,8 @@ export default function ListaMoradoresCondomino() {
 
                         <div className="p-6 overflow-y-auto space-y-4">
                             <p className="text-xs text-zinc-500 mb-4 font-medium">
-                                Preencha os dados do visitante ou prestador de serviço. Ao finalizar, você poderá enviar essas informações diretamente para o administrador do seu condomínio via WhatsApp para que ele lance na plataforma.
+                                <span className="md:hidden">Preencha os dados do visitante ou prestador de serviço.</span>
+                                <span className="hidden md:inline">Preencha os dados do visitante ou prestador de serviço. Ao finalizar, você poderá enviar essas informações diretamente para o administrador do seu condomínio via WhatsApp para que ele lance na plataforma.</span>
                             </p>
 
                             <div className="space-y-1">

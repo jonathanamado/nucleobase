@@ -3,13 +3,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+
+// 1. IMPORTAMOS A NOVA PÁGINA COMO UM COMPONENTE PARA O NOSSO "FRAME"
+import FrameRegistrosContas from "./registros-contas/page";
+
 import {
     Building2,
     CheckCircle2,
     ArrowLeft,
     Instagram,
     FileSpreadsheet,
-    Edit3,
     Lock,
     Key,
     AtSign,
@@ -33,9 +36,6 @@ export default function PrestacaoContasPage() {
     const [loading, setLoading] = useState(true);
     const [authLoading, setAuthLoading] = useState(false);
 
-    // Estados de loading independentes por seção
-    const [loadingContas, setLoadingContas] = useState(false);
-
     // Controle de Login
     const [emailOrSlug, setEmailOrSlug] = useState("");
     const [password, setPassword] = useState("");
@@ -55,20 +55,6 @@ export default function PrestacaoContasPage() {
     const [condominio, setCondominio] = useState<{ id: string; nome: string } | null>(null);
     const [isApenasMorador, setIsApenasMorador] = useState(false);
 
-    // Histórico para Autocomplete de Detalhamento e Descrição
-    const [historicoDescDet, setHistoricoDescDet] = useState<{ descricao: string, detalhamento: string }[]>([]);
-
-    // Estados para Lançamentos de Prestação de Contas (Mantidos na página principal)
-    const [tipoConta, setTipoConta] = useState<'receita' | 'despesa'>('receita');
-    const [categoriaConta, setCategoriaConta] = useState('Receita Condomínio');
-    const [descricaoConta, setDescricaoConta] = useState('Pagamento Condomínio');
-    const [detalhamentoConta, setDetalhamentoConta] = useState('');
-    const [valorPrevistoConta, setValorPrevistoConta] = useState('0,00');
-    const [valorRealizadoConta, setValorRealizadoConta] = useState('0,00');
-    const [dataCompetenciaConta, setDataCompetenciaConta] = useState(new Date().toISOString().slice(0, 7) + '-01');
-    const [contasError, setContasError] = useState('');
-    const [contasSuccess, setContasSuccess] = useState('');
-
     const isMountedRef = useRef(true);
 
     const formatarNomePrimeiroEUltimo = (nomeCompleto: string) => {
@@ -76,38 +62,6 @@ export default function PrestacaoContasPage() {
         const partes = nomeCompleto.trim().split(/\s+/);
         if (partes.length <= 1) return partes[0] || "";
         return `${partes[0]} ${partes[partes.length - 1]}`;
-    };
-
-    const formatarValorExibicao = (valor: any): string => {
-        if (valor === null || valor === undefined || valor === '') return '0,00';
-        const num = typeof valor === 'number' ? valor : parseFloat(String(valor).replace(',', '.'));
-        if (isNaN(num)) return '0,00';
-        return num.toFixed(2).replace('.', ',');
-    };
-
-    const converterParaFloat = (valorStr: string): number => {
-        if (!valorStr) return 0;
-        let limpo = String(valorStr).trim();
-        if (limpo.includes('.') && limpo.includes(',')) {
-            limpo = limpo.replace(/\./g, '').replace(',', '.');
-        } else if (limpo.includes(',')) {
-            limpo = limpo.replace(',', '.');
-        } else if ((limpo.match(/\./g) || []).length > 1) {
-            limpo = limpo.replace(/\./g, '');
-        }
-        const num = parseFloat(limpo);
-        return isNaN(num) ? 0 : num;
-    };
-
-    const handleTipoContaChange = (novoTipo: 'receita' | 'despesa') => {
-        setTipoConta(novoTipo);
-        if (novoTipo === 'receita') {
-            setCategoriaConta('Receita Condomínio');
-            setDescricaoConta('Pagamento Condomínio');
-        } else {
-            setCategoriaConta('Despesa Condomínio');
-            setDescricaoConta('Manutenção Geral');
-        }
     };
 
     const verifySindicoAndLoadData = async (currentSession: any) => {
@@ -169,19 +123,6 @@ export default function PrestacaoContasPage() {
             if (isMountedRef.current) {
                 setIsApenasMorador(false);
                 setCondominio({ id: vinculoAdm.condominio_id, nome: nomeCondominioOficial });
-
-                // Fetch do histórico de descrições e detalhamentos para o Autocomplete restrito ao condomínio
-                const { data: histData } = await supabase
-                    .from('condominio_contas')
-                    .select('descricao, detalhamento')
-                    .eq('condominio_id', vinculoAdm.condominio_id);
-
-                if (histData) {
-                    setHistoricoDescDet(histData.map((item: any) => ({
-                        descricao: item.descricao || "",
-                        detalhamento: item.detalhamento || ""
-                    })));
-                }
             }
         } catch (e: any) {
             console.warn("Exceção tratada em verifySindicoAndLoadData:", e);
@@ -334,67 +275,6 @@ export default function PrestacaoContasPage() {
             alert(err?.message || "Houve uma falha interna ao processar sua solicitação.");
         } finally {
             setFirstAccessLoading(false);
-        }
-    };
-
-    const handleSaveContas = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!condominio) {
-            setContasError("Condomínio não identificado. Atualize a página e tente novamente.");
-            return;
-        }
-
-        setLoadingContas(true);
-        setContasError("");
-        setContasSuccess("");
-
-        try {
-            // Garante que a sessão está ativa (usando o estado já monitorado para evitar travamento em lock ao retornar para a aba)
-            if (!session || !session.user) {
-                throw new Error("Sessão expirada. Atualize a página e faça login novamente para continuar.");
-            }
-
-            const previstoNum = converterParaFloat(valorPrevistoConta);
-            const realizadoNum = converterParaFloat(valorRealizadoConta);
-
-            const { error } = await supabase
-                .from("condominio_contas")
-                .insert([
-                    {
-                        condominio_id: condominio.id,
-                        tipo: tipoConta,
-                        categoria: categoriaConta.trim(),
-                        descricao: descricaoConta.trim(),
-                        detalhamento: detalhamentoConta.trim() || null,
-                        valor_previsto: previstoNum,
-                        valor_realizado: realizadoNum > 0 ? realizadoNum : previstoNum,
-                        data_competencia: dataCompetenciaConta,
-                        data_vencimento: null,
-                        status: tipoConta === 'receita' ? 'recebido' : 'pago',
-                        criado_por: session.user.id
-                    }
-                ]);
-
-            if (error) throw error;
-
-            setContasSuccess("Lançamento financeiro registrado com sucesso!");
-
-            // Adiciona localmente os novos valores na lista para o autocomplete do próximo lançamento
-            setHistoricoDescDet(prev => [...prev, {
-                descricao: descricaoConta.trim(),
-                detalhamento: detalhamentoConta.trim()
-            }]);
-
-            setValorPrevistoConta("0,00");
-            setValorRealizadoConta("0,00");
-            setDetalhamentoConta("");
-            setTimeout(() => setContasSuccess(""), 2000);
-        } catch (err: any) {
-            console.error("Erro ao salvar conta:", err);
-            setContasError(err?.message || "Erro ao registrar lançamento financeiro.");
-        } finally {
-            setLoadingContas(false);
         }
     };
 
@@ -645,42 +525,6 @@ export default function PrestacaoContasPage() {
         );
     }
 
-    // Calcula as descrições sugeridas (únicas)
-    let sugestoesDescricao: string[] = [];
-    // Calcula os detalhamentos sugeridos filtrando pela descrição atual
-    let sugestoesDetalhamento: string[] = [];
-
-    if (session && !isApenasMorador && condominio) {
-        // Popula as descrições (ignorando itens vazios)
-        sugestoesDescricao = Array.from(
-            new Set(
-                historicoDescDet
-                    .map(item => item.descricao.trim())
-                    .filter(desc => desc !== "")
-            )
-        );
-
-        // Popula detalhamentos associados à descrição digitada
-        sugestoesDetalhamento = Array.from(
-            new Set(
-                historicoDescDet
-                    .filter(item => item.descricao.trim().toLowerCase() === descricaoConta.trim().toLowerCase())
-                    .map(item => item.detalhamento.trim())
-                    .filter(det => det !== "")
-            )
-        );
-        // Se a descrição nova não tiver histórico, exibe todos os detalhamentos únicos já usados
-        if (sugestoesDetalhamento.length === 0) {
-            sugestoesDetalhamento = Array.from(
-                new Set(
-                    historicoDescDet
-                        .map(item => item.detalhamento.trim())
-                        .filter(det => det !== "")
-                )
-            );
-        }
-    }
-
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-4 md:p-10 flex flex-col justify-between">
             <div className="space-y-8">
@@ -715,7 +559,7 @@ export default function PrestacaoContasPage() {
                         </div>
                     </div>
 
-                    {/* CONTROLE DE CONTAS (PRINCIPAL) */}
+                    {/* CONTROLE DE CONTAS (FRAME) */}
                     <div className="pt-2 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <h2 className="text-xl md:text-2xl font-black tracking-tight text-zinc-900 mb-1">
@@ -727,129 +571,13 @@ export default function PrestacaoContasPage() {
                         </div>
                     </div>
 
-                    <div className="w-full bg-white border border-zinc-200 p-6 md:p-8 rounded-[2.5rem] shadow-sm">
-                        <form onSubmit={handleSaveContas} className="space-y-3.5">
-                            <div className="grid grid-cols-2 gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => handleTipoContaChange('receita')}
-                                    className={`py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all border cursor-pointer ${tipoConta === 'receita' ? 'bg-emerald-500 text-white border-emerald-500 shadow-md shadow-emerald-500/20' : 'bg-zinc-50 text-zinc-500 border-zinc-200'}`}
-                                >
-                                    Receita
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => handleTipoContaChange('despesa')}
-                                    className={`py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all border cursor-pointer ${tipoConta === 'despesa' ? 'bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-500/20' : 'bg-zinc-50 text-zinc-500 border-zinc-200'}`}
-                                >
-                                    Despesa
-                                </button>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Categoria</label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={categoriaConta}
-                                        onChange={(e) => setCategoriaConta(e.target.value)}
-                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium text-zinc-900"
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Descrição</label>
-                                    <input
-                                        type="text"
-                                        list="sugestoes-descricao"
-                                        placeholder="Ex: Pagamento Condomínio"
-                                        required
-                                        value={descricaoConta}
-                                        onChange={(e) => setDescricaoConta(e.target.value)}
-                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium text-zinc-900"
-                                    />
-                                    <datalist id="sugestoes-descricao">
-                                        {sugestoesDescricao.map((sugestao, idx) => (
-                                            <option key={idx} value={sugestao} />
-                                        ))}
-                                    </datalist>
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Mês de Competência</label>
-                                    <input
-                                        type="date"
-                                        required
-                                        value={dataCompetenciaConta}
-                                        onChange={(e) => setDataCompetenciaConta(e.target.value)}
-                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium text-zinc-900"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Detalhamento</label>
-                                <input
-                                    type="text"
-                                    list="sugestoes-detalhamento"
-                                    placeholder="Ex: Detalhes adicionais do lançamento..."
-                                    value={detalhamentoConta}
-                                    onChange={(e) => setDetalhamentoConta(e.target.value)}
-                                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium text-zinc-900"
-                                />
-                                <datalist id="sugestoes-detalhamento">
-                                    {sugestoesDetalhamento.map((sugestao, idx) => (
-                                        <option key={idx} value={sugestao} />
-                                    ))}
-                                </datalist>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Planejado (R$)</label>
-                                    <input
-                                        type="text"
-                                        placeholder="0,00"
-                                        required
-                                        value={valorPrevistoConta}
-                                        onChange={(e) => setValorPrevistoConta(e.target.value)}
-                                        onBlur={(e) => setValorPrevistoConta(formatarValorExibicao(e.target.value))}
-                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium text-zinc-900"
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Realizado (R$)</label>
-                                    <input
-                                        type="text"
-                                        placeholder="0,00"
-                                        required
-                                        value={valorRealizadoConta}
-                                        onChange={(e) => setValorRealizadoConta(e.target.value)}
-                                        onBlur={(e) => setValorRealizadoConta(formatarValorExibicao(e.target.value))}
-                                        className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-emerald-400 transition-all text-xs font-medium text-zinc-900"
-                                    />
-                                </div>
-                            </div>
-
-                            {contasError && <p className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 p-3 rounded-xl">{contasError}</p>}
-                            {contasSuccess && <p className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 p-3 rounded-xl flex items-center gap-2"><CheckCircle2 size={14} /> {contasSuccess}</p>}
-
-                            <div className="pt-2 flex flex-col gap-2">
-                                <button
-                                    type="submit"
-                                    disabled={loadingContas}
-                                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-emerald-600/10 flex items-center justify-center gap-2 cursor-pointer"
-                                >
-                                    {loadingContas ? "Registrando..." : "Salvar Lançamento"}
-                                </button>
-
-                                <Link
-                                    href="/condo/adm/edicao_lancamentos"
-                                    className="w-full bg-zinc-900 hover:bg-black text-white py-3.5 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest shadow-md shadow-zinc-900/10 flex items-center justify-center gap-2 cursor-pointer text-center"
-                                >
-                                    <Edit3 size={14} /> Editar lançamentos
-                                </Link>
-                            </div>
-                        </form>
+                    <div className="w-full">
+                        {/* 
+                           2. AQUI RENDERIZAMOS O COMPONENTE DIRETAMENTE.
+                           Ele ocupa o espaço como se fosse um Iframe, preservando todo
+                           seu estado, código e fluxo separados, sem duplicar o layout principal.
+                        */}
+                        <FrameRegistrosContas />
                     </div>
                 </div>
 
