@@ -188,13 +188,27 @@ function CadastroContent() {
         await enviarOnboardingUsuario(nomeFinal, email.trim());
       }
 
+      // === RECUPERAÇÃO DA INDICAÇÃO (PONTE DE AFILIADOS / CONSULTORES) ===
       const indicadorId = localStorage.getItem("nucleobase_referral_id");
       if (indicadorId && indicadorId !== authData.user.id) {
-        await supabase.from("indicacoes").insert([
-          { indicador_id: indicadorId, indicado_id: authData.user.id, status: 'pendente' }
+        const { error: indicacaoError } = await supabase.from("indicacoes").insert([
+          {
+            indicador_id: indicadorId,
+            indicado_id: authData.user.id,
+            email_indicado: authData.user.email || emailParaAuth,
+            status: 'pendente'
+          }
         ]);
-        localStorage.removeItem("nucleobase_referral_id");
+
+        if (indicacaoError) {
+          // Se der erro (ex: RLS bloqueando o insert), mostramos no console para facilitar o debug
+          console.error("Erro ao gravar indicação (Verifique as políticas RLS):", indicacaoError);
+        } else {
+          // Limpa o localStorage apenas se a gravação for bem sucedida
+          localStorage.removeItem("nucleobase_referral_id");
+        }
       }
+      // ===================================================================
 
       // === RASTREAMENTO DE SUCESSO DE CADASTRO ===
       if (typeof window !== "undefined") {

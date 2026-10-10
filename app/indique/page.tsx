@@ -76,17 +76,30 @@ export default function IndiquePage() {
     setLoadingData(true);
     try {
       setUserId(user.id);
-      const { data: profile } = await supabase.from('profiles').select('slug, nome_completo').eq('id', user.id).single();
+
+      // Ajuste: maybeSingle para evitar erro 406 e quebra de fetch
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('slug, nome_completo')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profileError) console.error("Erro ao buscar perfil:", profileError);
+
       setUserName(profile?.nome_completo || user.email?.split('@')[0] || "Amigo");
       setUserSlug(profile?.slug || user.id);
 
-      const { data: indData, count } = await supabase
-        .from("indicacoes").select('id, created_at, status, indicado_id, email_indicado', { count: 'exact' })
-        .eq('indicador_id', user.id).order('created_at', { ascending: false });
+      const { data: indData, count, error: indError } = await supabase
+        .from("indicacoes")
+        .select('id, created_at, status, indicado_id, email_indicado', { count: 'exact' })
+        .eq('indicador_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (indError) console.error("Erro ao buscar indicações:", indError);
 
       setContagem(count || 0);
 
-      if (indData) {
+      if (indData && indData.length > 0) {
         const enriquecidos = await Promise.all(indData.map(async (item) => {
           if (!item.indicado_id) return { ...item, cracha: "NUC-PROCESS", plano: 'free' };
           const { data: userData } = await supabase.from('usuarios').select('num_cracha').eq('id', item.indicado_id).maybeSingle();
@@ -94,10 +107,19 @@ export default function IndiquePage() {
           return { ...item, cracha: userData?.num_cracha || "NUC-PROCESS", plano: profileData?.plan_type || 'free' };
         }));
         setIndicadosLista(enriquecidos);
+      } else {
+        setIndicadosLista([]);
       }
 
-      const { data: vData } = await supabase.from('afiliados_vendas').select('*').eq('consultor_id', user.id).order('created_at', { ascending: false });
-      if (vData) {
+      const { data: vData, error: vError } = await supabase
+        .from('afiliados_vendas')
+        .select('*')
+        .eq('consultor_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (vError) console.error("Erro ao buscar vendas afiliado:", vError);
+
+      if (vData && vData.length > 0) {
         const vEnriquecidas = await Promise.all(vData.map(async (v) => {
           const { data: u } = await supabase.from('usuarios').select('num_cracha').eq('id', v.indicado_id).maybeSingle();
           return { ...v, usuarios: u };
@@ -105,16 +127,28 @@ export default function IndiquePage() {
         setVendas(vEnriquecidas);
         setSaldoValidado(vData.filter(v => v.status === 'validado').reduce((acc, v) => acc + v.valor_comissao, 0));
         setSaldoPendente(vData.filter(v => v.status === 'pendente').reduce((acc, v) => acc + v.valor_comissao, 0));
+      } else {
+        setVendas([]);
       }
-    } finally { setLoadingData(false); }
+    } catch (err) {
+      // Ajuste: Bloco catch evita o "Unhandled Promise Rejection" (Failed to fetch)
+      console.error("Erro fatal ao sincronizar dados da página Indique:", err);
+    } finally {
+      setLoadingData(false);
+    }
   }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined") setBaseUrl(window.location.origin);
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) fetchAllUserData(session.user);
-      else setLoadingData(false);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) fetchAllUserData(session.user);
+        else setLoadingData(false);
+      } catch (e) {
+        console.error("Erro ao checar sessão:", e);
+        setLoadingData(false);
+      }
     };
     checkUser();
   }, [fetchAllUserData]);
@@ -202,13 +236,20 @@ export default function IndiquePage() {
   const handleSaque = async () => {
     if (!pixKey || saldoValidado < 20) return alert("Mínimo R$ 20,00 e PIX obrigatório.");
     setSolicitandoSaque(true);
-    const { error } = await supabase.from('afiliados_saques').insert({ consultor_id: userId, valor: saldoValidado, pix_qrcode_url: pixKey, status: 'solicitado' });
-    if (!error) {
-      alert("Sucesso!");
-      setPixKey("");
-      window.dataLayer?.push({ event: "withdrawal_requested", value: saldoValidado });
+    try {
+      const { error } = await supabase.from('afiliados_saques').insert({ consultor_id: userId, valor: saldoValidado, pix_qrcode_url: pixKey, status: 'solicitado' });
+      if (!error) {
+        alert("Sucesso!");
+        setPixKey("");
+        window.dataLayer?.push({ event: "withdrawal_requested", value: saldoValidado });
+      } else {
+        alert("Erro ao solicitar saque. Tente novamente.");
+      }
+    } catch (err) {
+      console.error("Erro no saque:", err);
+    } finally {
+      setSolicitandoSaque(false);
     }
-    setSolicitandoSaque(false);
   };
 
   const cardsRecompensa = [
