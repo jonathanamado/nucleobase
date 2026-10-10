@@ -45,14 +45,14 @@ export default function ResultadosGeraisPage() {
       metricLabel: "Visibilidade"
     },
     {
-      title: "Gestão Condominial",
-      desc: "Benefício para gestores e síndicos: simplifique a rotina de manutenções, canteiros, áreas comuns e prestação de contas com transparência total para os moradores.",
+      title: "Consultoria Condominial",
+      desc: "Benefício para consultores: simplifique a rotina de vendas com o nosso CRM integrado. Acompanhe propostas, negociações e fechamentos com previsibilidade total.",
       icon: <Building2 size={16} />,
-      badgeDesktop: "Eficiência Operacional",
-      badgeMobile: "Eficiência",
+      badgeDesktop: "Gestão Comercial",
+      badgeMobile: "Comercial",
       color: "text-amber-600",
       bg: "bg-amber-50",
-      link: "/condo",
+      link: "/resultados-consultoria/consultoria-condominial",
       metric: "24h",
       metricLabel: "Agilidade"
     }
