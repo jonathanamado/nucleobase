@@ -1,3 +1,4 @@
+// app/resultados-consultoria/consultoria-condominial/page.tsx
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -31,6 +32,13 @@ export default function ConsultoriaCondominialPage() {
     const [userSlug, setUserSlug] = useState<string>("");
     const [userName, setUserName] = useState<string>("Consultor");
     const [baseUrl, setBaseUrl] = useState("");
+
+    // Estado para armazenar as regras de comissionamento dinâmicas do banco
+    const [regrasComissao, setRegrasComissao] = useState({
+        comissaoBase: 0.30,
+        metaBonus: 5,
+        multiplicador: 1.5
+    });
 
     const gerarMeses = () => {
         const meses = [];
@@ -81,6 +89,19 @@ export default function ConsultoriaCondominialPage() {
         try {
             setUserId(user.id);
 
+            // 1. Busca Regras de Comissão Dinâmicas
+            const { data: regrasData } = await supabase
+                .from('regras_comissao')
+                .select('*')
+                .eq('plano_alvo', 'condo')
+                .maybeSingle();
+
+            const taxaComissao = regrasData?.comissao_base_percentual ? Number(regrasData.comissao_base_percentual) : 0.30;
+            const metaBonus = regrasData?.meta_leads_bonus ? Number(regrasData.meta_leads_bonus) : 5;
+            const multiplicadorBonus = regrasData?.multiplicador_bonus ? Number(regrasData.multiplicador_bonus) : 1.5;
+
+            setRegrasComissao({ comissaoBase: taxaComissao, metaBonus, multiplicador: multiplicadorBonus });
+
             const { data: profile } = await supabase
                 .from('profiles')
                 .select('slug, nome_completo')
@@ -104,7 +125,7 @@ export default function ConsultoriaCondominialPage() {
                 ultimoDiaMes = new Date(ano, mesNum + 1, 0, 23, 59, 59).toISOString();
             }
 
-            // 1. BUSCA NA TABELA CRM (Inserções Manuais/Futuras)
+            // 2. BUSCA NA TABELA CRM (Inserções Manuais/Futuras)
             const { data: leadsData } = await supabase
                 .from('nucleo_leads')
                 .select('*')
@@ -112,7 +133,7 @@ export default function ConsultoriaCondominialPage() {
                 .gte('created_at', primeiroDiaMes)
                 .lte('created_at', ultimoDiaMes);
 
-            // 2. BUSCA NA TABELA INDICACOES (Cadastros via Link)
+            // 3. BUSCA NA TABELA INDICACOES (Cadastros via Link)
             const { data: indData } = await supabase
                 .from('indicacoes')
                 .select('*')
@@ -120,7 +141,7 @@ export default function ConsultoriaCondominialPage() {
                 .gte('created_at', primeiroDiaMes)
                 .lte('created_at', ultimoDiaMes);
 
-            // 3. NORMALIZAÇÃO: Mesclando os dados para a mesma visualização
+            // 4. NORMALIZAÇÃO: Mesclando os dados para a mesma visualização
             const leads = (leadsData || []).map(item => ({
                 id: item.id,
                 titulo: item.nome_condominio || 'Lead CRM',
@@ -134,37 +155,42 @@ export default function ConsultoriaCondominialPage() {
             const indicacoes = (indData || []).map(item => ({
                 id: item.id,
                 titulo: item.email_indicado || 'Lead via Link',
-                // Mapeia o 'pendente' da tabela indicacoes para o padrão do nosso funil
-                status_crm: item.status === 'pendente' ? 'prospeccao' : (item.status === 'pago' ? 'ganho' : item.status),
-                valor_projetado: 0,
-                valor_fechado: 0,
+                // Mapeia o 'efetivado' para 'ganho' e mantém 'pendente' como 'prospeccao'
+                status_crm: item.status === 'efetivado' ? 'ganho' : 'prospeccao',
+                valor_projetado: item.status === 'pendente' || !item.status ? 69.90 : 0, // Se pendente, projeta o piso. Se efetivado, zera a projeção pois virou ganho.
+                valor_fechado: item.status === 'efetivado' ? 69.90 : 0, // Se efetivado, considera o valor fechado
                 created_at: item.created_at,
                 origem: 'link'
             }));
 
-            // Junta tudo e ordena do mais recente para o mais antigo
             const todosRegistros = [...leads, ...indicacoes].sort((a, b) =>
                 new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
             );
 
             setVendasLote(todosRegistros);
 
-            // 4. CÁLCULO DOS KPIS UNIFICADOS
+            // 5. CÁLCULO DOS KPIS APLICANDO A REGRA DE COMISSÃO
             const totalIndicados = todosRegistros.length;
             const ganhos = todosRegistros.filter(l => l.status_crm === 'ganho');
             const emNegociacao = todosRegistros.filter(l => l.status_crm === 'negociacao' || l.status_crm === 'apresentacao' || l.status_crm === 'prospeccao');
 
             const totalAtivos = ganhos.length;
-            const validadas = ganhos.reduce((acc, l) => acc + l.valor_fechado, 0);
-            const pendentes = emNegociacao.reduce((acc, l) => acc + l.valor_projetado, 0);
+
+            // Calcula o bruto primeiro
+            const validadasBruto = ganhos.reduce((acc, l) => acc + l.valor_fechado, 0);
+            const pendentesBruto = emNegociacao.reduce((acc, l) => acc + l.valor_projetado, 0);
+
+            // Aplica a porcentagem do consultor
+            const comissaoValidadas = validadasBruto * taxaComissao;
+            const comissaoPendentes = pendentesBruto * taxaComissao;
 
             const conversaoCalc = totalIndicados > 0 ? (totalAtivos / totalIndicados) * 100 : 0;
 
             setKpis({
                 condominiosIndicados: totalIndicados,
                 condominiosAtivos: totalAtivos,
-                comissaoValidada: validadas,
-                comissaoPendente: pendentes,
+                comissaoValidada: comissaoValidadas,
+                comissaoPendente: comissaoPendentes,
                 taxaConversao: Number(conversaoCalc.toFixed(1))
             });
 
@@ -358,7 +384,7 @@ export default function ConsultoriaCondominialPage() {
 
                         <div className="relative z-10 w-full md:w-auto grid grid-cols-2 gap-4">
                             <div className="bg-white/5 border border-white/10 p-5 rounded-2xl backdrop-blur-md">
-                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Lote a Receber</span>
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Lote Faturado</span>
                                 <div className="text-2xl font-black text-emerald-400 tracking-tighter">R$ {kpis.comissaoValidada.toFixed(2)}</div>
                             </div>
                             <div className="bg-white/5 border border-white/10 p-5 rounded-2xl backdrop-blur-md">
@@ -422,7 +448,7 @@ export default function ConsultoriaCondominialPage() {
                                 <div>
                                     <h4 className="text-sm font-bold text-blue-900 mb-2">Bônus de Volume Acelerado</h4>
                                     <p className="text-xs text-blue-700 font-medium leading-relaxed">
-                                        Atingindo 5 condomínios validados neste lote, você desbloqueia o <strong>multiplicador de 1.5x</strong> nas comissões de todos os fechamentos do mês subsequente.
+                                        Atingindo {regrasComissao.metaBonus} condomínios validados neste lote, você desbloqueia o <strong>multiplicador de {regrasComissao.multiplicador}x</strong> nas comissões de todos os fechamentos do mês subsequente.
                                     </p>
                                 </div>
                             </div>
@@ -452,7 +478,7 @@ export default function ConsultoriaCondominialPage() {
                                             {vendasLote.length > 0 ? vendasLote.map((item, i) => {
                                                 const isGanho = item.status_crm === 'ganho';
                                                 const isPerdido = item.status_crm === 'perdido';
-                                                const isNegociacao = item.status_crm === 'negociacao' || item.status_crm === 'apresentacao';
+                                                const isNegociacao = item.status_crm === 'negociacao' || item.status_crm === 'apresentacao' || item.status_crm === 'prospeccao';
 
                                                 return (
                                                     <tr key={i} className="group hover:bg-gray-50/50 transition-colors">
@@ -485,9 +511,9 @@ export default function ConsultoriaCondominialPage() {
                                                         </td>
                                                         <td className="px-8 py-6 text-right font-black text-gray-900">
                                                             {isGanho ? (
-                                                                <span className="text-emerald-600">R$ {item.valor_fechado.toFixed(2)}</span>
+                                                                <span className="text-emerald-600">R$ {(item.valor_fechado * regrasComissao.comissaoBase).toFixed(2)}</span>
                                                             ) : isNegociacao ? (
-                                                                <span className="text-gray-400">Proj: R$ {item.valor_projetado.toFixed(2)}</span>
+                                                                <span className="text-gray-400">Proj: R$ {(item.valor_projetado * regrasComissao.comissaoBase).toFixed(2)}</span>
                                                             ) : (
                                                                 <span className="text-gray-300">-</span>
                                                             )}

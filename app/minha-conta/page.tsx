@@ -10,7 +10,7 @@ import {
   KeyRound, Instagram, X,
   Target, Share2, Wallet, Zap, Rocket, LayoutDashboard, Info,
   PieChart, Award, ChartPie, Building2, FileCheck2, CheckCircle2, Settings2, ShieldCheck,
-  Eye, EyeOff, Sparkles, ArrowUpRight, Lock, Send
+  Eye, EyeOff, Sparkles, ArrowUpRight, Lock, Send, Calculator
 } from "lucide-react";
 
 export default function MinhaContaPage() {
@@ -40,6 +40,8 @@ export default function MinhaContaPage() {
   const [condoCnpj, setCondoCnpj] = useState("");
   const [unidadeSindico, setUnidadeSindico] = useState("");
   const [telefoneEmpresarial, setTelefoneEmpresarial] = useState("");
+  // NOVO: Estado para capturar a quantidade de unidades
+  const [quantidadeUnidades, setQuantidadeUnidades] = useState("");
 
   // --- ESTADOS INICIAIS ORIGINAIS (PARA VALIDAÇÃO DE BLOQUEIO) ---
   const [initialCondoNome, setInitialCondoNome] = useState("");
@@ -82,6 +84,13 @@ export default function MinhaContaPage() {
         emailContatoRef.current.focus();
         emailContatoRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
       }
+      return;
+    }
+
+    // Opcional: Validação para garantir que informem unidades
+    if (!quantidadeUnidades || isNaN(Number(quantidadeUnidades)) || Number(quantidadeUnidades) <= 0) {
+      e.preventDefault();
+      alert("Por favor, informe a quantidade aproximada de unidades (Casas/Aptos) do seu condomínio.");
       return;
     }
 
@@ -295,7 +304,7 @@ export default function MinhaContaPage() {
 
         const { data: membro } = await supabase
           .from("condominio_membros")
-          .select("unidade, condominio:condominios(id, nome, cnpj)")
+          .select("unidade, condominio:condominios(id, nome, cnpj)") // IMPORTANTE: Precisamos carregar a quantidade se já existir depois
           .eq("user_id", user.id)
           .maybeSingle();
 
@@ -899,9 +908,13 @@ export default function MinhaContaPage() {
             <input type="hidden" name="nome_usuario_logado" value={nome || 'Não informado'} />
             <input type="hidden" name="email_contato_usuario" value={emailContato || 'Não informado'} />
             <input type="hidden" name="email_conta_supabase" value={email || 'Não informado'} />
+            {/* NOVO: Campo oculto para garantir que as unidades e o cálculo também vão no e-mail principal caso o textarea falhe */}
+            <input type="hidden" name="quantidade_unidades_informadas" value={quantidadeUnidades || 'Não informado'} />
+            <input type="hidden" name="estimativa_faturamento" value={quantidadeUnidades ? `R$ ${(Number(quantidadeUnidades) * 7).toFixed(2)}` : 'N/A'} />
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-6">
-              <div className="space-y-3">
+
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-8 mb-6 items-start">
+              <div className="space-y-3 md:col-span-1">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
                   <span className="flex items-center gap-2"><Building2 size={12} className="text-emerald-600" /> Nome</span>
                 </label>
@@ -914,7 +927,7 @@ export default function MinhaContaPage() {
                   onChange={(e) => handleEmpresarialChange(setCondoNome, e.target.value)}
                 />
               </div>
-              <div className="space-y-3">
+              <div className="space-y-3 md:col-span-1">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
                   <span className="flex items-center gap-2"><FileCheck2 size={12} className="text-emerald-600" /> CNPJ</span>
                 </label>
@@ -927,9 +940,36 @@ export default function MinhaContaPage() {
                   onChange={(e) => handleEmpresarialChange(setCondoCnpj, e.target.value)}
                 />
               </div>
-              <div className="space-y-3">
+
+              {/* NOVO CAMPO: Quantidade de Unidades */}
+              <div className="space-y-3 md:col-span-1">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
-                  <span>Unidade</span>
+                  <span className="flex items-center gap-1.5"><Calculator size={12} className="text-emerald-600" /> Qtd. Unidades</span>
+                </label>
+                <input
+                  type="number"
+                  name="quantidade_unidades"
+                  placeholder="Ex: 12"
+                  min="1"
+                  value={quantidadeUnidades}
+                  className="w-full h-11 px-4 bg-white border border-emerald-200/60 rounded-xl text-xs outline-none transition-all focus:border-emerald-400"
+                  onChange={(e) => handleEmpresarialChange(setQuantidadeUnidades, e.target.value)}
+                />
+
+                {/* O "Uau" visual: Projeção de custo aparece apenas se o número for > 0 */}
+                {quantidadeUnidades && Number(quantidadeUnidades) > 0 && (
+                  <div className="mt-2 bg-emerald-100/50 rounded-lg p-2 flex items-center gap-2 border border-emerald-200/50 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <span className="text-[9px] font-bold text-emerald-800 uppercase tracking-wider">Estimativa x unidade:</span>
+                    <span className="text-[11px] font-black text-emerald-900">
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(quantidadeUnidades) * 7)}/mês
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3 md:col-span-1">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
+                  <span>Unidade Atual</span>
                 </label>
                 <input
                   type="text"
@@ -940,9 +980,9 @@ export default function MinhaContaPage() {
                   onChange={(e) => handleEmpresarialChange(setUnidadeSindico, e.target.value)}
                 />
               </div>
-              <div className="space-y-3">
+              <div className="space-y-3 md:col-span-1">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
-                  <span>Telefone</span>
+                  <span>Telefone (Síndico / Adm)</span>
                 </label>
                 <input
                   type="text"
@@ -959,7 +999,7 @@ export default function MinhaContaPage() {
               name="mensagem_empresarial"
               className="hidden"
               readOnly
-              value={`Solicitação de atualização de dados cadastrais empresariais.\n\n--- DADOS DO USUÁRIO LOGADO ---\nNome do Usuário: ${nome || 'Não informado'}\nE-mail de Contato: ${emailContato || 'Não informado'}\nE-mail da Conta (Auth): ${email || 'Não informado'}\n\n--- DADOS EMPRESARIAIS ---\nNome: ${condoNome || 'Não informado'}\nCNPJ: ${condoCnpj || 'Não informado'}\nUnidade: ${unidadeSindico || 'Não informada'}\nTelefone: ${telefoneEmpresarial || 'Não informado'}`}
+              value={`Solicitação de atualização de dados cadastrais empresariais.\n\n--- DADOS DO USUÁRIO LOGADO ---\nNome do Usuário: ${nome || 'Não informado'}\nE-mail de Contato: ${emailContato || 'Não informado'}\nE-mail da Conta (Auth): ${email || 'Não informado'}\n\n--- DADOS EMPRESARIAIS ---\nNome: ${condoNome || 'Não informado'}\nCNPJ: ${condoCnpj || 'Não informado'}\nQtd. Unidades Totais: ${quantidadeUnidades || 'Não informada'}\nUnidade do Síndico/Gestor: ${unidadeSindico || 'Não informada'}\nTelefone de Contato: ${telefoneEmpresarial || 'Não informado'}\n\n--- ESTIMATIVA FINANCEIRA ---\nFaturamento Base (Qtd * R$7,00): ${quantidadeUnidades ? `R$ ${(Number(quantidadeUnidades) * 7).toFixed(2)}` : 'N/A'}`}
             ></textarea>
 
             <div className="flex flex-col md:flex-row items-center justify-between flex-wrap gap-4 mt-6 text-center md:text-left">

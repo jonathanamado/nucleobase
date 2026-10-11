@@ -548,7 +548,7 @@ function CardPreco({ openPixModal, CheckoutForm }: any) {
 
       <div className="mb-4 bg-blue-50 p-3 rounded-xl border border-blue-100">
         <p className="text-[11px] text-center text-blue-900 leading-tight font-medium">
-          Aproveite <strong>90 dias de degustação</strong> antes da assinatura.
+          Aproveite <strong>45 dias de degustação</strong> antes da assinatura.
         </p>
       </div>
 

@@ -567,9 +567,9 @@ function CardPrecoPro({ openPixModal, CheckoutForm }: any) {
         />
 
         <div className="grid grid-cols-1 gap-2 pt-2">
-          <CheckoutForm lookupKey="pro_trimestral" label="Trimestral - R$ 54,90" description="Trimestral" discount="-12%" className="py-2.5 bg-gray-50 text-gray-500 rounded-lg font-bold text-[9px] hover:bg-gray-100 transition-colors uppercase border border-gray-100" />
+          <CheckoutForm lookupKey="pro_trimestral" label="Trimestral - R$ 53,90" description="Trimestral" discount="-12%" className="py-2.5 bg-gray-50 text-gray-500 rounded-lg font-bold text-[9px] hover:bg-gray-100 transition-colors uppercase border border-gray-100" />
           <CheckoutForm lookupKey="pro_semestral" label="Semestral - R$ 99,90" description="Semestral" discount="-18%" className="py-2.5 bg-gray-50 text-gray-500 rounded-lg font-bold text-[9px] hover:bg-gray-100 transition-colors uppercase border border-gray-100" />
-          <CheckoutForm lookupKey="pro_anual" label="Anual - R$ 189,90" description="Anual" discount="-25%" className="py-2.5 bg-amber-50 text-amber-600 rounded-lg font-bold text-[9px] hover:bg-amber-100 transition-colors uppercase border border-gray-100" />
+          <CheckoutForm lookupKey="pro_anual" label="Anual - R$ 179,90" description="Anual" discount="-25%" className="py-2.5 bg-amber-50 text-amber-600 rounded-lg font-bold text-[9px] hover:bg-amber-100 transition-colors uppercase border border-gray-100" />
         </div>
 
         <div className="flex items-center gap-3 py-4">

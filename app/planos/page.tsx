@@ -2,24 +2,20 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import Link from "next/link";
 import {
   Zap, ShieldCheck, BarChart3, ShoppingCart,
-  CheckCircle2, Star, Gem,
-  QrCode, X, Copy, Check, MessageCircle, Instagram,
+  CheckCircle2, Star, Gem, X, Instagram, Gift,
   ChevronLeft, ChevronRight, Headphones, RefreshCcw, Rocket,
-  AtSign, Key, User, ArrowRight
+  AtSign, Key, User, ArrowRight, ArrowUpRight, Building2, SlidersHorizontal, Calculator
 } from "lucide-react";
 
 export default function PaginaDePlanos() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<{ name: string, price: string, qrCode: string } | null>(null);
-  const [copied, setCopied] = useState(false);
-
   const [currentCardMobile, setCurrentCardMobile] = useState(0);
   const [currentCardDesktop, setCurrentCardDesktop] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Estados de Autenticação In-Page
+  // Estados de Autenticação In-Page (Mantidos para o Banner de Degustação)
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('register');
   const [authEmail, setAuthEmail] = useState('');
@@ -27,13 +23,18 @@ export default function PaginaDePlanos() {
   const [authName, setAuthName] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [pendingAction, setPendingAction] = useState<{ href?: string } | null>(null);
 
-  // Armazena a ação que o usuário tentou fazer antes de logar
-  const [pendingAction, setPendingAction] = useState<{ lookupKey?: string, href?: string } | null>(null);
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  // Estados do Slider de Condomínio - COMEÇA EM 12
+  const [condoUnits, setCondoUnits] = useState<number>(12);
 
-  const PIX_KEY = "contato@nucleobase.app";
-  const WHATSAPP_LINK_ID = "q46hkm";
+  // CORREÇÃO: Substituímos o wa.link pelo número direto para permitir texto dinâmico.
+  // Coloque o número oficial da Nucleobase aqui (com 55, DDD e Número).
+  const WHATSAPP_PHONE = "5531971078832";
+
+  // Lógica de cálculo do condomínio: Piso de R$ 69,90 ou (Unidades * R$ 7,00)
+  const condoPriceNumber = Math.max(69.90, condoUnits * 7);
+  const condoPriceFormatted = condoPriceNumber.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   useEffect(() => {
     window.dataLayer?.push({
@@ -77,32 +78,16 @@ export default function PaginaDePlanos() {
   const nextCardDesktop = () => setCurrentCardDesktop((prev) => (prev >= diferenciais.length - 2 ? 0 : prev + 2));
   const prevCardDesktop = () => setCurrentCardDesktop((prev) => (prev <= 0 ? diferenciais.length - 2 : prev - 2));
 
-  const openPixModal = (name: string, price: string, qrCode: string) => {
-    setSelectedPlan({ name, price, qrCode });
-    setIsModalOpen(true);
-    trackClick(`Abrir Modal PIX - ${name}`, "modal_pix");
-  };
-
-  const handleCopyPix = () => {
-    navigator.clipboard.writeText(PIX_KEY);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleSendProof = () => {
-    const message = encodeURIComponent(`Olá! Realizei o pagamento via PIX do plano ${selectedPlan?.name} (${selectedPlan?.price}). Segue o comprovante em anexo.`);
-    window.open(`https://wa.link/${WHATSAPP_LINK_ID}?text=${message}`, '_blank');
+  // CORREÇÃO: Utilizando a API oficial wa.me para enviar a mensagem dinâmica
+  const handleCondoContact = () => {
+    const message = encodeURIComponent(`Olá! Tenho interesse no plano Nucleo Condo para ${condoUnits} unidades. Em sua página oficial, consta o investimento estimado de ${condoPriceFormatted}/mês. Gostaria de personalizar meu acesso. Aguardo seu retorno. Atenciosamente,`);
+    trackClick(`WhatsApp Condo - ${condoUnits} Unidades`, "whatsapp");
+    window.open(`https://wa.me/${WHATSAPP_PHONE}?text=${message}`, '_blank');
   };
 
   // Funções Auxiliares de Cadastro
   const formatarSlug = (texto: string) => {
-    return texto
-      .toLowerCase()
-      .trim()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/[^\w-]+/g, '');
+    return texto.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
   };
 
   const enviarNotificacaoAdm = async (nomeNovo: string, emailNovo: string) => {
@@ -112,95 +97,13 @@ export default function PaginaDePlanos() {
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
           access_key: "9ef5a274-150a-4664-a885-0b052efd06f7",
-          subject: "🚀 Novo Cadastro na Nucleobase (Planos)!",
+          subject: "🚀 Novo Cadastro na Nucleobase (Planos - Degustação)!",
           message: `O usuário ${nomeNovo || "Anônimo"} se cadastrou na página de planos.\nE-mail: ${emailNovo}`
         }),
       });
     } catch (e) { console.error("Erro Web3Forms:", e); }
   };
 
-  const enviarOnboardingUsuario = async (nomeUsuario: string, emailDestino: string) => {
-    try {
-      const res = await fetch("/api/send", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nome: nomeUsuario || "Investidor(a)",
-          email: emailDestino,
-        }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        console.error("Erro na rota de e-mail:", errorData);
-      }
-    } catch (e) {
-      console.error("Erro ao conectar com a API interna:", e);
-    }
-  };
-
-  // Processa o Checkout no Stripe com Interceptação de Erro
-  const processStripeCheckout = async (lookupKey: string) => {
-    setLoadingPlan(lookupKey);
-    trackClick(`Processando Stripe (${lookupKey})`, "/api/stripe");
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-
-      // Interceptação 1: Sessão local não encontrada
-      if (!token) {
-        setIsLoggedIn(false);
-        setPendingAction({ lookupKey });
-        setAuthMode('register');
-        setShowAuthModal(true);
-        setLoadingPlan(null);
-        return;
-      }
-
-      const response = await fetch("/api/stripe", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ lookup_key: lookupKey }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        // Interceptação 2: API rejeitou o token/acesso (Erro 401 ou mensagem explícita)
-        if (response.status === 401 || (data.error && data.error.includes("Usuário não autenticado"))) {
-          setIsLoggedIn(false);
-          setPendingAction({ lookupKey });
-          setAuthMode('login');
-          setShowAuthModal(true);
-          setLoadingPlan(null);
-          return;
-        }
-
-        alert(data.error || "Erro ao processar assinatura.");
-        setLoadingPlan(null);
-        return;
-      }
-
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert("URL de checkout não retornada.");
-        setLoadingPlan(null);
-      }
-    } catch (error) {
-      console.error("Erro na comunicação com a Stripe:", error);
-      alert("Erro de conexão com o servidor. Tente novamente.");
-      setLoadingPlan(null);
-    }
-  };
-
-  // Submissão do Modal de Autenticação In-Page
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthLoading(true);
@@ -229,64 +132,31 @@ export default function PaginaDePlanos() {
             });
           }
 
-          await supabase.from('profiles').upsert([
-            {
-              id: authData.user.id,
-              email: emailFinal,
-              email_contato: emailFinal,
-              nome_completo: nomeFinal,
-              plan_type: 'free',
-              slug: slugFinal
-            }
-          ]);
+          await supabase.from('profiles').upsert([{
+            id: authData.user.id, email: emailFinal, email_contato: emailFinal, nome_completo: nomeFinal, plan_type: 'free', slug: slugFinal
+          }]);
 
           try {
-            await supabase.from('usuarios').upsert([
-              {
-                id: authData.user.id,
-                email: emailFinal,
-                nome_completo: nomeFinal
-              }
-            ]);
-          } catch (err) {
-            console.warn("Aviso na tabela usuarios:", err);
-          }
+            await supabase.from('usuarios').upsert([{ id: authData.user.id, email: emailFinal, nome_completo: nomeFinal }]);
+          } catch (err) { console.warn("Aviso na tabela usuarios:", err); }
 
           await enviarNotificacaoAdm(nomeFinal, emailFinal);
-          await enviarOnboardingUsuario(nomeFinal, emailFinal);
-
           const indicadorId = localStorage.getItem("nucleobase_referral_id");
           if (indicadorId && indicadorId !== authData.user.id) {
-            await supabase.from("indicacoes").insert([
-              { indicador_id: indicadorId, indicado_id: authData.user.id, status: 'pendente' }
-            ]);
+            await supabase.from("indicacoes").insert([{ indicador_id: indicadorId, indicado_id: authData.user.id, status: 'pendente' }]);
             localStorage.removeItem("nucleobase_referral_id");
-          }
-
-          if (typeof window !== "undefined") {
-            window.dataLayer = window.dataLayer || [];
-            window.dataLayer.push({
-              event: "user_signed_up",
-              method: "in_page_modal"
-            });
           }
         }
       } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: authEmail,
-          password: authPassword
-        });
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
         if (signInError) throw signInError;
       }
 
       setIsLoggedIn(true);
       setShowAuthModal(false);
 
-      // Retoma automaticamente a ação do usuário
       if (pendingAction?.href) {
         window.location.href = pendingAction.href;
-      } else if (pendingAction?.lookupKey) {
-        await processStripeCheckout(pendingAction.lookupKey);
       }
       setPendingAction(null);
 
@@ -297,72 +167,22 @@ export default function PaginaDePlanos() {
     }
   };
 
-  const CheckoutForm = ({
-    lookupKey,
-    label,
-    className,
-    description,
-    href,
-    discount
-  }: {
-    lookupKey: string,
-    label: React.ReactNode,
-    className?: string,
-    description: string,
-    href?: string,
-    discount?: string
-  }) => {
-    const isCurrentlyLoading = loadingPlan === lookupKey;
-
-    const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.preventDefault();
-
-      if (!isLoggedIn) {
-        setPendingAction({ lookupKey, href });
-        setAuthMode('register');
-        setShowAuthModal(true);
-        trackClick(`Intercepção Auth - ${description}`, "auth_modal");
-        return;
-      }
-
-      if (href) {
-        trackClick(`Plano: ${description} (${lookupKey})`, href);
-        window.location.href = href;
-        return;
-      }
-
-      await processStripeCheckout(lookupKey);
-    };
-
-    return (
-      <button
-        onClick={handleClick}
-        disabled={isCurrentlyLoading}
-        title={description}
-        className={`${className} cursor-pointer transition-transform active:scale-[0.98] flex items-center justify-center gap-2 w-full disabled:opacity-50`}
-      >
-        {isCurrentlyLoading ? "Aguarde..." : label}
-        {discount && !isCurrentlyLoading && (
-          <span className="bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5 rounded text-[8px] font-black">
-            {discount}
-          </span>
-        )}
-      </button>
-    );
-  };
+  // SVG WhatsApp Icon Inline
+  const WhatsAppIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+      <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c-.003 1.396.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c.003-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232" />
+    </svg>
+  );
 
   return (
     <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
 
-      {/* MODAL DE AUTENTICAÇÃO IN-PAGE */}
+      {/* MODAL DE AUTENTICAÇÃO IN-PAGE (Usado para o Banner de Degustação) */}
       {showAuthModal && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
           <div className="bg-white rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 relative border border-slate-100">
             <button
-              onClick={() => {
-                setShowAuthModal(false);
-                setPendingAction(null);
-              }}
+              onClick={() => { setShowAuthModal(false); setPendingAction(null); }}
               className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-900 transition-colors cursor-pointer z-10"
             >
               <X size={20} />
@@ -377,112 +197,37 @@ export default function PaginaDePlanos() {
               </h3>
               <p className="text-slate-500 text-xs font-medium text-center mb-8 max-w-[260px] leading-relaxed">
                 {authMode === 'register'
-                  ? 'Cadastre-se rapidamente para prosseguir com a ativação do seu plano.'
-                  : 'Insira suas credenciais para continuar com a assinatura.'}
+                  ? 'Cadastre-se rapidamente para iniciar seu período de degustação.'
+                  : 'Insira suas credenciais para acessar seu painel.'}
               </p>
 
               <form onSubmit={handleAuthSubmit} className="w-full space-y-3">
                 {authMode === 'register' && (
                   <div className="relative group">
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={16} />
-                    <input
-                      type="text"
-                      placeholder="Seu nome completo"
-                      required
-                      value={authName}
-                      onChange={(e) => setAuthName(e.target.value)}
-                      className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium"
-                    />
+                    <input type="text" placeholder="Seu nome completo" required value={authName} onChange={(e) => setAuthName(e.target.value)} className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium" />
                   </div>
                 )}
-
                 <div className="relative group">
                   <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={16} />
-                  <input
-                    type="email"
-                    placeholder="E-mail de acesso"
-                    required
-                    value={authEmail}
-                    onChange={(e) => setAuthEmail(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium"
-                  />
+                  <input type="email" placeholder="E-mail de acesso" required value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium" />
                 </div>
-
                 <div className="relative group">
                   <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={16} />
-                  <input
-                    type="password"
-                    placeholder="Sua senha segura"
-                    required
-                    value={authPassword}
-                    onChange={(e) => setAuthPassword(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium"
-                  />
+                  <input type="password" placeholder="Sua senha segura" required value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium" />
                 </div>
+                {authError && <p className="text-[10px] font-bold text-red-500 bg-red-50 border border-red-100 p-3 rounded-xl text-center mt-2">{authError}</p>}
 
-                {authError && (
-                  <p className="text-[10px] font-bold text-red-500 bg-red-50 border border-red-100 p-3 rounded-xl text-center mt-2">
-                    {authError}
-                  </p>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={authLoading}
-                  className="w-full bg-blue-600 text-white py-4 rounded-xl font-black hover:bg-blue-700 transition-all text-[11px] uppercase tracking-widest shadow-lg shadow-blue-600/20 disabled:opacity-50 mt-4 flex justify-center items-center gap-2 cursor-pointer"
-                >
+                <button type="submit" disabled={authLoading} className="w-full bg-blue-600 text-white py-4 rounded-xl font-black hover:bg-blue-700 transition-all text-[11px] uppercase tracking-widest shadow-lg shadow-blue-600/20 disabled:opacity-50 mt-4 flex justify-center items-center gap-2 cursor-pointer">
                   {authLoading ? "Aguarde..." : (authMode === 'register' ? "Validar e Continuar" : "Entrar e Continuar")}
                   {!authLoading && <ArrowRight size={16} />}
                 </button>
               </form>
 
               <div className="mt-6 text-center">
-                <button
-                  type="button"
-                  onClick={() => setAuthMode(authMode === 'register' ? 'login' : 'register')}
-                  className="text-xs font-bold text-slate-500 hover:text-blue-600 transition-colors cursor-pointer"
-                >
+                <button type="button" onClick={() => setAuthMode(authMode === 'register' ? 'login' : 'register')} className="text-xs font-bold text-slate-500 hover:text-blue-600 transition-colors cursor-pointer">
                   {authMode === 'register' ? 'Já tem uma conta? Faça login' : 'Não tem conta? Cadastre-se'}
                 </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL PIX */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 relative">
-            <div className="p-8 flex flex-col items-center text-center">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-900 transition-colors cursor-pointer"
-              >
-                <X size={24} />
-              </button>
-              <div className="bg-blue-50 p-4 rounded-full text-blue-600 mb-6">
-                <QrCode size={40} />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Pagamento via PIX</h3>
-              <p className="text-gray-500 mb-6">
-                Plano <span className="font-bold text-blue-600">{selectedPlan?.name}</span> por <span className="font-bold text-gray-900">{selectedPlan?.price}</span>
-              </p>
-              <div className="bg-white p-4 rounded-3xl mb-6 shadow-inner border border-gray-100">
-                <img src={`/${selectedPlan?.qrCode}`} alt="QR Code Pix" className="w-48 h-48 object-contain" />
-              </div>
-              <div className="w-full space-y-3">
-                <div className="relative group">
-                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">Chave E-mail:</p>
-                  <button onClick={handleCopyPix} className="w-full py-4 bg-gray-50 border-2 border-dashed border-gray-200 text-gray-700 rounded-2xl font-mono text-sm flex items-center justify-center gap-3 hover:border-blue-400 hover:bg-white transition-all active:scale-95 cursor-pointer">
-                    {PIX_KEY}
-                    {copied ? <Check size={18} className="text-emerald-500" /> : <Copy size={18} className="text-gray-400" />}
-                  </button>
-                </div>
-                <button onClick={handleSendProof} className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-200 active:scale-95 cursor-pointer">
-                  <MessageCircle size={20} /> Enviar Comprovante
-                </button>
-                <p className="text-[11px] text-gray-400 font-medium uppercase tracking-widest pt-2">A liberação ocorre após validação manual.</p>
               </div>
             </div>
           </div>
@@ -502,133 +247,172 @@ export default function PaginaDePlanos() {
         </div>
       </div>
 
-      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
-        Níveis de Acesso <div className="h-px bg-gray-200 flex-1"></div>
-      </h3>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch mb-16">
-
-        {/* CARD EXPERIÊNCIA / GRATUITO */}
-        <div className="bg-slate-50 border border-slate-200 rounded-[2.5rem] p-10 flex flex-col transition-all hover:border-blue-200 relative group overflow-hidden">
-          <div className="relative z-10 flex-grow">
-            <div className="flex items-center gap-2 text-blue-600 font-bold text-[10px] uppercase tracking-[0.2em] mb-8">
-              <Rocket size={18} className="text-blue-600" /> Uso pessoal
-            </div>
-            <h3 className="text-3xl font-bold text-slate-900 mb-2 leading-tight">90 Dias de Experiência</h3>
-            <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">Conheça e valide. Período de degustação completo para seu controle financeiro.</p>
-            <ul className="space-y-4 mb-10">
-              {["Registros ilimitados", "Lançamentos online", "Painel de Resultados"].map((v, i) => (
-                <li key={i} className="flex items-center gap-3 text-slate-600 text-sm font-medium">
-                  <CheckCircle2 size={16} className="text-blue-500" /> {v}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="relative z-10">
-            <a
-              href={isLoggedIn ? "/acesso-usuario" : "#"}
-              onClick={(e) => {
-                e.preventDefault();
-                if (!isLoggedIn) {
-                  setPendingAction({ href: "/acesso-usuario" });
-                  setAuthMode('register');
-                  setShowAuthModal(true);
-                  trackClick("Intercepção Auth - Degustação", "auth_modal");
-                } else {
-                  trackClick("Começar Degustação", "/acesso-usuario");
-                  window.location.href = "/acesso-usuario";
-                }
-              }}
-              className="block w-full py-4 bg-white border border-slate-200 text-slate-900 text-center rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all shadow-sm cursor-pointer"
-            >
-              Começar Degustação
-            </a>
-          </div>
-          <Zap className="absolute -bottom-10 -right-10 text-slate-200/50 w-40 h-40 -rotate-12 group-hover:rotate-0 transition-transform duration-700" />
+      {/* BALÃO DE DEGUSTAÇÃO */}
+      <div className="w-full bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 rounded-[2rem] p-6 md:p-8 mb-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl relative overflow-hidden border border-blue-700/50">
+        <div className="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
+          <Zap size={180} />
         </div>
-
-        {/* PLANO ESSENCIAL */}
-        <div className="bg-white border border-slate-200 rounded-[2.5rem] p-10 shadow-sm hover:shadow-xl transition-all flex flex-col border-b-4 border-b-transparent hover:border-b-blue-600">
-          <div className="flex-grow">
-            <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mb-8">
-              <Star size={18} className="fill-blue-600 text-blue-600 animate-pulse scale-110" /> Uso Pessoal
-            </div>
-            <h3 className="text-3xl font-bold text-slate-900 mb-4">Essencial</h3>
-            <div className="flex flex-col mb-6">
-              <span className="text-4xl font-black text-slate-900 tracking-tighter">R$ 9,90</span>
-              <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">/mês</span>
-            </div>
-
-            <div className="mb-6 bg-blue-50 p-2.5 rounded-xl border border-blue-100">
-              <p className="text-[10px] text-center text-blue-900 leading-tight font-medium">
-                Aproveite <strong>90 dias de degustação</strong>.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2 mb-8">
-              <CheckoutForm lookupKey="essencial_trimestral" label={<span className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-1"><span>Trim.</span> <span>-9%</span></span>} description="Trimestral" className="w-full py-2 bg-slate-50 border border-slate-100 text-slate-600 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white hover:border-slate-300 transition-all text-center leading-tight" />
-              <CheckoutForm lookupKey="essencial_semestral" label={<span className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-1"><span>Semest.</span> <span>-15%</span></span>} description="Semestral" className="w-full py-2 bg-slate-50 border border-slate-100 text-slate-600 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white hover:border-slate-300 transition-all text-center leading-tight" />
-              <CheckoutForm lookupKey="essencial_anual" label={<span className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-1"><span>Anual</span> <span>-24%</span></span>} description="Anual" className="w-full py-2 bg-blue-50 border border-blue-100 text-blue-600 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-blue-600 hover:text-white transition-all text-center leading-tight" />
-            </div>
-
-            <ul className="space-y-4 mb-6">
-              {["Fidelidade Zero", "Multi-dispositivos", "Suporte via Base"].map((v, i) => (
-                <li key={i} className="flex items-center gap-3 text-slate-600 text-sm font-medium">
-                  <CheckCircle2 size={16} className="text-emerald-500" /> {v}
-                </li>
-              ))}
-            </ul>
+        <div className="flex items-center gap-5 relative z-10 w-full md:w-auto">
+          <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-blue-200 shrink-0 border border-white/10 backdrop-blur-sm">
+            <Gift size={28} />
           </div>
-          <div className="mt-auto">
-            <CheckoutForm lookupKey="essencial_mensal" label="Veja mais detalhes" href="/planos/essencial" description="Veja mais detalhes do Plano Essencial" className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-blue-600 transition-all shadow-sm" />
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="bg-blue-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-md tracking-wider">Boas vindas</span>
+            </div>
+            <h3 className="text-white font-bold text-lg leading-tight">Período de Degustação</h3>
+
+            {/* Texto Condicional Desktop/Mobile */}
+            <p className="hidden md:block text-blue-200 text-xs font-medium mt-1">Conheça e valide a plataforma com <strong className="text-white font-bold">45 dias gratuitos</strong> dependendo do plano escolhido.</p>
+            <p className="md:hidden text-blue-200 text-xs font-medium mt-1">Para uso &apos;pessoal&apos;, conheça e valide a plataforma.</p>
+
           </div>
         </div>
-
-        {/* PLANO PRO */}
-        <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-10 shadow-2xl flex flex-col relative overflow-hidden group transition-all border-b-4 border-b-transparent hover:border-b-orange-500">
-          <div className="relative z-10 flex-grow">
-            <div className="flex items-center justify-center gap-3 w-full mb-8">
-              <div className="px-3 py-1 text-center rounded-full bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest">
-                Acesso Empresarial
-              </div>
-              <div className="px-3 py-1 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-[0_0_15px_rgba(249,115,22,0.5)]">
-                <Zap size={12} className="fill-white" /> Recomendado
-              </div>
-            </div>
-            <h3 className="text-3xl font-bold text-white mb-4">Plano Pro</h3>
-            <div className="flex flex-col mb-6">
-              <span className="text-4xl font-black text-white tracking-tighter">R$ 19,90</span>
-              <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-1">/mês</span>
-            </div>
-
-            <div className="mb-6 bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20">
-              <p className="text-[10px] text-center text-amber-300 leading-tight font-medium">
-                Aproveite <strong>45 dias de degustação</strong>.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2 mb-8">
-              <CheckoutForm lookupKey="pro_trimestral" label={<span className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-1"><span>Trim.</span> <span>-12%</span></span>} description="Trimestral" className="w-full py-2 bg-white/5 border border-white/10 text-slate-300 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white/10 transition-all text-center leading-tight" />
-              <CheckoutForm lookupKey="pro_semestral" label={<span className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-1"><span>Semest.</span> <span>-18%</span></span>} description="Semestral" className="w-full py-2 bg-white/5 border border-white/10 text-slate-300 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-white/10 transition-all text-center leading-tight" />
-              <CheckoutForm lookupKey="pro_anual" label={<span className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-1"><span>Anual</span> <span>-25%</span></span>} description="Anual" className="w-full py-2 bg-white text-slate-900 rounded-lg text-[9px] font-bold uppercase tracking-tighter hover:bg-blue-400 hover:text-white transition-all text-center leading-tight" />
-            </div>
-
-            <ul className="space-y-4 mb-6">
-              {["Importação via arquivo", "Integração Contínua", "+ Módulos Empresas"].map((v, i) => (
-                <li key={i} className="flex items-center gap-3 text-slate-300 text-sm font-medium">
-                  <CheckCircle2 size={16} className="text-blue-400" /> {v}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="relative z-10 mt-auto">
-            <CheckoutForm lookupKey="pro_mensal" label="Conheça todas as vantagens" href="/planos/pro" description="Conheça todas as vantagens de um Plano Pro" className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-blue-500 transition-all shadow-lg shadow-blue-900/40" />
-          </div>
-          <div className="absolute -right-20 -top-20 w-80 h-80 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none group-hover:bg-blue-600/20 transition-all duration-700"></div>
+        <div className="relative z-10 w-full md:w-auto shrink-0">
+          <button
+            onClick={() => {
+              if (!isLoggedIn) {
+                setPendingAction({ href: "/acesso-usuario" });
+                setAuthMode('register');
+                setShowAuthModal(true);
+                trackClick("Intercepção Auth - Degustação Banner", "auth_modal");
+              } else {
+                trackClick("Começar Degustação Banner", "/acesso-usuario");
+                window.location.href = "/acesso-usuario";
+              }
+            }}
+            className="w-full md:w-auto px-8 py-4 bg-white text-blue-900 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-blue-50 transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+          >
+            Começar Gratuitamente <ArrowRight size={14} />
+          </button>
         </div>
       </div>
 
-      <div className="w-full h-px bg-gray-200 mt-20 mb-10"></div>
+      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
+        Níveis de Acesso <div className="h-px bg-gray-200 flex-1"></div>
+      </h3>
+
+      {/* 2 PILARES PRINCIPAIS */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch mb-16">
+
+        {/* PILAR 1: USO PESSOAL (Essencial & Pro) */}
+        <div className="bg-white border border-slate-200 rounded-[2.5rem] p-10 shadow-sm hover:shadow-xl transition-all flex flex-col border-b-4 border-b-transparent hover:border-b-blue-600 relative overflow-hidden">
+          <div className="flex-grow relative z-10">
+            <div className="flex items-center gap-2 text-blue-600 font-bold text-[10px] uppercase tracking-[0.2em] mb-8">
+              <User size={18} className="text-blue-600" /> Uso Pessoal
+            </div>
+
+            {/* Título Modificado: Opções Essencial & Pro */}
+            <h3 className="text-3xl font-bold text-slate-900 mb-3"><span className="text-gray-300 font-light">Opções</span> Essencial <span className="text-gray-300 font-light">&</span> Pro</h3>
+
+            <p className="text-slate-500 text-sm font-medium mb-6 leading-relaxed">Controle financeiro sob medida para pessoas físicas e famílias. Escolha a profundidade que sua gestão exige.</p>
+
+            <div className="flex flex-col mb-8">
+              <span className="text-3xl font-black text-slate-900 tracking-tighter">De R$ 9,90 a R$ 19,90</span>
+              <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">/mês (Descontos progressivos em planos de 3 a 12 meses)</span>
+            </div>
+
+            <ul className="space-y-4 mb-10">
+              <li className="flex items-start gap-3 text-slate-600 text-sm font-medium">
+                <CheckCircle2 size={18} className="text-emerald-500 shrink-0 mt-0.5" />
+                <span><strong className="text-gray-900">Essencial:</strong> Ideal para lançamentos manuais precisos, fidelidade zero e multi-dispositivos.</span>
+              </li>
+              <li className="flex items-start gap-3 text-slate-600 text-sm font-medium">
+                <Gem size={18} className="text-amber-500 shrink-0 mt-0.5" />
+                <span><strong className="text-gray-900">Pro:</strong> Sincronização automática, suporte prioritário e conexão online com arquivos D-1.</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-auto relative z-10">
+            <Link href="/planos/essencial" className="w-full py-4 bg-gray-50 border border-gray-200 text-gray-700 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-gray-100 hover:text-blue-600 transition-all text-center">
+              Experimente o Plano Essencial
+            </Link>
+            <Link href="/planos/pro" className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-md shadow-blue-600/20 text-center flex items-center justify-center gap-1.5">
+              Avance mais com o Plano Pro <ArrowUpRight size={14} />
+            </Link>
+          </div>
+          <div className="absolute -right-20 -top-20 w-64 h-64 bg-blue-50 rounded-full blur-[80px] pointer-events-none"></div>
+        </div>
+
+        {/* PILAR 2: NUCLEO CONDO (Slider Dinâmico) */}
+        <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-10 shadow-2xl flex flex-col relative overflow-hidden group transition-all border-b-4 border-b-transparent hover:border-b-amber-500">
+          <div className="absolute top-0 right-0 bg-amber-500 text-white px-5 py-1.5 rounded-bl-2xl font-black text-[9px] uppercase tracking-widest shadow-lg">
+            Empresas
+          </div>
+
+          <div className="flex-grow relative z-10">
+            <div className="flex items-center gap-2 text-amber-500 font-bold text-[10px] uppercase tracking-[0.2em] mb-8">
+              <Building2 size={18} /> Condomínios
+            </div>
+            <h3 className="text-3xl font-bold text-white mb-3">Nucleo Condo</h3>
+            <p className="text-slate-400 text-sm font-medium mb-8 leading-relaxed">Gestão transparente e prestação de contas automatizada. O valor se adapta ao tamanho do seu condomínio.</p>
+
+            {/* CALCULADORA / SLIDER */}
+            <div className="bg-slate-800/60 p-6 rounded-2xl border border-slate-700/50 mb-8 backdrop-blur-sm">
+              <div className="flex justify-between items-end mb-4">
+                <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                  <SlidersHorizontal size={14} /> Unidades (Casas/Aptos)
+                </span>
+                <span className="text-3xl font-black text-white">{condoUnits}</span>
+              </div>
+
+              <div className="relative pt-2 pb-4">
+                <input
+                  type="range"
+                  min="1"
+                  max="300"
+                  value={condoUnits}
+                  onChange={(e) => setCondoUnits(Number(e.target.value))}
+                  className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500 transition-all"
+                  style={{
+                    background: `linear-gradient(to right, #f59e0b 0%, #f59e0b ${(condoUnits / 300) * 100}%, #334155 ${(condoUnits / 300) * 100}%, #334155 100%)`
+                  }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between mt-2 pt-4 border-t border-slate-700/50">
+                <div className="flex flex-col">
+                  <span className="text-[9px] text-amber-500 font-bold uppercase tracking-widest mb-1 flex items-center gap-1">
+                    <Calculator size={10} /> Investimento Estimado
+                  </span>
+                  <span className="text-2xl font-black text-white tracking-tighter">
+                    {condoPriceFormatted}
+                  </span>
+                </div>
+                <div className="text-right flex flex-col">
+                  <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Base de cálculo</span>
+                  <span className="text-xs font-medium text-slate-400">R$ 7,00/unidade habitacional</span>
+                </div>
+              </div>
+            </div>
+
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-2 mb-8">
+              {["Painel de Síndico", "App para Moradores", "Módulo Inadimplência", "Rateio Automático"].map((v, i) => (
+                <li key={i} className="flex items-center gap-2 text-slate-300 text-xs font-medium">
+                  <CheckCircle2 size={14} className="text-amber-500 shrink-0" /> {v}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="mt-auto relative z-10">
+            {/* Botão Modificado com Ícone do WhatsApp */}
+            <button
+              onClick={handleCondoContact}
+              className="w-full py-4 bg-amber-500 text-white rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Headphones size={16} /> Personalizar Plano <WhatsAppIcon />
+            </button>
+            <p className="text-center text-[10px] text-slate-500 font-medium mt-4">
+              Fale com um consultor para fechar negócio e gerar nota fiscal.
+            </p>
+          </div>
+          <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none group-hover:bg-amber-500/20 transition-all duration-700"></div>
+        </div>
+      </div>
+
+      <div className="w-full h-px bg-gray-200 mt-10 mb-10"></div>
 
       <div className="mb-12">
         <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 mb-2">Por que somos diferentes?</h4>
