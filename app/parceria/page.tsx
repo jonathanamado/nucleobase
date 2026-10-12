@@ -6,7 +6,6 @@ import {
   Handshake,
   Target,
   Globe,
-  BarChart,
   Rocket,
   CheckCircle,
   ArrowRight,
@@ -14,7 +13,9 @@ import {
   Zap,
   Instagram,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Building2,
+  Star
 } from "lucide-react";
 
 export default function ParceirosPage() {
@@ -54,28 +55,34 @@ export default function ParceirosPage() {
       title: "Afiliados Digitais",
       desc: "Divulgue a plataforma em seus canais e receba comissões recorrentes por cada nova assinatura convertida.",
       icon: <Target size={24} />,
-      badge: "Performance",
+      badgeDesktop: "Performance",
+      badgeMobile: "Performance",
       color: "text-emerald-600",
       bg: "bg-emerald-50",
-      link: "/indique"
-    },
-    {
-      title: "Consultores & Contadores",
-      desc: "Ofereça a Nucleobase como a ferramenta oficial para seus clientes e tenha um dashboard de controle centralizado.",
-      icon: <BarChart size={24} />,
-      badge: "Em desenvolvimento",
-      color: "text-gray-400",
-      bg: "bg-gray-50",
-      disabled: true
+      link: "/indique",
+      isDestaque: false
     },
     {
       title: "Integração & Tech",
       desc: "Conecte seu software à nossa API e crie uma solução financeira embarcada para seus próprios usuários.",
       icon: <Globe size={24} />,
-      badge: "Em desenvolvimento",
-      color: "text-gray-400",
-      bg: "bg-gray-50",
-      disabled: true
+      badgeDesktop: "Tecnologia",
+      badgeMobile: "Tech",
+      color: "text-blue-600",
+      bg: "bg-blue-50",
+      link: "/parceria/tecnologia",
+      isDestaque: false
+    },
+    {
+      title: "Consultoria Condominial",
+      desc: "Oportunidade de Ouro: simplifique suas vendas com o nosso CRM. Acompanhe propostas, negociações e garanta comissões e receita recorrente com total previsibilidade.",
+      icon: <Building2 size={24} />,
+      badgeDesktop: "Produto Principal",
+      badgeMobile: "Em Alta",
+      color: "text-amber-600",
+      bg: "bg-amber-50",
+      link: "/resultados-consultoria/consultoria-condominial",
+      isDestaque: true
     }
   ];
 
@@ -115,7 +122,7 @@ export default function ParceirosPage() {
         {/* MÉTRICAS RÁPIDAS - CENTRALIZADAS NO MOBILE */}
         <div className="flex gap-3 mt-4 md:mt-0 justify-center md:justify-end">
           <div className="px-4 py-2 bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col items-center justify-center min-w-[100px]">
-            <h4 className="text-xl font-black text-gray-900 leading-tight">20%</h4>
+            <h4 className="text-xl font-black text-gray-900 leading-tight">15% +</h4>
             <p className="text-[7px] text-gray-400 font-black uppercase tracking-widest">Comissão</p>
           </div>
           <div className="px-4 py-2 bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col items-center justify-center min-w-[100px]">
@@ -139,43 +146,78 @@ export default function ParceirosPage() {
         )}
 
         <div className="w-full md:grid md:grid-cols-3 gap-8 flex items-stretch justify-center">
-          {frentes.map((frente, idx) => (
-            <div key={idx} className={`h-auto md:h-full flex-1 ${cardAtivo === idx ? 'flex animate-in fade-in zoom-in-95 duration-300' : 'hidden'} md:flex md:animate-none`}>
-              {frente.link ? (
+          {frentes.map((frente, idx) => {
+            const isDestaque = frente.isDestaque;
+
+            return (
+              <div key={idx} className={`h-auto md:h-full flex-1 ${cardAtivo === idx ? 'flex animate-in fade-in zoom-in-95 duration-300' : 'hidden'} md:flex md:animate-none`}>
                 <Link
                   href={frente.link}
                   onClick={() => trackClick(`Parceria - ${frente.title}`, frente.link)}
-                  className="block w-full group bg-white p-10 rounded-[3rem] border border-gray-100 hover:border-emerald-200 hover:shadow-2xl hover:shadow-emerald-500/5 transition-all duration-500 relative overflow-hidden cursor-pointer"
+                  className={`block w-full group p-10 rounded-[3rem] transition-all duration-500 relative overflow-hidden cursor-pointer flex flex-col justify-between
+                    ${isDestaque
+                      ? "bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 text-white shadow-xl shadow-amber-500/20 md:-translate-y-2 md:scale-[1.02] border border-amber-400 z-10"
+                      : "bg-white border border-gray-100 hover:border-blue-200 hover:shadow-2xl hover:shadow-blue-500/5 text-gray-900"
+                    }
+                  `}
                 >
-                  <div className={`mb-8 w-16 h-16 ${frente.bg} ${frente.color} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
-                    {frente.icon}
+                  {/* Efeito luminoso de fundo para o destaque */}
+                  {isDestaque && (
+                    <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/20 rounded-full blur-2xl pointer-events-none group-hover:bg-white/30 transition-all duration-700"></div>
+                  )}
+
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-8">
+                      {/* ÍCONE */}
+                      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm
+                        ${isDestaque ? "bg-white/20 text-white backdrop-blur-sm" : `${frente.bg}${frente.color}`}
+                      `}>
+                        {isDestaque ? <Building2 size={24} /> : frente.icon}
+                      </div>
+
+                      {/* BADGE */}
+                      <span className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full whitespace-nowrap
+                        ${isDestaque ? "bg-white/20 text-white backdrop-blur-sm shadow-sm" : "text-emerald-600 bg-emerald-50"}
+                      `}>
+                        {isDestaque && <Star size={10} className="fill-white shrink-0" />}
+                        {frente.badgeDesktop}
+                      </span>
+                    </div>
+
+                    <h3 className={`text-2xl font-bold mb-4 tracking-tight flex items-center gap-2
+                      ${isDestaque ? "text-white" : "text-gray-900"}
+                    `}>
+                      {frente.title} <ArrowRight size={20} className={`${isDestaque ? "text-amber-100" : "text-emerald-500"} opacity-0 group-hover:opacity-100 transition-all`} />
+                    </h3>
+
+                    <p className={`text-base leading-relaxed mb-0 font-medium italic
+                      ${isDestaque ? "text-amber-50" : "text-gray-500"}
+                    `}>
+                      {frente.desc}
+                    </p>
                   </div>
-                  <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-4 block">
-                    {frente.badge}
-                  </span>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4 tracking-tight flex items-center gap-2">
-                    {frente.title} <ArrowRight size={20} className="text-emerald-500 opacity-0 group-hover:opacity-100 transition-all" />
-                  </h3>
-                  <p className="text-gray-500 text-base leading-relaxed mb-0 font-medium italic">
-                    {frente.desc}
-                  </p>
+
+                  <div className={`pt-6 mt-6 border-t relative z-10 flex items-center justify-between
+                    ${isDestaque ? "border-amber-400/50" : "border-gray-50"}
+                  `}>
+                    <span className={`text-[11px] font-bold uppercase tracking-wider
+                      ${isDestaque ? "text-white" : "text-gray-900"}
+                    `}>
+                      Acessar Frente
+                    </span>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors
+                      ${isDestaque
+                        ? "bg-white/20 text-white group-hover:bg-white group-hover:text-amber-600"
+                        : "bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white"
+                      }
+                    `}>
+                      <ArrowRight size={14} />
+                    </div>
+                  </div>
                 </Link>
-              ) : (
-                <div className="w-full bg-white p-10 rounded-[3rem] border border-gray-100 opacity-80 relative overflow-hidden flex flex-col">
-                  <div className={`mb-8 w-16 h-16 ${frente.bg} ${frente.color} rounded-2xl flex items-center justify-center shadow-sm grayscale`}>
-                    {frente.icon}
-                  </div>
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 block">
-                    {frente.badge}
-                  </span>
-                  <h3 className="text-2xl font-bold text-gray-400 mb-4 tracking-tight">{frente.title}</h3>
-                  <p className="text-gray-400 text-base leading-relaxed mb-0 font-medium italic">
-                    {frente.desc}
-                  </p>
-                </div>
-              )}
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
 
         {cardAtivo < frentes.length - 1 && (

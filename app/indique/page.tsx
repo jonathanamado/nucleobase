@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
   Share2, Users, Check, Megaphone,
-  ArrowUpRight, Mail, Send, MessageCircle,
+  ArrowUpRight, Building2, Send, MessageCircle,
   Trophy, Gift, Stars, Heart, Eye, EyeOff, AtSign, Key,
   History, TrendingUp, ChevronLeft, ChevronRight,
-  Instagram
+  Instagram, Star, ArrowRight
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useLoginProtegido } from "@/hooks/useLoginProtegido";
@@ -47,8 +47,6 @@ export default function IndiquePage() {
   const [contagem, setContagem] = useState(0);
   const [indicadosLista, setIndicadosLista] = useState<any[]>([]);
   const [copiado, setCopiado] = useState(false);
-  const [emailInvite, setEmailInvite] = useState("");
-  const [inviteEnviado, setInviteEnviado] = useState(false);
   const [vendas, setVendas] = useState<any[]>([]);
   const [saldoValidado, setSaldoValidado] = useState(0);
   const [saldoPendente, setSaldoPendente] = useState(0);
@@ -77,7 +75,6 @@ export default function IndiquePage() {
     try {
       setUserId(user.id);
 
-      // Ajuste: maybeSingle para evitar erro 406 e quebra de fetch
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('slug, nome_completo')
@@ -131,7 +128,6 @@ export default function IndiquePage() {
         setVendas([]);
       }
     } catch (err) {
-      // Ajuste: Bloco catch evita o "Unhandled Promise Rejection" (Failed to fetch)
       console.error("Erro fatal ao sincronizar dados da página Indique:", err);
     } finally {
       setLoadingData(false);
@@ -221,16 +217,6 @@ export default function IndiquePage() {
     const text = encodeURIComponent(`Olá! Estou usando a Nucleobase para organizar minha vida financeira e acho que você vai curtir: ${linkIndicacao}`);
     window.open(`https://wa.me/?text=${text}`, '_blank');
     trackClick("Compartilhar WhatsApp - Indicação", "whatsapp");
-  };
-
-  const handleSendInvite = (e: React.FormEvent) => {
-    e.preventDefault();
-    const subject = encodeURIComponent(`${userName} convidou você para a Nucleobase`);
-    const body = encodeURIComponent(`Acesse: ${linkIndicacao}`);
-    window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${emailInvite}&su=${subject}&body=${body}`, '_blank');
-    setInviteEnviado(true);
-    setTimeout(() => { setInviteEnviado(false); setEmailInvite(""); }, 4000);
-    trackClick("Enviar Convite por E-mail", "gmail");
   };
 
   const handleSaque = async () => {
@@ -329,7 +315,7 @@ export default function IndiquePage() {
                       <button onClick={() => setCardAtivo(1)} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-80 hover:opacity-100 transition-opacity cursor-pointer">
                         <ChevronRight size={20} strokeWidth={3} />
                       </button>
-                      <span className="text-[9px] font-bold text-blue-600 uppercase tracking-tighter opacity-70">Opções de indicação (Link e E-mail)</span>
+                      <span className="text-[9px] font-bold text-blue-600 uppercase tracking-tighter opacity-70">Opções de indicação (Link e Condominial)</span>
                     </div>
                   </div>
                 </div>
@@ -362,40 +348,55 @@ export default function IndiquePage() {
                   </div>
                 </div>
 
-                {/* CARD EMAIL */}
-                <div className={`bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm flex flex-col justify-between transition-all duration-300 min-h-[260px] ${cardAtivo === 2 ? "flex" : "hidden lg:flex"}`}>
-                  <div>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="bg-blue-50 p-2 rounded-lg text-blue-600"><Mail size={16} /></div>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Enviar por E-mail</span>
+                {/* CARD CONSULTORIA CONDOMINIAL (Substituindo o card de E-mail com o design premium da consultoria) */}
+                <Link
+                  href="/resultados-consultoria/consultoria-condominial"
+                  onClick={() => trackClick("Consultoria Condominial - Indique", "/resultados-consultoria/consultoria-condominial")}
+                  className={`group p-8 rounded-[2.5rem] transition-all duration-500 relative overflow-hidden flex flex-col justify-between shadow-xl min-h-[260px]
+                    bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 text-white shadow-amber-500/20 border border-amber-400
+                    ${cardAtivo === 2 ? "flex" : "hidden lg:flex"}`}
+                >
+                  <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/20 rounded-full blur-2xl pointer-events-none group-hover:bg-white/30 transition-all duration-700"></div>
+
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-9 h-9 rounded-xl bg-white/20 text-white backdrop-blur-sm flex items-center justify-center shadow-sm">
+                        <Building2 size={16} />
+                      </div>
+                      <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.15em] px-2.5 py-1 rounded-full whitespace-nowrap bg-white/20 text-white backdrop-blur-sm shadow-sm">
+                        <Star size={10} className="fill-white shrink-0" />
+                        Produto Principal
+                      </span>
                     </div>
-                    <div className="relative mb-2">
-                      <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                      <input
-                        type="email"
-                        value={emailInvite}
-                        onChange={(e) => setEmailInvite(e.target.value)}
-                        placeholder="E-mail do convidado..."
-                        className="w-full bg-gray-50 border-none rounded-2xl pl-11 pr-4 py-4 text-xs font-bold outline-none focus:ring-1 focus:ring-blue-600"
-                      />
+
+                    <h3 className="text-base font-bold mb-2 tracking-tight flex items-center gap-2 text-white">
+                      Consultoria Condominial <ArrowRight size={16} className="text-amber-100 opacity-0 group-hover:opacity-100 transition-all transform -translate-x-2 group-hover:translate-x-0" />
+                    </h3>
+
+                    <p className="text-[11px] leading-relaxed mb-4 font-medium italic text-amber-50">
+                      Oportunidade de Ouro: simplifique suas vendas com o nosso CRM e garanta comissões e receita recorrente.
+                    </p>
+                  </div>
+
+                  <div className="pt-4 border-t border-amber-400/50 relative z-10 flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-white">
+                      Acessar Módulo
+                    </span>
+                    <div className="w-7 h-7 rounded-full bg-white/20 text-white group-hover:bg-white group-hover:text-amber-600 flex items-center justify-center transition-colors">
+                      <ArrowRight size={12} />
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-4">
-                    <button onClick={handleSendInvite} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-lg cursor-pointer">
-                      {inviteEnviado ? "Enviado" : "Convidar"} <Send size={14} />
+                  <div className="flex md:hidden justify-center gap-4 pt-2 absolute bottom-4 left-0 right-0 px-8">
+                    <button type="button" onClick={(e) => { e.preventDefault(); setCardAtivo(1); }} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
+                      <ChevronLeft size={20} strokeWidth={3} />
                     </button>
-
-                    <div className="flex md:hidden justify-center gap-4 pt-2">
-                      <button onClick={() => setCardAtivo(1)} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
-                        <ChevronLeft size={20} strokeWidth={3} />
-                      </button>
-                      <button onClick={() => setCardAtivo(0)} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
-                        <ChevronRight size={20} strokeWidth={3} />
-                      </button>
-                    </div>
+                    <button type="button" onClick={(e) => { e.preventDefault(); setCardAtivo(0); }} className="bg-blue-600 text-white p-3 rounded-full shadow-xl shadow-blue-200 opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
+                      <ChevronRight size={20} strokeWidth={3} />
+                    </button>
                   </div>
-                </div>
+                </Link>
+
               </div>
 
               {/* INDICADORES (DOTS) PARA OS CARDS DE CONVITE NO MOBILE */}
@@ -592,7 +593,6 @@ export default function IndiquePage() {
                   </button>
                 </div>
 
-                {/* Aviso visual de bloqueio regressivo */}
                 {tempoBloqueio > 0 && (
                   <div className="text-xs font-bold text-amber-600 bg-amber-50 p-3 rounded-xl text-center mt-2">
                     Muitas tentativas. Tente novamente em {tempoBloqueio}s.

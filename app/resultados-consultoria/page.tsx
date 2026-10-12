@@ -1,7 +1,7 @@
 // app/resultados-consultoria/page.tsx
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import {
   Sparkles,
@@ -11,14 +11,11 @@ import {
   Wallet,
   Users,
   Instagram,
-  Zap
+  Zap,
+  Star
 } from "lucide-react";
 
 export default function ResultadosGeraisPage() {
-  const [cardAtivo, setCardAtivo] = useState(0);
-  const touchStartX = useRef<number>(0);
-  const touchEndX = useRef<number>(0);
-
   const beneficiosModulos = [
     {
       title: "Consultoria Especializada",
@@ -29,8 +26,7 @@ export default function ResultadosGeraisPage() {
       color: "text-purple-600",
       bg: "bg-purple-50",
       link: "/resultados-consultoria/consultoria-especializada",
-      metric: "VIP",
-      metricLabel: "Acompanhamento"
+      isDestaque: false
     },
     {
       title: "Gestão Financeira",
@@ -41,20 +37,18 @@ export default function ResultadosGeraisPage() {
       color: "text-blue-600",
       bg: "bg-blue-50",
       link: "/controle-financeiro",
-      metric: "100%",
-      metricLabel: "Visibilidade"
+      isDestaque: false
     },
     {
       title: "Consultoria Condominial",
-      desc: "Benefício para consultores: simplifique a rotina de vendas com o nosso CRM integrado. Acompanhe propostas, negociações e fechamentos com previsibilidade total.",
+      desc: "Oportunidade de Ouro: simplifique suas vendas com o nosso CRM. Acompanhe propostas, negociações e garanta comissões e receita recorrente com total previsibilidade.",
       icon: <Building2 size={16} />,
-      badgeDesktop: "Gestão Comercial",
-      badgeMobile: "Comercial",
+      badgeDesktop: "Produto Principal",
+      badgeMobile: "Em Alta",
       color: "text-amber-600",
       bg: "bg-amber-50",
       link: "/resultados-consultoria/consultoria-condominial",
-      metric: "24h",
-      metricLabel: "Agilidade"
+      isDestaque: true
     }
   ];
 
@@ -64,30 +58,7 @@ export default function ResultadosGeraisPage() {
       content_category: "consultoria",
       content_name: "resultados_consultoria"
     });
-
-    const timer = setInterval(() => {
-      setCardAtivo((prev) => (prev + 1) % beneficiosModulos.length);
-    }, 6000);
-    return () => clearInterval(timer);
-  }, [beneficiosModulos.length]);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = () => {
-    const diff = touchStartX.current - touchEndX.current;
-    const threshold = 50; // sensibilidade do arrastar
-    if (diff > threshold) {
-      setCardAtivo((prev) => (prev < beneficiosModulos.length - 1 ? prev + 1 : 0));
-    } else if (diff < -threshold) {
-      setCardAtivo((prev) => (prev > 0 ? prev - 1 : beneficiosModulos.length - 1));
-    }
-  };
+  }, []);
 
   const trackClick = (label: string, destination: string) => {
     window.dataLayer?.push({
@@ -133,23 +104,22 @@ export default function ResultadosGeraisPage() {
         </div>
       </div>
 
-      {/* SEÇÃO DE BENEFÍCIOS DOS MÓDULOS (CARROSSEL NO MOBILE) */}
+      {/* SEÇÃO DE BENEFÍCIOS DOS MÓDULOS */}
       <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-3">
         <span className="md:hidden">Benefícios</span>
         <span className="hidden md:inline">Benefícios por Módulo</span>
         <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
-      <div
-        className="relative flex items-center justify-center mb-16 w-full cursor-grab active:cursor-grabbing"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-        <div className="w-full md:grid md:grid-cols-3 gap-6 flex items-stretch justify-center">
-          {beneficiosModulos.map((beneficio, idx) => (
-            <div key={idx} className={`h-auto md:h-full w-full flex-1 ${cardAtivo === idx ? 'flex animate-in fade-in zoom-in-95 duration-300' : 'hidden'} md:flex md:animate-none`}>
+      {/* NOVO LAYOUT DE CARDS: Empilhados no mobile, Grid 3 colunas no desktop */}
+      <div className="mb-8 w-full">
+        <div className="flex flex-col md:grid md:grid-cols-3 gap-5 md:gap-6 items-stretch justify-center">
+          {beneficiosModulos.map((beneficio, idx) => {
+            const isDestaque = beneficio.isDestaque;
+
+            return (
               <Link
+                key={idx}
                 href={beneficio.link}
                 onClick={() => {
                   trackClick(`Módulo: ${beneficio.title}`, beneficio.link);
@@ -162,47 +132,96 @@ export default function ResultadosGeraisPage() {
                     });
                   }
                 }}
-                className="block w-full group bg-white p-6 md:p-8 rounded-[2rem] border border-gray-100 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-500 relative overflow-hidden flex flex-col justify-between"
+                className={`block w-full group p-6 md:p-8 rounded-[2rem] transition-all duration-500 relative overflow-hidden flex flex-col justify-between
+                  ${isDestaque
+                    ? "bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 text-white shadow-xl shadow-amber-500/20 md:-translate-y-2 md:scale-[1.02] border border-amber-400 z-10"
+                    : "bg-white border border-gray-100 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 text-gray-900"
+                  }
+                `}
               >
-                <div>
+                {/* Efeito luminoso de fundo para o destaque */}
+                {isDestaque && (
+                  <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/20 rounded-full blur-2xl pointer-events-none group-hover:bg-white/30 transition-all duration-700"></div>
+                )}
+
+                <div className="relative z-10">
                   <div className="flex items-center justify-between mb-4">
                     {/* VISÃO DESKTOP: ÍCONE ISOLADO */}
-                    <div className={`hidden md:flex w-9 h-9 ${beneficio.bg} ${beneficio.color} rounded-xl items-center justify-center group-hover:scale-105 transition-transform duration-500 shadow-sm`}>
+                    <div className={`hidden md:flex w-9 h-9 rounded-xl items-center justify-center group-hover:scale-105 transition-transform duration-500 shadow-sm
+                      ${isDestaque ? "bg-white/20 text-white backdrop-blur-sm" : `${beneficio.bg}${beneficio.color}`}
+                    `}>
                       {beneficio.icon}
                     </div>
 
-                    {/* VISÃO MOBILE: ÍCONE + TEXTO NA LATERAL ESQUERDA */}
+                    {/* VISÃO MOBILE: ÍCONE + TEXTO LATERAL */}
                     <div className="flex md:hidden items-center gap-2.5">
-                      <div className={`w-8 h-8 ${beneficio.bg} ${beneficio.color} rounded-xl flex items-center justify-center shadow-sm`}>
-                        {beneficio.icon}
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shadow-sm
+                        ${isDestaque ? "bg-white/20 text-white backdrop-blur-sm" : `${beneficio.bg}${beneficio.color}`}
+                      `}>
+                        {isDestaque ? <Star size={14} className="fill-white" /> : beneficio.icon}
                       </div>
-                      <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.15em]">
+                      <span className={`text-[9px] font-black uppercase tracking-[0.15em]
+                        ${isDestaque ? "text-amber-100" : "text-blue-600"}
+                      `}>
                         {beneficio.badgeMobile}
                       </span>
                     </div>
 
                     {/* BADGE DESKTOP (DIREITA) */}
-                    <span className="hidden md:inline text-[9px] font-black text-blue-600 uppercase tracking-[0.15em] px-2.5 py-1 bg-blue-50/60 rounded-full">
+                    <span className={`hidden md:inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.15em] px-2.5 py-1 rounded-full whitespace-nowrap
+                      ${isDestaque ? "bg-white/20 text-white backdrop-blur-sm shadow-sm" : "text-blue-600 bg-blue-50/60"}
+                    `}>
+                      {isDestaque && <Star size={10} className="fill-white shrink-0" />}
                       {beneficio.badgeDesktop}
                     </span>
                   </div>
 
-                  <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 tracking-tight flex items-center gap-2">
-                    {beneficio.title} <ArrowRight size={16} className="text-blue-500 opacity-0 group-hover:opacity-100 transition-all" />
+                  <h3 className={`text-base md:text-xl font-bold mb-2 tracking-tight flex items-center gap-2
+                    ${isDestaque ? "text-white" : "text-gray-900"}
+                  `}>
+                    {beneficio.title} <ArrowRight size={16} className={`${isDestaque ? "text-amber-100" : "text-blue-500"} opacity-0 group-hover:opacity-100 transition-all transform -translate-x-2 group-hover:translate-x-0`} />
                   </h3>
-                  <p className="text-gray-500 text-xs md:text-sm leading-relaxed mb-6 font-medium italic">
+
+                  <p className={`text-[11px] md:text-sm leading-relaxed mb-6 font-medium italic
+                    ${isDestaque ? "text-amber-50" : "text-gray-500"}
+                  `}>
                     {beneficio.desc}
                   </p>
                 </div>
-                <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-gray-900 uppercase tracking-wider">Acessar Módulo</span>
-                  <div className="w-7 h-7 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
+
+                <div className={`pt-4 border-t relative z-10 flex items-center justify-between
+                  ${isDestaque ? "border-amber-400/50" : "border-gray-50"}
+                `}>
+                  <span className={`text-[10px] md:text-[11px] font-bold uppercase tracking-wider
+                    ${isDestaque ? "text-white" : "text-gray-900"}
+                  `}>
+                    Acessar Módulo
+                  </span>
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors
+                    ${isDestaque
+                      ? "bg-white/20 text-white group-hover:bg-white group-hover:text-amber-600"
+                      : "bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white"
+                    }
+                  `}>
                     <ArrowRight size={12} />
                   </div>
                 </div>
               </Link>
-            </div>
-          ))}
+            );
+          })}
+        </div>
+      </div>
+
+      {/* SEÇÃO "SEJA UM PARCEIRO" (Inserida após os 3 cards e antes dos "Resultados reais") */}
+      <div className="mb-12 w-full">
+        <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-3">
+          <span className="whitespace-nowrap">Seja um parceiro</span>
+          <div className="h-px bg-gray-300 flex-1"></div>
+        </h3>
+        <div className="w-full">
+          <p className="text-gray-500 text-xs md:text-sm font-medium leading-relaxed">
+            Ao se tornar um parceiro, você cresce junto com a Nucleo. Você fortalece uma comunidade que só tem a ganhar com a automatização de processos manuais, garantindo mais tempo, escala e previsibilidade. Juntos, transformamos processos em resultados tangíveis.
+          </p>
         </div>
       </div>
 
