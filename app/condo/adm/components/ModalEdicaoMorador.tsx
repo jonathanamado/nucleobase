@@ -67,7 +67,7 @@ export function ModalEdicaoMorador({
                         <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Nome Completo</label>
                         <input
                             type="text"
-                            placeholder="Ex: João da Silva"
+                            placeholder="Ex: João Roberto"
                             required
                             value={novoMoradorNome}
                             onChange={(e) => setNovoMoradorNome(e.target.value)}
@@ -81,13 +81,13 @@ export function ModalEdicaoMorador({
                         </label>
                         <input
                             type="text"
-                            placeholder="Ex: john@dominio.com"
+                            placeholder="Ex: joaoroberto@dominio.com"
                             value={novoMoradorEmail}
                             disabled={editandoSemEmail}
                             onChange={(e) => setNovoMoradorEmail(e.target.value)}
                             className={`w-full px-4 py-2.5 border rounded-xl outline-none transition-all text-xs font-medium ${editandoSemEmail
-                                    ? 'bg-zinc-100 border-zinc-200 text-zinc-400 cursor-not-allowed select-none'
-                                    : 'bg-zinc-50 border-zinc-200 focus:bg-white focus:border-blue-400'
+                                ? 'bg-zinc-100 border-zinc-200 text-zinc-400 cursor-not-allowed select-none'
+                                : 'bg-zinc-50 border-zinc-200 focus:bg-white focus:border-blue-400'
                                 }`}
                         />
                     </div>

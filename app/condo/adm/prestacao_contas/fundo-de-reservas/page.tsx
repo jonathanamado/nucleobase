@@ -4,7 +4,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import {
     CheckCircle2, ArrowLeft, FileSpreadsheet, Lock, Key, AtSign, Eye, EyeOff,
-    LifeBuoy, Mail, X, KeyRound, UserCheck, ArrowRight, Wallet, Calendar
+    LifeBuoy, Mail, X, KeyRound, UserCheck, ArrowRight, Wallet, Calendar, Instagram
 } from "lucide-react";
 
 export default function FundoReservasPage() {
@@ -58,6 +58,23 @@ export default function FundoReservasPage() {
         }
         const num = parseFloat(limpo);
         return isNaN(num) ? 0 : num;
+    };
+
+    // Funções auxiliares para formatação de mês e ano com primeira letra maiúscula
+    const formatMesAnoDesktop = (competencia: string) => {
+        if (!competencia) return "";
+        const [ano, mes] = competencia.split('-');
+        const date = new Date(Number(ano), Number(mes) - 1, 15);
+        const mesExtenso = date.toLocaleString('pt-BR', { month: 'long' });
+        return `${mesExtenso.charAt(0).toUpperCase() + mesExtenso.slice(1)} de ${ano}`;
+    };
+
+    const formatMesAnoMobile = (competencia: string) => {
+        if (!competencia) return "";
+        const [ano, mes] = competencia.split('-');
+        const date = new Date(Number(ano), Number(mes) - 1, 15);
+        const mesCurto = date.toLocaleString('pt-BR', { month: 'short' }).replace('.', '');
+        return `${mesCurto.charAt(0).toUpperCase() + mesCurto.slice(1)} / ${ano}`;
     };
 
     const carregarDadosCompetencia = async (condoId: string, competencia: string) => {
@@ -301,7 +318,7 @@ export default function FundoReservasPage() {
                             <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5">Fundo de Reservas</h1>
                         </div>
                     </div>
-                    <Link href="/condo/adm/prestacao_contas" className="group flex items-center gap-1.5 bg-zinc-900 text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all">
+                    <Link href="/condo/adm/prestacao_contas" className="hidden md:flex group items-center gap-1.5 bg-zinc-900 text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all">
                         <ArrowLeft size={12} /> Voltar
                     </Link>
                 </div>
@@ -309,13 +326,32 @@ export default function FundoReservasPage() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <div>
                         <h2 className="text-xl font-black tracking-tight text-zinc-900">Gestão do Fundo</h2>
-                        <p className="text-xs text-zinc-500">Controle e aplicação da taxa de fundo de reservas para o período de {competenciaSelecionada}.</p>
+                        <p className="text-xs text-zinc-500">
+                            <span className="md:hidden">Controle e aplicação do fundo de reservas em {competenciaSelecionada}</span>
+                            <span className="hidden md:inline">Controle e aplicação da taxa de fundo de reservas para o período de {competenciaSelecionada}</span>
+                        </p>
                     </div>
-                    <div className="bg-white border border-zinc-200 p-3 rounded-2xl flex items-center gap-3">
+                    <div className="bg-white border border-zinc-200 p-3 rounded-2xl flex items-center gap-3 relative overflow-hidden">
                         <div className="bg-emerald-50 text-emerald-600 p-2 rounded-xl"><Calendar size={18} /></div>
                         <div>
-                            <label className="block text-[9px] font-black text-zinc-400 uppercase tracking-widest">Mês Referência</label>
-                            <input type="month" value={competenciaSelecionada} onChange={(e) => setCompetenciaSelecionada(e.target.value)} className="text-xs font-bold outline-none cursor-pointer mt-0.5" />
+                            <label className="block text-[9px] font-black text-zinc-400 uppercase tracking-widest">Mês / Ano de referência</label>
+                            <span className="text-xs font-bold text-zinc-900 hidden md:block pointer-events-none mt-0.5">
+                                {formatMesAnoDesktop(competenciaSelecionada)}
+                            </span>
+                            <span className="text-xs font-bold text-zinc-900 block md:hidden pointer-events-none mt-0.5">
+                                {formatMesAnoMobile(competenciaSelecionada)}
+                            </span>
+                            <input
+                                type="month"
+                                value={competenciaSelecionada}
+                                onChange={(e) => setCompetenciaSelecionada(e.target.value)}
+                                onClick={(e) => {
+                                    try {
+                                        (e.target as HTMLInputElement).showPicker?.();
+                                    } catch (err) { }
+                                }}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            />
                         </div>
                     </div>
                 </div>
@@ -369,6 +405,46 @@ export default function FundoReservasPage() {
                     <button onClick={handleSalvarFundoReserva} disabled={loadingFundo} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
                         {loadingFundo ? "Salvando..." : "Salvar Fundo de Reservas"}
                     </button>
+                </div>
+
+                {/* BLOCO CONECTE-SE ADICIONADO ABAIXO DO CONTEÚDO PRINCIPAL */}
+                <div>
+                    <div className="mt-24 flex items-center gap-4 mb-12">
+                        <div className="h-px bg-gray-200 flex-1"></div>
+                        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
+                        <div className="h-px bg-gray-200 flex-1"></div>
+                    </div>
+
+                    <div className="flex flex-col items-center text-center">
+                        <div className="max-w-3xl mb-12">
+                            <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
+                                Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+                            </h4>
+                            <p className="text-gray-500 font-medium text-sm md:text-base">
+                                Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
+                            </p>
+                        </div>
+
+                        <a
+                            href="https://www.instagram.com/nucleobase.app/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group relative flex flex-col items-center gap-6"
+                        >
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+
+                                <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+                                    <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col items-center">
+                                <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+                                <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

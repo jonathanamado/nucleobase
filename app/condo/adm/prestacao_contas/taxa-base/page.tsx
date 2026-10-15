@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import {
-    ArrowLeft, FileSpreadsheet, Lock, Calendar, Users, CheckCircle2, UserCheck, DollarSign
+    ArrowLeft, FileSpreadsheet, Lock, Calendar, Users, CheckCircle2, UserCheck, DollarSign, Instagram
 } from "lucide-react";
 
 export default function TaxaBasePage() {
@@ -158,7 +158,7 @@ export default function TaxaBasePage() {
                         <div className="bg-emerald-600 text-white p-3 rounded-2xl shadow-lg shadow-emerald-600/25"><DollarSign size={24} /></div>
                         <div>
                             <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">Prestação de Contas</span>
-                            <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5">Taxa Base (Assembleia)</h1>
+                            <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5">Taxa Base</h1>
                         </div>
                     </div>
                     <Link href="/condo/adm/prestacao_contas" className="hidden md:flex group items-center gap-1.5 bg-zinc-900 text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-black"><ArrowLeft size={12} /> Voltar</Link>
@@ -171,14 +171,14 @@ export default function TaxaBasePage() {
                             <span className="hidden md:inline">Configuração da Taxa Base</span>
                         </h2>
                         <p className="text-xs text-zinc-500">
-                            <span className="md:hidden">Valor da taxa base para o período de {competenciaSelecionada}.</span>
-                            <span className="hidden md:inline">Definição do valor da taxa base de assembleia para o período de {competenciaSelecionada}.</span>
+                            <span className="md:hidden">Definição do valor da taxa base de assembleia em {competenciaSelecionada}</span>
+                            <span className="hidden md:inline">Definição do valor da taxa base de assembleia para o período de {competenciaSelecionada}</span>
                         </p>
                     </div>
                     <div className="bg-white border border-zinc-200 p-3 rounded-2xl flex items-center gap-3 relative overflow-hidden">
                         <div className="bg-emerald-50 text-emerald-600 p-2 rounded-xl"><Calendar size={18} /></div>
                         <div>
-                            <label className="block text-[9px] font-black text-zinc-400 uppercase tracking-widest">Mês Referência</label>
+                            <label className="block text-[9px] font-black text-zinc-400 uppercase tracking-widest">Mês / Ano de referência</label>
                             <span className="text-xs font-bold text-zinc-900 hidden md:block pointer-events-none mt-0.5">
                                 {formatMesAnoDesktop(competenciaSelecionada)}
                             </span>
@@ -216,6 +216,47 @@ export default function TaxaBasePage() {
                         {loadingTaxaBase ? "Gravando..." : "Gravar Taxa Base"}
                     </button>
                 </div>
+
+                {/* BLOCO CONECTE-SE ADICIONADO AQUI */}
+                <div>
+                    <div className="mt-24 flex items-center gap-4 mb-12">
+                        <div className="h-px bg-gray-200 flex-1"></div>
+                        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
+                        <div className="h-px bg-gray-200 flex-1"></div>
+                    </div>
+
+                    <div className="flex flex-col items-center text-center">
+                        <div className="max-w-3xl mb-12">
+                            <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
+                                Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
+                            </h4>
+                            <p className="text-gray-500 font-medium text-sm md:text-base">
+                                Insights, novidades e bastidores da Nucleobase diretamente no seu feed.
+                            </p>
+                        </div>
+
+                        <a
+                            href="https://www.instagram.com/nucleobase.app/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group relative flex flex-col items-center gap-6"
+                        >
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+
+                                <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
+                                    <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col items-center">
+                                <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
+                                <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
             </div>
         </div>
     );

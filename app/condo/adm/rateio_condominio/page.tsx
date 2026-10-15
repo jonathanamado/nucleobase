@@ -20,6 +20,7 @@ import {
     KeyRound,
     UserCheck,
     ArrowRight,
+    ArrowLeft, // Adicionado para o botão voltar
     Calendar,
     Download,
     Save
@@ -115,7 +116,12 @@ export default function PrestacaoContasConsolidadoPage() {
                 .eq("condominio_id", condoId)
                 .eq("data_competencia", dataCompetenciaCompleta);
 
-            if (savedData && savedData.length > 0) {
+            // Se existe pelo menos um salvo e seu status não for Pendente (assumindo que seja Concluído ou NULL/antigo)
+            // Se você quiser garantir que verifica especificamente a string "Concluído", você pode adicionar um filter.
+            // Para manter a compatibilidade, se achar registros salvos com status "Concluído", marcamos como salvo.
+            const hasRateioConcluido = savedData && savedData.some((s: any) => s.status === 'Concluído');
+
+            if (savedData && savedData.length > 0 && hasRateioConcluido) {
                 // Rateio já foi salvo. Carrega os dados fixos do banco para não sumirem da tela.
                 setIsRateioSalvo(true);
                 let somaGeralConsolidada = 0;
@@ -350,6 +356,7 @@ export default function PrestacaoContasConsolidadoPage() {
                 consumo_gas_valor: Number(linha.consumoGasValor) || 0,
                 total_geral: Number(linha.totalGeral) || 0,
                 resumo_boleto: linha.resumoBoleto,
+                status: "Concluído", // Gravando status Concluído
                 atualizado_em: new Date().toISOString()
             }));
 
@@ -371,6 +378,33 @@ export default function PrestacaoContasConsolidadoPage() {
             alert("Erro ao gravar rateio no banco de dados. Verifique o console.");
         } finally {
             setSalvandoRateio(false);
+        }
+    };
+
+    const handleReverterStatus = async () => {
+        if (!condominio?.id) return;
+
+        const confirmacao = window.confirm("Deseja retornar o status deste rateio para 'Pendente'?");
+        if (!confirmacao) return;
+
+        try {
+            const dataCompetenciaCompleta = `${competenciaSelecionada}-01`;
+
+            const { error } = await supabase
+                .from("condominio_rateio_boletos")
+                .update({ status: "Pendente" })
+                .eq("condominio_id", condominio.id)
+                .eq("data_competencia", dataCompetenciaCompleta);
+
+            if (error) {
+                console.error("Erro detalhado do Supabase ao reverter:", error);
+                throw error;
+            }
+
+            setIsRateioSalvo(false); // Retorna instantaneamente para Pendente em tela
+        } catch (err) {
+            console.error("Erro ao reverter status:", err);
+            alert("Erro ao reverter status no banco de dados. Verifique o console.");
         }
     };
 
@@ -574,6 +608,13 @@ export default function PrestacaoContasConsolidadoPage() {
                             <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5">{condominio?.nome}</h1>
                         </div>
                     </div>
+                    {/* Botão voltar incluído apenas na visão desktop (hidden md:flex) e posicionado acima da linha divisória */}
+                    <div className="hidden md:flex items-center">
+                        <Link href="/condo/adm/prestacao_contas" className="flex items-center gap-1.5 h-10 px-4 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm cursor-pointer">
+                            <ArrowLeft size={14} />
+                            Voltar
+                        </Link>
+                    </div>
                 </div>
 
                 {/* Cards de Controles Alinhados lado a lado */}
@@ -610,16 +651,20 @@ export default function PrestacaoContasConsolidadoPage() {
                             />
                         </div>
 
-                        {/* Status Indicator */}
+                        {/* Status Indicator ajustado para aparecer tanto em mobile quanto em desktop */}
                         {isRateioSalvo ? (
-                            <div className="flex items-center gap-1.5 px-3 py-2.5 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100 shrink-0" title="Rateio salvo e concluído">
+                            <button
+                                onClick={handleReverterStatus}
+                                className="flex items-center gap-1.5 px-3 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl border border-emerald-100 shrink-0 transition-colors cursor-pointer"
+                                title="Rateio salvo e concluído. Clique para reverter para Pendente."
+                            >
                                 <CheckCircle2 size={16} />
-                                <span className="text-[10px] font-black uppercase tracking-wider hidden md:inline">Concluído</span>
-                            </div>
+                                <span className="text-[10px] font-black uppercase tracking-wider">Concluído</span>
+                            </button>
                         ) : (
                             <div className="flex items-center gap-1.5 px-3 py-2.5 bg-amber-50 text-amber-600 rounded-xl border border-amber-100 shrink-0" title="Pendente de gravação">
                                 <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
-                                <span className="text-[10px] font-black uppercase tracking-wider hidden md:inline">Pendente</span>
+                                <span className="text-[10px] font-black uppercase tracking-wider">Pendente</span>
                             </div>
                         )}
                     </div>
@@ -692,7 +737,7 @@ export default function PrestacaoContasConsolidadoPage() {
                                     linhasRelatorio.map((linha) => (
                                         <tr key={linha.unidade} className="hover:bg-zinc-50/50 transition-colors">
                                             <td className="p-3.5 pl-5 text-xs font-bold text-zinc-800">Apto {linha.unidade}</td>
-                                            <td className="p-3.5 text-xs font-medium text-zinc-600">{linha.moradorNome}</td>
+                                            <td className="p-3.5 text-xs font-medium text-zinc-600 whitespace-nowrap">{linha.moradorNome}</td>
                                             <td className="p-3.5 text-right text-xs font-medium text-zinc-700">{formatarMoeda(linha.taxaBase)}</td>
                                             <td className="p-3.5 text-right text-xs font-medium text-zinc-700">{formatarMoeda(linha.fundoReserva)}</td>
                                             <td className="p-3.5 text-right text-xs font-medium text-zinc-700">{formatarMoeda(linha.salaoFestas)}</td>

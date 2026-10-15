@@ -1386,7 +1386,7 @@ export default function CondoAdm() {
                                 <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Nome Completo</label>
                                 <input
                                     type="text"
-                                    placeholder="Ex: João da Silva"
+                                    placeholder="Ex: João Roberto"
                                     required
                                     value={novoMoradorNome}
                                     onChange={(e) => setNovoMoradorNome(e.target.value)}
@@ -1398,7 +1398,7 @@ export default function CondoAdm() {
                                 <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">E-mail Login {editandoSemEmail ? "(Bloqueado)" : "(Opcional)"}</label>
                                 <input
                                     type="text"
-                                    placeholder="Ex: john@dominio.com"
+                                    placeholder="Ex: joaoroberto@dominio.com"
                                     value={novoMoradorEmail}
                                     disabled={editandoSemEmail}
                                     onChange={(e) => setNovoMoradorEmail(e.target.value)}
