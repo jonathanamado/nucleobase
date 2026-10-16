@@ -6,7 +6,8 @@ import {
   Zap, ArrowRight, Mail, Newspaper, ShieldCheck,
   BarChart3, MessageSquare, Lock,
   Users, Gift, X, Loader2, CheckCircle2, FileWarning,
-  LayoutDashboard, Instagram, Play, Building2
+  LayoutDashboard, Instagram, Play, Building2,
+  PiggyBank, Lightbulb, Target // Ícones adicionados conforme solicitado
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -473,22 +474,19 @@ export function MainContent() {
           <div className="lg:col-span-6 flex flex-col justify-center">
             <div className="mb-0">
               <p className="text-base text-gray-600 leading-relaxed pr-6">
-                A <strong className="text-gray-900 font-bold">nucleobase.app</strong> é uma plataforma digital, totalmente online, focada em organização de finanças, processos e{" "}
+                A <strong className="text-gray-900 font-bold">nucleobase.app</strong> é uma plataforma digital criada para simplificar o seu dia a dia. Nossa estrutura atua em três frentes: com o{" "}
                 <span className="inline-flex items-center justify-center bg-orange-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                   Controle Financeiro,
-                </span>{" "}
-                além da{" "}
+                </span>
+                {" "}você acompanha contas e cartões de crédito de forma consolidada e inteligente; já com o módulo de{" "}
                 <span className="inline-flex items-center justify-center bg-emerald-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
-                  Gestão Residencial
-                </span>{" "}
-                de maneira simples e consciente. Através de <strong className="text-gray-900 font-bold">ferramentas integradas</strong>, você profissionaliza sua gestão reduzindo dependência em planilhas manuais. No módulo de{" "}
+                  Gestão Residencial,
+                </span>
+                {" "}você garante organização e transparência ao seu condomínio de forma consciente; enquanto em{" "}
                 <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
-                  Resultados & Consultoria
-                </span>{" "}
-                , transformamos dados em informações que aceleram seus{" "}
-                <strong className="text-gray-900 font-bold">
-                  projetos pessoais e profissionais.
-                </strong>
+                  Resultados & Consultoria,
+                </span>
+                {" "}nós transformamos dados em insights e aceleramos os seus projetos pessoais e profissionais.
               </p>
 
               <div className="flex items-center gap-3 mt-5 animate-in fade-in duration-1000">
@@ -519,7 +517,7 @@ export function MainContent() {
               <h4 className="font-bold text-gray-900 text-base mb-1">Controle Financeiro</h4>
               <p className="text-[11px] text-gray-500 leading-tight mb-4">Gerencie lançamentos financeiros e projeções de gastos.</p>
               <div className="w-full mt-auto py-2.5 bg-orange-50/50 border border-orange-100 text-orange-600 rounded-xl font-bold text-[10px] uppercase tracking-widest group-hover:bg-orange-600 group-hover:text-white transition-all flex items-center justify-center gap-2">
-                Acessar <ArrowRight size={12} />
+                Acessar <PiggyBank size={14} />
               </div>
             </Link>
           </div>
@@ -532,7 +530,7 @@ export function MainContent() {
               <h4 className="font-bold text-gray-900 text-base mb-1">Nucleo Condo</h4>
               <p className="text-[11px] text-gray-600 leading-tight mb-4">Gerencie seu condomínio e o cadastro de moradores.</p>
               <div className="w-full mt-auto py-2.5 bg-white border border-emerald-200 text-emerald-600 rounded-xl font-bold text-[10px] uppercase tracking-widest group-hover:bg-emerald-600 group-hover:text-white transition-all flex items-center justify-center gap-2">
-                Acessar <Building2 size={12} />
+                Acessar <Lightbulb size={14} />
               </div>
             </Link>
           </div>
@@ -545,7 +543,7 @@ export function MainContent() {
               <h4 className="font-bold text-gray-900 text-base mb-1">Resultados Consultoria</h4>
               <p className="text-[11px] text-gray-600 leading-tight mb-4">Conheça a expertise digital e de processos com foco em consultoria.</p>
               <div className="w-full mt-auto py-2.5 bg-white border border-blue-200 text-blue-600 rounded-xl font-bold text-[10px] uppercase tracking-widest group-hover:bg-blue-600 group-hover:text-white transition-all flex items-center justify-center gap-2">
-                Acessar <ArrowRight size={12} />
+                Acessar <Target size={14} />
               </div>
             </Link>
           </div>
