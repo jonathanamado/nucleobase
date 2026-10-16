@@ -129,9 +129,20 @@ export default function PrestacaoContasConsolidadoPage() {
                 const linhas: LinhaRelatorioConsolidado[] = savedData.map((s: any) => {
                     const total = Number(s.total_geral) || 0;
                     somaGeralConsolidada += total;
+
+                    // Ordena moradores salvos alfabeticamente para corrigir dados que já foram para o banco fora de ordem
+                    let moradorNomeFormatado = s.morador_nome || "Não atribuído";
+                    if (moradorNomeFormatado !== "Não atribuído" && moradorNomeFormatado.includes(",")) {
+                        moradorNomeFormatado = moradorNomeFormatado
+                            .split(",")
+                            .map((n: string) => n.trim())
+                            .sort((a: string, b: string) => a.localeCompare(b, 'pt-BR'))
+                            .join(", ");
+                    }
+
                     return {
                         unidade: s.unidade,
-                        moradorNome: s.morador_nome,
+                        moradorNome: moradorNomeFormatado,
                         taxaBase: Number(s.taxa_base) || 0,
                         rateioReceitaDespesa: Number(s.rateio_receita_despesa) || 0,
                         consumoGasValor: Number(s.consumo_gas_valor) || 0,
@@ -287,8 +298,10 @@ export default function PrestacaoContasConsolidadoPage() {
             // 8. Consolidar linhas por unidade
             let somaGeralConsolidada = 0;
             const linhas: LinhaRelatorioConsolidado[] = unidadesUnicas.map((unidade) => {
-                const listaMoradores = moradoresPorUnidade.get(unidade) || [];
+                // Clona e ordena a lista de moradores alfabeticamente
+                const listaMoradores = [...(moradoresPorUnidade.get(unidade) || [])].sort((a, b) => a.localeCompare(b, 'pt-BR'));
                 const moradorNome = listaMoradores.length > 0 ? listaMoradores.join(", ") : "Não atribuído";
+
                 const consumoM3 = consumoGasMap.get(unidade) || 0;
                 const valorGas = consumoM3 * valorMetroCubico;
                 const fundoReservaVal = fundoMap.get(unidade) || 0;

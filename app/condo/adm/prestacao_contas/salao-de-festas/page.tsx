@@ -283,7 +283,7 @@ export default function SalaoFestasPage() {
                                 <input type="text" placeholder="Ex: 101" required value={novaReservaUnidade} onChange={(e) => setNovaReservaUnidade(e.target.value)} className="w-full px-3 py-2.5 bg-white border border-zinc-200 rounded-xl text-xs font-medium outline-none focus:border-emerald-400" />
                             </div>
                             <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Responsável</label>
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Responsável solicitação</label>
                                 <input type="text" placeholder="Nome do morador" required value={novaReservaResponsavel} onChange={(e) => setNovaReservaResponsavel(e.target.value)} className="w-full px-3 py-2.5 bg-white border border-zinc-200 rounded-xl text-xs font-medium outline-none focus:border-emerald-400" />
                             </div>
                             <button type="submit" disabled={loadingNovaReserva} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition disabled:opacity-50 h-[38px] flex items-center justify-center cursor-pointer">
