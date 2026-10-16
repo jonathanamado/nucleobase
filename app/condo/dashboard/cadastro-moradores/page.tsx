@@ -19,6 +19,7 @@ interface Morador {
     id: string;
     unidade: string;
     role: string;
+    acesso_app?: boolean;
     profile: {
         nome_completo: string;
         email_contato: string;
@@ -127,13 +128,14 @@ export default function ListaMoradoresCondomino() {
                 setSolUnidade(vinculo.unidade || "");
             }
 
-            // Carrega membros do mesmo condomínio utilizando colunas válidas da tabela
+            // Carrega membros do mesmo condomínio utilizando colunas válidas da tabela, incluindo acesso_app
             const { data: lista, error: listaError } = await supabase
                 .from("condominio_membros")
                 .select(`
                     id,
                     unidade,
                     role,
+                    acesso_app,
                     profile:profiles(nome_completo, email_contato, slug)
                 `)
                 .eq("condominio_id", vinculo.condominio_id);
@@ -262,9 +264,12 @@ export default function ListaMoradoresCondomino() {
         return isNaN(numero) ? limpo : numero;
     };
 
-    // Filtra, exclui "Adm", normaliza a exibição e ordena de forma combinada (Unidade -> Nome)
+    // Filtra moradores desativados (acesso_app === false), exclui "Adm", normaliza a exibição e ordena de forma combinada (Unidade -> Nome)
     const moradoresProcessados = moradores
         .filter((morador) => {
+            // Não exibe moradores desativados no app
+            if (morador.acesso_app === false) return false;
+
             const unidadeLower = (morador.unidade || "").toLowerCase().trim();
             if (unidadeLower === "adm") return false;
 
@@ -330,23 +335,31 @@ export default function ListaMoradoresCondomino() {
                         </div>
                     </div>
 
-                    <button
-                        onClick={() => window.history.back()}
-                        className="group relative hidden md:flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 self-start md:self-auto overflow-hidden cursor-pointer shrink-0"
-                    >
-                        <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
-                        <ArrowLeft
-                            size={12}
-                            className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out"
-                        />
-                        <span>Voltar</span>
-                    </button>
+                    <div className="hidden md:flex items-center gap-3">
+                        <button
+                            onClick={() => setShowModal(true)}
+                            className="flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 h-8 rounded-full text-[10px] font-black uppercase tracking-widest transition-colors shadow-sm cursor-pointer shrink-0"
+                        >
+                            <UserPlus size={14} /> Solicitar
+                        </button>
+
+                        <button
+                            onClick={() => window.history.back()}
+                            className="group relative flex items-center justify-center gap-1.5 h-8 pl-3 pr-4 bg-zinc-900 hover:bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-zinc-900/10 active:scale-95 overflow-hidden cursor-pointer shrink-0"
+                        >
+                            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out -z-10" />
+                            <ArrowLeft
+                                size={12}
+                                className="transform group-hover:-translate-x-0.5 transition-transform duration-300 ease-out"
+                            />
+                            <span>Voltar</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div className="space-y-4">
-                    <div className="flex flex-row items-center justify-between gap-2">
+                    <div className="flex flex-row items-center justify-end md:justify-between gap-2 -mt-5 md:mt-0">
                         <span className="text-xs text-zinc-500 font-medium">
-                            <span className="md:hidden">Consultas e autorizações de acesso de moradores, visitantes e fornecedores:</span>
                             <span className="hidden md:inline">Consulte abaixo a lista atualizada de condôminos/proprietários e unidades vinculadas:</span>
                         </span>
 
@@ -373,31 +386,6 @@ export default function ListaMoradoresCondomino() {
                             {!filtroBusca && "Busque nome ou unidade"}
                         </span>
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
-                    </div>
-
-                    {/* SEÇÃO DESKTOP: Solicitação de Visitantes / Prestadores */}
-                    <div className="hidden md:flex bg-amber-50/50 border border-amber-200/60 rounded-3xl p-6 flex-row items-center justify-between gap-4 mt-6">
-                        <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
-                                <UserPlus size={20} />
-                            </div>
-                            <div>
-                                <h3 className="text-sm font-bold text-zinc-900">
-                                    Vai receber visitas ou prestadores de serviço?
-                                </h3>
-                                <p className="text-xs text-zinc-500 mt-1 max-w-xl">
-                                    Como condômino, você não possui acesso para inclusão direta no sistema. Solicite a liberação temporária à administração para que a portaria seja devidamente notificada.
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex flex-row gap-2 w-auto shrink-0 mt-0">
-                            <button
-                                onClick={() => setShowModal(true)}
-                                className="flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-5 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider transition-colors shadow-sm cursor-pointer"
-                            >
-                                <UserPlus size={15} /> Preencher Solicitação
-                            </button>
-                        </div>
                     </div>
                 </div>
 

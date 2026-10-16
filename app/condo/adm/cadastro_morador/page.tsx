@@ -194,11 +194,25 @@ export default function CadastroMoradorPage() {
                 data_fim,
                 profile:profiles ( nome_completo, email_contato, slug )
             `)
-            .eq("condominio_id", condoId)
-            .order("unidade", { ascending: true });
+            .eq("condominio_id", condoId);
 
         if (!error && data && isMountedRef.current) {
-            setMoradores(data as unknown as Morador[]);
+            // Ordenação local primeiro por unidade e, em seguida, por nome (ordem alfabética sequencial)
+            const sortedData = (data as unknown as Morador[]).sort((a, b) => {
+                const uniA = a.unidade ? String(a.unidade).toLowerCase() : "";
+                const uniB = b.unidade ? String(b.unidade).toLowerCase() : "";
+
+                // Ordenação inteligente de unidade suportando números e texto (Apto 101 vs Adm)
+                const uniCompare = uniA.localeCompare(uniB, 'pt-BR', { numeric: true });
+                if (uniCompare !== 0) return uniCompare;
+
+                // Em caso de empate na unidade, ordenar por nome
+                const nomeA = a.profile?.nome_completo ? String(a.profile.nome_completo).toLowerCase() : "";
+                const nomeB = b.profile?.nome_completo ? String(b.profile.nome_completo).toLowerCase() : "";
+                return nomeA.localeCompare(nomeB, 'pt-BR');
+            });
+
+            setMoradores(sortedData);
         }
     };
 
@@ -703,36 +717,40 @@ export default function CadastroMoradorPage() {
         setShowEmailDuplicadoModal(false);
     };
 
-    const handleRemoveMorador = async (morador: Morador) => {
+    const handleToggleAcesso = async (morador: Morador) => {
         const isProprioSindico = morador.role === 'sindico' || morador.user_id === session?.user?.id;
 
+        // Caso seja a própria conta principal (Síndico), mantém-se a lógica de direcionamento ao WhatsApp
         if (isProprioSindico) {
             setMoradorParaExcluir(morador);
             setShowSindicoDeleteModal(true);
             return;
         }
 
-        if (!confirm(`Deseja realmente revogar o acesso do morador ${morador.profile?.nome_completo || "selecionado"}?`)) return;
+        const novoStatus = !morador.acesso_app;
+        const acaoTexto = novoStatus ? "reativar" : "desativar";
+
+        if (!confirm(`Deseja realmente ${acaoTexto} o perfil de ${morador.profile?.nome_completo || "selecionado"}?`)) return;
 
         setActionLoading(true);
         try {
             const { error } = await supabase
                 .from("condominio_membros")
-                .delete()
+                .update({ acesso_app: novoStatus })
                 .eq("id", morador.id);
 
             if (error) throw error;
 
             if (editandoId === morador.id) {
-                cancelarEdicao();
+                setAutorizadoApp(novoStatus);
             }
 
             if (condominio) {
                 await loadMoradores(condominio.id);
             }
         } catch (err: any) {
-            console.error("Erro ao remover morador:", err);
-            alert("Erro ao remover o morador: " + (err?.message || "Erro desconhecido"));
+            console.error(`Erro ao ${acaoTexto} morador:`, err);
+            alert(`Erro ao ${acaoTexto} o perfil: ` + (err?.message || "Erro desconhecido"));
         } finally {
             setActionLoading(false);
         }
@@ -1333,12 +1351,15 @@ export default function CadastroMoradorPage() {
                                                                     <Pencil size={15} />
                                                                 </button>
                                                                 <button
-                                                                    onClick={() => handleRemoveMorador(morador)}
+                                                                    onClick={() => handleToggleAcesso(morador)}
                                                                     disabled={actionLoading}
-                                                                    className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
-                                                                    title="Revogar Acesso"
+                                                                    className={`p-2 rounded-xl transition-all cursor-pointer ${morador.acesso_app
+                                                                            ? 'text-zinc-400 hover:text-amber-600 hover:bg-amber-50'
+                                                                            : 'text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50'
+                                                                        }`}
+                                                                    title={morador.acesso_app ? "Desativar Perfil" : "Reativar Perfil"}
                                                                 >
-                                                                    <Trash2 size={15} />
+                                                                    {morador.acesso_app ? <Lock size={15} /> : <CheckCircle2 size={15} />}
                                                                 </button>
                                                             </div>
                                                         </td>

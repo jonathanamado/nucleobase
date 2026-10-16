@@ -1,11 +1,18 @@
+// app/condo/adm/prestacao_contas/fundo-de-reservas/page.tsx
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import {
     CheckCircle2, ArrowLeft, FileSpreadsheet, Lock, Key, AtSign, Eye, EyeOff,
-    LifeBuoy, Mail, X, KeyRound, UserCheck, ArrowRight, Wallet, Calendar, Instagram
+    LifeBuoy, Mail, X, KeyRound, UserCheck, ArrowRight, Wallet, Calendar, Instagram,
+    TrendingUp, TrendingDown, Landmark, Gavel, User
 } from "lucide-react";
+
+interface UnidadeEnriquecida {
+    unidade: string;
+    nomes: string[];
+}
 
 export default function FundoReservasPage() {
     const [session, setSession] = useState<any>(null);
@@ -16,14 +23,7 @@ export default function FundoReservasPage() {
     // Auth states
     const [emailOrSlug, setEmailOrSlug] = useState("");
     const [password, setPassword] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
     const [loginError, setLoginError] = useState("");
-    const [showForgotModal, setShowForgotModal] = useState(false);
-    const [resetEmail, setResetEmail] = useState("");
-    const [resetLoading, setResetLoading] = useState(false);
-    const [showFirstAccessModal, setShowFirstAccessModal] = useState(false);
-    const [firstAccessSlug, setFirstAccessSlug] = useState("");
-    const [firstAccessLoading, setFirstAccessLoading] = useState(false);
 
     const [condominio, setCondominio] = useState<{ id: string; nome: string } | null>(null);
     const [isApenasMorador, setIsApenasMorador] = useState(false);
@@ -33,9 +33,14 @@ export default function FundoReservasPage() {
         return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     });
 
-    const [unidadesCondominio, setUnidadesCondominio] = useState<string[]>([]);
+    const [unidadesCondominio, setUnidadesCondominio] = useState<UnidadeEnriquecida[]>([]);
     const [valorFundoReserva, setValorFundoReserva] = useState('0,00');
     const [fundoReservaSuccess, setFundoReservaSuccess] = useState('');
+
+    // Novos estados do Visor e Contexto
+    const [totalArrecadado, setTotalArrecadado] = useState<number>(0);
+    const [totalUtilizado, setTotalUtilizado] = useState<number>(0);
+    const [dataAssembleia, setDataAssembleia] = useState("10/05/2026"); // Mantido no estado para uso futuro
 
     const isMountedRef = useRef(true);
 
@@ -60,7 +65,6 @@ export default function FundoReservasPage() {
         return isNaN(num) ? 0 : num;
     };
 
-    // Funções auxiliares para formatação de mês e ano com primeira letra maiúscula
     const formatMesAnoDesktop = (competencia: string) => {
         if (!competencia) return "";
         const [ano, mes] = competencia.split('-');
@@ -77,18 +81,93 @@ export default function FundoReservasPage() {
         return `${mesCurto.charAt(0).toUpperCase() + mesCurto.slice(1)} / ${ano}`;
     };
 
+    const carregarSaldos = async (condoId: string) => {
+        try {
+            // Busca arrecadação total
+            const { data: arrecadadoData } = await supabase
+                .from("condominio_contas_fundo_de_reservas")
+                .select("valor")
+                .eq("condominio_id", condoId);
+
+            let sumArrecadado = 0;
+            if (arrecadadoData) {
+                sumArrecadado = arrecadadoData.reduce((acc, curr) => acc + Number(curr.valor || 0), 0);
+            }
+
+            // Busca utilização total (despesas)
+            const { data: utilizadoData } = await supabase
+                .from("condominio_despesas_fundo")
+                .select("valor")
+                .eq("condominio_id", condoId);
+
+            let sumUtilizado = 0;
+            if (utilizadoData) {
+                sumUtilizado = utilizadoData.reduce((acc, curr) => acc + Number(curr.valor || 0), 0);
+            }
+
+            if (isMountedRef.current) {
+                setTotalArrecadado(sumArrecadado);
+                setTotalUtilizado(sumUtilizado);
+            }
+        } catch (err) {
+            console.error("Erro ao carregar saldos consolidados:", err);
+        }
+    };
+
     const carregarDadosCompetencia = async (condoId: string, competencia: string) => {
         try {
             const dataCompetenciaCompleta = `${competencia}-01`;
 
+            // Busca unidades e o nome do morador responsável via join, incluindo acesso_app
             const { data: membrosData } = await supabase
                 .from("condominio_membros")
-                .select("unidade")
+                .select(`
+                    unidade,
+                    acesso_app,
+                    profile:profiles(nome_completo)
+                `)
                 .eq("condominio_id", condoId);
 
-            const unicas = Array.from(new Set((membrosData || []).map((m: any) => m.unidade?.trim()).filter(Boolean))).sort();
+            // Filtra e deduplica unidades agrupando os nomes dos ativos
+            const mapUnidades = new Map<string, UnidadeEnriquecida>();
+            (membrosData || []).forEach((m: any) => {
+                const uni = m.unidade?.trim();
+                if (!uni || uni.toLowerCase() === 'adm') return;
+
+                // Garante que a unidade exista no mapa
+                if (!mapUnidades.has(uni)) {
+                    mapUnidades.set(uni, {
+                        unidade: uni,
+                        nomes: []
+                    });
+                }
+
+                // Se o usuário está ativo (diferente de estritamente false), adiciona à lista
+                if (m.acesso_app !== false) {
+                    const nome = m.profile?.nome_completo || "Não informado";
+                    const existing = mapUnidades.get(uni)!;
+
+                    if (!existing.nomes.includes(nome)) {
+                        existing.nomes.push(nome);
+                    }
+                }
+            });
+
+            // Ordena alfabeticamente os moradores de cada unidade
+            mapUnidades.forEach((unidadeInfo) => {
+                unidadeInfo.nomes.sort((a, b) => a.localeCompare(b, 'pt-BR'));
+            });
+
+            // Ordena numericamente pelas unidades
+            const unicas = Array.from(mapUnidades.values()).sort((a, b) => {
+                const numA = parseInt(a.unidade.replace(/\D/g, '')) || 0;
+                const numB = parseInt(b.unidade.replace(/\D/g, '')) || 0;
+                return numA - numB;
+            });
+
             setUnidadesCondominio(unicas);
 
+            // Carrega valor do fundo para a competência selecionada
             const { data: fundoData } = await supabase
                 .from("condominio_contas_fundo_de_reservas")
                 .select("valor")
@@ -113,6 +192,10 @@ export default function FundoReservasPage() {
                     setValorFundoReserva('0,00');
                 }
             }
+
+            // Atualiza os saldos consolidados do Visor
+            await carregarSaldos(condoId);
+
         } catch (err) {
             console.error("Erro em carregarDadosCompetencia:", err);
         }
@@ -210,38 +293,6 @@ export default function FundoReservasPage() {
         }
     }, [competenciaSelecionada]);
 
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setAuthLoading(true);
-        setLoginError("");
-
-        const inputAcesso = emailOrSlug.trim().toLowerCase();
-        try {
-            let emailParaLogin = inputAcesso;
-            if (!inputAcesso.includes("@")) {
-                const { data: profile } = await supabase.from('profiles').select('email_contato').eq('slug', inputAcesso).maybeSingle();
-                if (!profile || !profile.email_contato) {
-                    setLoginError("ID de Síndico ou E-mail não localizado.");
-                    setAuthLoading(false);
-                    return;
-                }
-                emailParaLogin = profile.email_contato;
-            }
-
-            const { data, error } = await supabase.auth.signInWithPassword({ email: emailParaLogin, password });
-            if (error || !data.session) {
-                setLoginError("Acesso negado. Credenciais incorretas.");
-                setAuthLoading(false);
-                return;
-            }
-            if (data.session) await verifySindicoAndLoadData(data.session);
-        } catch (err) {
-            setLoginError("Ocorreu um erro inesperado ao entrar.");
-        } finally {
-            setAuthLoading(false);
-        }
-    };
-
     const handleSalvarFundoReserva = async () => {
         if (!condominio || !session) return;
         setLoadingFundo(true);
@@ -250,14 +301,13 @@ export default function FundoReservasPage() {
         try {
             const dataCompetenciaCompleta = `${competenciaSelecionada}-01`;
             const valorFundoNum = converterParaFloat(valorFundoReserva);
-            const unidadesFiltradas = unidadesCondominio.filter(u => u.toLowerCase() !== 'adm');
 
-            for (const unidade of unidadesFiltradas) {
+            for (const item of unidadesCondominio) {
                 const { data: fundoExistente } = await supabase
                     .from("condominio_contas_fundo_de_reservas")
                     .select("id")
                     .eq("condominio_id", condominio.id)
-                    .eq("unidade", unidade)
+                    .eq("unidade", item.unidade)
                     .eq("data_competencia", dataCompetenciaCompleta)
                     .maybeSingle();
 
@@ -270,7 +320,7 @@ export default function FundoReservasPage() {
                     await supabase
                         .from("condominio_contas_fundo_de_reservas")
                         .insert([{
-                            condominio_id: condominio.id, unidade, valor: valorFundoNum,
+                            condominio_id: condominio.id, unidade: item.unidade, valor: valorFundoNum,
                             data_competencia: dataCompetenciaCompleta, criado_por: session.user.id,
                             atualizado_em: new Date().toISOString()
                         }]);
@@ -284,12 +334,6 @@ export default function FundoReservasPage() {
         } finally {
             setLoadingFundo(false);
         }
-    };
-
-    const handleLogout = async () => {
-        setLoading(true);
-        await supabase.auth.signOut();
-        setSession(null); setCondominio(null); setIsApenasMorador(false); setLoading(false);
     };
 
     if (loading) return <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6"><div className="animate-spin text-emerald-600"><FileSpreadsheet size={32} /></div></div>;
@@ -308,6 +352,7 @@ export default function FundoReservasPage() {
     return (
         <div className="min-h-screen bg-zinc-50/50 text-zinc-900 p-4 md:p-10 flex flex-col justify-between">
             <div className="space-y-8">
+                {/* Cabeçalho */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-5">
                     <div className="flex items-center gap-4">
                         <div className="bg-emerald-600 text-white p-3 rounded-2xl shadow-lg shadow-emerald-600/25">
@@ -323,51 +368,119 @@ export default function FundoReservasPage() {
                     </Link>
                 </div>
 
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                {/* Arrecadação Mensal + Botões (Valor Aplicável Desktop e Calendário) aproximado da linha divisória usando margem negativa */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 -mt-4 md:-mt-6">
                     <div>
-                        <h2 className="text-xl font-black tracking-tight text-zinc-900">Gestão do Fundo</h2>
+                        <h2 className="text-xl font-black tracking-tight text-zinc-900">Arrecadação Mensal</h2>
                         <p className="text-xs text-zinc-500">
-                            <span className="md:hidden">Controle e aplicação do fundo de reservas em {competenciaSelecionada}</span>
-                            <span className="hidden md:inline">Controle e aplicação da taxa de fundo de reservas para o período de {competenciaSelecionada}</span>
+                            <span className="md:hidden">Controle de taxas aplicáveis em {competenciaSelecionada}</span>
+                            <span className="hidden md:inline">Controle e aplicação da taxa de fundo de reservas por unidade para o período de {competenciaSelecionada}</span>
                         </p>
                     </div>
-                    <div className="bg-white border border-zinc-200 p-3 rounded-2xl flex items-center gap-3 relative overflow-hidden">
-                        <div className="bg-emerald-50 text-emerald-600 p-2 rounded-xl"><Calendar size={18} /></div>
-                        <div>
-                            <label className="block text-[9px] font-black text-zinc-400 uppercase tracking-widest">Mês / Ano de referência</label>
-                            <span className="text-xs font-bold text-zinc-900 hidden md:block pointer-events-none mt-0.5">
-                                {formatMesAnoDesktop(competenciaSelecionada)}
-                            </span>
-                            <span className="text-xs font-bold text-zinc-900 block md:hidden pointer-events-none mt-0.5">
-                                {formatMesAnoMobile(competenciaSelecionada)}
-                            </span>
-                            <input
-                                type="month"
-                                value={competenciaSelecionada}
-                                onChange={(e) => setCompetenciaSelecionada(e.target.value)}
-                                onClick={(e) => {
-                                    try {
-                                        (e.target as HTMLInputElement).showPicker?.();
-                                    } catch (err) { }
-                                }}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            />
+                    <div className="flex items-center gap-3">
+
+                        {/* Botão de Valor Aplicável (APENAS DESKTOP) */}
+                        <div className="hidden md:flex bg-white border border-zinc-200 p-3 rounded-2xl items-center gap-3 shadow-sm">
+                            <div className="bg-emerald-50 text-emerald-600 p-2 rounded-xl"><Wallet size={18} /></div>
+                            <div>
+                                <label className="block text-[9px] font-black text-zinc-400 uppercase tracking-widest">Valor Aplicável</label>
+                                <div className="flex items-center mt-0.5">
+                                    <span className="text-xs font-bold text-zinc-900 mr-1">R$</span>
+                                    <input
+                                        type="text"
+                                        value={valorFundoReserva}
+                                        onChange={(e) => setValorFundoReserva(e.target.value)}
+                                        onBlur={(e) => setValorFundoReserva(formatarValorExibicao(e.target.value))}
+                                        className="w-20 bg-transparent text-xs font-bold text-zinc-900 outline-none"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Botão do Calendário */}
+                        <div className="bg-white border border-zinc-200 p-3 rounded-2xl flex items-center gap-3 relative overflow-hidden shadow-sm w-full md:w-auto">
+                            <div className="bg-emerald-50 text-emerald-600 p-2 rounded-xl"><Calendar size={18} /></div>
+                            <div>
+                                <label className="block text-[9px] font-black text-zinc-400 uppercase tracking-widest">Mês / Ano de referência</label>
+                                <span className="text-xs font-bold text-zinc-900 hidden md:block pointer-events-none mt-0.5">
+                                    {formatMesAnoDesktop(competenciaSelecionada)}
+                                </span>
+                                <span className="text-xs font-bold text-zinc-900 block md:hidden pointer-events-none mt-0.5">
+                                    {formatMesAnoMobile(competenciaSelecionada)}
+                                </span>
+                                <input
+                                    type="month"
+                                    value={competenciaSelecionada}
+                                    onChange={(e) => setCompetenciaSelecionada(e.target.value)}
+                                    onClick={(e) => {
+                                        try {
+                                            (e.target as HTMLInputElement).showPicker?.();
+                                        } catch (err) { }
+                                    }}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                {/* Visor de Saldos Minimalista e Responsivo */}
+                <div className="grid grid-cols-3 gap-2 md:gap-4">
+                    <div className="bg-white border border-zinc-200 p-2 md:p-5 rounded-2xl md:rounded-3xl flex flex-col md:flex-row items-center gap-1 md:gap-4 shadow-sm text-center md:text-left">
+                        <div className="bg-emerald-50 text-emerald-600 p-1.5 md:p-3 rounded-lg md:rounded-xl"><TrendingUp className="w-4 h-4 md:w-5 md:h-5" /></div>
+                        <div>
+                            <p className="text-[8px] md:text-[10px] font-black uppercase md:tracking-widest text-zinc-500 leading-tight mb-0.5 md:mb-0">
+                                <span className="md:hidden">Arrecadado</span>
+                                <span className="hidden md:inline">Total Arrecadado</span>
+                            </p>
+                            <p className="text-[10px] md:text-lg font-black text-zinc-900 tracking-tighter md:tracking-normal">R$ {totalArrecadado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-white border border-zinc-200 p-2 md:p-5 rounded-2xl md:rounded-3xl flex flex-col md:flex-row items-center gap-1 md:gap-4 shadow-sm text-center md:text-left">
+                        <div className="bg-red-50 text-red-600 p-1.5 md:p-3 rounded-lg md:rounded-xl"><TrendingDown className="w-4 h-4 md:w-5 md:h-5" /></div>
+                        <div>
+                            <p className="text-[8px] md:text-[10px] font-black uppercase md:tracking-widest text-zinc-500 leading-tight mb-0.5 md:mb-0">
+                                <span className="md:hidden">Utilizado</span>
+                                <span className="hidden md:inline">Total Utilizado (Obras)</span>
+                            </p>
+                            <p className="text-[10px] md:text-lg font-black text-zinc-900 tracking-tighter md:tracking-normal">R$ {totalUtilizado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-white border border-zinc-200 p-2 md:p-5 rounded-2xl md:rounded-3xl flex flex-col md:flex-row items-center gap-1 md:gap-4 shadow-sm text-center md:text-left">
+                        <div className="bg-zinc-100 text-zinc-600 p-1.5 md:p-3 rounded-lg md:rounded-xl"><Landmark className="w-4 h-4 md:w-5 md:h-5" /></div>
+                        <div>
+                            <p className="text-[8px] md:text-[10px] font-black uppercase md:tracking-widest text-zinc-500 leading-tight mb-0.5 md:mb-0">
+                                <span className="md:hidden">Saldo</span>
+                                <span className="hidden md:inline">Saldo Atual Disponível</span>
+                            </p>
+                            <p className="text-[10px] md:text-lg font-black text-zinc-900 tracking-tighter md:tracking-normal">R$ {(totalArrecadado - totalUtilizado).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Bloco da Tabela e Valores */}
                 <div className="bg-white border border-zinc-200 p-6 md:p-8 rounded-[2.5rem] shadow-sm space-y-6">
-                    <div className="bg-emerald-50/60 border border-emerald-200/70 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+
+                    {/* Botão de Valor Aplicável (APENAS MOBILE) */}
+                    <div className="flex md:hidden bg-emerald-50/60 border border-emerald-200/70 p-4 rounded-2xl flex-col items-start gap-3">
                         <div className="flex items-center gap-3">
                             <div className="bg-emerald-600 text-white p-2.5 rounded-xl"><Wallet size={20} /></div>
                             <div>
                                 <h3 className="text-xs font-black uppercase tracking-wider text-emerald-900">Valor Aplicável ({competenciaSelecionada})</h3>
-                                <p className="text-xs text-emerald-700">Ajustável para este mês.</p>
+                                <p className="text-[10px] text-emerald-700">Ajustável para todos deste mês.</p>
                             </div>
                         </div>
-                        <div className="w-full sm:w-48 relative">
+                        <div className="w-full relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">R$</span>
-                            <input type="text" value={valorFundoReserva} onChange={(e) => setValorFundoReserva(e.target.value)} onBlur={(e) => setValorFundoReserva(formatarValorExibicao(e.target.value))} className="w-full pl-9 pr-4 py-2.5 bg-white border border-emerald-300 rounded-xl text-xs font-bold text-zinc-900 outline-none focus:ring-2 focus:ring-emerald-400" />
+                            <input
+                                type="text"
+                                value={valorFundoReserva}
+                                onChange={(e) => setValorFundoReserva(e.target.value)}
+                                onBlur={(e) => setValorFundoReserva(formatarValorExibicao(e.target.value))}
+                                className="w-full pl-9 pr-4 py-2.5 bg-white border border-emerald-300 rounded-xl text-xs font-bold text-zinc-900 outline-none focus:ring-2 focus:ring-emerald-400 shadow-sm"
+                            />
                         </div>
                     </div>
 
@@ -375,24 +488,37 @@ export default function FundoReservasPage() {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-zinc-50 border-b border-zinc-100 text-[10px] font-black text-zinc-400 uppercase tracking-wider">
-                                    <th className="p-3.5 pl-5">Mês / Ano</th>
-                                    <th className="p-3.5">Unidade</th>
-                                    <th className="p-3.5">Status</th>
-                                    <th className="p-3.5 pr-5 text-right">Valor Definido</th>
+                                    <th className="p-4 pl-5">Mês / Ano</th>
+                                    <th className="p-4">Unidade</th>
+                                    <th className="p-4">Responsável</th>
+                                    <th className="p-4">Status de Cobrança</th>
+                                    <th className="p-4 pr-5 text-right">Valor Definido</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-50">
-                                {unidadesCondominio.filter(u => u.toLowerCase() !== 'adm').length === 0 ? (
-                                    <tr><td colSpan={4} className="text-center py-8 text-xs text-zinc-400">Nenhuma unidade.</td></tr>
+                                {unidadesCondominio.length === 0 ? (
+                                    <tr><td colSpan={5} className="text-center py-8 text-xs text-zinc-400">Nenhuma unidade encontrada.</td></tr>
                                 ) : (
-                                    unidadesCondominio.filter(u => u.toLowerCase() !== 'adm').map((unidade) => {
+                                    unidadesCondominio.map((item) => {
                                         const valorNumerico = converterParaFloat(valorFundoReserva);
                                         return (
-                                            <tr key={unidade} className="hover:bg-zinc-50/50">
-                                                <td className="p-3.5 pl-5 text-xs font-bold text-emerald-600">{competenciaSelecionada}</td>
-                                                <td className="p-3.5 text-xs font-bold">Apto {unidade}</td>
-                                                <td className="p-3.5 text-xs font-medium text-emerald-600 flex items-center gap-1"><CheckCircle2 size={14} /> Aplicável</td>
-                                                <td className="p-3.5 pr-5 text-right text-xs font-black">R$ {valorNumerico.toFixed(2).replace('.', ',')}</td>
+                                            <tr key={item.unidade} className="hover:bg-zinc-50/50 transition-colors">
+                                                <td className="p-4 pl-5 text-xs font-bold text-emerald-600 align-top pt-5">{competenciaSelecionada}</td>
+                                                <td className="p-4 text-xs font-black text-zinc-900 align-top pt-5">Apto {item.unidade}</td>
+                                                <td className="p-4 text-xs font-medium text-zinc-500 align-top pt-4">
+                                                    {item.nomes.length > 0 ? (
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="bg-zinc-100 p-1 rounded-full shrink-0">
+                                                                <User size={12} className="text-zinc-400" />
+                                                            </div>
+                                                            <span className="leading-snug">{item.nomes.join(", ")}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-zinc-400 italic inline-block mt-1">Nenhum responsável ativo</span>
+                                                    )}
+                                                </td>
+                                                <td className="p-4 text-xs font-medium text-emerald-600 align-top pt-5"><span className="flex items-center gap-1.5"><CheckCircle2 size={14} /> Aplicável</span></td>
+                                                <td className="p-4 pr-5 text-right text-xs font-black text-zinc-900 align-top pt-5">R$ {valorNumerico.toFixed(2).replace('.', ',')}</td>
                                             </tr>
                                         );
                                     })
@@ -401,9 +527,9 @@ export default function FundoReservasPage() {
                         </table>
                     </div>
 
-                    {fundoReservaSuccess && <p className="text-xs font-bold text-emerald-600 bg-emerald-50 p-3 rounded-xl flex items-center gap-2"><CheckCircle2 size={14} /> {fundoReservaSuccess}</p>}
-                    <button onClick={handleSalvarFundoReserva} disabled={loadingFundo} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
-                        {loadingFundo ? "Salvando..." : "Salvar Fundo de Reservas"}
+                    {fundoReservaSuccess && <p className="text-xs font-bold text-emerald-600 bg-emerald-50 p-4 rounded-xl flex items-center gap-2 border border-emerald-100"><CheckCircle2 size={16} /> {fundoReservaSuccess}</p>}
+                    <button onClick={handleSalvarFundoReserva} disabled={loadingFundo} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-sm hover:shadow-md hover:shadow-emerald-600/20 active:scale-[0.99]">
+                        {loadingFundo ? "Salvando Alterações..." : "Salvar Fundo de Reservas Mensal"}
                     </button>
                 </div>
 
