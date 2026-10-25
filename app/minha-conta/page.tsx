@@ -283,7 +283,8 @@ export default function MinhaContaPage() {
           setNome(nomeProfile);
           setSlug(profile.slug || "");
           setEmailContato(profile.email_contato || user.email || "");
-          setTelefone(profile.telefone || "");
+          setTelefone(aplicarMascaraTelefone(profile.telefone || ""));
+          setTelefoneEmpresarial(aplicarMascaraTelefone(profile.telefone || "")); // Mantém atualizado com máscara
           setProfissao(profile.profissao || "");
           setFormacao(profile.formacao || "");
           setDataNascimento(profile.data_nascimento || "");
@@ -301,7 +302,7 @@ export default function MinhaContaPage() {
           setEmailContato(user.email || "");
         }
 
-        // --- FETCH CONDOMÍNIO (BUSCA DIRETA E ROBUSTA) ---
+        // --- FETCH CONDOMÍNIO ROBUSTO (COM FALLBACK) ---
         const { data: membro } = await supabase
           .from("condominio_membros")
           .select("*")
@@ -313,30 +314,52 @@ export default function MinhaContaPage() {
           setUnidadeSindico(unidadeVal);
           setInitialUnidadeSindico(unidadeVal);
 
-          if (membro.condominio_id) {
-            setCondoId(membro.condominio_id);
+          if (membro.condominio_id || membro.condominio_nome) {
+            let condoData = null;
 
-            const { data: condoData } = await supabase
-              .from("condominios")
-              .select("id, nome, cnpj, quantidade_unidades")
-              .eq("id", membro.condominio_id)
-              .maybeSingle();
+            // 1. Tenta buscar pelo ID do vínculo
+            if (membro.condominio_id) {
+              const { data: byId } = await supabase
+                .from("condominios")
+                .select("id, nome, cnpj, quantidade_unidades, telefone")
+                .eq("id", membro.condominio_id)
+                .maybeSingle();
+              condoData = byId;
+            }
+
+            // 2. Fallback: Se não encontrou pelo ID, busca pelo nome do condomínio salvo no membro
+            // Ajuste aplicado aqui: Inclusão do 'telefone' no select
+            if (!condoData && membro.condominio_nome) {
+              const { data: byName } = await supabase
+                .from("condominios")
+                .select("id, nome, cnpj, quantidade_unidades, telefone")
+                .eq("nome", membro.condominio_nome)
+                .maybeSingle();
+              condoData = byName;
+            }
 
             if (condoData) {
+              setCondoId(condoData.id);
               const nomeCondoVal = condoData.nome || membro.condominio_nome || "";
               setCondoNome(nomeCondoVal);
               setInitialCondoNome(nomeCondoVal);
 
               const cnpjCondoVal = condoData.cnpj || "";
-              setCondoCnpj(cnpjCondoVal);
-              setInitialCondoCnpj(cnpjCondoVal);
+              setCondoCnpj(aplicarMascaraCNPJ(cnpjCondoVal));
+              setInitialCondoCnpj(aplicarMascaraCNPJ(cnpjCondoVal));
 
               const qtdUnidadesVal = condoData.quantidade_unidades?.toString() || "";
               setQuantidadeUnidades(qtdUnidadesVal);
+
+              // --- O AJUSTE PRINCIPAL ESTÁ AQUI ---
+              // Atualiza o estado da tela com o telefone vindo da tabela condominios
+              if (condoData.telefone) {
+                setTelefoneEmpresarial(aplicarMascaraTelefone(condoData.telefone));
+              }
+
             } else {
-              const nomeAlt = membro.condominio_nome || "";
-              setCondoNome(nomeAlt);
-              setInitialCondoNome(nomeAlt);
+              setCondoNome(membro.condominio_nome || "");
+              setInitialCondoNome(membro.condominio_nome || "");
             }
           }
         }
@@ -448,7 +471,7 @@ export default function MinhaContaPage() {
             className="mt-5 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 px-4 py-2.5 rounded-xl hover:bg-emerald-100 transition-all cursor-pointer w-fit shadow-sm"
           >
             <Building2 size={14} className="text-emerald-600" />
-            Completar Acesso Empresarial
+            Completar Cadastro Empresarial
           </button>
         </div>
       </div>
@@ -902,7 +925,7 @@ export default function MinhaContaPage() {
           </div>
 
           <p className="text-xs text-gray-600 mb-8 leading-relaxed font-medium hidden md:block">
-            As alterações da conta "empresarial" são gerenciadas pela equipe Nucleo. {condoId ? "Seus dados atuais estão bloqueados por segurança. Para solicitar alterações, atualize os campos e reenvie." : "Preencha os dados abaixo e envie-os à administração através do botão 'Enviar dados cadastrais'."}
+            As alterações da conta "empresarial" são gerenciadas pela equipe Nucleo. {condoId ? "Para solicitar edição, atualize os campos abaixo e envie uma nova solicitação." : "Preencha os dados abaixo e envie-os à administração através do botão 'Enviar dados cadastrais'."}
           </p>
           <p className="text-xs text-gray-600 mb-8 leading-relaxed font-medium block md:hidden">
             Gestão de conta empresarial simplificada. {condoId ? "Para editar, altere os dados e reenvie." : "Envie os dados abaixo para nossa administração."}
@@ -925,7 +948,6 @@ export default function MinhaContaPage() {
             <input type="hidden" name="quantidade_unidades_informadas" value={quantidadeUnidades || 'Não informado'} />
             <input type="hidden" name="estimativa_faturamento" value={quantidadeUnidades ? `R$ ${(Number(quantidadeUnidades) * 7).toFixed(2)}` : 'N/A'} />
 
-            {/* Utilizamos readOnly={!!condoId} para impedir edição direta mas não perder a propriedade 'name' no envio do form */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-8 mb-6 items-start">
               <div className="space-y-3 md:col-span-1">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
@@ -934,13 +956,13 @@ export default function MinhaContaPage() {
                 <input
                   type="text"
                   name="nome_empresarial"
-                  placeholder="Nome"
+                  placeholder="Nome do Condomínio/Empresa"
                   value={condoNome}
-                  readOnly={!!condoId}
-                  className={`w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs outline-none transition-all ${condoId ? 'bg-emerald-100/30 text-emerald-900 cursor-not-allowed opacity-80' : 'bg-white focus:border-emerald-400'}`}
+                  className="w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs outline-none transition-all bg-white focus:border-emerald-400"
                   onChange={(e) => handleEmpresarialChange(setCondoNome, e.target.value)}
                 />
               </div>
+
               <div className="space-y-3 md:col-span-1">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
                   <span className="flex items-center gap-2"><FileCheck2 size={12} className="text-emerald-600" /> CNPJ</span>
@@ -950,9 +972,8 @@ export default function MinhaContaPage() {
                   name="cnpj_empresarial"
                   placeholder="00.000.000/0000-00"
                   value={condoCnpj}
-                  readOnly={!!condoId}
-                  className={`w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs outline-none transition-all ${condoId ? 'bg-emerald-100/30 text-emerald-900 cursor-not-allowed opacity-80' : 'bg-white focus:border-emerald-400'}`}
-                  onChange={(e) => handleEmpresarialChange(setCondoCnpj, e.target.value)}
+                  className="w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs outline-none transition-all bg-white focus:border-emerald-400"
+                  onChange={(e) => handleEmpresarialChange(setCondoCnpj, aplicarMascaraCNPJ(e.target.value))}
                 />
               </div>
 
@@ -960,25 +981,25 @@ export default function MinhaContaPage() {
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
                   <span className="flex items-center gap-1.5"><Calculator size={12} className="text-emerald-600" /> Qtd. Unidades</span>
                 </label>
-                <input
-                  type="number"
-                  name="quantidade_unidades"
-                  placeholder="Ex: 12"
-                  min="1"
-                  value={quantidadeUnidades}
-                  readOnly={!!condoId}
-                  className={`w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs outline-none transition-all ${condoId ? 'bg-emerald-100/30 text-emerald-900 cursor-not-allowed opacity-80' : 'bg-white focus:border-emerald-400'}`}
-                  onChange={(e) => handleEmpresarialChange(setQuantidadeUnidades, e.target.value)}
-                />
 
-                {quantidadeUnidades && Number(quantidadeUnidades) > 0 && (
-                  <div className="mt-2 bg-emerald-100/50 rounded-lg p-2 flex items-center gap-2 border border-emerald-200/50 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <span className="text-[9px] font-bold text-emerald-800 uppercase tracking-wider">Estimativa x unidade:</span>
-                    <span className="text-[11px] font-black text-emerald-900">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(quantidadeUnidades) * 7)}/mês
+                {/* Wrapper relativo para abrigar a estimativa DENTRO do campo visualmente */}
+                <div className="relative flex items-center">
+                  <input
+                    type="number"
+                    name="quantidade_unidades"
+                    placeholder="Ex: 8"
+                    min="1"
+                    value={quantidadeUnidades}
+                    className="w-full h-11 pl-4 pr-[110px] border border-emerald-200/60 rounded-xl text-xs outline-none transition-all bg-white focus:border-emerald-400"
+                    onChange={(e) => handleEmpresarialChange(setQuantidadeUnidades, e.target.value)}
+                  />
+                  {/* Estimativa flutuante renderizada internamente à direita */}
+                  {quantidadeUnidades && Number(quantidadeUnidades) > 0 && (
+                    <span className="absolute right-3 text-[9px] font-black text-emerald-700 pointer-events-none bg-emerald-50 px-2 py-1.5 rounded-lg border border-emerald-100 shadow-sm">
+                      (R$ {(Number(quantidadeUnidades) * 7).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mês)
                     </span>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               <div className="space-y-3 md:col-span-1">
@@ -990,11 +1011,11 @@ export default function MinhaContaPage() {
                   name="unidade_empresarial"
                   placeholder="Ex: Apto 302 Bloco B"
                   value={unidadeSindico}
-                  readOnly={!!condoId}
-                  className={`w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs outline-none transition-all ${condoId ? 'bg-emerald-100/30 text-emerald-900 cursor-not-allowed opacity-80' : 'bg-white focus:border-emerald-400'}`}
+                  className="w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs outline-none transition-all bg-white focus:border-emerald-400"
                   onChange={(e) => handleEmpresarialChange(setUnidadeSindico, e.target.value)}
                 />
               </div>
+
               <div className="space-y-3 md:col-span-1">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
                   <span>Telefone (Síndico / Adm)</span>
@@ -1004,8 +1025,7 @@ export default function MinhaContaPage() {
                   name="telefone_empresarial"
                   placeholder="(00) 00000-0000"
                   value={telefoneEmpresarial}
-                  readOnly={!!condoId}
-                  className={`w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs outline-none transition-all ${condoId ? 'bg-emerald-100/30 text-emerald-900 cursor-not-allowed opacity-80' : 'bg-white focus:border-emerald-400'}`}
+                  className="w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs outline-none transition-all bg-white focus:border-emerald-400"
                   onChange={(e) => handleEmpresarialChange(setTelefoneEmpresarial, aplicarMascaraTelefone(e.target.value))}
                 />
               </div>
@@ -1021,7 +1041,7 @@ export default function MinhaContaPage() {
             <div className="flex flex-col md:flex-row items-center justify-between flex-wrap gap-4 mt-6 text-center md:text-left">
               <p className="text-[10px] text-emerald-800 font-medium w-full md:w-auto text-center md:text-left">
                 {condoId
-                  ? "* Seus dados estão ativos. Para editar as informações, envie uma nova solicitação clicando no botão ao lado."
+                  ? "* Seus dados estão ativos. Para solicitar nova alteração em nosso sistema, envie através do botão ao lado."
                   : "* Preencha os campos acima e clique no botão para enviar os dados por e-mail para a nossa administração."}
               </p>
               <div className="w-full md:w-auto flex justify-center md:justify-end">
@@ -1029,8 +1049,7 @@ export default function MinhaContaPage() {
                   type="submit"
                   className="px-6 py-3 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer w-full md:w-auto"
                 >
-                  <Send size={16} />
-                  <span>{condoId ? "Solicitar alteração de dados" : "Enviar dados cadastrais"}</span>
+                  <span>{condoId ? "Solicitar alterações cadastrais" : "Enviar dados cadastrais"}</span>
                 </button>
               </div>
             </div>
@@ -1045,7 +1064,7 @@ export default function MinhaContaPage() {
           disabled={updating}
           className="flex items-center justify-center gap-3 px-10 py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all cursor-pointer"
         >
-          <Save size={16} /> {updating ? "Sincronizando..." : "Salvar Alterações"}
+          <Save size={16} /> {updating ? "Sincronizando..." : "Salvar Alterações do Perfil"}
         </button>
       </div>
 
@@ -1146,6 +1165,21 @@ export default function MinhaContaPage() {
   );
 }
 
+// --- FUNÇÕES DE MÁSCARA ---
 const aplicarMascaraTelefone = (value: string) => {
-  return value.replace(/\D/g, "").replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2").replace(/(-\d{4})\d+?$/, "$1");
+  let v = value.replace(/\D/g, "");
+  if (v.length > 11) v = v.substring(0, 11);
+  v = v.replace(/^(\d{2})(\d)/, "($1) $2");
+  v = v.replace(/(\d{4,5})(\d{4})$/, "$1-$2");
+  return v;
+};
+
+const aplicarMascaraCNPJ = (value: string) => {
+  let v = value.replace(/\D/g, "");
+  if (v.length > 14) v = v.substring(0, 14);
+  v = v.replace(/^(\d{2})(\d)/, "$1.$2");
+  v = v.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+  v = v.replace(/\.(\d{3})(\d)/, ".$1/$2");
+  v = v.replace(/(\d{4})(\d)/, "$1-$2");
+  return v;
 };
