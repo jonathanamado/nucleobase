@@ -478,7 +478,7 @@ export function MainContent() {
                 <span className="inline-flex items-center justify-center bg-orange-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                   Controle Financeiro,
                 </span>
-                {" "}você acompanha contas e cartões de crédito de forma consolidada e inteligente; já com o módulo de{" "}
+                {" "}você acompanha contas e cartões de crédito de forma consolidada e inteligente; já com o módulo{" "}
                 <span className="inline-flex items-center justify-center bg-emerald-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                   Gestão Residencial,
                 </span>

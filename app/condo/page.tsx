@@ -380,7 +380,7 @@ export default function NucleobaseCondo() {
                 <Link
                     href="/condo/contabilidade"
                     onClick={() => trackClick("Acessar Contabilidade", "/condo/contabilidade")}
-                    className="bg-white border border-gray-300 p-5 rounded-[2.5rem] shadow-lg shadow-gray-200/50 hover:shadow-2xl transition-all group relative overflow-hidden flex flex-col justify-center cursor-pointer block w-full"
+                    className="bg-white border border-gray-300 p-5 rounded-[1.5rem] shadow-lg shadow-gray-200/50 hover:shadow-2xl transition-all group relative overflow-hidden flex flex-col justify-center cursor-pointer block w-full"
                 >
                     <div className="relative z-10 w-full flex items-center justify-center gap-3">
                         <div className="w-12 h-12 shrink-0 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all duration-500 shadow-sm">

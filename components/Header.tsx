@@ -201,9 +201,16 @@ export function Header() {
     { name: "Sobre a Plataforma", href: "/sobre", icon: <Info size={18} /> },
     { name: "Indique e ganhe", href: "/indique", icon: <Gift size={18} /> },
     { name: "Blog da Nucleo", href: "/blog", icon: <Newspaper size={18} /> },
-    { name: "Assinatura digital", href: "/planos", icon: <CreditCard size={18} /> },
-    { name: "Depoimentos", href: "/depoimentos", icon: <Star size={18} /> },
-    { name: "Segurança", href: "/seguranca_privacidade", icon: <Shield size={18} /> },
+    {
+      name: "Assinatura digital",
+      href: "/planos",
+      icon: (
+        <div className="relative flex items-center justify-center">
+          <div className="absolute inset-0 bg-blue-500 rounded-full blur-[8px] opacity-40 animate-pulse"></div>
+          <CreditCard size={18} className="relative z-10 text-blue-600" />
+        </div>
+      )
+    }
   ];
 
   const DropdownItem = ({ icon: Icon, label, onClick, color = "text-gray-600" }: any) => (
@@ -319,7 +326,7 @@ export function Header() {
               alt="Logo Nucleo Base"
               width={125}
               height={65}
-              className="w-[125px] h-auto lg:w-[155px] lg:h-auto object-contain"
+              className="w-[125px] h-auto lg:w-[155px] h-auto object-contain"
             />
           </div>
 
@@ -503,6 +510,9 @@ export function Header() {
                       )}
                       <a href="/condo" onClick={() => trackHeaderClick("Administração Condo (Mobile)", "/condo")} className="flex items-center justify-center gap-2 w-full py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-xs shadow-lg active:scale-95 transition-all">
                         <Building2 size={15} /> Administração Condo
+                      </a>
+                      <a href="/controle-financeiro/resultados" onClick={() => trackHeaderClick("Resultados & Consultoria (Mobile)", "/controle-financeiro/resultados")} className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-700 text-white rounded-xl font-bold text-xs shadow-lg active:scale-95 transition-all">
+                        <BarChart3 size={15} /> Resultados & Consultoria
                       </a>
                     </div>
                   )}

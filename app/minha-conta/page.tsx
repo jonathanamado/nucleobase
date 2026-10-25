@@ -10,10 +10,13 @@ import {
   KeyRound, Instagram, X,
   Target, Share2, Wallet, Zap, Rocket, LayoutDashboard, Info,
   PieChart, Award, ChartPie, Building2, FileCheck2, CheckCircle2, Settings2, ShieldCheck,
-  Eye, EyeOff, Sparkles, ArrowUpRight, Lock, Send, Calculator
+  Eye, EyeOff, Sparkles, ArrowUpRight, Lock, Send, Calculator, Smartphone
 } from "lucide-react";
 
 export default function MinhaContaPage() {
+  // --- LINK WHATSAPP ---
+  const whatsappLink = "https://wa.link/qbxg9f";
+
   // --- ESTADOS DE DADOS ---
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -40,7 +43,6 @@ export default function MinhaContaPage() {
   const [condoCnpj, setCondoCnpj] = useState("");
   const [unidadeSindico, setUnidadeSindico] = useState("");
   const [telefoneEmpresarial, setTelefoneEmpresarial] = useState("");
-  // NOVO: Estado para capturar a quantidade de unidades
   const [quantidadeUnidades, setQuantidadeUnidades] = useState("");
 
   // --- ESTADOS INICIAIS ORIGINAIS (PARA VALIDAÇÃO DE BLOQUEIO) ---
@@ -76,7 +78,6 @@ export default function MinhaContaPage() {
   }, []);
 
   const handleEmpresarialSubmit = (e: React.FormEvent) => {
-    // Validação: se o e-mail de contato não estiver preenchido, impede o envio e alerta o usuário
     if (!emailContato || emailContato.trim() === "") {
       e.preventDefault();
       alert("Por favor, preencha o campo 'E-mail de Notificações' nos seus Dados Cadastrais antes de enviar a solicitação empresarial.");
@@ -87,7 +88,6 @@ export default function MinhaContaPage() {
       return;
     }
 
-    // Opcional: Validação para garantir que informem unidades
     if (!quantidadeUnidades || isNaN(Number(quantidadeUnidades)) || Number(quantidadeUnidades) <= 0) {
       e.preventDefault();
       alert("Por favor, informe a quantidade aproximada de unidades (Casas/Aptos) do seu condomínio.");
@@ -104,7 +104,6 @@ export default function MinhaContaPage() {
     }
   };
 
-  // --- LÓGICA DE AVISO DE SAÍDA ---
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty || isEmpresarialDirty) {
@@ -302,9 +301,10 @@ export default function MinhaContaPage() {
           setEmailContato(user.email || "");
         }
 
+        // --- FETCH CONDOMÍNIO (BUSCA DIRETA E ROBUSTA) ---
         const { data: membro } = await supabase
           .from("condominio_membros")
-          .select("unidade, condominio:condominios(id, nome, cnpj)") // IMPORTANTE: Precisamos carregar a quantidade se já existir depois
+          .select("*")
           .eq("user_id", user.id)
           .maybeSingle();
 
@@ -312,17 +312,32 @@ export default function MinhaContaPage() {
           const unidadeVal = membro.unidade || "";
           setUnidadeSindico(unidadeVal);
           setInitialUnidadeSindico(unidadeVal);
-          if (membro.condominio) {
-            // @ts-ignore
-            setCondoId(membro.condominio.id);
-            // @ts-ignore
-            const nomeCondoVal = membro.condominio.nome || "";
-            setCondoNome(nomeCondoVal);
-            setInitialCondoNome(nomeCondoVal);
-            // @ts-ignore
-            const cnpjCondoVal = membro.condominio.cnpj || "";
-            setCondoCnpj(cnpjCondoVal);
-            setInitialCondoCnpj(cnpjCondoVal);
+
+          if (membro.condominio_id) {
+            setCondoId(membro.condominio_id);
+
+            const { data: condoData } = await supabase
+              .from("condominios")
+              .select("id, nome, cnpj, quantidade_unidades")
+              .eq("id", membro.condominio_id)
+              .maybeSingle();
+
+            if (condoData) {
+              const nomeCondoVal = condoData.nome || membro.condominio_nome || "";
+              setCondoNome(nomeCondoVal);
+              setInitialCondoNome(nomeCondoVal);
+
+              const cnpjCondoVal = condoData.cnpj || "";
+              setCondoCnpj(cnpjCondoVal);
+              setInitialCondoCnpj(cnpjCondoVal);
+
+              const qtdUnidadesVal = condoData.quantidade_unidades?.toString() || "";
+              setQuantidadeUnidades(qtdUnidadesVal);
+            } else {
+              const nomeAlt = membro.condominio_nome || "";
+              setCondoNome(nomeAlt);
+              setInitialCondoNome(nomeAlt);
+            }
           }
         }
 
@@ -339,7 +354,6 @@ export default function MinhaContaPage() {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (user) {
-      // 1. Atualiza dados padrão do perfil
       const { error: profileError } = await supabase.from("profiles").upsert({
         id: user.id, nome_completo: nome, email_contato: emailContato, telefone: telefone,
         profissao: profissao, formacao: formacao, data_nascimento: dataNascimento || null,
@@ -354,7 +368,6 @@ export default function MinhaContaPage() {
         return;
       }
 
-      // Rastreamento de conversão/atualização de perfil no Google Tag Manager
       if (typeof window !== "undefined") {
         window.dataLayer = window.dataLayer || [];
         window.dataLayer.push({
@@ -364,31 +377,11 @@ export default function MinhaContaPage() {
         });
       }
 
-      // Validação/submissão do formulário de acesso empresarial se houver alterações nele
-      if (condoCnpj !== initialCondoCnpj || unidadeSindico !== initialUnidadeSindico || condoNome !== initialCondoNome) {
-        if (isEmpresarialDirty && empresarialFormRef.current) {
-          window.dataLayer?.push({
-            event: "empresarial_access_proposal_submitted",
-            form_name: "acesso_empresarial"
-          });
-          empresarialFormRef.current.target = "_blank";
-          empresarialFormRef.current.submit();
-          setIsEmpresarialDirty(false);
-        } else {
-          alert("Entre em contato com o Administrador de sua conta para realizar esta operação em 'Acesso Empresarial'.");
-        }
-        setCondoCnpj(initialCondoCnpj);
-        setUnidadeSindico(initialUnidadeSindico);
-        setCondoNome(initialCondoNome);
-      }
-
       setIsDirty(false);
       setSuccessMessage("Dados salvos com sucesso!");
 
-      // Reinicia a tela para o topo suavemente
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      // Oculta a mensagem de sucesso após 4 segundos
       setTimeout(() => {
         setSuccessMessage("");
       }, 4000);
@@ -449,6 +442,14 @@ export default function MinhaContaPage() {
           <h2 className="text-gray-500 text-base md:text-lg font-medium max-w-2xl leading-relaxed mt-0">
             Olá<span className="whitespace-nowrap font-bold text-gray-900"> {getPrimeiroNome()},</span> gerencie seus dados e entenda o seu comportamento.
           </h2>
+
+          <button
+            onClick={() => document.getElementById('acesso-empresarial')?.scrollIntoView({ behavior: 'smooth' })}
+            className="mt-5 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 px-4 py-2.5 rounded-xl hover:bg-emerald-100 transition-all cursor-pointer w-fit shadow-sm"
+          >
+            <Building2 size={14} className="text-emerald-600" />
+            Completar Acesso Empresarial
+          </button>
         </div>
       </div>
 
@@ -487,7 +488,6 @@ export default function MinhaContaPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-
         {/* COLUNA ESQUERDA */}
         <div className="lg:col-span-7 h-full order-2 md:order-1">
           <section className="bg-white rounded-[2.5rem] p-8 md:p-10 border border-gray-100 shadow-sm h-full flex flex-col">
@@ -515,7 +515,7 @@ export default function MinhaContaPage() {
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-blue-600 uppercase ml-1 tracking-widest flex items-center justify-between">
                   <span>E-mail de Notificações</span>
-                  <span className="text-[9px] text-gray-400 font-bold lowercase">(obrigatório p/ empresarial)</span>
+                  <span className="text-[9px] text-gray-400 font-bold lowercase">(Obrigatório)</span>
                 </label>
                 <input
                   ref={emailContatoRef}
@@ -631,7 +631,7 @@ export default function MinhaContaPage() {
                       </div>
                       <p className="text-white text-xs font-bold leading-relaxed">
                         <span className="md:hidden">Ajustes de credenciais</span>
-                        <span className="hidden md:inline">Redefinição de senha e edição de configurações.</span>
+                        <span className="hidden md:inline">Redefinições e configurações.</span>
                       </p>
                     </div>
                     <div className="flex flex-col gap-2 pt-2">
@@ -787,7 +787,7 @@ export default function MinhaContaPage() {
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1 text-center">
                     <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Performance</p>
-                    <p className="text-white text-xs font-bold leading-tight">Acompanhe suas contas e tome melhores decisões.</p>
+                    <p className="text-white text-xs font-bold leading-tight">Acompanhe suas contas e melhores decisões.</p>
                   </div>
                   <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform shrink-0">
                     <LayoutDashboard size={20} fill="currentColor" className="text-blue-100" />
@@ -795,37 +795,38 @@ export default function MinhaContaPage() {
                 </div>
               </Link>
 
-              {/* BANNER DE DESTAQUE - PLANO PRO & DEGUSTAÇÃO TRANSFERIDO PARA CÁ */}
-              <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white p-4 rounded-xl shadow-lg flex items-center justify-between gap-4 relative overflow-hidden border border-blue-400/20">
+              {/* BANNER DE DESTAQUE - ONBOARDING / DEGUSTAÇÃO GUIADA WHATSAPP */}
+              <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white p-5 rounded-xl shadow-lg flex flex-col relative overflow-hidden border border-blue-400/20">
                 <div className="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
                   <Sparkles size={160} />
                 </div>
-                <div className="flex items-center gap-3 relative z-10 flex-1 min-w-0">
-                  <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white shrink-0 shadow-md shadow-blue-600/30">
-                    <Sparkles size={18} />
+
+                <div className="relative z-10 w-full mb-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-blue-200 text-[9px] font-bold uppercase tracking-widest">Onboarding Guiado</span>
                   </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5 hidden md:flex">
-                      <span className="bg-blue-500 text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded-md tracking-wider">Nucleo Condo</span>
-                      <span className="text-blue-200 text-[9px] font-bold uppercase tracking-widest">• Plano Pro</span>
-                    </div>
-                    {/* VERSÃO DESKTOP */}
-                    <h4 className="font-bold text-xs text-white leading-snug hidden md:block truncate">
-                      Período de degustação de 45 dias ativos inclusos.
-                    </h4>
-                    {/* VERSÃO MOBILE SIMPLIFICADA */}
-                    <h4 className="font-bold text-[11px] text-white leading-snug md:hidden truncate">
-                      Degustação de 45 dias para novos negócios.
-                    </h4>
-                  </div>
+                  <h4 className="font-bold text-[11px] md:text-xs text-white leading-snug w-full">
+                    Solicite uma degustação guiada com a nossa equipe e impulsione sua gestão de forma clara e eficiente.
+                  </h4>
                 </div>
-                <Link
-                  href="/planos/pro"
-                  className="relative z-10 flex items-center justify-center gap-1.5 bg-white text-blue-900 hover:bg-blue-50 px-3.5 py-2.5 rounded-lg font-black text-[9px] uppercase tracking-widest shadow-md transition-all shrink-0"
+
+                <a
+                  href={whatsappLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => {
+                    if (typeof window !== "undefined") {
+                      window.dataLayer = window.dataLayer || [];
+                      window.dataLayer.push({
+                        event: "click_whatsapp_onboarding",
+                        page_location: "/minha-conta"
+                      });
+                    }
+                  }}
+                  className="self-center relative z-10 flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-4 py-2 rounded-lg font-black text-[9px] uppercase tracking-widest shadow-sm transition-all cursor-pointer w-fit"
                 >
-                  <span className="hidden md:inline">Conhecer Pro</span>
-                  <span className="md:hidden">Assine o PRO</span> <ArrowUpRight size={12} />
-                </Link>
+                  <span>Falar com a Equipe</span> <Smartphone size={14} />
+                </a>
               </div>
             </div>
           </section>
@@ -881,16 +882,30 @@ export default function MinhaContaPage() {
       </div>
 
       {/* --- BLOCO: ACESSO EMPRESARIAL (CONDOMÍNIO) --- */}
-      <div className="mt-8">
+      <div className="mt-8 scroll-mt-24 md:scroll-mt-32" id="acesso-empresarial">
         <section className="bg-emerald-50/60 rounded-[2.5rem] p-6 md:p-10 border border-emerald-100">
-          <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-emerald-700/80 mb-4 flex items-center gap-4">
-            Acesso Empresarial <div className="h-px bg-emerald-200/60 flex-1"></div>
-          </h3>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+            <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-emerald-700/80 flex items-center gap-4 flex-1">
+              Acesso Empresarial <div className="h-px bg-emerald-200/60 flex-1 hidden md:block"></div>
+            </h3>
+
+            {/* TAG VISUAL DE STATUS */}
+            {condoId ? (
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 border border-emerald-200 text-emerald-800 text-[9px] font-black uppercase tracking-widest rounded-full shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Conta Ativa
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 border border-yellow-200 text-yellow-800 text-[9px] font-black uppercase tracking-widest rounded-full shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span> Pendente
+              </span>
+            )}
+          </div>
+
           <p className="text-xs text-gray-600 mb-8 leading-relaxed font-medium hidden md:block">
-            As alterações da conta empresarial são gerenciadas pela equipe Nucleobase. Para este perfil, preencha os dados nos campos abaixo e realize o envio à administração através do botão 'Enviar dados cadastrais'.
+            As alterações da conta "empresarial" são gerenciadas pela equipe Nucleo. {condoId ? "Seus dados atuais estão bloqueados por segurança. Para solicitar alterações, atualize os campos e reenvie." : "Preencha os dados abaixo e envie-os à administração através do botão 'Enviar dados cadastrais'."}
           </p>
           <p className="text-xs text-gray-600 mb-8 leading-relaxed font-medium block md:hidden">
-            Gestão de conta empresarial simplificada. Envie os dados abaixo para nossa administração.
+            Gestão de conta empresarial simplificada. {condoId ? "Para editar, altere os dados e reenvie." : "Envie os dados abaixo para nossa administração."}
           </p>
 
           <form
@@ -901,18 +916,16 @@ export default function MinhaContaPage() {
             target="_blank"
           >
             <input type="hidden" name="access_key" value="9ef5a274-150a-4664-a885-0b052efd06f7" />
-            <input type="hidden" name="subject" value="Atualização de Acesso Empresarial - Nucleobase" />
+            <input type="hidden" name="subject" value={condoId ? "Solicitação de Alteração de Acesso Empresarial - Nucleobase" : "Novo Pedido de Acesso Empresarial - Nucleobase"} />
             <input type="hidden" name="from_name" value="Nucleobase Empresarial" />
 
-            {/* Campos ocultos adicionais para identificar claramente o usuário solicitante no e-mail */}
             <input type="hidden" name="nome_usuario_logado" value={nome || 'Não informado'} />
             <input type="hidden" name="email_contato_usuario" value={emailContato || 'Não informado'} />
             <input type="hidden" name="email_conta_supabase" value={email || 'Não informado'} />
-            {/* NOVO: Campo oculto para garantir que as unidades e o cálculo também vão no e-mail principal caso o textarea falhe */}
             <input type="hidden" name="quantidade_unidades_informadas" value={quantidadeUnidades || 'Não informado'} />
             <input type="hidden" name="estimativa_faturamento" value={quantidadeUnidades ? `R$ ${(Number(quantidadeUnidades) * 7).toFixed(2)}` : 'N/A'} />
 
-
+            {/* Utilizamos readOnly={!!condoId} para impedir edição direta mas não perder a propriedade 'name' no envio do form */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-8 mb-6 items-start">
               <div className="space-y-3 md:col-span-1">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
@@ -923,7 +936,8 @@ export default function MinhaContaPage() {
                   name="nome_empresarial"
                   placeholder="Nome"
                   value={condoNome}
-                  className="w-full h-11 px-4 bg-white border border-emerald-200/60 rounded-xl text-xs outline-none transition-all focus:border-emerald-400"
+                  readOnly={!!condoId}
+                  className={`w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs outline-none transition-all ${condoId ? 'bg-emerald-100/30 text-emerald-900 cursor-not-allowed opacity-80' : 'bg-white focus:border-emerald-400'}`}
                   onChange={(e) => handleEmpresarialChange(setCondoNome, e.target.value)}
                 />
               </div>
@@ -936,12 +950,12 @@ export default function MinhaContaPage() {
                   name="cnpj_empresarial"
                   placeholder="00.000.000/0000-00"
                   value={condoCnpj}
-                  className="w-full h-11 px-4 bg-white border border-emerald-200/60 rounded-xl text-xs outline-none transition-all focus:border-emerald-400"
+                  readOnly={!!condoId}
+                  className={`w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs outline-none transition-all ${condoId ? 'bg-emerald-100/30 text-emerald-900 cursor-not-allowed opacity-80' : 'bg-white focus:border-emerald-400'}`}
                   onChange={(e) => handleEmpresarialChange(setCondoCnpj, e.target.value)}
                 />
               </div>
 
-              {/* NOVO CAMPO: Quantidade de Unidades */}
               <div className="space-y-3 md:col-span-1">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
                   <span className="flex items-center gap-1.5"><Calculator size={12} className="text-emerald-600" /> Qtd. Unidades</span>
@@ -952,11 +966,11 @@ export default function MinhaContaPage() {
                   placeholder="Ex: 12"
                   min="1"
                   value={quantidadeUnidades}
-                  className="w-full h-11 px-4 bg-white border border-emerald-200/60 rounded-xl text-xs outline-none transition-all focus:border-emerald-400"
+                  readOnly={!!condoId}
+                  className={`w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs outline-none transition-all ${condoId ? 'bg-emerald-100/30 text-emerald-900 cursor-not-allowed opacity-80' : 'bg-white focus:border-emerald-400'}`}
                   onChange={(e) => handleEmpresarialChange(setQuantidadeUnidades, e.target.value)}
                 />
 
-                {/* O "Uau" visual: Projeção de custo aparece apenas se o número for > 0 */}
                 {quantidadeUnidades && Number(quantidadeUnidades) > 0 && (
                   <div className="mt-2 bg-emerald-100/50 rounded-lg p-2 flex items-center gap-2 border border-emerald-200/50 animate-in fade-in slide-in-from-top-2 duration-300">
                     <span className="text-[9px] font-bold text-emerald-800 uppercase tracking-wider">Estimativa x unidade:</span>
@@ -976,7 +990,8 @@ export default function MinhaContaPage() {
                   name="unidade_empresarial"
                   placeholder="Ex: Apto 302 Bloco B"
                   value={unidadeSindico}
-                  className="w-full h-11 px-4 bg-white border border-emerald-200/60 rounded-xl text-xs outline-none transition-all focus:border-emerald-400"
+                  readOnly={!!condoId}
+                  className={`w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs outline-none transition-all ${condoId ? 'bg-emerald-100/30 text-emerald-900 cursor-not-allowed opacity-80' : 'bg-white focus:border-emerald-400'}`}
                   onChange={(e) => handleEmpresarialChange(setUnidadeSindico, e.target.value)}
                 />
               </div>
@@ -989,7 +1004,8 @@ export default function MinhaContaPage() {
                   name="telefone_empresarial"
                   placeholder="(00) 00000-0000"
                   value={telefoneEmpresarial}
-                  className="w-full h-11 px-4 bg-white border border-emerald-200/60 rounded-xl text-xs outline-none transition-all focus:border-emerald-400"
+                  readOnly={!!condoId}
+                  className={`w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs outline-none transition-all ${condoId ? 'bg-emerald-100/30 text-emerald-900 cursor-not-allowed opacity-80' : 'bg-white focus:border-emerald-400'}`}
                   onChange={(e) => handleEmpresarialChange(setTelefoneEmpresarial, aplicarMascaraTelefone(e.target.value))}
                 />
               </div>
@@ -1004,7 +1020,9 @@ export default function MinhaContaPage() {
 
             <div className="flex flex-col md:flex-row items-center justify-between flex-wrap gap-4 mt-6 text-center md:text-left">
               <p className="text-[10px] text-emerald-800 font-medium w-full md:w-auto text-center md:text-left">
-                * Preencha os campos acima e clique no botão para enviar os dados por e-mail para a nossa administração.
+                {condoId
+                  ? "* Seus dados estão ativos. Para editar as informações, envie uma nova solicitação clicando no botão ao lado."
+                  : "* Preencha os campos acima e clique no botão para enviar os dados por e-mail para a nossa administração."}
               </p>
               <div className="w-full md:w-auto flex justify-center md:justify-end">
                 <button
@@ -1012,7 +1030,7 @@ export default function MinhaContaPage() {
                   className="px-6 py-3 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer w-full md:w-auto"
                 >
                   <Send size={16} />
-                  <span>Enviar dados cadastrais</span>
+                  <span>{condoId ? "Solicitar alteração de dados" : "Enviar dados cadastrais"}</span>
                 </button>
               </div>
             </div>

@@ -7,7 +7,8 @@ import {
   Zap, ShieldCheck, BarChart3, ShoppingCart,
   CheckCircle2, Star, Gem, X, Instagram, Gift,
   ChevronLeft, ChevronRight, Headphones, RefreshCcw, Rocket,
-  AtSign, Key, User, ArrowRight, ArrowUpRight, Building2, SlidersHorizontal, Calculator
+  AtSign, Key, User, ArrowRight, ArrowUpRight, Building2, SlidersHorizontal, Calculator,
+  Sparkles, Smartphone
 } from "lucide-react";
 
 export default function PaginaDePlanos() {
@@ -31,6 +32,7 @@ export default function PaginaDePlanos() {
   // CORREÇÃO: Substituímos o wa.link pelo número direto para permitir texto dinâmico.
   // Coloque o número oficial da Nucleobase aqui (com 55, DDD e Número).
   const WHATSAPP_PHONE = "5531971078832";
+  const WHATSAPP_LINK_ONBOARDING = "https://wa.link/qbxg9f"; // Link usado para degustação guiada
 
   // Lógica de cálculo do condomínio: Piso de R$ 69,90 ou (Unidades * R$ 7,00)
   const condoPriceNumber = Math.max(69.90, condoUnits * 7);
@@ -177,7 +179,7 @@ export default function PaginaDePlanos() {
   return (
     <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
 
-      {/* MODAL DE AUTENTICAÇÃO IN-PAGE (Usado para o Banner de Degustação) */}
+      {/* MODAL DE AUTENTICAÇÃO IN-PAGE (Mantido caso precise utilizar em outro local) */}
       {showAuthModal && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
           <div className="bg-white rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 relative border border-slate-100">
@@ -247,45 +249,30 @@ export default function PaginaDePlanos() {
         </div>
       </div>
 
-      {/* BALÃO DE DEGUSTAÇÃO */}
-      <div className="w-full bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 rounded-[2rem] p-6 md:p-8 mb-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl relative overflow-hidden border border-blue-700/50">
+      {/* BALÃO DE ONBOARDING GUIADO (Minimalista) */}
+      <div className="w-full bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white p-5 rounded-xl shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 mb-10 relative overflow-hidden border border-blue-400/20">
         <div className="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
-          <Zap size={180} />
+          <Sparkles size={160} />
         </div>
-        <div className="flex items-center gap-5 relative z-10 w-full md:w-auto">
-          <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-blue-200 shrink-0 border border-white/10 backdrop-blur-sm">
-            <Gift size={28} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="bg-blue-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-md tracking-wider">Boas vindas</span>
-            </div>
-            <h3 className="text-white font-bold text-lg leading-tight">Período de Degustação</h3>
 
-            {/* Texto Condicional Desktop/Mobile */}
-            <p className="hidden md:block text-blue-200 text-xs font-medium mt-1">Conheça e valide a plataforma com <strong className="text-white font-bold">45 dias gratuitos</strong> dependendo do plano escolhido.</p>
-            <p className="md:hidden text-blue-200 text-xs font-medium mt-1">Para uso &apos;pessoal&apos;, conheça e valide a plataforma.</p>
-
+        <div className="relative z-10 w-full md:w-auto flex-1 mb-2 md:mb-0 text-center md:text-left">
+          <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
+            <span className="text-blue-200 text-[9px] font-bold uppercase tracking-widest">Onboarding Guiado</span>
           </div>
+          <h4 className="font-bold text-[11px] md:text-xs text-white leading-snug w-full">
+            Solicite uma degustação guiada com nossa equipe e impulsione sua gestão de forma eficiente.
+          </h4>
         </div>
-        <div className="relative z-10 w-full md:w-auto shrink-0">
-          <button
-            onClick={() => {
-              if (!isLoggedIn) {
-                setPendingAction({ href: "/acesso-usuario" });
-                setAuthMode('register');
-                setShowAuthModal(true);
-                trackClick("Intercepção Auth - Degustação Banner", "auth_modal");
-              } else {
-                trackClick("Começar Degustação Banner", "/acesso-usuario");
-                window.location.href = "/acesso-usuario";
-              }
-            }}
-            className="w-full md:w-auto px-8 py-4 bg-white text-blue-900 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-blue-50 transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
-          >
-            Começar Gratuitamente <ArrowRight size={14} />
-          </button>
-        </div>
+
+        <a
+          href={WHATSAPP_LINK_ONBOARDING}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => trackClick("WhatsApp Onboarding Guiado - Planos", WHATSAPP_LINK_ONBOARDING)}
+          className="relative z-10 flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-4 py-2 rounded-lg font-black text-[9px] uppercase tracking-widest shadow-sm transition-all cursor-pointer w-fit self-center md:w-auto"
+        >
+          <span>Falar com a Equipe</span> <Smartphone size={14} />
+        </a>
       </div>
 
       <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center gap-4">
@@ -326,10 +313,10 @@ export default function PaginaDePlanos() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-auto relative z-10">
             <Link href="/planos/essencial" className="w-full py-4 bg-gray-50 border border-gray-200 text-gray-700 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-gray-100 hover:text-blue-600 transition-all text-center">
-              Experimente o Plano Essencial
+              Experimente | Essencial
             </Link>
             <Link href="/planos/pro" className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-md shadow-blue-600/20 text-center flex items-center justify-center gap-1.5">
-              Avance mais com o Plano Pro <ArrowUpRight size={14} />
+              Avance mais | Plano Pro <ArrowUpRight size={14} />
             </Link>
           </div>
           <div className="absolute -right-20 -top-20 w-64 h-64 bg-blue-50 rounded-full blur-[80px] pointer-events-none"></div>
