@@ -10,7 +10,7 @@ import {
   KeyRound, Instagram, X,
   Target, Share2, Wallet, Zap, Rocket, LayoutDashboard, Info,
   PieChart, Award, ChartPie, Building2, FileCheck2, CheckCircle2, Settings2, ShieldCheck,
-  Eye, EyeOff, Sparkles, ArrowUpRight, Lock, Send, Calculator, Smartphone
+  Eye, EyeOff, Sparkles, Smartphone, Send, Calculator, Trash2
 } from "lucide-react";
 
 export default function MinhaContaPage() {
@@ -328,7 +328,6 @@ export default function MinhaContaPage() {
             }
 
             // 2. Fallback: Se não encontrou pelo ID, busca pelo nome do condomínio salvo no membro
-            // Ajuste aplicado aqui: Inclusão do 'telefone' no select
             if (!condoData && membro.condominio_nome) {
               const { data: byName } = await supabase
                 .from("condominios")
@@ -351,8 +350,6 @@ export default function MinhaContaPage() {
               const qtdUnidadesVal = condoData.quantidade_unidades?.toString() || "";
               setQuantidadeUnidades(qtdUnidadesVal);
 
-              // --- O AJUSTE PRINCIPAL ESTÁ AQUI ---
-              // Atualiza o estado da tela com o telefone vindo da tabela condominios
               if (condoData.telefone) {
                 setTelefoneEmpresarial(aplicarMascaraTelefone(condoData.telefone));
               }
@@ -470,8 +467,9 @@ export default function MinhaContaPage() {
             onClick={() => document.getElementById('acesso-empresarial')?.scrollIntoView({ behavior: 'smooth' })}
             className="mt-5 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 px-4 py-2.5 rounded-xl hover:bg-emerald-100 transition-all cursor-pointer w-fit shadow-sm"
           >
-            <Building2 size={14} className="text-emerald-600" />
-            Completar Cadastro Empresarial
+            <Building2 size={14} className="text-emerald-600 shrink-0" />
+            <span className="md:hidden">Completar cadastro</span>
+            <span className="hidden md:inline">Completar Cadastro Empresarial</span>
           </button>
         </div>
       </div>
@@ -525,7 +523,10 @@ export default function MinhaContaPage() {
                 </label>
               </div>
               <div>
-                <h4 className="text-lg md:text-xl font-bold text-gray-900">Dados Cadastrais</h4>
+                <h4 className="text-lg md:text-xl font-bold text-gray-900">
+                  <span className="md:hidden">Perfil</span>
+                  <span className="hidden md:inline">Dados Cadastrais</span>
+                </h4>
                 <p className="text-[10px] md:text-[11px] text-gray-400 font-black uppercase tracking-widest mt-1 leading-tight">Identidade Nucleobase</p>
               </div>
             </div>
@@ -537,8 +538,7 @@ export default function MinhaContaPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-blue-600 uppercase ml-1 tracking-widest flex items-center justify-between">
-                  <span>E-mail de Notificações</span>
-                  <span className="text-[9px] text-gray-400 font-bold lowercase">(Obrigatório)</span>
+                  <span>E-mail</span>
                 </label>
                 <input
                   ref={emailContatoRef}
@@ -810,7 +810,10 @@ export default function MinhaContaPage() {
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1 text-center">
                     <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Performance</p>
-                    <p className="text-white text-xs font-bold leading-tight">Acompanhe suas contas e melhores decisões.</p>
+                    <p className="text-white text-xs font-bold leading-tight">
+                      <span className="md:hidden">Acompanhe suas contas e tome decisões.</span>
+                      <span className="hidden md:inline">Acompanhe suas contas e melhores decisões.</span>
+                    </p>
                   </div>
                   <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform shrink-0">
                     <LayoutDashboard size={20} fill="currentColor" className="text-blue-100" />
@@ -819,17 +822,18 @@ export default function MinhaContaPage() {
               </Link>
 
               {/* BANNER DE DESTAQUE - ONBOARDING / DEGUSTAÇÃO GUIADA WHATSAPP */}
-              <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white p-5 rounded-xl shadow-lg flex flex-col relative overflow-hidden border border-blue-400/20">
+              <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white p-5 rounded-xl shadow-lg flex flex-col items-center text-center relative overflow-hidden border border-blue-400/20">
                 <div className="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
                   <Sparkles size={160} />
                 </div>
 
-                <div className="relative z-10 w-full mb-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-blue-200 text-[9px] font-bold uppercase tracking-widest">Onboarding Guiado</span>
+                <div className="relative z-10 w-full mb-4 flex flex-col items-center">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <span className="text-blue-200 text-[9px] font-bold uppercase tracking-widest">Onboarding Empresarial</span>
                   </div>
-                  <h4 className="font-bold text-[11px] md:text-xs text-white leading-snug w-full">
-                    Solicite uma degustação guiada com a nossa equipe e impulsione sua gestão de forma clara e eficiente.
+                  <h4 className="font-bold text-[11px] md:text-xs text-white leading-snug w-full text-center">
+                    <span className="md:hidden">Solicite à Nucleo uma degustação guiada.</span>
+                    <span className="hidden md:inline">Solicite um tour guiado e impulsione sua gestão de forma clara e eficiente.</span>
                   </h4>
                 </div>
 
@@ -848,7 +852,9 @@ export default function MinhaContaPage() {
                   }}
                   className="self-center relative z-10 flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-4 py-2 rounded-lg font-black text-[9px] uppercase tracking-widest shadow-sm transition-all cursor-pointer w-fit"
                 >
-                  <span>Falar com a Equipe</span> <Smartphone size={14} />
+                  <span className="md:hidden">Fale conosco</span>
+                  <span className="hidden md:inline">Fale com a Equipe Nucleo</span>
+                  <Smartphone size={14} />
                 </a>
               </div>
             </div>
@@ -928,7 +934,7 @@ export default function MinhaContaPage() {
             As alterações da conta "empresarial" são gerenciadas pela equipe Nucleo. {condoId ? "Para solicitar edição, atualize os campos abaixo e envie uma nova solicitação." : "Preencha os dados abaixo e envie-os à administração através do botão 'Enviar dados cadastrais'."}
           </p>
           <p className="text-xs text-gray-600 mb-8 leading-relaxed font-medium block md:hidden">
-            Gestão de conta empresarial simplificada. {condoId ? "Para editar, altere os dados e reenvie." : "Envie os dados abaixo para nossa administração."}
+            Gestão de conta empresarial simplificada. {condoId ? "Para editar seu perfil, altere os dados e envie à Nucleo." : "Envie os dados abaixo para completar seu cadastro."}
           </p>
 
           <form
@@ -951,7 +957,7 @@ export default function MinhaContaPage() {
             <div className="grid grid-cols-1 md:grid-cols-5 gap-8 mb-6 items-start">
               <div className="space-y-3 md:col-span-1">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
-                  <span className="flex items-center gap-2"><Building2 size={12} className="text-emerald-600" /> Nome</span>
+                  <span className="flex items-center gap-2"><Building2 size={12} className="text-emerald-600" /> Nome Edifício</span>
                 </label>
                 <input
                   type="text"
@@ -979,7 +985,7 @@ export default function MinhaContaPage() {
 
               <div className="space-y-3 md:col-span-1">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
-                  <span className="flex items-center gap-1.5"><Calculator size={12} className="text-emerald-600" /> Qtd. Unidades</span>
+                  <span className="flex items-center gap-1.5"><Calculator size={12} className="text-emerald-600" /> Total Unidades</span>
                 </label>
 
                 {/* Wrapper relativo para abrigar a estimativa DENTRO do campo visualmente */}
@@ -990,11 +996,11 @@ export default function MinhaContaPage() {
                     placeholder="Ex: 8"
                     min="1"
                     value={quantidadeUnidades}
-                    className="w-full h-11 pl-4 pr-[110px] border border-emerald-200/60 rounded-xl text-xs outline-none transition-all bg-white focus:border-emerald-400"
+                    className={`w-full h-11 pl-4 border border-emerald-200/60 rounded-xl text-xs outline-none transition-all bg-white focus:border-emerald-400 ${!condoId ? 'pr-[110px]' : 'pr-4'}`}
                     onChange={(e) => handleEmpresarialChange(setQuantidadeUnidades, e.target.value)}
                   />
-                  {/* Estimativa flutuante renderizada internamente à direita */}
-                  {quantidadeUnidades && Number(quantidadeUnidades) > 0 && (
+                  {/* Estimativa flutuante renderizada internamente à direita somente se condoId for vazio */}
+                  {quantidadeUnidades && Number(quantidadeUnidades) > 0 && !condoId && (
                     <span className="absolute right-3 text-[9px] font-black text-emerald-700 pointer-events-none bg-emerald-50 px-2 py-1.5 rounded-lg border border-emerald-100 shadow-sm">
                       (R$ {(Number(quantidadeUnidades) * 7).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mês)
                     </span>
@@ -1004,7 +1010,7 @@ export default function MinhaContaPage() {
 
               <div className="space-y-3 md:col-span-1">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
-                  <span>Unidade Atual</span>
+                  <span>Unidade Administração</span>
                 </label>
                 <input
                   type="text"
@@ -1018,7 +1024,7 @@ export default function MinhaContaPage() {
 
               <div className="space-y-3 md:col-span-1">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
-                  <span>Telefone (Síndico / Adm)</span>
+                  <span>Telefone Administração</span>
                 </label>
                 <input
                   type="text"
@@ -1040,9 +1046,11 @@ export default function MinhaContaPage() {
 
             <div className="flex flex-col md:flex-row items-center justify-between flex-wrap gap-4 mt-6 text-center md:text-left">
               <p className="text-[10px] text-emerald-800 font-medium w-full md:w-auto text-center md:text-left">
-                {condoId
-                  ? "* Seus dados estão ativos. Para solicitar nova alteração em nosso sistema, envie através do botão ao lado."
-                  : "* Preencha os campos acima e clique no botão para enviar os dados por e-mail para a nossa administração."}
+                {condoId ? (
+                  <span className="hidden md:inline">* Seus dados estão ativos. Para solicitar nova alteração em nosso sistema, envie através do botão ao lado.</span>
+                ) : (
+                  "* Preencha os campos acima e clique no botão para enviar os dados por e-mail para a nossa administração."
+                )}
               </p>
               <div className="w-full md:w-auto flex justify-center md:justify-end">
                 <button
@@ -1057,14 +1065,58 @@ export default function MinhaContaPage() {
         </section>
       </div>
 
-      <div className="mt-4 flex flex-col md:flex-row gap-4 justify-end border-gray-50 pt-8">
+      <div className="mt-4 flex flex-col-reverse md:flex-row gap-4 justify-end border-gray-50 pt-8">
+        {/* NOVO FORMULÁRIO/BOTÃO DE EXCLUSÃO */}
+        <form
+          action="https://api.web3forms.com/submit"
+          method="POST"
+          target="_blank"
+          className="w-full md:w-auto"
+          onSubmit={(e) => {
+            if (!window.confirm("Tem certeza que deseja solicitar a exclusão da sua conta? Esta ação é irreversível e enviará um pedido ao nosso suporte.")) {
+              e.preventDefault();
+            }
+          }}
+        >
+          <input type="hidden" name="access_key" value="9ef5a274-150a-4664-a885-0b052efd06f7" />
+          <input type="hidden" name="subject" value="Solicitação de Exclusão de Conta - Nucleobase" />
+          <input type="hidden" name="from_name" value="Suporte Nucleobase" />
+          <input type="hidden" name="nome_usuario_logado" value={nome || 'Não informado'} />
+          <input type="hidden" name="email_contato_usuario" value={emailContato || 'Não informado'} />
+          <input type="hidden" name="email_conta_supabase" value={email || 'Não informado'} />
+          <textarea
+            name="mensagem_exclusao"
+            className="hidden"
+            readOnly
+            value={`O usuário solicitou a exclusão definitiva de sua conta.\n\n--- DADOS DO USUÁRIO ---\nNome: ${nome || 'Não informado'}\nE-mail de Contato: ${emailContato || 'Não informado'}\nE-mail da Conta (Auth): ${email || 'Não informado'}\nTelefone: ${telefone || 'Não informado'}`}
+          ></textarea>
+
+          <button
+            type="submit"
+            className="flex items-center justify-center gap-3 px-8 py-4 bg-red-50 text-red-600 border border-red-200 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-sm hover:bg-red-100 transition-all cursor-pointer w-full md:w-auto"
+          >
+            <Trash2 size={16} />
+            <span className="md:hidden">Excluir conta</span>
+            <span className="hidden md:inline">Solicitar exclusão da conta</span>
+          </button>
+        </form>
+
+        {/* BOTÃO SALVAR ORIGINAL */}
         <button
           ref={saveButtonRef}
           onClick={handleUpdate}
           disabled={updating}
-          className="flex items-center justify-center gap-3 px-10 py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all cursor-pointer"
+          className="flex items-center justify-center gap-3 px-10 py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all cursor-pointer w-full md:w-auto"
         >
-          <Save size={16} /> {updating ? "Sincronizando..." : "Salvar Alterações do Perfil"}
+          <Save size={16} />
+          {updating ? (
+            "Sincronizando..."
+          ) : (
+            <>
+              <span className="md:hidden">Salvar alterações</span>
+              <span className="hidden md:inline">Salvar Alterações do Perfil</span>
+            </>
+          )}
         </button>
       </div>
 

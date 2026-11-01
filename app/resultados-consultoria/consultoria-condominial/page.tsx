@@ -1,10 +1,11 @@
 // app/resultados-consultoria/consultoria-condominial/page.tsx
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
     TrendingUp, Target, Award, CalendarDays, Wallet,
     Building, CheckCircle2, Clock, Megaphone, Share2, MessageCircle,
-    AtSign, Key, Eye, EyeOff, Instagram, BarChart3, Briefcase, Users, UserPlus, XCircle, Plus, X, Pencil
+    AtSign, Key, Eye, EyeOff, Instagram, BarChart3, Briefcase, Users, UserPlus, XCircle, Plus, X, Pencil,
+    ChevronUp, ChevronDown, ArrowUpDown, Calculator, Minus
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useLoginProtegido } from "@/hooks/useLoginProtegido";
@@ -24,7 +25,7 @@ export default function ConsultoriaCondominialPage() {
         resetarBloqueio
     } = useLoginProtegido();
 
-    const [activeTab, setActiveTab] = useState<"dashboard" | "pipeline" | "manutencao">("dashboard");
+    const [activeTab, setActiveTab] = useState<"dashboard" | "pipeline" | "manutencao" | "calculadora">("dashboard");
     const [loadingData, setLoadingData] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
 
@@ -53,6 +54,10 @@ export default function ConsultoriaCondominialPage() {
     });
     const [loadingSalvarLead, setLoadingSalvarLead] = useState(false);
 
+    // Estados exclusivos para a Calculadora de Simulação
+    const [calcUnidades, setCalcUnidades] = useState<number>(50);
+    const [calcVendasMes, setCalcVendasMes] = useState<number>(1);
+
     const gerarMeses = () => {
         const meses = [];
         meses.push({ valor: 'acumulado', nome: 'Acumulado (Últimos 12 meses)' });
@@ -80,6 +85,56 @@ export default function ConsultoriaCondominialPage() {
         taxaConversao: 0
     });
 
+    // =========================================================================
+    // ESTADOS E LÓGICA DE CLASSIFICAÇÃO DA TABELA (PIPELINE)
+    // =========================================================================
+    const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' }>({ key: 'created_at', direction: 'desc' });
+
+    const handleSort = (key: string) => {
+        let direction: 'asc' | 'desc' = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const sortedVendasLote = useMemo(() => {
+        const items = [...vendasLote];
+        items.sort((a, b) => {
+            if (sortConfig.key === 'titulo') {
+                return sortConfig.direction === 'asc'
+                    ? a.titulo.localeCompare(b.titulo)
+                    : b.titulo.localeCompare(a.titulo);
+            }
+            if (sortConfig.key === 'created_at') {
+                return sortConfig.direction === 'asc'
+                    ? new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                    : new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            }
+            if (sortConfig.key === 'status_crm') {
+                const statusA = a.status_crm || '';
+                const statusB = b.status_crm || '';
+                return sortConfig.direction === 'asc'
+                    ? statusA.localeCompare(statusB)
+                    : statusB.localeCompare(statusA);
+            }
+            if (sortConfig.key === 'comissao') {
+                const getComissao = (item: any) => {
+                    const baseLead = item.taxa_comissao_aplicada !== null ? item.taxa_comissao_aplicada : regrasComissao.comissaoBase;
+                    const taxaFinal = kpis.condominiosAtivos >= regrasComissao.metaBonus ? baseLead * regrasComissao.multiplicador : baseLead;
+                    const isGanho = item.status_crm === 'ganho';
+                    const isNegociacao = item.status_crm === 'negociacao' || item.status_crm === 'apresentacao' || item.status_crm === 'prospeccao';
+                    return isGanho ? (item.valor_fechado * taxaFinal) : isNegociacao ? (item.valor_projetado * taxaFinal) : 0;
+                };
+                const comissaoA = getComissao(a);
+                const comissaoB = getComissao(b);
+                return sortConfig.direction === 'asc' ? comissaoA - comissaoB : comissaoB - comissaoA;
+            }
+            return 0;
+        });
+        return items;
+    }, [vendasLote, sortConfig, kpis.condominiosAtivos, regrasComissao]);
+
     useEffect(() => {
         window.dataLayer?.push({
             event: "view_page_content",
@@ -105,7 +160,6 @@ export default function ConsultoriaCondominialPage() {
             // =========================================================================
             // 1. LÓGICA DE REGRAS POR CONSULTOR E "ÉPOCAS"
             // =========================================================================
-            // Busca apenas regras ativas. O .or busca globais (null) ou específicas do consultor
             const { data: regrasData } = await supabase
                 .from('regras_comissao')
                 .select('*')
@@ -113,7 +167,6 @@ export default function ConsultoriaCondominialPage() {
                 .or(`consultor_id.is.null,consultor_id.eq.${user.id}`)
                 .in('plano_alvo', ['condo', 'condo_manutencao']);
 
-            // Função para priorizar a regra do consultor sobre a regra global
             const getRegraPrioritaria = (tipoPlano: string) => {
                 const regrasDoPlano = regrasData?.filter(r => r.plano_alvo === tipoPlano) || [];
                 const especifica = regrasDoPlano.find(r => r.consultor_id === user.id);
@@ -186,7 +239,7 @@ export default function ConsultoriaCondominialPage() {
                 status_crm: item.status,
                 valor_projetado: Number(item.valor_projetado || 0),
                 valor_fechado: Number(item.valor_fechado || 0),
-                taxa_comissao_aplicada: item.taxa_comissao_aplicada ? Number(item.taxa_comissao_aplicada) : null, // Novo campo
+                taxa_comissao_aplicada: item.taxa_comissao_aplicada ? Number(item.taxa_comissao_aplicada) : null,
                 created_at: item.created_at,
                 origem: 'crm',
                 raw: item
@@ -198,7 +251,7 @@ export default function ConsultoriaCondominialPage() {
                 status_crm: item.status === 'efetivado' ? 'ganho' : 'prospeccao',
                 valor_projetado: item.status === 'pendente' || !item.status ? 69.90 : 0,
                 valor_fechado: item.status === 'efetivado' ? 69.90 : 0,
-                taxa_comissao_aplicada: item.taxa_comissao_aplicada ? Number(item.taxa_comissao_aplicada) : null, // Novo campo
+                taxa_comissao_aplicada: item.taxa_comissao_aplicada ? Number(item.taxa_comissao_aplicada) : null,
                 created_at: item.created_at,
                 origem: 'link',
                 raw: item
@@ -211,7 +264,7 @@ export default function ConsultoriaCondominialPage() {
             setVendasLote(todosRegistros);
 
             // =========================================================================
-            // CÁLCULO FINANCEIRO SEGURO (MISTURANDO SNAPSHOT E FALLBACK)
+            // CÁLCULO FINANCEIRO SEGURO
             // =========================================================================
             const totalIndicados = todosRegistros.length;
             const ganhos = todosRegistros.filter(l => l.status_crm === 'ganho');
@@ -221,7 +274,6 @@ export default function ConsultoriaCondominialPage() {
 
             let comissaoValidadas = 0;
             ganhos.forEach(l => {
-                // Tenta usar o snapshot do banco (leads novos). Se não tiver (leads antigos), usa a regra vigente do painel
                 const taxaBaseDoLead = l.taxa_comissao_aplicada !== null ? l.taxa_comissao_aplicada : taxaComissaoBase;
                 const taxaFinalParaCalculo = totalAtivos >= metaBonus ? taxaBaseDoLead * multiplicadorBonus : taxaBaseDoLead;
                 comissaoValidadas += l.valor_fechado * taxaFinalParaCalculo;
@@ -313,7 +365,7 @@ export default function ConsultoriaCondominialPage() {
     };
 
     const handleWhatsAppLead = () => {
-        const text = encodeURIComponent(`Olá! Sou ${userName.split(' ')[0]}, consultor parceiro da Nucleobase. Segue o material para revolucionar a gestão do seu condomínio: ${linkIndicacao}`);
+        const text = encodeURIComponent(`Olá! Sou ${userName.split(' ')[0]}, consultor parceiro da Nucleobase Condo, uma plataforma de gestão em condomínios residenciais e comerciais. Segue link para realização do seu Cadastro: ${linkIndicacao}`);
         window.open(`https://wa.me/?text=${text}`, '_blank');
         trackClick("Prospecção WhatsApp", "whatsapp");
     };
@@ -351,7 +403,6 @@ export default function ConsultoriaCondominialPage() {
             const valorFechadoFinal = novoLead.status === 'ganho' ? valorCalculado : 0;
 
             if (editingLeadId) {
-                // Atualização: Propósito de preservar o snapshot histórico, não alteramos a taxa congelada
                 const { error } = await supabase.from('nucleo_leads').update({
                     nome_condominio: novoLead.nome_condominio,
                     nome_contato: novoLead.nome_contato,
@@ -364,7 +415,6 @@ export default function ConsultoriaCondominialPage() {
 
                 if (error) throw error;
             } else {
-                // Inserção nova: AQUI É O PULO DO GATO! Salvamos a taxa de comissão VIGENTE congelando-a no lead
                 const { error } = await supabase.from('nucleo_leads').insert([
                     {
                         consultor_id: userId,
@@ -375,7 +425,7 @@ export default function ConsultoriaCondominialPage() {
                         status: novoLead.status,
                         valor_projetado: valorProjetadoFinal,
                         valor_fechado: valorFechadoFinal,
-                        taxa_comissao_aplicada: regrasComissao.comissaoBase // Snapshot da regra!
+                        taxa_comissao_aplicada: regrasComissao.comissaoBase
                     }
                 ]);
 
@@ -516,13 +566,13 @@ export default function ConsultoriaCondominialPage() {
                             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400 mb-2 block">Ação Rápida</span>
                             <h3 className="text-2xl font-bold text-white mb-2">Enviar proposta comercial</h3>
                             <p className="text-gray-400 text-sm font-medium leading-relaxed mb-6">
-                                <span className="md:inline hidden">Use seu link exclusivo para garantir o trackeamento automático em novos fechamentos.</span>
+                                <span className="md:inline hidden">Use seu link exclusivo e garanta o trackeamento automático em indicações.</span>
                                 <span className="inline md:hidden">Use seu link para trackeamento automático em novos fechamentos.</span>
                             </p>
 
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <button onClick={handleWhatsAppLead} className="bg-emerald-500 hover:bg-emerald-400 text-gray-900 py-3.5 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/20">
-                                    <MessageCircle size={14} /> Abordar via WhatsApp
+                                    <MessageCircle size={14} /> Contactar via WhatsApp
                                 </button>
                                 <button onClick={handleCopy} className="bg-white/10 hover:bg-white/20 text-white py-3.5 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all cursor-pointer">
                                     <Share2 size={14} /> {copiado ? "Link Copiado!" : "Copiar Link"}
@@ -542,7 +592,7 @@ export default function ConsultoriaCondominialPage() {
                         </div>
                     </div>
 
-                    <div className="flex gap-2 mb-8 bg-gray-100 p-1 rounded-full w-fit">
+                    <div className="flex flex-wrap gap-2 mb-8 bg-gray-100 p-1 rounded-full w-fit">
                         <button onClick={() => setActiveTab("dashboard")} className={`px-4 md:px-6 py-2 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${activeTab === "dashboard" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500"}`}>
                             {mesSelecionado === 'acumulado' ? 'Resumo Acumulado' : 'Resumo Mensal'}
                         </button>
@@ -551,6 +601,9 @@ export default function ConsultoriaCondominialPage() {
                         </button>
                         <button onClick={() => setActiveTab("pipeline")} className={`px-4 md:px-6 py-2 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${activeTab === "pipeline" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500"}`}>
                             Meu Pipeline
+                        </button>
+                        <button onClick={() => setActiveTab("calculadora")} className={`px-4 md:px-6 py-2 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${activeTab === "calculadora" ? "bg-white text-purple-600 shadow-sm" : "text-gray-500"}`}>
+                            Calculadora
                         </button>
                     </div>
 
@@ -636,7 +689,7 @@ export default function ConsultoriaCondominialPage() {
                                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1 relative z-10">Receita Recorrente Estimada</span>
                                         <div className="text-3xl font-black text-emerald-600 tracking-tighter relative z-10">
                                             R$ {((vendasLote.filter(l => l.status_crm === 'ganho').reduce((acc, l) => acc + l.valor_fechado, 0)) * regrasComissao.comissaoManutencao).toFixed(2)}
-                                            <span className="text-sm text-gray-400 font-bold ml-1">/mês</span>
+                                            <span className="text-sm text-gray-400 font-bold ml-1"> / 2º mês em diante</span>
                                         </div>
                                     </div>
                                 </div>
@@ -662,22 +715,42 @@ export default function ConsultoriaCondominialPage() {
                                         <Building size={18} className="text-blue-600" />
                                         <h3 className="text-sm font-black uppercase tracking-widest">Pipeline de Negociações</h3>
                                     </div>
-                                    <span className="text-xs font-bold text-gray-400">{vendasLote.length} registros</span>
+                                    <span className="text-xs font-bold text-gray-400">{sortedVendasLote.length} registros</span>
                                 </div>
 
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-left table-fixed min-w-[700px]">
-                                        <thead className="bg-gray-50 text-[9px] font-black uppercase text-gray-400">
+                                        <thead className="bg-gray-50 text-[9px] font-black uppercase text-gray-400 select-none">
                                             <tr>
-                                                <th className="px-8 py-5 w-[35%]">Condomínio / Lead</th>
-                                                <th className="px-8 py-5 w-[20%]">Data Entrada</th>
-                                                <th className="px-8 py-5 w-[20%]">Status CRM</th>
-                                                <th className="px-8 py-5 w-[15%] text-right">Comissão R$</th>
+                                                <th className="px-8 py-5 w-[35%] cursor-pointer hover:bg-gray-100/70 transition-colors" onClick={() => handleSort('titulo')}>
+                                                    <div className="flex items-center gap-1.5">
+                                                        Condomínio / Lead
+                                                        {sortConfig.key === 'titulo' ? (sortConfig.direction === 'asc' ? <ChevronUp size={14} className="text-blue-600" /> : <ChevronDown size={14} className="text-blue-600" />) : <ArrowUpDown size={14} className="opacity-30" />}
+                                                    </div>
+                                                </th>
+                                                <th className="px-8 py-5 w-[20%] cursor-pointer hover:bg-gray-100/70 transition-colors" onClick={() => handleSort('created_at')}>
+                                                    <div className="flex items-center gap-1.5">
+                                                        Data Entrada
+                                                        {sortConfig.key === 'created_at' ? (sortConfig.direction === 'asc' ? <ChevronUp size={14} className="text-blue-600" /> : <ChevronDown size={14} className="text-blue-600" />) : <ArrowUpDown size={14} className="opacity-30" />}
+                                                    </div>
+                                                </th>
+                                                <th className="px-8 py-5 w-[20%] cursor-pointer hover:bg-gray-100/70 transition-colors" onClick={() => handleSort('status_crm')}>
+                                                    <div className="flex items-center gap-1.5">
+                                                        Status CRM
+                                                        {sortConfig.key === 'status_crm' ? (sortConfig.direction === 'asc' ? <ChevronUp size={14} className="text-blue-600" /> : <ChevronDown size={14} className="text-blue-600" />) : <ArrowUpDown size={14} className="opacity-30" />}
+                                                    </div>
+                                                </th>
+                                                <th className="px-8 py-5 w-[15%] cursor-pointer hover:bg-gray-100/70 transition-colors" onClick={() => handleSort('comissao')}>
+                                                    <div className="flex items-center justify-end gap-1.5">
+                                                        Comissão R$
+                                                        {sortConfig.key === 'comissao' ? (sortConfig.direction === 'asc' ? <ChevronUp size={14} className="text-blue-600" /> : <ChevronDown size={14} className="text-blue-600" />) : <ArrowUpDown size={14} className="opacity-30" />}
+                                                    </div>
+                                                </th>
                                                 <th className="px-8 py-5 w-[10%] text-center">Ações</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-50">
-                                            {vendasLote.length > 0 ? vendasLote.map((item, i) => {
+                                            {sortedVendasLote.length > 0 ? sortedVendasLote.map((item, i) => {
                                                 const isGanho = item.status_crm === 'ganho';
                                                 const isPerdido = item.status_crm === 'perdido';
                                                 const isNegociacao = item.status_crm === 'negociacao' || item.status_crm === 'apresentacao' || item.status_crm === 'prospeccao';
@@ -745,6 +818,158 @@ export default function ConsultoriaCondominialPage() {
                                             )}
                                         </tbody>
                                     </table>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === "calculadora" && (
+                        <div className="space-y-8 mb-20 animate-in fade-in duration-500">
+                            <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-sm p-8">
+                                <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mb-8">
+                                    <div className="w-14 h-14 bg-purple-50 rounded-2xl flex items-center justify-center shrink-0">
+                                        <Calculator className="text-purple-600" size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-gray-900 mb-1">Simulador de Ganhos</h3>
+                                        <p className="text-sm text-gray-500 font-medium">Projete suas comissões e ganhos simulando o tamanho dos condomínios e o seu volume de vendas.</p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                    {/* Controles de Simulação */}
+                                    <div className="space-y-6 lg:col-span-1 bg-gray-50 p-6 rounded-3xl border border-gray-100">
+                                        <div>
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-3">Tamanho do Condomínio (Qtd. Média de Unidades)</label>
+                                            <div className="flex items-center gap-3">
+                                                <button type="button" onClick={() => setCalcUnidades(prev => Math.max(5, prev - 5))} className="w-8 h-8 flex shrink-0 items-center justify-center bg-white border border-gray-200 rounded-lg text-gray-500 hover:text-purple-600 hover:border-purple-200 active:bg-purple-50 transition cursor-pointer">
+                                                    <Minus size={14} strokeWidth={3} />
+                                                </button>
+                                                <input
+                                                    type="range"
+                                                    min="5"
+                                                    max="500"
+                                                    step="5"
+                                                    value={calcUnidades}
+                                                    onChange={(e) => setCalcUnidades(Number(e.target.value))}
+                                                    className="w-full accent-purple-600 cursor-pointer"
+                                                />
+                                                <button type="button" onClick={() => setCalcUnidades(prev => Math.min(500, prev + 5))} className="w-8 h-8 flex shrink-0 items-center justify-center bg-white border border-gray-200 rounded-lg text-gray-500 hover:text-purple-600 hover:border-purple-200 active:bg-purple-50 transition cursor-pointer">
+                                                    <Plus size={14} strokeWidth={3} />
+                                                </button>
+                                                <span className="bg-white px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-bold text-gray-900 min-w-[3.5rem] text-center shrink-0">{calcUnidades}</span>
+                                            </div>
+                                            <p className="text-xs text-gray-400 mt-3 font-medium">O plano padrão calculado na base de R$ 7,00 por unidade (mínimo de R$ 69,90).</p>
+                                        </div>
+
+                                        <div className="h-px bg-gray-200 w-full my-4"></div>
+
+                                        <div>
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-3">Vendas Projetadas (Por Mês)</label>
+                                            <div className="flex items-center gap-3">
+                                                <button type="button" onClick={() => setCalcVendasMes(prev => Math.max(1, prev - 1))} className="w-8 h-8 flex shrink-0 items-center justify-center bg-white border border-gray-200 rounded-lg text-gray-500 hover:text-blue-600 hover:border-blue-200 active:bg-blue-50 transition cursor-pointer">
+                                                    <Minus size={14} strokeWidth={3} />
+                                                </button>
+                                                <input
+                                                    type="range"
+                                                    min="1"
+                                                    max="30"
+                                                    step="1"
+                                                    value={calcVendasMes}
+                                                    onChange={(e) => setCalcVendasMes(Number(e.target.value))}
+                                                    className="w-full accent-blue-600 cursor-pointer"
+                                                />
+                                                <button type="button" onClick={() => setCalcVendasMes(prev => Math.min(30, prev + 1))} className="w-8 h-8 flex shrink-0 items-center justify-center bg-white border border-gray-200 rounded-lg text-gray-500 hover:text-blue-600 hover:border-blue-200 active:bg-blue-50 transition cursor-pointer">
+                                                    <Plus size={14} strokeWidth={3} />
+                                                </button>
+                                                <span className="bg-white px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-bold text-gray-900 min-w-[3.5rem] text-center shrink-0">{calcVendasMes}</span>
+                                            </div>
+                                            <p className="text-xs text-gray-400 mt-3 font-medium">Simule o alcance da meta de bônus e o efeito no multiplicador em lotes futuros.</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Resultados Renderizados em Tempo Real */}
+                                    <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {(() => {
+                                            const valorPlano = Math.max(calcUnidades * 7.00, 69.90);
+                                            const faturamentoTotal = valorPlano * calcVendasMes;
+                                            const atingiuMeta = calcVendasMes >= regrasComissao.metaBonus;
+                                            const taxaFinal = atingiuMeta ? (regrasComissao.comissaoBase * regrasComissao.multiplicador) : regrasComissao.comissaoBase;
+
+                                            const comissaoImediata = faturamentoTotal * taxaFinal;
+                                            const comissaoRecorrente = faturamentoTotal * regrasComissao.comissaoManutencao;
+
+                                            return (
+                                                <>
+                                                    <div className="bg-white border border-gray-100 p-6 rounded-3xl shadow-sm flex flex-col justify-center relative overflow-hidden">
+                                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Mensalidade Média Gerada (Por Condomínio)</span>
+                                                        <div className="text-3xl font-black text-gray-900 tracking-tighter">R$ {valorPlano.toFixed(2)}</div>
+                                                        <div className="absolute right-[-20px] bottom-[-20px] opacity-[0.03] text-gray-900 pointer-events-none">
+                                                            <Building size={120} />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="bg-white border border-gray-100 p-6 rounded-3xl shadow-sm flex flex-col justify-center relative overflow-hidden">
+                                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Volume Total de Vendas do Mês</span>
+                                                        <div className="text-3xl font-black text-gray-900 tracking-tighter">R$ {faturamentoTotal.toFixed(2)}</div>
+                                                    </div>
+
+                                                    <div className={`p-6 md:p-8 rounded-3xl border relative overflow-hidden sm:col-span-2 transition-all duration-300 ${atingiuMeta ? 'bg-gradient-to-br from-blue-600 to-blue-800 border-blue-500 shadow-xl shadow-blue-900/20' : 'bg-gray-900 border-gray-800'}`}>
+                                                        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 relative z-10">
+                                                            <div>
+                                                                <span className={`text-[10px] font-black uppercase tracking-widest block mb-2 ${atingiuMeta ? 'text-blue-200' : 'text-gray-400'}`}>
+                                                                    Sua Comissão na Venda (1º Mês)
+                                                                </span>
+                                                                <div className="text-4xl md:text-5xl font-black text-white tracking-tighter">
+                                                                    R$ {comissaoImediata.toFixed(2)}
+                                                                </div>
+                                                                <div className="mt-3 flex items-center gap-2">
+                                                                    <span className={`text-xs font-bold px-2.5 py-1 rounded-md ${atingiuMeta ? 'bg-blue-500 text-white' : 'bg-gray-800 text-gray-300'}`}>
+                                                                        Taxa Aplicada: {(taxaFinal * 100).toFixed(0)}%
+                                                                    </span>
+                                                                    {atingiuMeta && (
+                                                                        <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5 bg-black/20 px-2.5 py-1 rounded-md">
+                                                                            <Award size={12} /> Bônus de {regrasComissao.multiplicador}x Ativo!
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-left sm:text-right">
+                                                                <span className={`text-[10px] font-black uppercase tracking-widest block mb-1 ${atingiuMeta ? 'text-blue-300' : 'text-gray-500'}`}>
+                                                                    Status do Lote Acelerado
+                                                                </span>
+                                                                <div className={`text-sm font-bold ${atingiuMeta ? 'text-blue-100' : 'text-gray-400'}`}>
+                                                                    {atingiuMeta ? 'Meta Plenamente Atingida!' : `Faltam ${regrasComissao.metaBonus - calcVendasMes} vendas para o bônus.`}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="absolute right-0 bottom-0 opacity-10 text-white translate-x-1/4 translate-y-1/4 pointer-events-none">
+                                                            <Wallet size={150} />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="sm:col-span-2 bg-emerald-50 border border-emerald-100 p-6 md:p-8 rounded-3xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                                                        <div className="flex-1">
+                                                            <span className="text-[10px] font-black text-emerald-600/70 uppercase tracking-widest block mb-2">
+                                                                Receita Recorrente Garantida (A partir do 2º Mês)
+                                                            </span>
+                                                            <div className="text-3xl font-black text-emerald-600 tracking-tighter mb-3">
+                                                                + R$ {comissaoRecorrente.toFixed(2)} <span className="text-sm font-bold text-emerald-600/50">adicionado /mês à sua base</span>
+                                                            </div>
+                                                            <p className="text-xs text-emerald-700/80 font-medium leading-relaxed md:max-w-2xl">
+                                                                A verdadeira <strong>meritocracia</strong> acontece aqui. Quanto mais produtivo for o seu mês, maior será sua recompensa recorrente.
+                                                                Cada condomínio fechado não é apenas uma venda, mas <strong>centenas de pessoas sendo beneficiadas</strong> e tendo suas vidas transformadas
+                                                                pela nossa ferramenta. O seu trabalho e o seu resultado impulsionam o sucesso de todos!
+                                                            </p>
+                                                        </div>
+                                                        <div className="hidden md:flex items-center justify-center w-16 h-16 bg-emerald-100 text-emerald-600 rounded-3xl shrink-0">
+                                                            <TrendingUp size={28} />
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            );
+                                        })()}
+                                    </div>
                                 </div>
                             </div>
                         </div>

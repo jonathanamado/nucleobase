@@ -392,7 +392,7 @@ export default function PaginaDePlanos() {
               <Headphones size={16} /> Personalizar Plano <WhatsAppIcon />
             </button>
             <p className="text-center text-[10px] text-slate-500 font-medium mt-4">
-              Fale com um consultor para fechar negócio e gerar nota fiscal.
+              Fale com um consultor para fechar negócio e gerar contrato.
             </p>
           </div>
           <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none group-hover:bg-amber-500/20 transition-all duration-700"></div>

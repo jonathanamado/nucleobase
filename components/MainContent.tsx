@@ -486,7 +486,7 @@ export function MainContent() {
                 <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                   Resultados & Consultoria,
                 </span>
-                {" "}nós transformamos dados em insights e aceleramos os seus projetos pessoais e profissionais.
+                {" "}transformamos dados em insights e aceleramos projetos pessoais e profissionais.
               </p>
 
               <div className="flex items-center gap-3 mt-5 animate-in fade-in duration-1000">
