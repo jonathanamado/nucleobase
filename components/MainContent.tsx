@@ -271,8 +271,8 @@ export function MainContent() {
                 <span className="w-1.5 h-1.5 rounded-full font-bold bg-orange-600"></span>
                 Gestão Financeira
               </Link>
-              <p className="text-xs text-gray-500 font-bold pl-3.5 leading-relaxed">
-                Controle completo de fluxo de caixa, lançamentos e projeções orçamentárias.
+              <p className="text-xs text-gray-400 font-bold pl-3.5 leading-relaxed">
+                Controle estratégico de cartões, decisões e projeções orçamentárias.
               </p>
             </div>
 
@@ -281,8 +281,8 @@ export function MainContent() {
                 <span className="w-1.5 h-1.5 rounded-full font-bold bg-emerald-600"></span>
                 Nucleo Condo
               </Link>
-              <p className="text-xs text-gray-500 font-bold pl-3.5 leading-relaxed">
-                Tecnologia aplicada, transparência e otimização de processos condominiais.
+              <p className="text-xs text-gray-400 font-bold pl-3.5 leading-relaxed">
+                Tecnologia, transparência e otimização de processos condominiais.
               </p>
             </div>
 
@@ -291,8 +291,8 @@ export function MainContent() {
                 <span className="w-1.5 h-1.5 rounded-full font-bold bg-blue-600"></span>
                 Resultados & Consultoria
               </Link>
-              <p className="text-xs text-gray-500 font-bold pl-3.5 leading-relaxed">
-                Painéis analíticos para suporte em decisões e consultoria especializada.
+              <p className="text-xs text-gray-400 font-bold pl-3.5 leading-relaxed">
+                Estrutura consultiva e CRM embutido para otimizar suas negociações.
               </p>
             </div>
           </div>
@@ -328,7 +328,7 @@ export function MainContent() {
                   <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center border border-emerald-500/20 shadow-inner group-hover:bg-emerald-500 group-hover:text-gray-900 transition-all duration-500">
                     <Lock size={22} />
                   </div>
-                  <span className="text-[8px] text-center font-black uppercase tracking-[0.25em] text-emerald-400 px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
+                  <span className="text-[9px] text-center font-black uppercase tracking-[0.25em] text-emerald-400 px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
                     Criptografia Avançada
                   </span>
                 </div>
@@ -339,7 +339,7 @@ export function MainContent() {
               </div>
 
               <div className="shrink-0">
-                <span className="bg-emerald-500 hover:bg-emerald-400 text-gray-900 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all duration-300 group-hover:scale-105 shadow-lg shadow-emerald-500/20">
+                <span className="bg-emerald-500 hover:bg-emerald-400 text-gray-900 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 w-full transition-all duration-300 group-hover:scale-105 shadow-lg shadow-emerald-500/20">
                   Acesse aqui <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                 </span>
               </div>
