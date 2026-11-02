@@ -217,7 +217,7 @@ export function Header() {
   // Links do menu mobile - com "Parcerias comerciais" e "Criar conta"
   const mobileMenuLinks = [
     { name: "Sobre a Plataforma", href: "/sobre", icon: <Info size={18} /> },
-    { name: "Parcerias comerciais", href: "/parcerias", icon: <Handshake size={18} /> },
+    { name: "Parcerias comerciais", href: "/parceria", icon: <Handshake size={18} /> },
     { name: "Crie sua conta digital", href: "/cadastro", icon: <UserPlus size={18} /> },
     { name: "Blog da Nucleobase", href: "/blog", icon: <Newspaper size={18} /> },
     {

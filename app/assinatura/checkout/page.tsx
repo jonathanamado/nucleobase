@@ -3,9 +3,9 @@ import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { 
-  ArrowLeft, ShieldCheck, CreditCard, 
-  Lock, CheckCircle2, Loader2 
+import {
+  ArrowLeft, ShieldCheck, CreditCard,
+  Lock, CheckCircle2, Loader2
 } from "lucide-react";
 
 // 1. Criamos um componente interno que contém a lógica do checkout
@@ -13,7 +13,7 @@ function CheckoutContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const planSlug = searchParams.get("plan");
-  
+
   const [plan, setPlan] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [cpf, setCpf] = useState("");
@@ -84,9 +84,9 @@ function CheckoutContent() {
               </h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">CPF para Nota Fiscal</label>
-                  <input 
-                    type="text" 
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">CPF para Contrato</label>
+                  <input
+                    type="text"
                     placeholder="000.000.000-00"
                     value={cpf}
                     onChange={handleCpfChange}

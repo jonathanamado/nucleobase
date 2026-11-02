@@ -328,7 +328,7 @@ export function MainContent() {
                   <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center border border-emerald-500/20 shadow-inner group-hover:bg-emerald-500 group-hover:text-gray-900 transition-all duration-500">
                     <Lock size={22} />
                   </div>
-                  <span className="text-[8px] font-black uppercase tracking-[0.25em] text-emerald-400 px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
+                  <span className="text-[8px] text-center font-black uppercase tracking-[0.25em] text-emerald-400 px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
                     Criptografia Avançada
                   </span>
                 </div>
@@ -694,29 +694,24 @@ export function MainContent() {
                 </div>
                 <div className="flex-1">
                   <h4 className="text-2xl font-bold text-gray-900 mb-1 tracking-tight">Segurança e Privacidade</h4>
-                  <p className="text-gray-600 text-base font-medium leading-relaxed mb-4">Custódia integral sob o princípio do Zero-Knowledge.</p>
+                  <p className="text-gray-600 text-base font-medium leading-relaxed mb-4">Criptografia avançada e RLS rigorosamente ativos.</p>
                   <div className="flex gap-2">
                     <Link href="/seguranca_privacidade" onClick={() => trackClick("Segurança e Privacidade (Card Desktop)", "/seguranca_privacidade")} className="group flex-1">
                       <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest flex items-center justify-center text-center gap-2 w-full h-full">
                         Acesse a área de Segurança aqui <ArrowRight size={12} />
                       </span>
                     </Link>
-                    <Link href="/politica-de-cookies" onClick={() => trackClick("Política de Cookies (Card Desktop)", "/politica-de-cookies")} className="group flex-1">
-                      <span className="bg-gray-900 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-black transition-all uppercase tracking-widest flex items-center justify-center text-center gap-2 w-full h-full">
-                        Conheça nossa política aqui <ArrowRight size={12} />
-                      </span>
-                    </Link>
                   </div>
                 </div>
               </div>
               <div className="md:col-span-5 flex flex-col justify-center text-right pr-6">
-                <h4 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight leading-tight">Soberania digital reconhecida</h4>
+                <h4 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight leading-tight">Política de Cookies</h4>
                 <p className="text-gray-500 text-sm font-medium leading-relaxed mb-6">
-                  Sua soberania digital é nossa prioridade. Implementamos padrões de criptografia de ponta para garantir que apenas você acesse seus dados.
+                  Sua navegação e privacidade são nossa prioridade. Aplicamos diretrizes rigorosas em nossa política de cookies para proteger todas as suas visitas.
                 </p>
-                <Link href="/depoimentos" onClick={() => trackClick("Veja Depoimentos", "/depoimentos")} className="group w-fit ml-auto">
+                <Link href="/politica-de-cookies" onClick={() => trackClick("Conheça nossa política", "/politica-de-cookies")} className="group w-fit ml-auto">
                   <span className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest inline-flex items-center gap-2">
-                    Veja Depoimentos <ArrowRight size={12} />
+                    Conheça nossa política <ArrowRight size={12} />
                   </span>
                 </Link>
               </div>

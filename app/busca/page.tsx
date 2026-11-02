@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Search, ArrowRight, Instagram, SearchSlash, Sparkles, HelpCircle, Compass, Rocket, Building2, CreditCard } from "lucide-react";
 import { Suspense, useState, useEffect } from "react";
 
-// Mapeamento abrangente atualizado com base na estrutura do projeto
+// Mapeamento abrangente limpo e refinado para evitar falsos positivos
 const siteMap = [
   // Core & Acesso
   { term: "cadastro registro criar conta", title: "Criar Nova Conta", desc: "Comece a gerenciar suas finanças agora.", href: "/cadastro", category: "Acesso" },
@@ -24,21 +24,20 @@ const siteMap = [
 
   // Módulo Condomínio (Condo)
   { term: "condominio morador sindico predio", title: "Módulo Condomínio", desc: "Gestão completa e livro digital para condomínios.", href: "/condo", category: "Condomínio" },
-  { term: "boletos segunda via cobranca", title: "Segunda Via de Boletos", desc: "Acesse e emita os boletos do condomínio.", href: "/condo/dashboard/boletos-segunda-via", category: "Condomínio" },
+  { term: "boletos segunda via cobranca", title: "Segunda Via de Boletos", desc: "Solicite cópias de boletos do condomínio.", href: "/condo/dashboard/boletos-segunda-via", category: "Condomínio" },
   { term: "moradores cadastro condominio", title: "Cadastro de Moradores", desc: "Gerenciamento de unidades e moradores.", href: "/condo/dashboard/cadastro-moradores", category: "Condomínio" },
   { term: "enquetes decisoes votacao", title: "Enquetes e Decisões", desc: "Participe das votações e assembleias virtuais.", href: "/condo/dashboard/enquetes-e-decisoes", category: "Condomínio" },
-  { term: "ocorrencias sugestoes reclamacao livro digital", title: "Ocorrências e Sugestões", desc: "Registre incidentes ou envie melhorias.", href: "/condo/dashboard/ocorrencias-e-sugestoes", category: "Condomínio" },
+  { term: "ocorrencias sugestoes reclamacao", title: "Ocorrências e Sugestões", desc: "Registre incidentes ou envie melhorias.", href: "/condo/dashboard/ocorrencias-e-sugestoes", category: "Condomínio" },
   { term: "prestacao de contas balanco financeiro", title: "Prestação de Contas", desc: "Transparência financeira do condomínio.", href: "/condo/dashboard/prestacao-de-contas", category: "Condomínio" },
   { term: "reserva espacos salao festas churrasqueira", title: "Reserva de Espaços", desc: "Reserve áreas comuns do condomínio.", href: "/condo/dashboard/reserva-de-espacos", category: "Condomínio" },
   { term: "analise ocorrencias adm sindico", title: "Análise de Ocorrências (Adm)", desc: "Painel administrativo para gestão de chamados.", href: "/condo/adm/analise_ocorrencias", category: "Administração" },
 
   // Assinatura e Planos
-  { term: "planos preços assinatura valores", title: "Nossos Planos", desc: "Escolha o plano ideal para sua escala.", href: "/planos", category: "Comercial" },
+  { term: "planos preços assinatura valores digital", title: "Nossos Planos", desc: "Escolha o plano ideal para sua escala.", href: "/planos", category: "Comercial" },
   { term: "essencial básico", title: "Plano Essencial", desc: "O ponto de partida para sua organização.", href: "/planos/essencial", category: "Comercial" },
-  { term: "pro profissional escala expert", title: "Plano PRO", desc: "Recursos avançados para grandes operações.", href: "/planos/pro", category: "Comercial" },
+  { term: "pro profissional escala expert", title: "Plano PRO", desc: "Recursos avançados para grandes operações.", href: "/planos", category: "Comercial" },
   { term: "empresarial corporate", title: "Plano Empresarial", desc: "Soluções robustas sob medida para grandes estruturas.", href: "/planos/empresarial", category: "Comercial" },
-  { term: "checkout pagar assinar", title: "Finalizar Assinatura", desc: "Conclua sua contratação de forma segura.", href: "/assinatura/checkout", category: "Comercial" },
-  { term: "assinatura sucesso confirmacao", title: "Assinatura Realizada", desc: "Confirmação do seu plano ativo.", href: "/assinatura/sucesso", category: "Comercial" },
+  { term: "checkout pagar assinar", title: "Finalizar Assinatura", desc: "Conclua sua contratação de forma segura.", href: "/planos", category: "Comercial" },
 
   // Conteúdo, Blog e Depoimentos
   { term: "blog artigos notícias ciência", title: "Blog Nucleobase", desc: "Conteúdo especializado em finanças e lucro.", href: "/blog", category: "Conteúdo" },
@@ -48,14 +47,14 @@ const siteMap = [
   { term: "demonstracao video conhecer", title: "Demonstração", desc: "Assista a uma apresentação prática da plataforma.", href: "/demonstracao", category: "Conteúdo" },
 
   // Parcerias, Indicações e Consultoria
-  { term: "consultoria especialista assessoria", title: "Consultoria Especializada", desc: "Atendimento consultivo para o seu negócio.", href: "/consultoria", category: "Serviços" },
+  { term: "consultoria especialista assessoria", title: "Resultados & Consultoria", desc: "Atendimento consultivo para o seu negócio e resultados por parcerias.", href: "/resultados-consultoria", category: "Serviços" },
   { term: "indique amigo programa premios", title: "Indique e Ganhe", desc: "Indique a Nucleobase para parceiros.", href: "/indique", category: "Parcerias" },
   { term: "parceria afiliados", title: "Seja Nosso Parceiro", desc: "Conheça nossas oportunidades de parceria.", href: "/parceria", category: "Parcerias" },
 
   // Institucional, Suporte e Legal
   { term: "sobre empresa história", title: "Sobre a Nucleobase", desc: "Nossa missão e visão sobre o mercado digital.", href: "/sobre", category: "Institucional" },
   { term: "faq dúvidas perguntas frequentes", title: "Central de Ajuda (FAQ)", desc: "Respostas rápidas para as principais dúvidas.", href: "/faq", category: "Suporte" },
-  { term: "contato suporte whatsapp ajuda", title: "Fale Conosco", desc: "Suporte via WhatsApp e E-mail.", href: "/suporte", category: "Suporte" },
+  { term: "contato suporte whatsapp ajuda", title: "Fale Conosco", desc: "Fale conosco via WhatsApp e E-mail.", href: "/suporte", category: "Suporte" },
   { term: "segurança privacidade dados termos", title: "Segurança e Privacidade", desc: "Como protegemos seus dados e sua operação.", href: "/seguranca_privacidade", category: "Legal" },
   { term: "politica cookies", title: "Política de Cookies", desc: "Informações sobre o uso de cookies na plataforma.", href: "/politica-de-cookies", category: "Legal" },
 ];
@@ -103,19 +102,30 @@ function BuscaContent() {
   const normalizeText = (text: string) =>
     text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-  const query = normalizeText(rawQuery);
+  const getFilteredResults = () => {
+    if (!rawQuery.trim()) return [];
 
-  const results = siteMap.filter((item) => {
-    if (!query) return false;
-    return normalizeText(item.term).includes(query) ||
-      normalizeText(item.title).includes(query) ||
-      normalizeText(item.category).includes(query);
-  });
+    const normalizedQuery = normalizeText(rawQuery);
+    const queryWords = normalizedQuery.split(/\s+/).filter(Boolean);
+
+    const matchedItems = siteMap.filter((item) => {
+      const targetText = `${normalizeText(item.term)} ${normalizeText(item.title)} ${normalizeText(item.category)}`;
+      return queryWords.some((word) => targetText.includes(word));
+    });
+
+    const uniqueResults = matchedItems.filter(
+      (item, index, self) => index === self.findIndex((t) => t.href === item.href)
+    );
+
+    return uniqueResults;
+  };
+
+  const results = getFilteredResults();
 
   return (
     <div className="w-full md:pr-10 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative px-4 md:px-0">
 
-      {/* HEADER DA BUSCA - PADRÃO NUCLEO */}
+      {/* HEADER DA BUSCA */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
         <div>
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
@@ -136,7 +146,23 @@ function BuscaContent() {
         </div>
       </div>
 
-      {/* LINHA DIVISÓRIA PADRÃO */}
+      {/* BARRA DE PESQUISA DISPONÍVEL DIRETAMENTE NA PÁGINA DE BUSCA */}
+      <div className="bg-white p-4 md:p-6 rounded-[2.5rem] border border-gray-100 shadow-sm mb-6">
+        <form onSubmit={handleSearch} className="relative">
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder="Pesquisar novamente..."
+            className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl py-4 px-6 pr-14 focus:border-blue-500 focus:bg-white outline-none transition-all shadow-inner font-medium text-gray-900"
+          />
+          <button type="submit" className="absolute right-5 top-1/2 -translate-y-1/2 bg-blue-600 text-white p-3 rounded-xl shadow-md hover:scale-105 transition-transform cursor-pointer">
+            <Search size={20} strokeWidth={2.5} />
+          </button>
+        </form>
+      </div>
+
+      {/* LINHA DIVISÓRIA */}
       <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4 w-full">
         {rawQuery ? (results.length > 0 ? "Sugestões Encontradas" : "Tente uma nova busca") : "Pesquisa e recomendações"}
         <div className="h-px bg-gray-300 flex-1"></div>
@@ -209,31 +235,10 @@ function BuscaContent() {
             </div>
           )
         ) : (
-          /* ESTADO INICIAL / PRIMEIRO ACESSO COM BARRA DE PESQUISA E DESTAQUES */
+          /* ESTADO INICIAL / PRIMEIRO ACESSO */
           <div className="space-y-6">
-            {/* LUPA / BARRA DE PESQUISA LIVRE NO PRIMEIRO ACESSO */}
-            <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
-              <form onSubmit={handleSearch} className="relative">
-                <input
-                  type="text"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Digite o que procura (ex: relatórios, boletos, planos)..."
-                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl py-4 px-6 pr-14 focus:border-blue-500 focus:bg-white outline-none transition-all shadow-inner font-medium text-gray-900"
-                />
-                <button type="submit" className="absolute right-5 top-1/2 -translate-y-1/2 bg-blue-600 text-white p-3 rounded-xl shadow-md hover:scale-105 transition-transform cursor-pointer">
-                  <Search size={20} strokeWidth={2.5} />
-                </button>
-              </form>
-            </div>
-
-            {/* CARDS DE RECOMENDAÇÕES EM DESTAQUE */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Link
-                href="/controle-financeiro"
-                onClick={() => trackClick("Destaque: Controle Financeiro", "/controle-financeiro")}
-                className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-500 flex flex-col justify-between cursor-pointer"
-              >
+              <Link href="/controle-financeiro" onClick={() => trackClick("Destaque: Controle Financeiro", "/controle-financeiro")} className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-500 flex flex-col justify-between cursor-pointer">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="bg-blue-50 text-blue-600 p-4 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
                     <Rocket size={24} />
@@ -246,11 +251,7 @@ function BuscaContent() {
                 <p className="text-sm text-gray-500 font-medium">Gerencie entradas, saídas e visualize o painel de resultados do seu negócio.</p>
               </Link>
 
-              <Link
-                href="/condo"
-                onClick={() => trackClick("Destaque: Módulo Condomínio", "/condo")}
-                className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-500 flex flex-col justify-between cursor-pointer"
-              >
+              <Link href="/condo" onClick={() => trackClick("Destaque: Módulo Condomínio", "/condo")} className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-500 flex flex-col justify-between cursor-pointer">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="bg-orange-50 text-orange-500 p-4 rounded-2xl group-hover:bg-orange-500 group-hover:text-white transition-colors">
                     <Building2 size={24} />
@@ -263,11 +264,7 @@ function BuscaContent() {
                 <p className="text-sm text-gray-500 font-medium">Livro digital, boletos, ocorrências e gestão condominial completa.</p>
               </Link>
 
-              <Link
-                href="/planos"
-                onClick={() => trackClick("Destaque: Planos", "/planos")}
-                className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-500 flex flex-col justify-between cursor-pointer"
-              >
+              <Link href="/planos" onClick={() => trackClick("Destaque: Planos", "/planos")} className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-500 flex flex-col justify-between cursor-pointer">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="bg-teal-50 text-teal-600 p-4 rounded-2xl group-hover:bg-teal-600 group-hover:text-white transition-colors">
                     <CreditCard size={24} />
@@ -280,11 +277,7 @@ function BuscaContent() {
                 <p className="text-sm text-gray-500 font-medium">Conheça as opções de assinatura ideal para a sua escala de operação.</p>
               </Link>
 
-              <Link
-                href="/sobre"
-                onClick={() => trackClick("Destaque: Sobre", "/sobre")}
-                className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-500 flex flex-col justify-between cursor-pointer"
-              >
+              <Link href="/sobre" onClick={() => trackClick("Destaque: Sobre", "/sobre")} className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-500 flex flex-col justify-between cursor-pointer">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="bg-purple-50 text-purple-600 p-4 rounded-2xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
                     <Compass size={24} />
@@ -301,28 +294,25 @@ function BuscaContent() {
         )}
       </div>
 
-      {/* FOOTER DA BUSCA - CTA PADRÃO */}
+      {/* FOOTER & CTA */}
       <div className="mt-12 md:mt-20 bg-gray-900 rounded-3xl md:rounded-[4rem] p-8 md:p-20 text-center relative overflow-hidden group w-full shadow-lg mb-20">
         <div className="relative z-10">
           <h4 className="text-2xl md:text-4xl font-bold text-white mb-2 md:mb-4 tracking-tight">Ainda com dúvidas?</h4>
           <p className="text-sm text-gray-400 mb-8 font-medium">Nossa equipe de suporte está pronta para te ajudar com qualquer integração.</p>
-          <Link href="https://wa.link/qbxg9f" onClick={() => trackClick("Chamar no WhatsApp - Busca", "https://wa.link/qbxg9f")} className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-2xl font-black text-[10px] md:text-[12px] uppercase tracking-widest transition-all cursor-pointer">
+          <a href="https://wa.link/qbxg9f" target="_blank" rel="noopener noreferrer" onClick={() => trackClick("Chamar no WhatsApp - Busca", "https://wa.link/qbxg9f")} className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-2xl font-black text-[10px] md:text-[12px] uppercase tracking-widest transition-all cursor-pointer">
             Chamar no WhatsApp
-          </Link>
+          </a>
         </div>
         <Search size={200} className="absolute -right-10 -bottom-10 text-white/5 -rotate-12" />
       </div>
 
-      {/* LINHA DIVISÓRIA "CONECTE-SE" CENTRALIZADA */}
+      {/* CONECTE-SE & INSTAGRAM */}
       <div className="mt-24 flex items-center gap-4 mb-12">
         <div className="h-px bg-gray-200 flex-1"></div>
-        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
-          Conecte-se
-        </h3>
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">Conecte-se</h3>
         <div className="h-px bg-gray-200 flex-1"></div>
       </div>
 
-      {/* BLOCO INSTAGRAM CENTRALIZADO - PADRÃO "SOBRE" */}
       <div className="flex flex-col items-center text-center">
         <div className="max-w-3xl mb-12">
           <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
@@ -333,21 +323,13 @@ function BuscaContent() {
           </p>
         </div>
 
-        <a
-          href="https://www.instagram.com/nucleobase.app/"
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => trackClick("Instagram - Busca", "https://www.instagram.com/nucleobase.app/")}
-          className="group relative flex flex-col items-center gap-6 cursor-pointer"
-        >
+        <a href="https://www.instagram.com/nucleobase.app/" target="_blank" rel="noopener noreferrer" onClick={() => trackClick("Instagram - Busca", "https://www.instagram.com/nucleobase.app/")} className="group relative flex flex-col items-center gap-6 cursor-pointer">
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
-
             <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.2rem] md:rounded-[2.5rem] flex items-center justify-center text-white shadow-xl relative z-10 group-hover:rotate-6 transition-all duration-500">
               <Instagram className="w-12 h-12 md:w-14 md:h-14" strokeWidth={1.5} />
             </div>
           </div>
-
           <div className="flex flex-col items-center">
             <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-pink-500 transition-colors">@nucleobase.app</span>
             <div className="h-1 w-0 bg-pink-500 mt-2 group-hover:w-full transition-all duration-500 rounded-full"></div>
