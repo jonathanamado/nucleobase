@@ -844,7 +844,7 @@ export default function NucleobaseCondo() {
                             </div>
                             <h2 className="text-xl font-black tracking-tight text-gray-900">Agendar Demonstração</h2>
                             <p className="text-xs text-gray-500 max-w-xs mx-auto">
-                                Preencha os dados para solicitar maiores detalhes sobre o app e agendar uma demonstração com o nosso time.
+                                Preencha os dados para solicitar maiores detalhes sobre o app e agendar uma demonstração com o nosso time de especialistas.
                             </p>
                         </div>
 
