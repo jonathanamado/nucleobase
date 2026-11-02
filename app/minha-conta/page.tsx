@@ -1010,7 +1010,7 @@ export default function MinhaContaPage() {
 
               <div className="space-y-3 md:col-span-1">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
-                  <span>Unidade Administração</span>
+                  <span>Unidade Adm</span>
                 </label>
                 <input
                   type="text"
@@ -1024,7 +1024,7 @@ export default function MinhaContaPage() {
 
               <div className="space-y-3 md:col-span-1">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
-                  <span>Telefone Administração</span>
+                  <span>Telefone Adm</span>
                 </label>
                 <input
                   type="text"
