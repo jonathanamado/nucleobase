@@ -844,7 +844,7 @@ export default function NucleobaseCondo() {
                             </div>
                             <h2 className="text-xl font-black tracking-tight text-gray-900">Agendar Demonstração</h2>
                             <p className="text-xs text-gray-500 max-w-xs mx-auto">
-                                Preencha os dados abaixo para solicitar maiores detalhes sobre a plataforma e agendar uma demonstração com nossa equipe.
+                                Preencha os dados para solicitar maiores detalhes sobre o app e agendar uma demonstração com o nosso time.
                             </p>
                         </div>
 
@@ -938,8 +938,8 @@ export default function NucleobaseCondo() {
                             <button
                                 type="submit"
                                 className={`w-full text-white h-13 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 mt-6 shadow-lg cursor-pointer ${metodoContato === 'whatsapp'
-                                        ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/10'
-                                        : 'bg-gray-900 hover:bg-black shadow-gray-900/10'
+                                    ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/10'
+                                    : 'bg-gray-900 hover:bg-black shadow-gray-900/10'
                                     }`}
                             >
                                 {metodoContato === 'whatsapp' ? 'Agendar via WhatsApp' : 'Enviar Solicitação via E-mail'}
