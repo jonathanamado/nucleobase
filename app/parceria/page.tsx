@@ -17,10 +17,17 @@ import {
   Building2,
   Star
 } from "lucide-react";
+import { createClient } from "@supabase/supabase-js";
+
+// Inicializa o Supabase Client diretamente com as variáveis de ambiente públicas
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder";
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default function ParceirosPage() {
   const formRef = useRef<HTMLFormElement>(null);
   const [cardAtivo, setCardAtivo] = useState(2);
+  const [modeloSelecionado, setModeloSelecionado] = useState("");
 
   useEffect(() => {
     window.dataLayer?.push({
@@ -43,11 +50,35 @@ export default function ParceirosPage() {
     });
   };
 
-  const handleFormSubmit = () => {
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    // Não usamos e.preventDefault() para permitir que o form siga para o web3forms na nova aba target="_blank"
+
     window.dataLayer?.push({
       event: "partnership_proposal_submitted",
       form_name: "candidatura_parceiro"
     });
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("parceiro_email") as string;
+    const nome = formData.get("parceiro_nome") as string;
+    const wantsNewsletter = formData.get("newsletter") === "yes";
+
+    // Se o parceiro aceitou a newsletter, enviamos os dados para a tabela correspondente no Supabase
+    if (wantsNewsletter && email) {
+      try {
+        const { error } = await supabase.from("newsletter").insert([{
+          email: email,
+          nome: nome,
+          status: "ativo"
+        }]);
+
+        if (error) {
+          console.error("Erro ao inserir na newsletter:", error);
+        }
+      } catch (err) {
+        console.error("Erro inesperado na gravação da newsletter:", err);
+      }
+    }
   };
 
   const frentes = [
@@ -87,11 +118,11 @@ export default function ParceirosPage() {
   ];
 
   const proximoCard = () => {
-    if (cardAtivo < frentes.length - 1) setCardAtivo(cardAtivo + 1);
+    setCardAtivo(cardAtivo === frentes.length - 1 ? 0 : cardAtivo + 1);
   };
 
   const anteriorCard = () => {
-    if (cardAtivo > 0) setCardAtivo(cardAtivo - 1);
+    setCardAtivo(cardAtivo === 0 ? frentes.length - 1 : cardAtivo - 1);
   };
 
   return (
@@ -138,14 +169,14 @@ export default function ParceirosPage() {
       </div>
 
       {/* MODELOS DE COLABORAÇÃO */}
-      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
+      <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-4 md:mb-10 flex items-center gap-4">
         <span className="inline md:hidden">Parceria</span>
         <span className="hidden md:inline">Modelos de Colaboração</span>
         <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
       {/* MÉTRICAS RÁPIDAS - MOBILE APENAS (LOGO APÓS A LINHA "PARCERIA") */}
-      <div className="flex md:hidden gap-3 mb-10 justify-center w-full">
+      <div className="flex md:hidden gap-3 mb-6 justify-center w-full">
         <div className="px-3 py-2 bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col items-center justify-center flex-1">
           <h4 className="text-lg font-black text-gray-900 leading-tight">15% +</h4>
           <p className="text-[7px] text-gray-400 font-black uppercase tracking-widest">Comissão</p>
@@ -176,34 +207,58 @@ export default function ParceirosPage() {
           <input type="hidden" name="subject" value="Nova Candidatura de Parceiro - Nucleobase" />
           <input type="hidden" name="from_name" value="Nucleobase Parcerias" />
 
+          {/* CONTEXTO DO FORMULÁRIO NO MOBILE & DESKTOP */}
+          <div className="mb-8 text-center px-2">
+            <p className="text-[13px] font-medium text-gray-500 leading-relaxed md:text-sm md:leading-loose">
+              <span className="md:hidden">Preencha o formulário detalhando sua operação para iniciarmos nossa parceria.</span>
+              <span className="hidden md:inline">Preencha o formulário abaixo detalhando sua operação para iniciarmos nossa parceria estratégica.</span>
+            </p>
+          </div>
+
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nome/Empresa</label>
-                <input name="parceiro_nome" required type="text" className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 text-sm transition-all font-medium" placeholder="Ex: Consultoria XYZ" />
+                <input name="parceiro_nome" required type="text" className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 text-sm text-gray-900 transition-all font-medium placeholder-gray-400" placeholder="Ex: Consultoria XYZ" />
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">E-mail Corporativo</label>
-                <input name="parceiro_email" required type="email" className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 text-sm transition-all font-medium" placeholder="parcerias@empresa.com" />
+                <input name="parceiro_email" required type="email" className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 text-sm text-gray-900 transition-all font-medium placeholder-gray-400" placeholder="parcerias@empresa.com" />
               </div>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Modelo de Parceria</label>
-              <select name="modelo_parceria" className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 text-sm transition-all font-medium appearance-none cursor-pointer">
-                <option>Consultoria Estratégica</option>
-                <option>Afiliado / Indicação</option>
-                <option>Integração de Software (API)</option>
-                <option>Outro modelo</option>
+              <select
+                name="modelo_parceria"
+                required
+                value={modeloSelecionado}
+                onChange={(e) => setModeloSelecionado(e.target.value)}
+                className={`w-full px-6 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 text-sm transition-all font-medium appearance-none cursor-pointer ${modeloSelecionado ? "text-gray-900" : "text-gray-400"}`}
+              >
+                <option value="" disabled>Selecione a opção</option>
+                <option value="Consultoria Estratégica" className="text-gray-900">Consultoria Estratégica</option>
+                <option value="Afiliado / Indicação" className="text-gray-900">Afiliado / Indicação</option>
+                <option value="Integração de Software (API)" className="text-gray-900">Integração de Software (API)</option>
+                <option value="Outro modelo" className="text-gray-900">Outro modelo</option>
               </select>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Sua Operação</label>
-              <textarea name="parceiro_motivacao" required className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 text-sm transition-all h-32 resize-none font-medium" placeholder="Conte-nos brevemente como você pretende atuar..."></textarea>
+              <textarea name="parceiro_motivacao" required className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 text-sm text-gray-900 transition-all h-32 resize-none font-medium placeholder-gray-400" placeholder="Conte-nos brevemente como você propõe essa parceria com base em suas experiências..."></textarea>
             </div>
-            <button type="submit" className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black inline-flex items-center justify-center gap-3 hover:bg-black transition-all shadow-xl shadow-blue-100 text-[11px] uppercase tracking-[0.2em] cursor-pointer">
-              <Rocket size={18} className="inline md:hidden shrink-0" />
-              <span>Enviar Proposta de Parceria</span>
-              <Rocket size={18} className="hidden md:inline shrink-0" />
+
+            <div className="flex items-center space-x-2 pt-2 pb-4">
+              <input type="checkbox" id="newsletter" name="newsletter" value="yes" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" />
+              <label htmlFor="newsletter" className="text-[11px] font-medium text-gray-500 cursor-pointer">
+                Desejo receber atualizações e novidades.
+              </label>
+            </div>
+
+            <button type="submit" className="w-full relative bg-blue-600 text-white py-5 px-6 md:px-8 rounded-2xl font-black flex items-center justify-center md:gap-3 hover:bg-black transition-all shadow-xl shadow-blue-100 text-[11px] uppercase tracking-[0.2em] cursor-pointer">
+              <Rocket size={18} className="hidden md:block shrink-0" />
+              <span className="hidden md:inline">Enviar Proposta de Parceria</span>
+              <span className="inline md:hidden">Enviar Proposta</span>
+              <Rocket size={18} className="block md:hidden absolute right-6 shrink-0" />
             </button>
           </div>
         </form>
@@ -229,7 +284,7 @@ export default function ParceirosPage() {
                 </li>
               ))}
             </ul>
-            <div className="p-6 md:p-8 bg-white/5 rounded-2xl md:rounded-[2rem] border border-white/10 backdrop-blur-sm text-center">
+            <div className="p-6 md:p-8 bg-white/5 rounded-2xl md:rounded-[2rem] border border-white/10 backdrop-blur-sm text-center md:text-left">
               <p className="text-[10px] text-blue-400 font-black uppercase tracking-[0.2em] mb-3">Visão Nucleo</p>
               <p className="text-gray-300 italic text-base md:text-lg leading-relaxed font-light">
                 "Buscamos parceiros que buscam transformar processos e pessoas."
@@ -260,14 +315,12 @@ export default function ParceirosPage() {
 
       {/* CARDS DAS FRENTES ABAIXO DO FORMULÁRIO E DO CTA */}
       <div className="relative flex items-center justify-center mb-24">
-        {/* SETAS MOBILE */}
-        {cardAtivo > 0 && (
-          <button onClick={anteriorCard} className="md:hidden absolute left-0 z-20 bg-white shadow-lg border border-gray-100 text-blue-600 p-2 rounded-full active:scale-90 transition-all cursor-pointer">
-            <ChevronLeft size={24} />
-          </button>
-        )}
+        {/* SETAS MOBILE - ESQUERDA */}
+        <button onClick={anteriorCard} className="md:hidden absolute left-0 z-20 bg-white shadow-lg border border-gray-100 text-blue-600 p-2 rounded-full active:scale-90 transition-all cursor-pointer">
+          <ChevronLeft size={24} />
+        </button>
 
-        <div className="w-full md:grid md:grid-cols-3 gap-8 flex items-stretch justify-center">
+        <div className="w-full md:grid md:grid-cols-3 gap-8 flex items-stretch justify-center px-10 md:px-0">
           {frentes.map((frente, idx) => {
             const isDestaque = frente.isDestaque;
 
@@ -342,11 +395,10 @@ export default function ParceirosPage() {
           })}
         </div>
 
-        {cardAtivo < frentes.length - 1 && (
-          <button onClick={proximoCard} className="md:hidden absolute right-0 z-20 bg-white shadow-lg border border-gray-100 text-blue-600 p-2 rounded-full active:scale-90 transition-all cursor-pointer">
-            <ChevronRight size={24} />
-          </button>
-        )}
+        {/* SETAS MOBILE - DIREITA */}
+        <button onClick={proximoCard} className="md:hidden absolute right-0 z-20 bg-white shadow-lg border border-gray-100 text-blue-600 p-2 rounded-full active:scale-90 transition-all cursor-pointer">
+          <ChevronRight size={24} />
+        </button>
       </div>
 
       {/* LINHA DIVISÓRIA "CONECTE-SE" */}

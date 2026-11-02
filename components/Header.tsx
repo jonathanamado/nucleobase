@@ -9,7 +9,7 @@ import {
   Info, Newspaper, CreditCard, BarChart3, Star, HelpCircle,
   Shield, ChevronRight, Power,
   Search, Gift, Settings, Key, UserPlus, LogIn, PlayCircle,
-  KeyRound, Eye, EyeOff, Play, Rocket, Pencil, Building2
+  KeyRound, Eye, EyeOff, Play, Rocket, Pencil, Building2, Handshake
 } from "lucide-react";
 
 export function Header() {
@@ -197,12 +197,31 @@ export function Header() {
     }
   };
 
-  const menuLinks = [
+  // Links do menu desktop - "Indique e ganhe" mantém-se inalterado no desktop
+  const desktopMenuLinks = [
     { name: "Sobre a Plataforma", href: "/sobre", icon: <Info size={18} /> },
     { name: "Indique e ganhe", href: "/indique", icon: <Gift size={18} /> },
     { name: "Blog da Nucleo", href: "/blog", icon: <Newspaper size={18} /> },
     {
       name: "Assinatura digital",
+      href: "/planos",
+      icon: (
+        <div className="relative flex items-center justify-center">
+          <div className="absolute inset-0 bg-blue-500 rounded-full blur-[8px] opacity-40 animate-pulse"></div>
+          <CreditCard size={18} className="relative z-10 text-blue-600" />
+        </div>
+      )
+    }
+  ];
+
+  // Links do menu mobile - com "Parcerias comerciais" e "Criar conta"
+  const mobileMenuLinks = [
+    { name: "Sobre a Plataforma", href: "/sobre", icon: <Info size={18} /> },
+    { name: "Parcerias comerciais", href: "/parcerias", icon: <Handshake size={18} /> },
+    { name: "Crie sua conta digital", href: "/cadastro", icon: <UserPlus size={18} /> },
+    { name: "Blog da Nucleobase", href: "/blog", icon: <Newspaper size={18} /> },
+    {
+      name: "Planos e Assinaturas",
       href: "/planos",
       icon: (
         <div className="relative flex items-center justify-center">
@@ -469,8 +488,15 @@ export function Header() {
               className="absolute top-[85px] right-4 left-4 bg-white rounded-[2rem] shadow-2xl border border-gray-100 z-[100] overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300 md:hidden"
             >
               <div className="max-h-[70vh] overflow-y-auto p-4 bg-white">
+
+                {/* Título Elegante no Topo (Apenas Mobile) */}
+                <div className="flex items-center gap-2 mb-4 px-2 pt-2 pb-3 border-b border-gray-100">
+                  <img src="/favicon.ico" alt="Favicon Nucleobase" className="w-5 h-5 rounded-sm object-contain" />
+                  <span className="text-[13px] font-bold tracking-tighter text-gray-900 uppercase">Nucleobase.app</span>
+                </div>
+
                 <nav className="space-y-0.5 bg-white">
-                  {menuLinks.map((link) => (
+                  {mobileMenuLinks.map((link) => (
                     <a
                       key={link.name}
                       href={link.href}
@@ -503,14 +529,14 @@ export function Header() {
                     </div>
                   ) : (
                     <div className="flex flex-col gap-2 bg-white">
+                      <a href="/condo" onClick={() => trackHeaderClick("Administração Condo (Mobile)", "/condo")} className="flex items-center justify-center gap-2 w-full py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-xs shadow-lg active:scale-95 transition-all">
+                        <Building2 size={15} /> Administração Condo
+                      </a>
                       {pathname !== "/acesso-usuario" && (
                         <a href="/controle-financeiro/lancamentos" onClick={() => trackHeaderClick("Gestão Financeira (Mobile)", "/controle-financeiro/lancamentos")} className="flex items-center justify-center gap-2 w-full py-2.5 bg-orange-500 text-white rounded-xl font-bold text-xs shadow-lg active:scale-95 transition-all">
                           <LayoutDashboard size={15} /> Gestão Financeira
                         </a>
                       )}
-                      <a href="/condo" onClick={() => trackHeaderClick("Administração Condo (Mobile)", "/condo")} className="flex items-center justify-center gap-2 w-full py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-xs shadow-lg active:scale-95 transition-all">
-                        <Building2 size={15} /> Administração Condo
-                      </a>
                       <a href="/controle-financeiro/resultados" onClick={() => trackHeaderClick("Resultados & Consultoria (Mobile)", "/controle-financeiro/resultados")} className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-700 text-white rounded-xl font-bold text-xs shadow-lg active:scale-95 transition-all">
                         <BarChart3 size={15} /> Resultados & Consultoria
                       </a>

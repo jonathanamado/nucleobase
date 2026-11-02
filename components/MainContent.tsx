@@ -173,8 +173,8 @@ export function MainContent() {
               <Zap size={22} className="text-orange-500 fill-orange-500 ml-1 animate-pulse" />
             </h1>
 
-            <p className="text-gray-500 text-base font-medium leading-tight max-w-[280px]">
-              Controles e decisões centralizadas em uma <span className="text-gray-900">plataforma digital única.</span>
+            <p className="text-gray-500 text-base font-medium leading-tight">
+              Controles práticos e decisões centralizadas em uma <span className="text-gray-900">plataforma digital única.</span>
             </p>
           </div>
 
@@ -183,7 +183,7 @@ export function MainContent() {
             <div className="relative bg-white border border-gray-100 p-7 rounded-[2.5rem] shadow-xl shadow-blue-900/5">
               <div className="mb-6">
                 <p className="text-gray-700 text-base leading-snug font-medium text-center">
-                  Você está no APP em que números brutos tornam-se <span className="text-gray-900 font-bold not-italic">decisões inteligentes e práticas</span> em sua rotina. Clique na <span className="text-blue-600 font-bold">Logo</span> <LayoutDashboard size={14} strokeWidth={3} className="inline-block text-blue-600 mb-1" />, acesse seu <span className="text-gray-900 font-bold not-italic">Painel</span> e profissionalize seus processos.
+                  Você está no APP em que números brutos tornam-se <span className="text-gray-900 font-bold not-italic">decisões inteligentes e práticas</span> em sua rotina. Clique na <span className="text-blue-600 font-bold">Logo</span> <LayoutDashboard size={14} strokeWidth={3} className="inline-block text-blue-600 mb-1" />, acesse seu <span className="text-gray-900 font-bold not-italic">Painel</span> e profissionalize-se.
                 </p>
               </div>
 
@@ -258,9 +258,9 @@ export function MainContent() {
             Informativos e acessos <div className="h-px bg-gray-300 flex-1"></div>
           </h3>
           <p className="text-gray-600 text-base leading-relaxed font-medium py-1">
-            A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos controles com inteligência e foco em redução de custos. Conheça a nossa história e a nossa missão <Link href="/sobre" onClick={() => trackClick("Sobre a história (Mobile)", "/sobre")} className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
+            A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos controles com inteligência e foco em redução de custos. Conheça nossa missão e história <Link href="/sobre" onClick={() => trackClick("Sobre a história (Mobile)", "/sobre")} className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
             <br /><br />
-            Nosso app oferece controle completo de orçamentos financeiros e gestão condominial, e em ambos os módulos consultoria digital especializada. Saiba mais:
+            Nosso app oferece controle de orçamentos financeiros e gestão condominial, e em ambos os módulos consultoria digital especializada. Saiba mais:
           </p>
         </div>
 
@@ -328,7 +328,7 @@ export function MainContent() {
                   <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center border border-emerald-500/20 shadow-inner group-hover:bg-emerald-500 group-hover:text-gray-900 transition-all duration-500">
                     <Lock size={22} />
                   </div>
-                  <span className="text-[9px] font-black uppercase tracking-[0.25em] text-emerald-400 px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
+                  <span className="text-[8px] font-black uppercase tracking-[0.25em] text-emerald-400 px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
                     Criptografia Avançada
                   </span>
                 </div>
@@ -462,7 +462,7 @@ export function MainContent() {
             <Zap size={32} className="text-blue-600 skew-x-[-15deg] opacity-30 ml-4" strokeWidth={2} />
           </h1>
           <h2 className="text-gray-500 text-lg font-medium leading-relaxed mt-0">
-            Controles e decisões centralizadas em uma <span className="text-gray-900">plataforma digital única.</span>
+            Controles práticos e decisões inteligentes centralizadas em uma <span className="text-gray-900">plataforma digital única.</span>
           </h2>
         </div>
 
