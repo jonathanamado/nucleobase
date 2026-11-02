@@ -174,7 +174,7 @@ export function MainContent() {
             </h1>
 
             <p className="text-gray-500 text-base font-medium leading-tight">
-              Controles práticos e decisões centralizadas em uma <span className="text-gray-900">plataforma digital única.</span>
+              Controles e decisões centralizadas em uma <span className="text-gray-900">plataforma digital única.</span>
             </p>
           </div>
 
