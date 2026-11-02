@@ -544,8 +544,8 @@ export default function CondoDashboard() {
             path: "/condo/dashboard/cadastro-moradores"
         },
         {
-            title: "2ª via de Boletos",
-            desc: "Emissão de taxas condominiais, fundos de reserva e taxas extras.",
+            title: "Apoio Cópia de Boletos",
+            desc: "Solicitação de apoio via mensagem para 2ª via de Boletos.",
             shortDesc: "Suporte em emissão e 2ª via de boletos.",
             icon: <FileText className="text-blue-500" size={24} />,
             badge: "Cobranças",

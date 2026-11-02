@@ -38,6 +38,9 @@ function CadastroContent() {
   const [showWarning, setShowWarning] = useState(false);
   const [cienteSemEmail, setCienteSemEmail] = useState(false);
 
+  // Novo estado para o aceite da Newsletter
+  const [aceitaNewsletter, setAceitaNewsletter] = useState(false);
+
   useEffect(() => {
     window.dataLayer?.push({
       event: "view_page_content",
@@ -182,6 +185,23 @@ function CadastroContent() {
         console.warn("Aviso na tabela usuarios:", err);
       }
 
+      // === GRAVAÇÃO NA TABELA NEWSLETTER ===
+      if (aceitaNewsletter && email.trim()) {
+        try {
+          await supabase.from('newsletter').insert([
+            {
+              email: email.trim(),
+              user_id: authData.user.id,
+              status: 'ativo',
+              nome: nomeFinal === "Anônimo" ? null : nomeFinal
+            }
+          ]);
+        } catch (err) {
+          console.warn("Aviso na gravação da newsletter:", err);
+        }
+      }
+      // =====================================
+
       await enviarNotificacaoAdm(nomeFinal, emailParaAuth);
 
       if (email.trim()) {
@@ -201,10 +221,8 @@ function CadastroContent() {
         ]);
 
         if (indicacaoError) {
-          // Se der erro (ex: RLS bloqueando o insert), mostramos no console para facilitar o debug
           console.error("Erro ao gravar indicação (Verifique as políticas RLS):", indicacaoError);
         } else {
-          // Limpa o localStorage apenas se a gravação for bem sucedida
           localStorage.removeItem("nucleobase_referral_id");
         }
       }
@@ -289,9 +307,9 @@ function CadastroContent() {
         </div>
 
         {/* LADO DIREITO: FORMULÁRIO */}
-        <div className="flex-1 flex flex-col p-2 lg:px-16 justify-start bg-white">
-          <div className="w-full max-w-md mx-auto pt-0 lg:pt-0 pb-12">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0 lg:mt-8">
+        <div className="flex-1 flex flex-col p-2 lg:px-16 justify-start bg-white lg:my-auto">
+          <div className="w-full max-w-md mx-auto pt-0 lg:pt-12 pb-12 lg:pb-12 lg:px-12 lg:border lg:border-gray-200/80 lg:rounded-[2.5rem] lg:shadow-sm">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 mt-0">
               <div className="order-2 md:order-1">
                 <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight flex items-center">
                   <span>Cadastre-se<span className="text-blue-600">.</span></span>
@@ -395,6 +413,20 @@ function CadastroContent() {
                   </button>
                 </div>
               </div>
+
+              {/* CHECKBOX DE NEWSLETTER */}
+              <label className="flex items-start gap-3 p-4 mt-2 bg-gray-50/50 border border-gray-100 rounded-2xl cursor-pointer hover:bg-gray-50 transition-colors">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                  checked={aceitaNewsletter}
+                  onChange={(e) => setAceitaNewsletter(e.target.checked)}
+                />
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-gray-700 uppercase tracking-widest leading-none mb-1">Assinar Newsletter</span>
+                  <span className="text-[10px] text-gray-500 font-medium leading-relaxed">Desejo receber conteúdos, novidades e dicas (opcional).</span>
+                </div>
+              </label>
 
               <button
                 disabled={loading}

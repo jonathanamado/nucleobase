@@ -374,7 +374,7 @@ export default function IndiquePage() {
                     </h3>
 
                     <p className="text-[11px] leading-relaxed mb-4 font-medium italic text-amber-50">
-                      Oportunidade de Ouro: simplifique suas vendas com o nosso CRM e garanta comissões e receita recorrente.
+                      Oportunidade de Ouro: simplifique vendas com o nosso CRM e garanta comissões e receita recorrente.
                     </p>
                   </div>
 

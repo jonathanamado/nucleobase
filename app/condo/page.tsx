@@ -1,6 +1,6 @@
 // app/condo/page.tsx
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from 'next/link';
 import { supabase } from "@/lib/supabase";
 import { useLoginProtegido } from "@/hooks/useLoginProtegido";
@@ -29,7 +29,9 @@ import {
     AtSign,
     Key,
     Eye,
-    EyeOff
+    EyeOff,
+    Mail,
+    MessageCircle
 } from "lucide-react";
 
 export default function NucleobaseCondo() {
@@ -74,15 +76,19 @@ export default function NucleobaseCondo() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
+    // Método de contato escolhido no modal
+    const [metodoContato, setMetodoContato] = useState<'whatsapp' | 'email'>('whatsapp');
+    const formRef = useRef<HTMLFormElement>(null);
+
     // Estado para controlar o índice do carrossel vivo (apenas um card visível por vez)
     const [cardAtivoIndex, setCardAtivoIndex] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
 
-    // Estados do Formulário de Solicitação de Entrada
-    const [solicitanteNome, setSolicitanteNome] = useState("");
-    const [solicitanteEmail, setSolicitanteEmail] = useState("");
-    const [solicitanteUnidade, setSolicitanteUnidade] = useState("");
-    const [solicitanteCondo, setSolicitanteCondo] = useState("");
+    // Estados do Formulário de Agendamento de Demonstração
+    const [demoNome, setDemoNome] = useState("");
+    const [demoEmail, setDemoEmail] = useState("");
+    const [demoTelefone, setDemoTelefone] = useState("");
+    const [demoCondo, setDemoCondo] = useState("");
 
     // Telefone de suporte oficial da Administração Nucleo formatado
     const whatsappAdminPhone = "5531971078832";
@@ -211,24 +217,38 @@ export default function NucleobaseCondo() {
         }
     };
 
-    const handleEnviarSolicitacao = (e: React.FormEvent) => {
-        e.preventDefault();
-        trackClick("Enviar Solicitação WhatsApp - Condo", "whatsapp_admin");
+    const handleAgendarDemo = (e: React.FormEvent) => {
+        if (metodoContato === 'whatsapp') {
+            e.preventDefault();
+            trackClick("Enviar Solicitação Demonstração WhatsApp", "whatsapp_admin_demo");
 
-        const textoMensagem = `Olá! Gostaria de solicitar meu cadastro para Acesso ao APP da Nucleo como Morador, utilizando o módulo de Gestão de Condomínio. Segue abaixo dados para liberação:\n\n` +
-            `• *Nome:* ${solicitanteNome}\n` +
-            `• *E-mail:* ${solicitanteEmail}\n` +
-            `• *Condomínio:* ${solicitanteCondo}\n` +
-            `• *Unidade:* ${solicitanteUnidade}`;
+            const textoMensagem = `Olá! Gostaria de solicitar maiores detalhamentos sobre o uso da plataforma Nucleo e agendar uma demonstração.\n\n` +
+                `• *Nome:* ${demoNome}\n` +
+                `• *E-mail:* ${demoEmail}\n` +
+                `• *Condomínio:* ${demoCondo}\n` +
+                `• *Telefone:* ${demoTelefone}`;
 
-        const urlCompleta = `https://api.whatsapp.com/send?phone=${whatsappAdminPhone}&text=${encodeURIComponent(textoMensagem)}`;
-        window.open(urlCompleta, "_blank");
+            const urlCompleta = `https://api.whatsapp.com/send?phone=${whatsappAdminPhone}&text=${encodeURIComponent(textoMensagem)}`;
+            window.open(urlCompleta, "_blank");
 
-        setSolicitanteNome("");
-        setSolicitanteEmail("");
-        setSolicitanteUnidade("");
-        setSolicitanteCondo("");
-        setIsModalOpen(false);
+            setDemoNome("");
+            setDemoEmail("");
+            setDemoTelefone("");
+            setDemoCondo("");
+            setIsModalOpen(false);
+        } else {
+            // Lógica do Web3Forms: não evitamos o preventDefault para que ele faça o POST da página
+            window.dataLayer?.push({
+                event: "contact_form_submitted",
+                form_name: "demo_condo_email"
+            });
+
+            setTimeout(() => {
+                if (formRef.current) {
+                    formRef.current.reset();
+                }
+            }, 100);
+        }
     };
 
     const BotaoAcessoDinamico = ({ isInsideLink = false }: { isInsideLink?: boolean }) => {
@@ -387,7 +407,7 @@ export default function NucleobaseCondo() {
                             <LockKeyhole size={20} />
                         </div>
                         <div className="flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 py-2 px-3 rounded-xl transition-all group/btn shadow-lg shadow-emerald-600/20 flex-1 min-w-0">
-                            <span className="text-white text-[11px] font-black uppercase tracking-wider truncate">Acesso Administração</span>
+                            <span className="text-white text-[11px] font-black uppercase tracking-wider truncate">Acesso Contabilidade</span>
                         </div>
                     </div>
                 </Link>
@@ -563,7 +583,7 @@ export default function NucleobaseCondo() {
                     <div className="flex items-center justify-center relative z-10 w-full">
                         <div className="flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-700 py-3 px-4 rounded-xl transition-all shadow-md shadow-emerald-600/20 text-center">
                             <LockKeyhole size={14} className="text-white shrink-0" />
-                            <span className="text-white text-[10px] font-black uppercase tracking-widest">Acesso Administração</span>
+                            <span className="text-white text-[10px] font-black uppercase tracking-widest">Acesso Contabilidade</span>
                         </div>
                     </div>
                 </Link>
@@ -631,13 +651,13 @@ export default function NucleobaseCondo() {
                     <button
                         onClick={() => {
                             setIsModalOpen(true);
-                            trackClick("Abrir Modal Solicitar Acesso", "modal_solicitar_acesso");
+                            trackClick("Abrir Modal Agendar Demo", "modal_agendar_demo");
                         }}
                         className="flex items-center justify-between flex-1 bg-white border border-gray-200 text-gray-700 py-3.5 px-4 rounded-2xl hover:border-blue-600 hover:text-blue-600 transition-all group font-black text-[10px] uppercase tracking-widest shadow-sm cursor-pointer"
                     >
                         <div className="flex items-center gap-2">
-                            <MessageSquarePlus size={15} className="text-blue-600 shrink-0" />
-                            <span className="whitespace-nowrap">Solicitar Acesso</span>
+                            <CalendarDays size={15} className="text-blue-600 shrink-0" />
+                            <span className="whitespace-nowrap">Agendar Demo</span>
                         </div>
                     </button>
                 </div>
@@ -685,11 +705,11 @@ export default function NucleobaseCondo() {
                             <button
                                 onClick={() => {
                                     setIsModalOpen(true);
-                                    trackClick("Abrir Modal Solicitar Acesso (Mobile)", "modal_solicitar_acesso");
+                                    trackClick("Abrir Modal Agendar Demo (Mobile)", "modal_agendar_demo");
                                 }}
                                 className="w-full flex items-center justify-center gap-2 bg-white border border-blue-600 text-blue-600 py-4 px-6 rounded-2xl hover:bg-blue-50 transition-all font-black text-[10px] uppercase tracking-widest shadow-sm cursor-pointer"
                             >
-                                <MessageSquarePlus size={16} /> Solicitar Acesso
+                                <CalendarDays size={16} /> Agendar Demonstração
                             </button>
                         </div>
 
@@ -760,8 +780,8 @@ export default function NucleobaseCondo() {
                         <a href="/contato" onClick={() => trackClick("Entrar em Contato - Footer Condo", "/contato")} className="bg-white text-blue-900 px-6 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-blue-50 hover:scale-[1.02] active:scale-95 transition-all w-full sm:w-auto text-center">
                             Entrar em Contato
                         </a>
-                        <button onClick={() => { setIsModalOpen(true); trackClick("Solicitar Entrada - Footer Condo", "modal_solicitar_acesso"); }} className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-6 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all w-full sm:w-auto text-center cursor-pointer">
-                            Solicitar Entrada
+                        <button onClick={() => { setIsModalOpen(true); trackClick("Agendar Demo - Footer Condo", "modal_agendar_demo"); }} className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-6 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all w-full sm:w-auto text-center cursor-pointer">
+                            Agendar Demonstração
                         </button>
                     </div>
                 </div>
@@ -815,40 +835,75 @@ export default function NucleobaseCondo() {
                             <X size={20} />
                         </button>
 
-                        <div className="text-center mb-8 space-y-2">
+                        <div className="text-center mb-6 space-y-2">
                             <div className="flex items-center justify-center gap-3 mb-2">
                                 <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
-                                    <Users size={20} />
+                                    <CalendarDays size={20} />
                                 </div>
                                 <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Gestão Condominial</span>
                             </div>
-                            <h2 className="text-xl font-black tracking-tight text-gray-900">Solicitar Inclusão</h2>
+                            <h2 className="text-xl font-black tracking-tight text-gray-900">Agendar Demonstração</h2>
                             <p className="text-xs text-gray-500 max-w-xs mx-auto">
-                                Insira seus dados para enviar a solicitação diretamente para o suporte e administração do seu condomínio.
+                                Preencha os dados abaixo para solicitar maiores detalhes sobre a plataforma e agendar uma demonstração com nossa equipe.
                             </p>
                         </div>
 
-                        <form onSubmit={handleEnviarSolicitacao} className="space-y-4">
+                        {/* TOGGLE DOS MÉTODOS DE CONTATO */}
+                        <div className="flex bg-zinc-100 p-1.5 rounded-2xl mb-6">
+                            <button
+                                type="button"
+                                onClick={() => setMetodoContato('whatsapp')}
+                                className={`flex-1 text-[10px] font-black uppercase tracking-widest py-3 rounded-xl transition-all flex items-center justify-center gap-2 ${metodoContato === 'whatsapp' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+                            >
+                                <MessageCircle size={14} /> WhatsApp
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setMetodoContato('email')}
+                                className={`flex-1 text-[10px] font-black uppercase tracking-widest py-3 rounded-xl transition-all flex items-center justify-center gap-2 ${metodoContato === 'email' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+                            >
+                                <Mail size={14} /> E-mail
+                            </button>
+                        </div>
+
+                        <form
+                            ref={formRef}
+                            onSubmit={handleAgendarDemo}
+                            action={metodoContato === 'email' ? "https://api.web3forms.com/submit" : undefined}
+                            method={metodoContato === 'email' ? "POST" : undefined}
+                            className="space-y-4"
+                        >
+                            {/* Campos Ocultos para Configuração Web3Forms */}
+                            {metodoContato === 'email' && (
+                                <>
+                                    <input type="hidden" name="access_key" value="9ef5a274-150a-4664-a885-0b052efd06f7" />
+                                    <input type="hidden" name="subject" value="Solicitação de Demonstração (Condo)" />
+                                    <input type="hidden" name="from_name" value="Nucleo Condo - Portal" />
+                                </>
+                            )}
+
                             <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Nome Completo</label>
                                 <input
                                     type="text"
+                                    name="Nome"
                                     required
                                     placeholder="Ex: João Silva"
-                                    value={solicitanteNome}
-                                    onChange={(e) => setSolicitanteNome(e.target.value)}
+                                    value={demoNome}
+                                    onChange={(e) => setDemoNome(e.target.value)}
                                     className="w-full h-12 px-4 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
                                 />
                             </div>
 
                             <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">E-mail Cadastrado</label>
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">E-mail para Contato</label>
                                 <input
                                     type="email"
+                                    name="Email"
                                     required
                                     placeholder="Ex: joao@dominio.com"
-                                    value={solicitanteEmail}
-                                    onChange={(e) => setSolicitanteEmail(e.target.value)}
+                                    value={demoEmail}
+                                    onChange={(e) => setDemoEmail(e.target.value)}
                                     className="w-full h-12 px-4 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-sm font-medium"
                                 />
                             </div>
@@ -858,21 +913,23 @@ export default function NucleobaseCondo() {
                                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Condomínio</label>
                                     <input
                                         type="text"
+                                        name="Condominio"
                                         required
-                                        placeholder="Ed. G. Rosa"
-                                        value={solicitanteCondo}
-                                        onChange={(e) => setSolicitanteCondo(e.target.value)}
+                                        placeholder="Ex: Edifício Rosa"
+                                        value={demoCondo}
+                                        onChange={(e) => setDemoCondo(e.target.value)}
                                         className="w-full h-12 px-4 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium placeholder:text-xs"
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Unidade</label>
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Telefone</label>
                                     <input
-                                        type="text"
+                                        type="tel"
+                                        name="Telefone"
                                         required
-                                        placeholder="Apto 302"
-                                        value={solicitanteUnidade}
-                                        onChange={(e) => setSolicitanteUnidade(e.target.value)}
+                                        placeholder="(11) 90000-0000"
+                                        value={demoTelefone}
+                                        onChange={(e) => setDemoTelefone(e.target.value)}
                                         className="w-full h-12 px-4 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium placeholder:text-xs"
                                     />
                                 </div>
@@ -880,9 +937,12 @@ export default function NucleobaseCondo() {
 
                             <button
                                 type="submit"
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white h-13 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 mt-6 shadow-lg shadow-blue-600/10 cursor-pointer"
+                                className={`w-full text-white h-13 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 mt-6 shadow-lg cursor-pointer ${metodoContato === 'whatsapp'
+                                        ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/10'
+                                        : 'bg-gray-900 hover:bg-black shadow-gray-900/10'
+                                    }`}
                             >
-                                Enviar Solicitação via WhatsApp
+                                {metodoContato === 'whatsapp' ? 'Agendar via WhatsApp' : 'Enviar Solicitação via E-mail'}
                             </button>
                         </form>
                     </div>

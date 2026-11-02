@@ -20,7 +20,7 @@ import {
 
 export default function ParceirosPage() {
   const formRef = useRef<HTMLFormElement>(null);
-  const [cardAtivo, setCardAtivo] = useState(0);
+  const [cardAtivo, setCardAtivo] = useState(2);
 
   useEffect(() => {
     window.dataLayer?.push({
@@ -115,15 +115,20 @@ export default function ParceirosPage() {
             />
           </h1>
           <h2 className="text-gray-500 text-base md:text-lg font-medium leading-relaxed mt-0 w-full">
-            Inteligência em controle financeiro para agregar valor à sua rotina.
+            <span className="hidden md:inline">Inteligência em controle financeiro para agregar valor à sua rotina.</span>
+            <span className="inline md:hidden">Inteligência para agregar valor à sua rotina.</span>
           </h2>
         </div>
 
-        {/* MÉTRICAS RÁPIDAS - CENTRALIZADAS NO MOBILE */}
-        <div className="flex gap-3 mt-4 md:mt-0 justify-center md:justify-end">
+        {/* MÉTRICAS RÁPIDAS - DESKTOP APENAS */}
+        <div className="hidden md:flex gap-3 mt-4 md:mt-0 justify-end">
           <div className="px-4 py-2 bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col items-center justify-center min-w-[100px]">
             <h4 className="text-xl font-black text-gray-900 leading-tight">15% +</h4>
             <p className="text-[7px] text-gray-400 font-black uppercase tracking-widest">Comissão</p>
+          </div>
+          <div className="px-4 py-2 bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col items-center justify-center min-w-[100px]">
+            <h4 className="text-xl font-black text-gray-900 leading-tight">Receita</h4>
+            <p className="text-[7px] text-gray-400 font-black uppercase tracking-widest">Recorrente</p>
           </div>
           <div className="px-4 py-2 bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col items-center justify-center min-w-[100px]">
             <h4 className="text-xl font-black text-gray-900 leading-tight">24h</h4>
@@ -132,11 +137,128 @@ export default function ParceirosPage() {
         </div>
       </div>
 
-      {/* MODELOS DE COLABORAÇÃO - CARROSSEL NO MOBILE */}
+      {/* MODELOS DE COLABORAÇÃO */}
       <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 mb-10 flex items-center gap-4">
-        Modelos de Colaboração <div className="h-px bg-gray-300 flex-1"></div>
+        <span className="inline md:hidden">Parceria</span>
+        <span className="hidden md:inline">Modelos de Colaboração</span>
+        <div className="h-px bg-gray-300 flex-1"></div>
       </h3>
 
+      {/* MÉTRICAS RÁPIDAS - MOBILE APENAS (LOGO APÓS A LINHA "PARCERIA") */}
+      <div className="flex md:hidden gap-3 mb-10 justify-center w-full">
+        <div className="px-3 py-2 bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col items-center justify-center flex-1">
+          <h4 className="text-lg font-black text-gray-900 leading-tight">15% +</h4>
+          <p className="text-[7px] text-gray-400 font-black uppercase tracking-widest">Comissão</p>
+        </div>
+        <div className="px-3 py-2 bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col items-center justify-center flex-1">
+          <h4 className="text-lg font-black text-gray-900 leading-tight">Receita</h4>
+          <p className="text-[7px] text-gray-400 font-black uppercase tracking-widest">Recorrente</p>
+        </div>
+        <div className="px-3 py-2 bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col items-center justify-center flex-1">
+          <h4 className="text-lg font-black text-gray-900 leading-tight">24h</h4>
+          <p className="text-[7px] text-gray-400 font-black uppercase tracking-widest">Setup</p>
+        </div>
+      </div>
+
+      {/* SEÇÃO CTA E FORMULÁRIO (FORMULÁRIO PRIMEIRO NO MOBILE) */}
+      <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 items-stretch mb-24">
+
+        {/* FORMULÁRIO COM TARGET _blank PARA ABRIR EM NOVA ABA (PRIMEIRO NO MOBILE, SEGUNDO NO DESKTOP VIA FLEX-COL-REVERSE / ORDEM NORMAL) */}
+        <form
+          ref={formRef}
+          onSubmit={handleFormSubmit}
+          action="https://api.web3forms.com/submit"
+          method="POST"
+          target="_blank"
+          className="flex-1 w-full bg-white p-8 md:p-14 rounded-[2.5rem] md:rounded-[3rem] shadow-2xl relative z-10 border border-gray-100 order-1 lg:order-2"
+        >
+          <input type="hidden" name="access_key" value="9ef5a274-150a-4664-a885-0b052efd06f7" />
+          <input type="hidden" name="subject" value="Nova Candidatura de Parceiro - Nucleobase" />
+          <input type="hidden" name="from_name" value="Nucleobase Parcerias" />
+
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nome/Empresa</label>
+                <input name="parceiro_nome" required type="text" className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 text-sm transition-all font-medium" placeholder="Ex: Consultoria XYZ" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">E-mail Corporativo</label>
+                <input name="parceiro_email" required type="email" className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 text-sm transition-all font-medium" placeholder="parcerias@empresa.com" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Modelo de Parceria</label>
+              <select name="modelo_parceria" className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 text-sm transition-all font-medium appearance-none cursor-pointer">
+                <option>Consultoria Estratégica</option>
+                <option>Afiliado / Indicação</option>
+                <option>Integração de Software (API)</option>
+                <option>Outro modelo</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Sua Operação</label>
+              <textarea name="parceiro_motivacao" required className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 text-sm transition-all h-32 resize-none font-medium" placeholder="Conte-nos brevemente como você pretende atuar..."></textarea>
+            </div>
+            <button type="submit" className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black inline-flex items-center justify-center gap-3 hover:bg-black transition-all shadow-xl shadow-blue-100 text-[11px] uppercase tracking-[0.2em] cursor-pointer">
+              <Rocket size={18} className="inline md:hidden shrink-0" />
+              <span>Enviar Proposta de Parceria</span>
+              <Rocket size={18} className="hidden md:inline shrink-0" />
+            </button>
+          </div>
+        </form>
+
+        {/* CARD CTA REDUZIDO */}
+        <div className="bg-gray-900 rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-16 flex-1 text-white relative overflow-hidden shadow-2xl shadow-blue-900/20 order-2 lg:order-1">
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-blue-600/5 blur-[120px] pointer-events-none"></div>
+          <div className="relative z-10">
+            <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-600 rounded-xl md:rounded-2xl flex items-center justify-center mb-6 md:mb-8 shadow-lg shadow-blue-600/20">
+              <Sparkles size={24} className="md:size-[30px]" />
+            </div>
+            <h2 className="text-3xl md:text-5xl font-bold mb-6 md:mb-8 tracking-tight leading-tight">Pronto para o<br />próximo passo?</h2>
+            <ul className="space-y-4 md:space-y-6 mb-8 md:mb-12">
+              {[
+                { desktop: "Suporte dedicado de Key Account", mobile: "Suporte Account dedicado" },
+                { desktop: "Material de marketing (White-label)", mobile: "Material de marketing" },
+                { desktop: "Acesso antecipado a novas features", mobile: "Acesso antecipado a novidades" }
+              ].map((item, i) => (
+                <li key={i} className="flex items-center gap-3 md:gap-4 text-gray-300 text-base md:text-lg font-medium">
+                  <CheckCircle size={18} className="text-blue-500 flex-shrink-0 md:size-[22px]" />
+                  <span className="hidden md:inline">{item.desktop}</span>
+                  <span className="inline md:hidden">{item.mobile}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="p-6 md:p-8 bg-white/5 rounded-2xl md:rounded-[2rem] border border-white/10 backdrop-blur-sm text-center">
+              <p className="text-[10px] text-blue-400 font-black uppercase tracking-[0.2em] mb-3">Visão Nucleo</p>
+              <p className="text-gray-300 italic text-base md:text-lg leading-relaxed font-light">
+                "Buscamos parceiros que buscam transformar processos e pessoas."
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* LINHA DIVISÓRIA "CONSULTORIA" (VISÍVEL APENAS NO MOBILE) */}
+      <div className="flex md:hidden items-center gap-4 mb-12">
+        <div className="h-px bg-gray-300 flex-1"></div>
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
+          Consultoria
+        </h3>
+        <div className="h-px bg-gray-300 flex-1"></div>
+      </div>
+
+      {/* LINHA DIVISÓRIA "OPORTUNIDADES" (VISÍVEL APENAS NO DESKTOP) */}
+      <div className="hidden md:flex items-center gap-4 mb-12">
+        <div className="h-px bg-gray-300 flex-1"></div>
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
+          Oportunidades
+        </h3>
+        <div className="h-px bg-gray-300 flex-1"></div>
+      </div>
+
+      {/* CARDS DAS FRENTES ABAIXO DO FORMULÁRIO E DO CTA */}
       <div className="relative flex items-center justify-center mb-24">
         {/* SETAS MOBILE */}
         {cardAtivo > 0 && (
@@ -225,80 +347,6 @@ export default function ParceirosPage() {
             <ChevronRight size={24} />
           </button>
         )}
-      </div>
-
-      {/* SEÇÃO CTA E FORMULÁRIO - DESMEMBRADOS NO MOBILE */}
-      <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 items-stretch">
-
-        {/* CARD CTA REDUZIDO NO MOBILE */}
-        <div className="bg-gray-900 rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-16 flex-1 text-white relative overflow-hidden shadow-2xl shadow-blue-900/20">
-          <div className="absolute top-0 right-0 w-1/3 h-full bg-blue-600/5 blur-[120px] pointer-events-none"></div>
-          <div className="relative z-10">
-            <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-600 rounded-xl md:rounded-2xl flex items-center justify-center mb-6 md:mb-8 shadow-lg shadow-blue-600/20">
-              <Sparkles size={24} className="md:size-[30px]" />
-            </div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-6 md:mb-8 tracking-tight leading-tight">Pronto para dar o<br />próximo passo?</h2>
-            <ul className="space-y-4 md:space-y-6 mb-8 md:mb-12">
-              {[
-                "Suporte dedicado de Key Account",
-                "Material de marketing (White-label)",
-                "Acesso antecipado a novas features"
-              ].map((item, i) => (
-                <li key={i} className="flex items-center gap-3 md:gap-4 text-gray-300 text-base md:text-lg font-medium">
-                  <CheckCircle size={18} className="text-blue-500 flex-shrink-0 md:size-[22px]" /> {item}
-                </li>
-              ))}
-            </ul>
-            <div className="p-6 md:p-8 bg-white/5 rounded-2xl md:rounded-[2rem] border border-white/10 backdrop-blur-sm">
-              <p className="text-[10px] text-blue-400 font-black uppercase tracking-[0.2em] mb-3">Visão Nucleo</p>
-              <p className="text-gray-300 italic text-base md:text-lg leading-relaxed font-light">
-                "Buscamos parceiros que buscam transformar a cultura financeira das pessoas."
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* FORMULÁRIO FORA DO CARD NO MOBILE */}
-        <form
-          ref={formRef}
-          onSubmit={handleFormSubmit}
-          action="https://api.web3forms.com/submit"
-          method="POST"
-          className="flex-1 w-full bg-white p-8 md:p-14 rounded-[2.5rem] md:rounded-[3rem] shadow-2xl relative z-10 border border-gray-100"
-        >
-          <input type="hidden" name="access_key" value="9ef5a274-150a-4664-a885-0b052efd06f7" />
-          <input type="hidden" name="subject" value="Nova Candidatura de Parceiro - Nucleobase" />
-          <input type="hidden" name="from_name" value="Nucleobase Parcerias" />
-
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nome/Empresa</label>
-                <input name="parceiro_nome" required type="text" className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 text-sm transition-all font-medium" placeholder="Ex: Consultoria XYZ" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">E-mail Corporativo</label>
-                <input name="parceiro_email" required type="email" className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 text-sm transition-all font-medium" placeholder="parcerias@empresa.com" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Modelo de Parceria</label>
-              <select name="modelo_parceria" className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 text-sm transition-all font-medium appearance-none cursor-pointer">
-                <option>Consultoria Estratégica</option>
-                <option>Afiliado / Indicação</option>
-                <option>Integração de Software (API)</option>
-                <option>Outro modelo</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Sua Operação</label>
-              <textarea name="parceiro_motivacao" required className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 text-sm transition-all h-32 resize-none font-medium" placeholder="Conte-nos brevemente como você pretende atuar..."></textarea>
-            </div>
-            <button type="submit" className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-black transition-all shadow-xl shadow-blue-100 text-[11px] uppercase tracking-[0.2em] cursor-pointer">
-              <Rocket size={18} /> Enviar Proposta de Parceria
-            </button>
-          </div>
-        </form>
       </div>
 
       {/* LINHA DIVISÓRIA "CONECTE-SE" */}

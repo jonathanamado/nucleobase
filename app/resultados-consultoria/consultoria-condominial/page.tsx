@@ -54,8 +54,8 @@ export default function ConsultoriaCondominialPage() {
     });
     const [loadingSalvarLead, setLoadingSalvarLead] = useState(false);
 
-    // Estados exclusivos para a Calculadora de Simulação
-    const [calcUnidades, setCalcUnidades] = useState<number>(50);
+    // Estados exclusivos para a Calculadora de Simulação (pré-selecionado 5 unidades)
+    const [calcUnidades, setCalcUnidades] = useState<number>(5);
     const [calcVendasMes, setCalcVendasMes] = useState<number>(1);
 
     const gerarMeses = () => {
@@ -461,8 +461,8 @@ export default function ConsultoriaCondominialPage() {
                         <Target size={32} className="text-emerald-500 opacity-85 ml-3" />
                     </h1>
                     <h2 className="text-gray-500 text-base md:text-lg font-medium leading-relaxed">
-                        <span className="md:inline hidden">Painel do Consultor Condominial. Acompanhe suas metas e fechamentos.</span>
-                        <span className="inline md:hidden">Painel Consultor. Acompanhe metas e fechamentos.</span>
+                        <span className="md:inline hidden">Painel do Consultor Condominial - Acompanhe suas metas e fechamentos.</span>
+                        <span className="inline md:hidden">Acompanhe suas metas e fechamentos.</span>
                     </h2>
                 </div>
                 {userId && (
@@ -592,7 +592,7 @@ export default function ConsultoriaCondominialPage() {
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 mb-8 bg-gray-100 p-1 rounded-full w-fit">
+                    <div className="flex flex-wrap gap-2 mb-8 bg-gray-100 p-1 rounded-full w-fit md:mx-0 mx-auto justify-center">
                         <button onClick={() => setActiveTab("dashboard")} className={`px-4 md:px-6 py-2 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${activeTab === "dashboard" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500"}`}>
                             {mesSelecionado === 'acumulado' ? 'Resumo Acumulado' : 'Resumo Mensal'}
                         </button>
@@ -756,7 +756,6 @@ export default function ConsultoriaCondominialPage() {
                                                 const isNegociacao = item.status_crm === 'negociacao' || item.status_crm === 'apresentacao' || item.status_crm === 'prospeccao';
                                                 const isAdicionadoCrm = item.origem === 'crm';
 
-                                                // Logica de cálculo usando snapshot (se existente)
                                                 const baseLead = item.taxa_comissao_aplicada !== null ? item.taxa_comissao_aplicada : regrasComissao.comissaoBase;
                                                 const taxaFinalParaTabela = kpis.condominiosAtivos >= regrasComissao.metaBonus ? baseLead * regrasComissao.multiplicador : baseLead;
 
@@ -832,7 +831,10 @@ export default function ConsultoriaCondominialPage() {
                                     </div>
                                     <div>
                                         <h3 className="text-xl font-bold text-gray-900 mb-1">Simulador de Ganhos</h3>
-                                        <p className="text-sm text-gray-500 font-medium">Projete suas comissões e ganhos simulando o tamanho dos condomínios e o seu volume de vendas.</p>
+                                        <p className="text-sm text-gray-500 font-medium">
+                                            <span className="md:inline hidden">Projete suas comissões e ganhos simulando o tamanho dos condomínios e o seu volume de vendas.</span>
+                                            <span className="inline md:hidden">Projete comissões simulando o tamanho dos condomínios e o volume de vendas.</span>
+                                        </p>
                                     </div>
                                 </div>
 
@@ -840,7 +842,7 @@ export default function ConsultoriaCondominialPage() {
                                     {/* Controles de Simulação */}
                                     <div className="space-y-6 lg:col-span-1 bg-gray-50 p-6 rounded-3xl border border-gray-100">
                                         <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-3">Tamanho do Condomínio (Qtd. Média de Unidades)</label>
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-3">Simulação Condo (Média Unid.)</label>
                                             <div className="flex items-center gap-3">
                                                 <button type="button" onClick={() => setCalcUnidades(prev => Math.max(5, prev - 5))} className="w-8 h-8 flex shrink-0 items-center justify-center bg-white border border-gray-200 rounded-lg text-gray-500 hover:text-purple-600 hover:border-purple-200 active:bg-purple-50 transition cursor-pointer">
                                                     <Minus size={14} strokeWidth={3} />
@@ -859,7 +861,10 @@ export default function ConsultoriaCondominialPage() {
                                                 </button>
                                                 <span className="bg-white px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-bold text-gray-900 min-w-[3.5rem] text-center shrink-0">{calcUnidades}</span>
                                             </div>
-                                            <p className="text-xs text-gray-400 mt-3 font-medium">O plano padrão calculado na base de R$ 7,00 por unidade (mínimo de R$ 69,90).</p>
+                                            <p className="text-xs text-gray-400 mt-3 font-medium">
+                                                <span className="md:inline hidden">O plano padrão calculado na base de R$ 7,00 por unidade (mínimo de R$ 69,90).</span>
+                                                <span className="inline md:hidden">Plano calculado na base de R$ 7,00 x unid. (mínimo de R$ 69,90).</span>
+                                            </p>
                                         </div>
 
                                         <div className="h-px bg-gray-200 w-full my-4"></div>
@@ -884,7 +889,10 @@ export default function ConsultoriaCondominialPage() {
                                                 </button>
                                                 <span className="bg-white px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-bold text-gray-900 min-w-[3.5rem] text-center shrink-0">{calcVendasMes}</span>
                                             </div>
-                                            <p className="text-xs text-gray-400 mt-3 font-medium">Simule o alcance da meta de bônus e o efeito no multiplicador em lotes futuros.</p>
+                                            <p className="text-xs text-gray-400 mt-3 font-medium">
+                                                <span className="md:inline hidden">Simule o alcance da meta de bônus e o efeito no multiplicador em lotes futuros.</span>
+                                                <span className="inline md:hidden">Simule o alcance da meta de bônus e o efeito no multiplicador.</span>
+                                            </p>
                                         </div>
                                     </div>
 
@@ -902,7 +910,10 @@ export default function ConsultoriaCondominialPage() {
                                             return (
                                                 <>
                                                     <div className="bg-white border border-gray-100 p-6 rounded-3xl shadow-sm flex flex-col justify-center relative overflow-hidden">
-                                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Mensalidade Média Gerada (Por Condomínio)</span>
+                                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">
+                                                            <span className="md:inline hidden">Mensalidade Média (Por Condomínio)</span>
+                                                            <span className="inline md:hidden">Mensalidade Média x Condo</span>
+                                                        </span>
                                                         <div className="text-3xl font-black text-gray-900 tracking-tighter">R$ {valorPlano.toFixed(2)}</div>
                                                         <div className="absolute right-[-20px] bottom-[-20px] opacity-[0.03] text-gray-900 pointer-events-none">
                                                             <Building size={120} />
@@ -910,7 +921,7 @@ export default function ConsultoriaCondominialPage() {
                                                     </div>
 
                                                     <div className="bg-white border border-gray-100 p-6 rounded-3xl shadow-sm flex flex-col justify-center relative overflow-hidden">
-                                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Volume Total de Vendas do Mês</span>
+                                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Volume Total Vendas x Mês</span>
                                                         <div className="text-3xl font-black text-gray-900 tracking-tighter">R$ {faturamentoTotal.toFixed(2)}</div>
                                                     </div>
 
@@ -954,12 +965,16 @@ export default function ConsultoriaCondominialPage() {
                                                                 Receita Recorrente Garantida (A partir do 2º Mês)
                                                             </span>
                                                             <div className="text-3xl font-black text-emerald-600 tracking-tighter mb-3">
-                                                                + R$ {comissaoRecorrente.toFixed(2)} <span className="text-sm font-bold text-emerald-600/50">adicionado /mês à sua base</span>
+                                                                + R$ {comissaoRecorrente.toFixed(2)} <span className="text-sm font-bold text-emerald-600/50 hidden md:inline">adicionado /mês à sua base</span>
                                                             </div>
                                                             <p className="text-xs text-emerald-700/80 font-medium leading-relaxed md:max-w-2xl">
-                                                                A verdadeira <strong>meritocracia</strong> acontece aqui. Quanto mais produtivo for o seu mês, maior será sua recompensa recorrente.
-                                                                Cada condomínio fechado não é apenas uma venda, mas <strong>centenas de pessoas sendo beneficiadas</strong> e tendo suas vidas transformadas
-                                                                pela nossa ferramenta. O seu trabalho e o seu resultado impulsionam o sucesso de todos!
+                                                                <span className="md:inline hidden">
+                                                                    A verdadeira <strong>meritocracia</strong> você encontra aqui. Quanto mais produtivo você for, maior será sua recompensa.
+                                                                    Além do mais, cada ativação não é apenas uma venda, mas sim <strong>dezenas de pessoas</strong> beneficiadas com uma plataforma de gestão simples e dinâmica.
+                                                                </span>
+                                                                <span className="inline md:hidden">
+                                                                    Quanto mais produtivo for o seu mês, maior será sua recompensa recorrente. Cada cadastro finalizado gera oportunidades únicas
+                                                                </span>
                                                             </p>
                                                         </div>
                                                         <div className="hidden md:flex items-center justify-center w-16 h-16 bg-emerald-100 text-emerald-600 rounded-3xl shrink-0">

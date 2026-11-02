@@ -30,7 +30,7 @@ export default function ResultadosGeraisPage() {
     },
     {
       title: "Gestão Financeira",
-      desc: "Benefício direto para parceiros e usuários: ganhe clareza absoluta sobre fluxo de caixa, despesas e receitas com automações inteligentes e relatórios executivos.",
+      desc: "Benefício direto para parceiros e usuários: + clareza em fluxo de caixa, despesas e receitas com automações inteligentes e relatórios executivos.",
       icon: <Wallet size={16} />,
       badgeDesktop: "Performance & Controle",
       badgeMobile: "Controle",
@@ -41,7 +41,7 @@ export default function ResultadosGeraisPage() {
     },
     {
       title: "Consultoria Condominial",
-      desc: "Oportunidade de Ouro: simplifique suas vendas com o nosso CRM. Acompanhe propostas, negociações e garanta comissões e receita recorrente com total previsibilidade.",
+      desc: "Oportunidade de Ouro: simplifique suas vendas com nosso CRM. Acompanhe suas propostas e garanta comissões e receita recorrente com previsibilidade.",
       icon: <Building2 size={16} />,
       badgeDesktop: "Produto Principal",
       badgeMobile: "Em Alta",
@@ -242,11 +242,8 @@ export default function ResultadosGeraisPage() {
             Seja indicando a plataforma ou integrando nossas soluções à sua operação, a Nucleobase entrega previsibilidade, robustez e suporte contínuo.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Link href="/indique" onClick={() => trackClick("Programa de Indicações", "/indique")} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-2 text-center">
-              Programa de Indicações <ArrowRight size={12} />
-            </Link>
-            <Link href="/parceiros" onClick={() => trackClick("Seja um Parceiro Nucleobase", "/parceiros")} className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border border-white/10 flex items-center justify-center text-center">
-              Seja um Parceiro Nucleobase
+            <Link href="/parceria" onClick={() => trackClick("Programa de Parcerias", "/parceria")} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-2 text-center">
+              Programa de Parcerias <ArrowRight size={12} />
             </Link>
           </div>
         </div>
