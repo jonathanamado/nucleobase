@@ -302,7 +302,7 @@ export default function PaginaDePlanos() {
             <ul className="space-y-4 mb-10">
               <li className="flex items-start gap-3 text-slate-600 text-sm font-medium">
                 <CheckCircle2 size={18} className="text-emerald-500 shrink-0 mt-0.5" />
-                <span><strong className="text-gray-900">Essencial:</strong> Ideal para lançamentos manuais precisos, fidelidade zero e multi-dispositivos.</span>
+                <span><strong className="text-gray-900">Essencial:</strong> Ideal para lançamentos manuais precisos, ágeis e multi-dispositivos.</span>
               </li>
               <li className="flex items-start gap-3 text-slate-600 text-sm font-medium">
                 <Gem size={18} className="text-amber-500 shrink-0 mt-0.5" />
@@ -316,7 +316,7 @@ export default function PaginaDePlanos() {
               Experimente | Essencial
             </Link>
             <Link href="/planos/pro" className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-md shadow-blue-600/20 text-center flex items-center justify-center gap-1.5">
-              Avance mais | Plano Pro <ArrowUpRight size={14} />
+              Avance mais | Plano Pro
             </Link>
           </div>
           <div className="absolute -right-20 -top-20 w-64 h-64 bg-blue-50 rounded-full blur-[80px] pointer-events-none"></div>
@@ -403,7 +403,7 @@ export default function PaginaDePlanos() {
 
       <div className="mb-12">
         <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 mb-2">Por que somos diferentes?</h4>
-        <p className="text-lg text-gray-500 font-medium leading-relaxed max-w-3xl">Conheça os pilares que sustentam a segurança e a transparência da nossa plataforma para transformar sua gestão financeira.</p>
+        <p className="text-lg text-gray-500 font-medium leading-relaxed">Conheça os pilares que sustentam a segurança e a transparência da nossa plataforma para transformar sua gestão financeira.</p>
       </div>
 
       <div className="hidden md:flex flex-row items-center gap-12">

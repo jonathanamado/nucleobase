@@ -38,7 +38,8 @@ import {
     MessageSquareWarning,
     PhoneCall,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Briefcase
 } from "lucide-react";
 
 interface Morador {
@@ -428,13 +429,13 @@ export default function CondoAdm() {
                             <Lock size={12} className="text-blue-600" />
                             <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.25em]">Área restrita</span>
                         </div>
-                        <h1 className="text-2xl font-black tracking-tight">Login do Síndico</h1>
-                        <p className="text-xs text-zinc-500">Faça login com suas credenciais de síndico cadastradas.</p>
+                        <h1 className="text-2xl font-black tracking-tight">Login Administração</h1>
+                        <p className="text-xs text-zinc-500">Faça login com suas credenciais de Administrador.</p>
                     </div>
 
                     <form onSubmit={handleLogin} className="space-y-4">
                         <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">E-mail ou ID de Síndico</label>
+                            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">E-mail ou Usuário ID</label>
                             <div className="relative group">
                                 <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-blue-500 transition-colors" size={16} />
                                 <input
@@ -478,13 +479,6 @@ export default function CondoAdm() {
                             >
                                 Esqueceu a senha?
                             </button>
-                            <button
-                                type="button"
-                                onClick={() => setShowFirstAccessModal(true)}
-                                className="text-[10px] text-blue-600 font-black hover:text-blue-700 transition-colors cursor-pointer"
-                            >
-                                Primeiro acesso com ID de usuário?
-                            </button>
                         </div>
 
                         {tempoBloqueio > 0 && (
@@ -509,13 +503,10 @@ export default function CondoAdm() {
                     </form>
 
                     <div className="mt-8 pt-8 border-t border-gray-100 text-center">
-                        <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-4">Ainda não se cadastrou ou quer gerenciar suas contas?</p>
+                        <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-4">Ainda não se cadastrou?</p>
                         <div className="flex flex-col gap-2.5">
                             <a href="/cadastro" className="flex items-center justify-center gap-3 bg-white text-gray-900 py-3.5 rounded-2xl font-black text-[9px] uppercase tracking-[0.2em] border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-200 hover:text-blue-600 transition-all active:scale-95">
-                                <UserPlus size={16} className="text-blue-600" /> Criar conta (/cadastro)
-                            </a>
-                            <a href="/acesso-usuario" className="flex items-center justify-center gap-3 bg-white text-gray-900 py-3.5 rounded-2xl font-black text-[9px] uppercase tracking-[0.2em] border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-200 hover:text-blue-600 transition-all active:scale-95">
-                                <KeyRound size={16} className="text-blue-600" /> Acessar com ID (/acesso-usuario)
+                                <UserPlus size={16} className="text-blue-600" /> Criar conta
                             </a>
                         </div>
                     </div>
@@ -619,23 +610,26 @@ export default function CondoAdm() {
         return (
             <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
                 <div className="w-full max-w-md bg-white border border-zinc-200 p-8 md:p-10 rounded-[2.5rem] shadow-sm text-center space-y-6">
-                    <div className="mx-auto w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
-                        <Lock size={30} />
+                    <div className="mx-auto w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 mb-2">
+                        <Briefcase size={30} />
                     </div>
                     <div className="space-y-2">
-                        <h1 className="text-lg md:text-xl font-black tracking-tight">Área restrita</h1>
+                        <h1 className="text-lg md:text-xl font-black tracking-tight text-zinc-900">Perfil Incompleto</h1>
                         <p className="text-xs text-zinc-500 leading-relaxed max-w-sm mx-auto">
-                            Esta página é exclusiva para a gestão do administrador. Acesse a Nucleo com base no seu perfil de cadastro (<code className="bg-zinc-100 px-1 py-0.5 rounded text-zinc-700">/adm</code>).
+                            Identificamos que o seu cadastro na Nucleo ainda não possui o acesso autorizado como administrador.
                         </p>
                     </div>
 
-                    <div className="pt-2 space-y-3">
-                        <button
-                            onClick={() => window.history.back()}
-                            className="w-full bg-zinc-900 hover:bg-black text-white py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md shadow-zinc-900/10 cursor-pointer"
-                        >
-                            <ArrowLeft size={14} /> Voltar à página anterior
-                        </button>
+                    <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100 text-left">
+                        <p className="text-xs text-zinc-600 font-medium">
+                            Para liberar seu acesso, <strong>atualize seu perfil</strong> na página <code className="bg-zinc-200 px-1.5 py-0.5 rounded text-zinc-800 font-bold">Minha Conta</code>, completando seu <strong>Cadastro Empresarial</strong>.
+                        </p>
+                    </div>
+
+                    <div className="pt-2 flex flex-col gap-3">
+                        <a href="/minha-conta" className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer">
+                            <ArrowRight size={14} /> Ir para Minha Conta
+                        </a>
                         <button
                             onClick={handleLogout}
                             className="w-full bg-zinc-100 hover:bg-zinc-200 text-zinc-700 py-3 rounded-xl font-bold text-xs transition-colors cursor-pointer"
