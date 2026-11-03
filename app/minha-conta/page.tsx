@@ -588,7 +588,7 @@ export default function MinhaContaPage() {
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><MapPin size={14} /> Cidade / UF</label>
                 <div className="flex gap-2 flex-nowrap">
-                  <input type="text" value={cidade} placeholder="Cidade" className="flex-1 min-w-0 h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm text-gray-900 dark:text-gray-900 outline-none" onChange={(e) => handleChange(setCidade, e.target.value)} />
+                  <input type="text" value={cidade} placeholder="" className="flex-1 min-w-0 h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm text-gray-900 dark:text-gray-900 outline-none" onChange={(e) => handleChange(setCidade, e.target.value)} />
                   <select value={estado} className="w-20 shrink-0 h-12 px-2 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm text-gray-900 dark:text-gray-900 outline-none" onChange={(e) => handleChange(setEstado, e.target.value)}>
                     <option value=""></option>
                     {["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"].map(uf => <option key={uf} value={uf}>{uf}</option>)}
@@ -602,7 +602,7 @@ export default function MinhaContaPage() {
               <div className="md:col-span-2 space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><GraduationCap size={14} /> Formação Acadêmica</label>
                 <select value={formacao} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm text-gray-900 dark:text-gray-900 outline-none" onChange={(e) => handleChange(setFormacao, e.target.value)}>
-                  <option value="">Selecione...</option>
+                  <option value=""></option>
                   <option value="medio">Ensino Médio</option>
                   <option value="superior">Ensino Superior</option>
                   <option value="pos">Pós-graduação</option>

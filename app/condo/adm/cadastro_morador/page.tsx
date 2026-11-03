@@ -593,15 +593,26 @@ export default function CadastroMoradorPage() {
                     emailFormatado = `${generatedSlug}@nucleobase.app`;
                 }
 
-                if (!emailFormatado.endsWith("@nucleobase.app")) {
-                    const { data: existingProfile } = await supabase
+                // Ajuste Principal: Verifica se o perfil já existe na base por e-mail ou slug gerado
+                // sem impedir a checagem de contas @nucleobase.app. Isso recupera cadastros 
+                // suspensos antes do vínculo (ex: o usuário trocou de aba e não vinculou ao condomínio)
+                const { data: existingProfile } = await supabase
+                    .from("profiles")
+                    .select("id")
+                    .eq("email_contato", emailFormatado)
+                    .maybeSingle();
+
+                if (existingProfile) {
+                    targetUserId = existingProfile.id;
+                } else if (emailFormatado.endsWith("@nucleobase.app")) {
+                    const { data: existingBySlug } = await supabase
                         .from("profiles")
                         .select("id")
-                        .eq("email_contato", emailFormatado)
+                        .eq("slug", generatedSlug)
                         .maybeSingle();
 
-                    if (existingProfile) {
-                        targetUserId = existingProfile.id;
+                    if (existingBySlug) {
+                        targetUserId = existingBySlug.id;
                     }
                 }
 
@@ -1142,7 +1153,7 @@ export default function CadastroMoradorPage() {
                                         <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Placa(s)</label>
                                         <input
                                             type="text"
-                                            placeholder="Ex: ABC-1234, XYZ..."
+                                            placeholder="Ex: ABC123"
                                             value={novoMoradorPlaca}
                                             onChange={(e) => setNovoMoradorPlaca(e.target.value)}
                                             className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium"
@@ -1354,8 +1365,8 @@ export default function CadastroMoradorPage() {
                                                                     onClick={() => handleToggleAcesso(morador)}
                                                                     disabled={actionLoading}
                                                                     className={`p-2 rounded-xl transition-all cursor-pointer ${morador.acesso_app
-                                                                            ? 'text-zinc-400 hover:text-amber-600 hover:bg-amber-50'
-                                                                            : 'text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50'
+                                                                        ? 'text-zinc-400 hover:text-amber-600 hover:bg-amber-50'
+                                                                        : 'text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50'
                                                                         }`}
                                                                     title={morador.acesso_app ? "Desativar Perfil" : "Reativar Perfil"}
                                                                 >

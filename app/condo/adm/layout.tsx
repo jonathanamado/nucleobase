@@ -73,7 +73,7 @@ export default function AdmLayout({ children }: { children: React.ReactNode }) {
 
         // Se tentar acessar subpáginas diretamente, bloqueia com as opções de Criar Conta e Login
         return (
-            <div className="min-h-screen bg-zinc-50 flex flex-col justify-start items-center p-6 pt-12 md:pt-20">
+            <div className="min-h-screen bg-zinc-50 flex flex-col justify-start items-center p-6 pt-8 md:pt-12">
                 <div className="w-full max-w-md bg-white border border-zinc-200 p-8 rounded-[2.5rem] text-center space-y-4 shadow-sm">
                     <div className="flex items-center justify-center gap-1.5 mb-1">
                         <Lock size={12} className="text-blue-600" />
@@ -103,7 +103,7 @@ export default function AdmLayout({ children }: { children: React.ReactNode }) {
     // REGRA 2: USUÁRIO LOGADO E SEM ACESSO (NÃO SÍNDICO)
     if (!autorizado) {
         return (
-            <div className="min-h-screen bg-zinc-50 flex flex-col justify-start items-center p-6 pt-12 md:pt-20">
+            <div className="min-h-screen bg-zinc-50 flex flex-col justify-start items-center p-6 pt-8 md:pt-12">
                 <div className="w-full max-w-md bg-white border border-zinc-200 p-8 md:p-10 rounded-[2.5rem] shadow-sm text-center space-y-6">
                     <div className="mx-auto w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
                         <Briefcase size={30} />
@@ -117,7 +117,7 @@ export default function AdmLayout({ children }: { children: React.ReactNode }) {
 
                     <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100 text-left">
                         <p className="text-xs text-center text-zinc-600 font-medium">
-                            Para liberar seu acesso, atualize seu perfil de <strong>Administrador</strong> na página <code className="bg-zinc-200 px-1.5 py-0.5 rounded text-zinc-800 font-bold">Minha Conta</code>, e solicite a conclusão do seu <strong>Cadastro Empresarial</strong>.
+                            Para liberar seu acesso, atualize seu perfil de Administrador na página Minha Conta, e solicite a conclusão do seu Cadastro Empresarial.
                         </p>
                     </div>
 

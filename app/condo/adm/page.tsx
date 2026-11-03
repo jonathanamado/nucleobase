@@ -608,7 +608,7 @@ export default function CondoAdm() {
 
     if (session && isApenasMorador) {
         return (
-            <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
+            <div className="min-h-screen bg-zinc-50 flex flex-col justify-start items-center p-6 pt-8 md:pt-12">
                 <div className="w-full max-w-md bg-white border border-zinc-200 p-8 md:p-10 rounded-[2.5rem] shadow-sm text-center space-y-6">
                     <div className="mx-auto w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 mb-2">
                         <Briefcase size={30} />
@@ -621,8 +621,8 @@ export default function CondoAdm() {
                     </div>
 
                     <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100 text-left">
-                        <p className="text-xs text-zinc-600 font-medium">
-                            Para liberar seu acesso, <strong>atualize seu perfil</strong> na página <code className="bg-zinc-200 px-1.5 py-0.5 rounded text-zinc-800 font-bold">Minha Conta</code>, completando seu <strong>Cadastro Empresarial</strong>.
+                        <p className="text-xs text-center text-zinc-600 font-medium">
+                            Para liberar seu acesso, atualize seu perfil na página Minha Conta, completando seu Cadastro Empresarial.
                         </p>
                     </div>
 
