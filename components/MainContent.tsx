@@ -174,7 +174,7 @@ export function MainContent() {
             </h1>
 
             <p className="text-gray-500 text-base font-medium leading-tight">
-              Controles e decisões centralizadas em uma <span className="text-gray-900">plataforma digital única.</span>
+              Controles e dados centralizados em um <span className="text-gray-900">ambiente digital único.</span>
             </p>
           </div>
 
@@ -183,7 +183,7 @@ export function MainContent() {
             <div className="relative bg-white border border-gray-100 p-7 rounded-[2.5rem] shadow-xl shadow-blue-900/5">
               <div className="mb-6">
                 <p className="text-gray-700 text-base leading-snug font-medium text-center">
-                  Você está no APP em que números brutos tornam-se <span className="text-gray-900 font-bold not-italic">decisões inteligentes e práticas</span> em sua rotina. Clique na <span className="text-blue-600 font-bold">Logo</span> <LayoutDashboard size={14} strokeWidth={3} className="inline-block text-blue-600 mb-1" />, acesse seu <span className="text-gray-900 font-bold not-italic">App</span> e profissionalize-se.
+                  Você está no APP em que números brutos tornam-se <span className="text-gray-900 font-bold not-italic">decisões inteligentes e práticas</span> em sua rotina. Clique na <span className="text-blue-600 font-bold">Logo</span> <LayoutDashboard size={14} strokeWidth={3} className="inline-block text-blue-600 mb-1" />, acesse sua <span className="text-gray-900 font-bold not-italic">plataforma</span> e profissionalize-se.
                 </p>
               </div>
 
