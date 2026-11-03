@@ -534,7 +534,7 @@ export default function MinhaContaPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 flex-1">
               <div className="md:col-span-2 space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest">Nome Completo</label>
-                <input type="text" value={nome} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none transition-all focus:border-blue-200" onChange={(e) => handleChange(setNome, e.target.value)} />
+                <input type="text" value={nome} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm text-gray-900 dark:text-gray-900 outline-none transition-all focus:border-blue-200" onChange={(e) => handleChange(setNome, e.target.value)} />
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-blue-600 uppercase ml-1 tracking-widest flex items-center justify-between">
@@ -546,21 +546,21 @@ export default function MinhaContaPage() {
                   value={emailContato}
                   required
                   placeholder="exemplo@email.com"
-                  className="w-full h-12 px-5 bg-blue-50/30 border border-blue-100 rounded-2xl text-sm text-blue-900 outline-none focus:border-blue-300 transition-all"
+                  className="w-full h-12 px-5 bg-blue-50/30 border border-blue-100 rounded-2xl text-sm text-blue-900 dark:text-blue-900 outline-none focus:border-blue-300 transition-all"
                   onChange={(e) => handleChange(setEmailContato, e.target.value)}
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest">Telefone</label>
-                <input type="text" value={telefone} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setTelefone, aplicarMascaraTelefone(e.target.value))} />
+                <input type="text" value={telefone} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm text-gray-900 dark:text-gray-900 outline-none" onChange={(e) => handleChange(setTelefone, aplicarMascaraTelefone(e.target.value))} />
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest">Data de Nascimento</label>
-                <input type="date" value={dataNascimento} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setDataNascimento, e.target.value)} />
+                <input type="date" value={dataNascimento} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm text-gray-900 dark:text-gray-900 outline-none" onChange={(e) => handleChange(setDataNascimento, e.target.value)} />
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest">Gênero</label>
-                <select value={genero} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setGenero, e.target.value)}>
+                <select value={genero} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm text-gray-900 dark:text-gray-900 outline-none" onChange={(e) => handleChange(setGenero, e.target.value)}>
                   <option value=""></option>
                   <option value="masculino">Masculino</option>
                   <option value="feminino">Feminino</option>
@@ -569,7 +569,7 @@ export default function MinhaContaPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest">Estado Civil</label>
-                <select value={estadoCivil} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setEstadoCivil, e.target.value)}>
+                <select value={estadoCivil} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm text-gray-900 dark:text-gray-900 outline-none" onChange={(e) => handleChange(setEstadoCivil, e.target.value)}>
                   <option value=""></option>
                   <option value="solteiro">Solteiro(a)</option>
                   <option value="casado">Casado(a)</option>
@@ -579,7 +579,7 @@ export default function MinhaContaPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><Baby size={14} /> Possui filhos?</label>
-                <select value={possuiFilhos} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setPossuiFilhos, e.target.value)}>
+                <select value={possuiFilhos} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm text-gray-900 dark:text-gray-900 outline-none" onChange={(e) => handleChange(setPossuiFilhos, e.target.value)}>
                   <option value=""></option>
                   <option value="sim">Sim</option>
                   <option value="nao">Não</option>
@@ -588,8 +588,8 @@ export default function MinhaContaPage() {
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><MapPin size={14} /> Cidade / UF</label>
                 <div className="flex gap-2 flex-nowrap">
-                  <input type="text" value={cidade} placeholder="Cidade" className="flex-1 min-w-0 h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setCidade, e.target.value)} />
-                  <select value={estado} className="w-20 shrink-0 h-12 px-2 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setEstado, e.target.value)}>
+                  <input type="text" value={cidade} placeholder="Cidade" className="flex-1 min-w-0 h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm text-gray-900 dark:text-gray-900 outline-none" onChange={(e) => handleChange(setCidade, e.target.value)} />
+                  <select value={estado} className="w-20 shrink-0 h-12 px-2 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm text-gray-900 dark:text-gray-900 outline-none" onChange={(e) => handleChange(setEstado, e.target.value)}>
                     <option value=""></option>
                     {["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"].map(uf => <option key={uf} value={uf}>{uf}</option>)}
                   </select>
@@ -597,11 +597,11 @@ export default function MinhaContaPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><Briefcase size={14} /> Profissão Atual</label>
-                <input type="text" value={profissao} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setProfissao, e.target.value)} />
+                <input type="text" value={profissao} className="w-full h-12 px-5 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm text-gray-900 dark:text-gray-900 outline-none" onChange={(e) => handleChange(setProfissao, e.target.value)} />
               </div>
               <div className="md:col-span-2 space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase ml-1 tracking-widest flex items-center gap-2"><GraduationCap size={14} /> Formação Acadêmica</label>
-                <select value={formacao} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm outline-none" onChange={(e) => handleChange(setFormacao, e.target.value)}>
+                <select value={formacao} className="w-full h-12 px-4 bg-gray-50/50 border border-gray-100 rounded-2xl text-sm text-gray-900 dark:text-gray-900 outline-none" onChange={(e) => handleChange(setFormacao, e.target.value)}>
                   <option value="">Selecione...</option>
                   <option value="medio">Ensino Médio</option>
                   <option value="superior">Ensino Superior</option>
@@ -870,7 +870,7 @@ export default function MinhaContaPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
             <div className="space-y-3">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><Share2 size={12} /> Canal Origem</label>
-              <select value={origem} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none" onChange={(e) => handleChange(setOrigem, e.target.value)}>
+              <select value={origem} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs text-gray-900 dark:text-gray-900 outline-none" onChange={(e) => handleChange(setOrigem, e.target.value)}>
                 <option value="">Selecione...</option>
                 <option value="instagram">Instagram</option>
                 <option value="google">Google</option>
@@ -880,7 +880,7 @@ export default function MinhaContaPage() {
             </div>
             <div className="space-y-3">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><Target size={12} /> Objetivo</label>
-              <select value={objetivoPlataforma} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none" onChange={(e) => handleChange(setObjetivoPlataforma, e.target.value)}>
+              <select value={objetivoPlataforma} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs text-gray-900 dark:text-gray-900 outline-none" onChange={(e) => handleChange(setObjetivoPlataforma, e.target.value)}>
                 <option value="">Selecione...</option>
                 <option value="liberdade">Liberdade Financeira</option>
                 <option value="sair_dividas">Sair de Dívidas</option>
@@ -890,7 +890,7 @@ export default function MinhaContaPage() {
             </div>
             <div className="space-y-3">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Frequência</label>
-              <select value={usoApp} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none" onChange={(e) => handleChange(setUsoApp, e.target.value)}>
+              <select value={usoApp} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs text-gray-900 dark:text-gray-900 outline-none" onChange={(e) => handleChange(setUsoApp, e.target.value)}>
                 <option value="">Selecione...</option>
                 <option value="diario">Diário</option>
                 <option value="semanal">Semanal</option>
@@ -899,7 +899,7 @@ export default function MinhaContaPage() {
             </div>
             <div className="space-y-3">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Foco Atual</label>
-              <select value={objetivoFinanceiro} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs outline-none" onChange={(e) => handleChange(setObjetivoFinanceiro, e.target.value)}>
+              <select value={objetivoFinanceiro} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs text-gray-900 dark:text-gray-900 outline-none" onChange={(e) => handleChange(setObjetivoFinanceiro, e.target.value)}>
                 <option value="">Selecione...</option>
                 <option value="pessoal">Pessoal</option>
                 <option value="familiar">Familiar</option>
@@ -952,19 +952,18 @@ export default function MinhaContaPage() {
             <input type="hidden" name="email_contato_usuario" value={emailContato || 'Não informado'} />
             <input type="hidden" name="email_conta_supabase" value={email || 'Não informado'} />
             <input type="hidden" name="quantidade_unidades_informadas" value={quantidadeUnidades || 'Não informado'} />
-            <input type="hidden" name="estimativa_faturamento" value={quantidadeUnidades ? `R$ ${(Number(quantidadeUnidades) * 7).toFixed(2)}` : 'N/A'} />
 
             <div className="grid grid-cols-1 md:grid-cols-5 gap-8 mb-6 items-start">
               <div className="space-y-3 md:col-span-1">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
-                  <span className="flex items-center gap-2"><Building2 size={12} className="text-emerald-600" /> Nome Edifício</span>
+                  <span className="flex items-center gap-2"><Building2 size={12} className="text-emerald-600" /> Nome do Edifício</span>
                 </label>
                 <input
                   type="text"
                   name="nome_empresarial"
-                  placeholder="Nome do Condomínio/Empresa"
+                  placeholder="Ex: Edif. N. Base"
                   value={condoNome}
-                  className="w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs outline-none transition-all bg-white focus:border-emerald-400"
+                  className="w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs text-gray-900 dark:text-gray-900 outline-none transition-all bg-white focus:border-emerald-400"
                   onChange={(e) => handleEmpresarialChange(setCondoNome, e.target.value)}
                 />
               </div>
@@ -978,7 +977,7 @@ export default function MinhaContaPage() {
                   name="cnpj_empresarial"
                   placeholder="00.000.000/0000-00"
                   value={condoCnpj}
-                  className="w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs outline-none transition-all bg-white focus:border-emerald-400"
+                  className="w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs text-gray-900 dark:text-gray-900 outline-none transition-all bg-white focus:border-emerald-400"
                   onChange={(e) => handleEmpresarialChange(setCondoCnpj, aplicarMascaraCNPJ(e.target.value))}
                 />
               </div>
@@ -988,23 +987,16 @@ export default function MinhaContaPage() {
                   <span className="flex items-center gap-1.5"><Calculator size={12} className="text-emerald-600" /> Total Unidades</span>
                 </label>
 
-                {/* Wrapper relativo para abrigar a estimativa DENTRO do campo visualmente */}
                 <div className="relative flex items-center">
                   <input
                     type="number"
                     name="quantidade_unidades"
-                    placeholder="Ex: 8"
+                    placeholder="Ex: 8 Unidades"
                     min="1"
                     value={quantidadeUnidades}
-                    className={`w-full h-11 pl-4 border border-emerald-200/60 rounded-xl text-xs outline-none transition-all bg-white focus:border-emerald-400 ${!condoId ? 'pr-[110px]' : 'pr-4'}`}
+                    className="w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs text-gray-900 dark:text-gray-900 outline-none transition-all bg-white focus:border-emerald-400"
                     onChange={(e) => handleEmpresarialChange(setQuantidadeUnidades, e.target.value)}
                   />
-                  {/* Estimativa flutuante renderizada internamente à direita somente se condoId for vazio */}
-                  {quantidadeUnidades && Number(quantidadeUnidades) > 0 && !condoId && (
-                    <span className="absolute right-3 text-[9px] font-black text-emerald-700 pointer-events-none bg-emerald-50 px-2 py-1.5 rounded-lg border border-emerald-100 shadow-sm">
-                      (R$ {(Number(quantidadeUnidades) * 7).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mês)
-                    </span>
-                  )}
                 </div>
               </div>
 
@@ -1015,9 +1007,9 @@ export default function MinhaContaPage() {
                 <input
                   type="text"
                   name="unidade_empresarial"
-                  placeholder="Ex: Apto 302 Bloco B"
+                  placeholder="Ex: Apto 302"
                   value={unidadeSindico}
-                  className="w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs outline-none transition-all bg-white focus:border-emerald-400"
+                  className="w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs text-gray-900 dark:text-gray-900 outline-none transition-all bg-white focus:border-emerald-400"
                   onChange={(e) => handleEmpresarialChange(setUnidadeSindico, e.target.value)}
                 />
               </div>
@@ -1031,7 +1023,7 @@ export default function MinhaContaPage() {
                   name="telefone_empresarial"
                   placeholder="(00) 00000-0000"
                   value={telefoneEmpresarial}
-                  className="w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs outline-none transition-all bg-white focus:border-emerald-400"
+                  className="w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs text-gray-900 dark:text-gray-900 outline-none transition-all bg-white focus:border-emerald-400"
                   onChange={(e) => handleEmpresarialChange(setTelefoneEmpresarial, aplicarMascaraTelefone(e.target.value))}
                 />
               </div>
@@ -1041,7 +1033,7 @@ export default function MinhaContaPage() {
               name="mensagem_empresarial"
               className="hidden"
               readOnly
-              value={`Solicitação de atualização de dados cadastrais empresariais.\n\n--- DADOS DO USUÁRIO LOGADO ---\nNome do Usuário: ${nome || 'Não informado'}\nE-mail de Contato: ${emailContato || 'Não informado'}\nE-mail da Conta (Auth): ${email || 'Não informado'}\n\n--- DADOS EMPRESARIAIS ---\nNome: ${condoNome || 'Não informado'}\nCNPJ: ${condoCnpj || 'Não informado'}\nQtd. Unidades Totais: ${quantidadeUnidades || 'Não informada'}\nUnidade do Síndico/Gestor: ${unidadeSindico || 'Não informada'}\nTelefone de Contato: ${telefoneEmpresarial || 'Não informado'}\n\n--- ESTIMATIVA FINANCEIRA ---\nFaturamento Base (Qtd * R$7,00): ${quantidadeUnidades ? `R$ ${(Number(quantidadeUnidades) * 7).toFixed(2)}` : 'N/A'}`}
+              value={`Solicitação de atualização de dados cadastrais empresariais.\n\n--- DADOS DO USUÁRIO LOGADO ---\nNome do Usuário: ${nome || 'Não informado'}\nE-mail de Contato: ${emailContato || 'Não informado'}\nE-mail da Conta (Auth): ${email || 'Não informado'}\n\n--- DADOS EMPRESARIAIS ---\nNome: ${condoNome || 'Não informado'}\nCNPJ: ${condoCnpj || 'Não informado'}\nQtd. Unidades Totais: ${quantidadeUnidades || 'Não informada'}\nUnidade do Síndico/Gestor: ${unidadeSindico || 'Não informada'}\nTelefone de Contato: ${telefoneEmpresarial || 'Não informado'}`}
             ></textarea>
 
             <div className="flex flex-col md:flex-row items-center justify-between flex-wrap gap-4 mt-6 text-center md:text-left">
@@ -1177,7 +1169,7 @@ export default function MinhaContaPage() {
                   required
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full h-14 pl-6 pr-12 bg-gray-50 border border-gray-100 rounded-2xl outline-none text-sm"
+                  className="w-full h-14 pl-6 pr-12 bg-gray-50 border border-gray-100 rounded-2xl outline-none text-sm text-gray-900 dark:text-gray-900"
                 />
                 <button
                   type="button"
@@ -1195,7 +1187,7 @@ export default function MinhaContaPage() {
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full h-14 pl-6 pr-12 bg-gray-50 border border-gray-100 rounded-2xl outline-none text-sm"
+                  className="w-full h-14 pl-6 pr-12 bg-gray-50 border border-gray-100 rounded-2xl outline-none text-sm text-gray-900 dark:text-gray-900"
                 />
                 <button
                   type="button"
