@@ -832,7 +832,7 @@ export default function MinhaContaPage() {
                     <span className="text-blue-200 text-[9px] font-bold uppercase tracking-widest">Onboarding Empresarial</span>
                   </div>
                   <h4 className="font-bold text-[11px] md:text-xs text-white leading-snug w-full text-center">
-                    <span className="md:hidden">Solicite à Nucleo uma degustação guiada.</span>
+                    <span className="md:hidden">Solicite uma degustação guiada com o nosso time de especialistas.</span>
                     <span className="hidden md:inline">Solicite um tour guiado e impulsione sua gestão de forma clara e eficiente.</span>
                   </h4>
                 </div>
@@ -871,7 +871,7 @@ export default function MinhaContaPage() {
             <div className="space-y-3">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><Share2 size={12} /> Canal Origem</label>
               <select value={origem} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs text-gray-900 dark:text-gray-900 outline-none" onChange={(e) => handleChange(setOrigem, e.target.value)}>
-                <option value="">Selecione...</option>
+                <option value=""></option>
                 <option value="instagram">Instagram</option>
                 <option value="google">Google</option>
                 <option value="linkedin">LinkedIn</option>
@@ -881,7 +881,7 @@ export default function MinhaContaPage() {
             <div className="space-y-3">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><Target size={12} /> Objetivo</label>
               <select value={objetivoPlataforma} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs text-gray-900 dark:text-gray-900 outline-none" onChange={(e) => handleChange(setObjetivoPlataforma, e.target.value)}>
-                <option value="">Selecione...</option>
+                <option value=""></option>
                 <option value="liberdade">Liberdade Financeira</option>
                 <option value="sair_dividas">Sair de Dívidas</option>
                 <option value="investir">Começar a Investir</option>
@@ -891,7 +891,7 @@ export default function MinhaContaPage() {
             <div className="space-y-3">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Frequência</label>
               <select value={usoApp} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs text-gray-900 dark:text-gray-900 outline-none" onChange={(e) => handleChange(setUsoApp, e.target.value)}>
-                <option value="">Selecione...</option>
+                <option value=""></option>
                 <option value="diario">Diário</option>
                 <option value="semanal">Semanal</option>
                 <option value="mensal">Mensal</option>
@@ -900,7 +900,7 @@ export default function MinhaContaPage() {
             <div className="space-y-3">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Foco Atual</label>
               <select value={objetivoFinanceiro} className="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs text-gray-900 dark:text-gray-900 outline-none" onChange={(e) => handleChange(setObjetivoFinanceiro, e.target.value)}>
-                <option value="">Selecione...</option>
+                <option value=""></option>
                 <option value="pessoal">Pessoal</option>
                 <option value="familiar">Familiar</option>
                 <option value="empresa">Empresarial</option>

@@ -616,13 +616,13 @@ export default function CondoAdm() {
                     <div className="space-y-2">
                         <h1 className="text-lg md:text-xl font-black tracking-tight text-zinc-900">Perfil Incompleto</h1>
                         <p className="text-xs text-zinc-500 leading-relaxed max-w-sm mx-auto">
-                            Identificamos que o seu cadastro na Nucleo ainda não possui o acesso autorizado como administrador.
+                            Identificamos que o seu cadastro na Nucleo ainda não possui o acesso autorizado como Administrador.
                         </p>
                     </div>
 
                     <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100 text-left">
                         <p className="text-xs text-center text-zinc-600 font-medium">
-                            Para liberar seu acesso, atualize seu perfil na página Minha Conta, completando seu Cadastro Empresarial.
+                            Para liberar seu acesso, atualize seu perfil de Administrador na página Minha Conta, e solicite a conclusão do seu Cadastro Empresarial.
                         </p>
                     </div>
 
@@ -948,7 +948,7 @@ export default function CondoAdm() {
                             </div>
                             <div className="flex items-center gap-3 self-end sm:self-auto">
                                 <span className="hidden md:inline-block text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 px-3 py-1.5 rounded-full">
-                                    {moradores.length} Registros
+                                    {moradores.filter(m => m.role?.toLowerCase() !== 'visitante').length} Registros
                                 </span>
                                 <Link
                                     href="/condo/adm/cadastro_morador"
@@ -959,7 +959,7 @@ export default function CondoAdm() {
                             </div>
                         </div>
 
-                        {moradores.length === 0 ? (
+                        {moradores.filter(m => m.role?.toLowerCase() !== 'visitante').length === 0 ? (
                             <div className="text-center py-12 space-y-2">
                                 <p className="text-zinc-400 text-sm font-medium">Nenhum condômino cadastrado ainda.</p>
                             </div>
@@ -976,7 +976,7 @@ export default function CondoAdm() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-zinc-50">
-                                        {moradores.map((morador) => {
+                                        {moradores.filter(m => m.role?.toLowerCase() !== 'visitante').map((morador) => {
                                             const isSemEmail = morador.profile?.email_contato?.startsWith("pendente.morador.");
                                             const nomeExibicaoOriginal = morador.profile?.nome_completo || "Sem Nome";
                                             const unidadeOriginal = morador.unidade || "";

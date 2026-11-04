@@ -111,7 +111,7 @@ export default function AdmLayout({ children }: { children: React.ReactNode }) {
                     <div className="space-y-2">
                         <h1 className="text-lg md:text-xl font-black tracking-tight text-zinc-900">Perfil Incompleto</h1>
                         <p className="text-xs text-zinc-500 leading-relaxed max-w-sm mx-auto">
-                            Identificamos que o seu cadastro na Nucleo ainda não possui acesso como administrador para acessar esta área.
+                            Identificamos que o seu cadastro na Nucleo ainda não possui o acesso autorizado como Administrador.
                         </p>
                     </div>
 

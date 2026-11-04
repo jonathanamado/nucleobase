@@ -260,7 +260,7 @@ export default function PaginaDePlanos() {
             <span className="text-blue-200 text-[9px] font-bold uppercase tracking-widest">Onboarding Guiado</span>
           </div>
           <h4 className="font-bold text-[11px] md:text-xs text-white leading-snug w-full">
-            Solicite uma degustação guiada com nossa equipe e impulsione sua gestão de forma eficiente.
+            Após a sua assinatura, solicite sua degustação guiada com nossa equipe e impulsione sua gestão de forma eficiente.
           </h4>
         </div>
 

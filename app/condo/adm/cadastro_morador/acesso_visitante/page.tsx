@@ -7,7 +7,6 @@ import { supabase } from "@/lib/supabase";
 import {
     Users,
     UserPlus,
-    Trash2,
     ShieldAlert,
     Loader2,
     CheckCircle2,
@@ -345,15 +344,27 @@ export default function AcessoVisitantePage() {
         }
     };
 
-    const handleRemoveVisitante = async (visitante: Visitante) => {
-        if (!confirm(`Deseja realmente revogar e excluir a autorização de ${visitante.profile?.nome_completo || "selecionado"}?`)) return;
+    // AQUI: Modificado para concluir o acesso, sem exclusão.
+    const handleConcluirVisita = async (visitante: Visitante) => {
+        if (!confirm(`Deseja realmente concluir a liberação de ${visitante.profile?.nome_completo || "selecionado"}?`)) return;
         setActionLoading(true);
         try {
-            await supabase.from("condominio_membros").delete().eq("id", visitante.id);
+            // Definição da data final para hoje, marcando como concluído e revogando acesso ao app se aplicável.
+            const hoje = new Date().toISOString().split('T')[0];
+            const { error } = await supabase
+                .from("condominio_membros")
+                .update({
+                    data_fim: hoje,
+                    acesso_app: false
+                })
+                .eq("id", visitante.id);
+
+            if (error) throw error;
+
             if (editandoId === visitante.id) cancelarEdicao();
             if (condominio) await loadVisitantes(condominio.id);
-        } catch (err) {
-            alert("Erro ao remover: " + err);
+        } catch (err: any) {
+            alert("Erro ao concluir: " + (err?.message || err));
         } finally {
             setActionLoading(false);
         }
@@ -379,7 +390,7 @@ export default function AcessoVisitantePage() {
         const dataOut = new Date(anoOut, mesOut - 1, diaOut, 23, 59, 59, 999);
 
         if (hoje < dataIn) return { label: "Agendado", color: "bg-blue-50 text-blue-600 border-blue-100" };
-        if (hoje > dataOut) return { label: "Expirado", color: "bg-red-50 text-red-600 border-red-100" };
+        if (hoje > dataOut) return { label: "Expirado/Concluído", color: "bg-red-50 text-red-600 border-red-100" };
         return { label: "Vigente", color: "bg-emerald-50 text-emerald-600 border-emerald-100" };
     };
 
@@ -489,7 +500,7 @@ export default function AcessoVisitantePage() {
                                         <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Veículo (Placa)</label>
                                         <input
                                             type="text"
-                                            placeholder="Ex: ABC-1234"
+                                            placeholder="Ex: ABC-123"
                                             value={novaPlaca}
                                             onChange={(e) => setNovaPlaca(e.target.value)}
                                             className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-amber-400 transition-all text-xs font-medium"
@@ -636,12 +647,12 @@ export default function AcessoVisitantePage() {
                                                                     <Pencil size={15} />
                                                                 </button>
                                                                 <button
-                                                                    onClick={() => handleRemoveVisitante(visitante)}
+                                                                    onClick={() => handleConcluirVisita(visitante)}
                                                                     disabled={actionLoading}
-                                                                    className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
-                                                                    title="Revogar Autorização"
+                                                                    className="p-2 text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all cursor-pointer"
+                                                                    title="Concluir Liberação"
                                                                 >
-                                                                    <Trash2 size={15} />
+                                                                    <CheckCircle2 size={15} />
                                                                 </button>
                                                             </div>
                                                         </td>

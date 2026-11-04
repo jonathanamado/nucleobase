@@ -118,16 +118,25 @@ export default function BlogDaNucleo() {
     setLoading(true);
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
+    const nome = formData.get("nome") as string;
+
     formData.append("access_key", "9ef5a274-150a-4664-a885-0b052efd06f7");
     formData.append("subject", "Nova Inscrição na Newsletter - Blog Nucleo");
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      const { error: dbError } = await supabase
-        .from("newsletter")
-        .insert([{ email: email, user_id: user?.id || null }]);
+      if (email) {
+        const { data: { user } } = await supabase.auth.getUser();
+        const { error: dbError } = await supabase
+          .from("newsletter")
+          .insert([{
+            email: email.trim(),
+            user_id: user?.id || null,
+            status: 'ativo',
+            nome: nome ? nome.trim() : null
+          }]);
 
-      if (dbError && dbError.code !== '23505') throw dbError;
+        if (dbError && dbError.code !== '23505') throw dbError;
+      }
 
       const res = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
@@ -176,7 +185,8 @@ export default function BlogDaNucleo() {
 
                 <div className="space-y-4">
                   <form onSubmit={handleSubscribe} className="space-y-3">
-                    <input required type="email" name="email" placeholder="Seu melhor e-mail" className="w-full bg-gray-50 border-transparent rounded-2xl py-4 px-6 text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm" />
+                    <input type="text" name="nome" placeholder="Nome" className="w-full bg-gray-50 border-transparent rounded-2xl py-4 px-6 text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm" />
+                    <input required type="email" name="email" placeholder="E-mail" className="w-full bg-gray-50 border-transparent rounded-2xl py-4 px-6 text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm" />
                     <button
                       type="submit"
                       disabled={loading}

@@ -194,7 +194,8 @@ export default function CadastroMoradorPage() {
                 data_fim,
                 profile:profiles ( nome_completo, email_contato, slug )
             `)
-            .eq("condominio_id", condoId);
+            .eq("condominio_id", condoId)
+            .neq("role", "visitante"); // <--- AQUI: Remove os visitantes da listagem de moradores
 
         if (!error && data && isMountedRef.current) {
             // Ordenação local primeiro por unidade e, em seguida, por nome (ordem alfabética sequencial)
@@ -593,9 +594,6 @@ export default function CadastroMoradorPage() {
                     emailFormatado = `${generatedSlug}@nucleobase.app`;
                 }
 
-                // Ajuste Principal: Verifica se o perfil já existe na base por e-mail ou slug gerado
-                // sem impedir a checagem de contas @nucleobase.app. Isso recupera cadastros 
-                // suspensos antes do vínculo (ex: o usuário trocou de aba e não vinculou ao condomínio)
                 const { data: existingProfile } = await supabase
                     .from("profiles")
                     .select("id")
@@ -731,7 +729,6 @@ export default function CadastroMoradorPage() {
     const handleToggleAcesso = async (morador: Morador) => {
         const isProprioSindico = morador.role === 'sindico' || morador.user_id === session?.user?.id;
 
-        // Caso seja a própria conta principal (Síndico), mantém-se a lógica de direcionamento ao WhatsApp
         if (isProprioSindico) {
             setMoradorParaExcluir(morador);
             setShowSindicoDeleteModal(true);
@@ -1153,7 +1150,7 @@ export default function CadastroMoradorPage() {
                                         <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider ml-1">Placa(s)</label>
                                         <input
                                             type="text"
-                                            placeholder="Ex: ABC123"
+                                            placeholder="Ex: ABC-123"
                                             value={novoMoradorPlaca}
                                             onChange={(e) => setNovoMoradorPlaca(e.target.value)}
                                             className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:bg-white focus:border-blue-400 transition-all text-xs font-medium"
