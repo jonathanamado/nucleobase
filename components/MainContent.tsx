@@ -32,10 +32,14 @@ export function MainContent() {
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      // Nota: Mantemos o insert alinhado ao schema atual da tabela. Caso deseje incluir o nome futuramente na tabela, ajustaremos a coluna.
       const { error: dbError } = await supabase
         .from("newsletter")
-        .insert([{ email: email, user_id: user?.id || null }]);
+        .insert([{
+          email: email,
+          nome: nome || null,
+          origem: "pagina_inicial",
+          user_id: user?.id || null
+        }]);
       if (dbError && dbError.code !== '23505') throw dbError;
 
       const res = await fetch("https://api.web3forms.com/submit", {
@@ -70,6 +74,7 @@ export function MainContent() {
     setInlineLoading(true);
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
+    const nome = formData.get("nome") as string;
 
     formData.append("access_key", "9ef5a274-150a-4664-a885-0b052efd06f7");
     formData.append("subject", "Nova Inscrição na Newsletter (Em Tela) - Home Nucleobase");
@@ -78,7 +83,12 @@ export function MainContent() {
       const { data: { user } } = await supabase.auth.getUser();
       const { error: dbError } = await supabase
         .from("newsletter")
-        .insert([{ email: email, user_id: user?.id || null }]);
+        .insert([{
+          email: email,
+          nome: nome || null,
+          origem: "pagina_inicial",
+          user_id: user?.id || null
+        }]);
       if (dbError && dbError.code !== '23505') throw dbError;
 
       const res = await fetch("https://api.web3forms.com/submit", {
@@ -139,8 +149,8 @@ export function MainContent() {
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Assinar Newsletter</h3>
                 <p className="text-gray-500 mb-8 font-medium">Insights financeiros e estratégicos toda semana.</p>
                 <form onSubmit={handleSubscribe} className="space-y-4">
-                  <input type="text" name="nome" placeholder="Seu nome" className="w-full bg-gray-50 border-transparent rounded-2xl py-4 px-6 text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all" />
-                  <input required type="email" name="email" placeholder="Seu melhor e-mail" className="w-full bg-gray-50 border-transparent rounded-2xl py-4 px-6 text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all" />
+                  <input type="text" name="nome" placeholder="Nome" className="w-full bg-gray-50 border-transparent rounded-2xl py-4 px-6 text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all" />
+                  <input required type="email" name="email" placeholder="E-mail" className="w-full bg-gray-50 border-transparent rounded-2xl py-4 px-6 text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all" />
                   <button type="submit" disabled={loading} className="w-full py-4 bg-gray-900 text-white rounded-full font-bold text-sm uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50">
                     {loading ? <Loader2 className="animate-spin" size={18} /> : "Inscrever-se agora"}
                   </button>
@@ -266,23 +276,24 @@ export function MainContent() {
 
         <div className="grid grid-cols-2 gap-3 -mt-4">
           <div className="col-span-2 py-4 px-2 flex flex-col">
-            <div className="space-y-1 -mt-6">
-              <Link href="/controle-financeiro" onClick={() => trackClick("Gestão Financeira (Mobile)", "/controle-financeiro")} className="text-base font-medium text-gray-600 leading-relaxed hover:text-orange-600 transition-colors flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full font-bold bg-orange-600"></span>
-                Gestão Financeira
-              </Link>
-              <p className="text-xs text-gray-400 font-bold pl-3.5 leading-relaxed">
-                Controle estratégico de cartões, decisões e projeções orçamentárias.
-              </p>
-            </div>
 
-            <div className="space-y-1 mt-2.5">
+            <div className="space-y-1 -mt-6">
               <Link href="/condo" onClick={() => trackClick("Nucleo Condo (Mobile)", "/condo")} className="text-base font-medium text-gray-600 leading-relaxed hover:text-emerald-600 transition-colors flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full font-bold bg-emerald-600"></span>
                 Nucleo Condo
               </Link>
               <p className="text-xs text-gray-400 font-bold pl-3.5 leading-relaxed">
                 Tecnologia, transparência e otimização de processos condominiais.
+              </p>
+            </div>
+
+            <div className="space-y-1 mt-2.5">
+              <Link href="/controle-financeiro" onClick={() => trackClick("Gestão Financeira (Mobile)", "/controle-financeiro")} className="text-base font-medium text-gray-600 leading-relaxed hover:text-orange-600 transition-colors flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full font-bold bg-orange-600"></span>
+                Gestão Financeira
+              </Link>
+              <p className="text-xs text-gray-400 font-bold pl-3.5 leading-relaxed">
+                Controle estratégico de cartões, decisões e projeções orçamentárias.
               </p>
             </div>
 
@@ -391,8 +402,8 @@ export function MainContent() {
 
             {!inlineEnviado ? (
               <form onSubmit={handleInlineSubscribe} className="space-y-3">
-                <input type="text" name="nome" placeholder="Seu nome" className="w-full bg-white border border-gray-200 rounded-2xl py-3 px-5 text-xs text-gray-800 outline-none focus:border-blue-500 transition-all" />
-                <input required type="email" name="email" placeholder="Seu melhor e-mail" className="w-full bg-white border border-gray-200 rounded-2xl py-3 px-5 text-xs text-gray-800 outline-none focus:border-blue-500 transition-all" />
+                <input type="text" name="nome" placeholder="Nome" className="w-full bg-white border border-gray-200 rounded-2xl py-3 px-5 text-xs text-gray-800 outline-none focus:border-blue-500 transition-all" />
+                <input required type="email" name="email" placeholder="E-mail" className="w-full bg-white border border-gray-200 rounded-2xl py-3 px-5 text-xs text-gray-800 outline-none focus:border-blue-500 transition-all" />
                 <button
                   type="submit"
                   disabled={inlineLoading}
@@ -786,8 +797,8 @@ export function MainContent() {
                 <div className="w-full md:w-auto min-w-[340px] relative z-10">
                   {!inlineEnviado ? (
                     <form onSubmit={handleInlineSubscribe} className="space-y-3">
-                      <input type="text" name="nome" placeholder="Seu nome" className="w-full bg-white/10 border border-white/20 rounded-2xl py-3.5 px-6 text-white placeholder-blue-200 text-xs outline-none focus:bg-white/20 transition-all" />
-                      <input required type="email" name="email" placeholder="Seu melhor e-mail" className="w-full bg-white/10 border border-white/20 rounded-2xl py-3.5 px-6 text-white placeholder-blue-200 text-xs outline-none focus:bg-white/20 transition-all" />
+                      <input type="text" name="nome" placeholder="Nome" className="w-full bg-white/10 border border-white/20 rounded-2xl py-3.5 px-6 text-white placeholder-blue-200 text-xs outline-none focus:bg-white/20 transition-all" />
+                      <input required type="email" name="email" placeholder="E-mail" className="w-full bg-white/10 border border-white/20 rounded-2xl py-3.5 px-6 text-white placeholder-blue-200 text-xs outline-none focus:bg-white/20 transition-all" />
                       <button
                         type="submit"
                         disabled={inlineLoading}

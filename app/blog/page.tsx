@@ -132,7 +132,8 @@ export default function BlogDaNucleo() {
             email: email.trim(),
             user_id: user?.id || null,
             status: 'ativo',
-            nome: nome ? nome.trim() : null
+            nome: nome ? nome.trim() : null,
+            origem: "blog"
           }]);
 
         if (dbError && dbError.code !== '23505') throw dbError;

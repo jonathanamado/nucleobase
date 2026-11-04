@@ -193,7 +193,8 @@ function CadastroContent() {
               email: email.trim(),
               user_id: authData.user.id,
               status: 'ativo',
-              nome: nomeFinal === "Anônimo" ? null : nomeFinal
+              nome: nomeFinal === "Anônimo" ? null : nomeFinal,
+              origem: "cadastro"
             }
           ]);
         } catch (err) {
