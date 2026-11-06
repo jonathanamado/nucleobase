@@ -201,7 +201,6 @@ function AcessoUsuarioContent() {
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Ajuste de segurança e sanitização: remover espaços e transformar para minúsculo
     const emailToReset = resetEmail.trim().toLowerCase();
 
     if (!emailToReset) {
@@ -211,14 +210,17 @@ function AcessoUsuarioContent() {
 
     setResetLoading(true);
 
-    // Utilizando window.location.origin para garantir que o redirecionamento
-    // seja compatível tanto em localhost quanto em produção
     const { error } = await supabase.auth.resetPasswordForEmail(emailToReset, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
 
     if (error) {
-      alert("Erro: " + error.message);
+      // Tratamento de erro amigável para falhas de SMTP (Erro 500)
+      if (error.message.includes("Error sending recovery email") || error.status === 500) {
+        alert("Nosso serviço de e-mails está passando por uma instabilidade momentânea. Por favor, tente novamente em alguns minutos ou acione o suporte.");
+      } else {
+        alert("Erro: " + error.message);
+      }
       console.error("Erro detalhado na recuperação de senha:", error);
     } else {
       alert("Link de recuperação enviado com sucesso! Verifique sua caixa de entrada (e a pasta de Spam).");
@@ -477,50 +479,61 @@ function AcessoUsuarioContent() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-10">
           <div className="lg:col-span-12 min-h-[320px] flex">
-            <div className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl w-full h-full flex flex-col md:flex-row gap-12 items-center">
-              <div className="relative z-10 flex-1 flex flex-col h-full">
-                <div className="flex items-center gap-2 mb-4 bg-white/10 w-fit px-3 py-1.5 rounded-full border border-white/10">
-                  <Fingerprint size={14} className="text-orange-400" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-orange-400">Privacidade Blindada</span>
+            <div className="bg-gray-900 rounded-[2.5rem] p-8 md:p-10 text-white relative overflow-hidden shadow-xl w-full flex flex-col justify-between gap-10">
+
+              {/* Superior: Textos na Esquerda e Botões na Direita */}
+              <div className="relative z-10 w-full flex flex-col md:flex-row items-center md:items-start justify-between gap-8">
+                <div className="flex-1 flex flex-col">
+                  <div className="flex items-center gap-2 mb-4 bg-white/10 w-fit px-3 py-1.5 rounded-full border border-white/10">
+                    <Fingerprint size={14} className="text-orange-400" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-orange-400">Privacidade Blindada</span>
+                  </div>
+
+                  <h4 className="text-2xl font-bold mb-3">
+                    <span className="md:hidden">Suas regras.</span>
+                    <span className="hidden md:block">Sua conta, suas regras.</span>
+                  </h4>
+                  <p className="text-gray-400 text-xs md:text-sm leading-relaxed mb-0 max-w-2xl font-medium">
+                    <span className="md:hidden">Segurança com criptografia e RLS para proteger suas finanças e dados residenciais.</span>
+                    <span className="hidden md:block">Na Nucleo, a segurança dos seus dados é o pilar central. Utilizamos criptografia de ponta a ponta e Row Level Security (RLS) para garantir que apenas você tenha acesso às suas informações.</span>
+                  </p>
                 </div>
 
-                <h4 className="text-2xl font-bold mb-3">
-                  <span className="md:hidden">Suas regras.</span>
-                  <span className="hidden md:block">Sua conta, suas regras.</span>
-                </h4>
-                <p className="text-gray-400 text-xs md:text-sm leading-relaxed mb-8 max-w-2xl font-medium">
-                  <span className="md:hidden">Segurança com criptografia de ponta a ponta e Row Level Security (RLS) para proteger suas finanças.</span>
-                  <span className="hidden md:block">Na Nucleo, a segurança dos seus dados é o pilar central. Utilizamos criptografia de ponta a ponta e Row Level Security (RLS) para garantir que apenas você tenha acesso às suas informações financeiras.</span>
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0">
-                    <ShieldCheck size={28} className="text-blue-400 row-span-2 self-start mt-1" />
-                    <span className="text-white font-bold text-xs uppercase tracking-tighter">Criptografia</span>
-                    <span className="text-[10px] text-gray-500 font-medium">Proteção total SSL/TLS 1.3</span>
-                  </div>
-
-                  <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0">
-                    <Key size={28} className="text-blue-400 row-span-2 self-start mt-1" />
-                    <span className="text-white font-bold text-xs uppercase tracking-tighter">Acesso Restrito</span>
-                    <span className="text-[10px] text-gray-500 font-medium">Políticas RLS ativas</span>
-                  </div>
-
-                  <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0">
-                    <Globe size={28} className="text-blue-400 row-span-2 self-start mt-1" />
-                    <span className="text-white font-bold text-xs uppercase tracking-tighter">Backup em Nuvem</span>
-                    <span className="text-[10px] text-gray-500 font-medium">Sincronização realtime</span>
-                  </div>
+                <div className="flex flex-col gap-4 relative z-10 w-full md:w-auto shrink-0 md:pt-4">
+                  <Link href="/minha-conta" onClick={() => trackClick("Configurações de Perfil", "/minha-conta")} className="bg-white text-black px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all whitespace-nowrap text-center cursor-pointer">
+                    Configurações de Perfil
+                  </Link>
+                  <Link href="/seguranca_privacidade" onClick={() => trackClick("Segurança e Privacidade", "/seguranca_privacidade")} className="bg-white/5 border border-white/10 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all whitespace-nowrap text-center cursor-pointer">
+                    Segurança e Privacidade
+                  </Link>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-4 relative z-10 w-full md:w-auto">
-                <Link href="/minha-conta" onClick={() => trackClick("Configurações de Perfil", "/minha-conta")} className="bg-white text-black px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all whitespace-nowrap text-center cursor-pointer">
-                  Configurações de Perfil
-                </Link>
-                <Link href="/seguranca_privacidade" onClick={() => trackClick("Segurança e Privacidade", "/seguranca_privacidade")} className="bg-white/5 border border-white/10 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all whitespace-nowrap text-center cursor-pointer">
-                  Segurança e Privacidade
-                </Link>
+              {/* Inferior: 4 Tópicos ocupando 100% da largura, distribuídos de ponta a ponta */}
+              <div className="relative z-10 w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 items-start">
+                <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0 w-full">
+                  <ShieldCheck size={28} className="text-blue-400 row-span-2 self-start mt-1" />
+                  <span className="text-white font-bold text-xs uppercase tracking-tighter">Criptografia</span>
+                  <span className="text-[10px] text-gray-500 font-medium">Proteção total SSL/TLS 1.3</span>
+                </div>
+
+                <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0 w-full">
+                  <Key size={28} className="text-blue-400 row-span-2 self-start mt-1" />
+                  <span className="text-white font-bold text-xs uppercase tracking-tighter">Acesso Restrito</span>
+                  <span className="text-[10px] text-gray-500 font-medium">Políticas RLS ativas</span>
+                </div>
+
+                <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0 w-full">
+                  <Globe size={28} className="text-blue-400 row-span-2 self-start mt-1" />
+                  <span className="text-white font-bold text-xs uppercase tracking-tighter">Backup em Nuvem</span>
+                  <span className="text-[10px] text-gray-500 font-medium">Sincronização realtime</span>
+                </div>
+
+                <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0 w-full">
+                  <Users size={28} className="text-blue-400 row-span-2 self-start mt-1" />
+                  <span className="text-white font-bold text-xs uppercase tracking-tighter">Multiusuário</span>
+                  <span className="text-[10px] text-gray-500 font-medium">Síndico, morador, conselho...</span>
+                </div>
               </div>
 
               <Database size={300} className="absolute -left-20 -bottom-20 text-white/[0.03] -rotate-12 pointer-events-none" />
