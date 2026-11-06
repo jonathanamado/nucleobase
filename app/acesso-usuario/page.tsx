@@ -200,14 +200,28 @@ function AcessoUsuarioContent() {
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Ajuste de segurança e sanitização: remover espaços e transformar para minúsculo
+    const emailToReset = resetEmail.trim().toLowerCase();
+
+    if (!emailToReset) {
+      alert("Por favor, insira um e-mail válido.");
+      return;
+    }
+
     setResetLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      redirectTo: "https://nucleobase.app/reset-password",
+
+    // Utilizando window.location.origin para garantir que o redirecionamento
+    // seja compatível tanto em localhost quanto em produção
+    const { error } = await supabase.auth.resetPasswordForEmail(emailToReset, {
+      redirectTo: `${window.location.origin}/reset-password`,
     });
 
-    if (error) alert("Erro: " + error.message);
-    else {
-      alert("Link de recuperação enviado com sucesso!");
+    if (error) {
+      alert("Erro: " + error.message);
+      console.error("Erro detalhado na recuperação de senha:", error);
+    } else {
+      alert("Link de recuperação enviado com sucesso! Verifique sua caixa de entrada (e a pasta de Spam).");
       setShowForgotModal(false);
       trackClick("Enviar Link de Recuperação", "reset_password");
     }
