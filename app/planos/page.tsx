@@ -438,7 +438,7 @@ export default function PaginaDePlanos() {
             </h4>
 
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-2 mb-8">
-              {["Painel de síndico", "App para moradores", "Módulo de inadimplência", "Rateio automático para boletos", "Enquetes e livro de ocorrências", "Comunicação interna e muito mais..."].map((v, i) => (
+              {["Painel de síndico", "App para moradores", "Módulo de inadimplência", "Rateio pronto para boletos", "Enquetes e comunicação interna", "Livro digital e muito mais..."].map((v, i) => (
                 <li key={i} className="flex items-center gap-2 text-slate-300 text-xs font-medium">
                   <CheckCircle2 size={14} className="text-amber-500 shrink-0" /> {v}
                 </li>
