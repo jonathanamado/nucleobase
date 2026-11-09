@@ -109,7 +109,7 @@ export default function ParceirosPage() {
       desc: "Oportunidade de Ouro: simplifique suas vendas com o nosso CRM. Acompanhe propostas, negociações e garanta comissões e receita recorrente com total previsibilidade.",
       icon: <Building2 size={24} />,
       badgeDesktop: "Produto Principal",
-      badgeMobile: "Em Alta",
+      badgeMobile: "Consultoria condominial",
       color: "text-amber-600",
       bg: "bg-amber-50",
       link: "/resultados-consultoria/consultoria-condominial",
@@ -263,8 +263,8 @@ export default function ParceirosPage() {
           </div>
         </form>
 
-        {/* CARD CTA REDUZIDO */}
-        <div className="bg-gray-900 rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-16 flex-1 text-white relative overflow-hidden shadow-2xl shadow-blue-900/20 order-2 lg:order-1">
+        {/* CARD CTA REDUZIDO (Oculto no mobile conforme solicitado) */}
+        <div className="hidden lg:flex bg-gray-900 rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-16 flex-1 text-white relative overflow-hidden shadow-2xl shadow-blue-900/20 order-2 lg:order-1 flex-col">
           <div className="absolute top-0 right-0 w-1/3 h-full bg-blue-600/5 blur-[120px] pointer-events-none"></div>
           <div className="relative z-10">
             <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-600 rounded-xl md:rounded-2xl flex items-center justify-center mb-6 md:mb-8 shadow-lg shadow-blue-600/20">
@@ -295,13 +295,19 @@ export default function ParceirosPage() {
 
       </div>
 
-      {/* LINHA DIVISÓRIA "CONSULTORIA" (VISÍVEL APENAS NO MOBILE) */}
-      <div className="flex md:hidden items-center gap-4 mb-12">
-        <div className="h-px bg-gray-300 flex-1"></div>
-        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
-          Consultoria
-        </h3>
-        <div className="h-px bg-gray-300 flex-1"></div>
+      {/* LINHA DIVISÓRIA E CONTEXTO "CONSULTORIA" (VISÍVEL APENAS NO MOBILE) */}
+      <div className="md:hidden mb-12">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="h-px bg-gray-300 flex-1"></div>
+          <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
+            Consultoria
+          </h3>
+          <div className="h-px bg-gray-300 flex-1"></div>
+        </div>
+        {/* Contexto breve antes dos cards no mobile */}
+        <p className="text-center text-sm font-medium text-gray-500 px-4 leading-relaxed">
+          Navegue pelas oportunidades e descubra como integrar suas soluções ou serviços com a plataforma.
+        </p>
       </div>
 
       {/* LINHA DIVISÓRIA "OPORTUNIDADES" (VISÍVEL APENAS NO DESKTOP) */}
@@ -314,18 +320,14 @@ export default function ParceirosPage() {
       </div>
 
       {/* CARDS DAS FRENTES ABAIXO DO FORMULÁRIO E DO CTA */}
-      <div className="relative flex items-center justify-center mb-24">
-        {/* SETAS MOBILE - ESQUERDA */}
-        <button onClick={anteriorCard} className="md:hidden absolute left-0 z-20 bg-white shadow-lg border border-gray-100 text-blue-600 p-2 rounded-full active:scale-90 transition-all cursor-pointer">
-          <ChevronLeft size={24} />
-        </button>
+      <div className="relative mb-24">
 
-        <div className="w-full md:grid md:grid-cols-3 gap-8 flex items-stretch justify-center px-10 md:px-0">
+        <div className="w-full md:grid md:grid-cols-3 gap-8 flex items-stretch justify-center px-0 md:px-0">
           {frentes.map((frente, idx) => {
             const isDestaque = frente.isDestaque;
 
             return (
-              <div key={idx} className={`h-auto md:h-full flex-1 ${cardAtivo === idx ? 'flex animate-in fade-in zoom-in-95 duration-300' : 'hidden'} md:flex md:animate-none`}>
+              <div key={idx} className={`w-full md:h-full flex-1 ${cardAtivo === idx ? 'flex animate-in fade-in zoom-in-95 duration-300' : 'hidden'} md:flex md:animate-none`}>
                 <Link
                   href={frente.link}
                   onClick={() => trackClick(`Parceria - ${frente.title}`, frente.link)}
@@ -343,26 +345,29 @@ export default function ParceirosPage() {
 
                   <div className="relative z-10">
                     <div className="flex items-center justify-between mb-8">
-                      {/* ÍCONE */}
+                      {/* ÍCONE (Oculto no destaque mobile) */}
                       <div className={`w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm
-                        ${isDestaque ? "bg-white/20 text-white backdrop-blur-sm" : `${frente.bg}${frente.color}`}
+                        ${isDestaque ? "bg-white/20 text-white backdrop-blur-sm hidden md:flex" : `${frente.bg} ${frente.color} flex`}
                       `}>
                         {isDestaque ? <Building2 size={24} /> : frente.icon}
                       </div>
 
-                      {/* BADGE */}
+                      {/* BADGE (Estilização difere no mobile para o destaque) */}
                       <span className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full whitespace-nowrap
-                        ${isDestaque ? "bg-white/20 text-white backdrop-blur-sm shadow-sm" : "text-emerald-600 bg-emerald-50"}
+                        ${isDestaque ? "md:bg-white/20 md:text-white md:backdrop-blur-sm md:shadow-sm text-amber-500 bg-white" : "text-emerald-600 bg-emerald-50"}
                       `}>
-                        {isDestaque && <Star size={10} className="fill-white shrink-0" />}
-                        {frente.badgeDesktop}
+                        {isDestaque && <Star size={10} className="fill-white shrink-0 hidden md:inline" />}
+                        <span className="hidden md:inline">{frente.badgeDesktop}</span>
+                        <span className="inline md:hidden">{frente.badgeMobile}</span>
                       </span>
                     </div>
 
                     <h3 className={`text-2xl font-bold mb-4 tracking-tight flex items-center gap-2
                       ${isDestaque ? "text-white" : "text-gray-900"}
                     `}>
-                      {frente.title} <ArrowRight size={20} className={`${isDestaque ? "text-amber-100" : "text-emerald-500"} opacity-0 group-hover:opacity-100 transition-all`} />
+                      {/* Título oculto no destaque mobile já que virou o badge, mantido nas outras frentes */}
+                      <span className={isDestaque ? "hidden md:inline" : ""}>{frente.title}</span>
+                      <ArrowRight size={20} className={`${isDestaque ? "text-amber-100" : "text-emerald-500"} opacity-0 group-hover:opacity-100 transition-all hidden md:block`} />
                     </h3>
 
                     <p className={`text-base leading-relaxed mb-0 font-medium italic
@@ -372,13 +377,14 @@ export default function ParceirosPage() {
                     </p>
                   </div>
 
-                  <div className={`pt-6 mt-6 border-t relative z-10 flex items-center justify-between
+                  {/* Acessar frente oculto no desktop para limpar o visual */}
+                  <div className={`md:hidden pt-6 mt-6 border-t relative z-10 flex items-center justify-between
                     ${isDestaque ? "border-amber-400/50" : "border-gray-50"}
                   `}>
                     <span className={`text-[11px] font-bold uppercase tracking-wider
                       ${isDestaque ? "text-white" : "text-gray-900"}
                     `}>
-                      Acessar Frente
+                      Acessar
                     </span>
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors
                       ${isDestaque
@@ -395,10 +401,23 @@ export default function ParceirosPage() {
           })}
         </div>
 
-        {/* SETAS MOBILE - DIREITA */}
-        <button onClick={proximoCard} className="md:hidden absolute right-0 z-20 bg-white shadow-lg border border-gray-100 text-blue-600 p-2 rounded-full active:scale-90 transition-all cursor-pointer">
-          <ChevronRight size={24} />
-        </button>
+        {/* SETAS MOBILE POSICIONADAS ABAIXO DOS CARDS */}
+        <div className="md:hidden flex justify-center items-center gap-6 mt-6">
+          <button onClick={anteriorCard} className="bg-white shadow-lg border border-gray-100 text-blue-600 p-3 rounded-full active:scale-90 transition-all cursor-pointer">
+            <ChevronLeft size={24} />
+          </button>
+
+          {/* Indicador visual de qual card está ativo */}
+          <div className="flex gap-2">
+            {frentes.map((_, idx) => (
+              <div key={idx} className={`h-1.5 rounded-full transition-all ${cardAtivo === idx ? "w-6 bg-blue-600" : "w-2 bg-gray-200"}`} />
+            ))}
+          </div>
+
+          <button onClick={proximoCard} className="bg-white shadow-lg border border-gray-100 text-blue-600 p-3 rounded-full active:scale-90 transition-all cursor-pointer">
+            <ChevronRight size={24} />
+          </button>
+        </div>
       </div>
 
       {/* LINHA DIVISÓRIA "CONECTE-SE" */}
