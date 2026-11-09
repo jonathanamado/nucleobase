@@ -361,7 +361,7 @@ export default function PaginaDePlanos() {
                 <span className="text-3xl font-black text-white">{condoUnits}</span>
               </div>
 
-              <div className="relative pt-2 pb-4">
+              <div className="relative pt-2 pb-2 md:pb-4">
                 <input
                   type="range"
                   min="1"
@@ -375,19 +375,38 @@ export default function PaginaDePlanos() {
                 />
               </div>
 
+              {/* CONTROLES +/- MOBILE (Abaixo da barra, centralizados) */}
+              <div className="flex md:hidden justify-center items-center gap-4 mt-2 mb-2">
+                <button
+                  onClick={() => setCondoUnits(prev => Math.max(1, prev - 1))}
+                  className="w-10 h-10 flex items-center justify-center bg-slate-700/50 hover:bg-slate-600 rounded-lg text-slate-300 hover:text-white transition-all border border-slate-600/50 cursor-pointer font-bold text-xl shadow-sm"
+                >
+                  -
+                </button>
+                <button
+                  onClick={() => setCondoUnits(prev => Math.min(300, prev + 1))}
+                  className="w-10 h-10 flex items-center justify-center bg-slate-700/50 hover:bg-slate-600 rounded-lg text-slate-300 hover:text-white transition-all border border-slate-600/50 cursor-pointer font-bold text-xl shadow-sm"
+                >
+                  +
+                </button>
+              </div>
+
               {/* BLOCO DE VALORES COM REAJUSTE DE LAYOUT PARA CONTROLES +/- */}
               <div className="mt-4 pt-4 border-t border-slate-700/50">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex flex-col">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 md:mb-3">
+
+                  {/* Investimento Estimado - Ocupa 100% no mobile */}
+                  <div className="flex flex-col w-full md:w-auto">
                     <span className="text-[9px] text-amber-500 font-bold uppercase tracking-widest mb-1 flex items-center gap-1">
                       <Calculator size={10} /> Investimento Estimado
                     </span>
-                    <span className="text-2xl font-black text-white tracking-tighter">
+                    <span className="text-3xl md:text-2xl font-black text-white tracking-tighter">
                       {condoPriceFormatted}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  {/* CONTROLES +/- DESKTOP (Ao lado do valor) */}
+                  <div className="hidden md:flex items-center gap-2">
                     <button
                       onClick={() => setCondoUnits(prev => Math.max(1, prev - 1))}
                       className="w-8 h-8 flex items-center justify-center bg-slate-700/50 hover:bg-slate-600 rounded text-slate-300 hover:text-white transition-all border border-slate-600/50 cursor-pointer font-bold text-lg"
@@ -403,9 +422,10 @@ export default function PaginaDePlanos() {
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center bg-slate-900/50 rounded-lg p-2.5 px-3">
+                {/* Base de Cálculo - Quebra de linha no mobile */}
+                <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between bg-slate-900/50 rounded-lg p-3 md:p-2.5 md:px-3 gap-1 md:gap-0">
                   <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Base de cálculo</span>
-                  <span className="text-[10px] md:text-xs font-medium text-slate-400">
+                  <span className="text-[11px] md:text-xs font-medium text-slate-400">
                     {unitPriceFormatted} / unidade habitacional
                   </span>
                 </div>
