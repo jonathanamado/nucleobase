@@ -303,13 +303,21 @@ export default function PaginaDePlanos() {
 
         {/* PILAR 1: USO PESSOAL (Essencial & Pro) */}
         <div className="bg-white border border-slate-200 rounded-[2.5rem] p-10 shadow-sm hover:shadow-xl transition-all flex flex-col border-b-4 border-b-transparent hover:border-b-blue-600 relative overflow-hidden">
-          <div className="flex-grow relative z-10">
-            <div className="flex items-center gap-2 text-blue-600 font-bold text-[10px] uppercase tracking-[0.2em] mb-8">
+
+          {/* Badge Mobile: Uso Pessoal posicionado de forma absoluta como o "Empresas" */}
+          <div className="md:hidden absolute top-0 right-0 bg-blue-600 text-white px-5 py-1.5 rounded-bl-2xl font-black text-[9px] uppercase tracking-widest shadow-lg flex items-center gap-1.5 z-20">
+            <User size={12} /> Uso Pessoal
+          </div>
+
+          <div className="flex-grow relative z-10 pt-2 md:pt-0">
+
+            {/* Cabeçalho Desktop (Oculto no Mobile) */}
+            <div className="hidden md:flex items-center gap-2 text-blue-600 font-bold text-[10px] uppercase tracking-[0.2em] mb-8">
               <User size={18} className="text-blue-600" /> Uso Pessoal
             </div>
 
             {/* Título com tamanho e texto ajustados dinamicamente para Mobile/Desktop */}
-            <h3 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">
+            <h3 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3 mt-4 md:mt-0">
               <span className="md:hidden">Essencial <span className="text-gray-300 font-light">&</span> Pro</span>
               <span className="hidden md:inline"><span className="text-gray-300 font-light">Opções</span> Essencial <span className="text-gray-300 font-light">&</span> Pro</span>
             </h3>
@@ -321,11 +329,18 @@ export default function PaginaDePlanos() {
             </p>
 
             <div className="flex flex-col mb-8">
-              <span className="text-3xl font-black text-slate-900 tracking-tighter">De R$ 9,90 a R$ 19,90</span>
-              <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">/mês (Descontos progressivos em planos de 3 a 12 meses)</span>
+              {/* Ajuste de quebra de linha: whitespace-nowrap adicionado e tamanho ligeiramente menor no mobile */}
+              <span className="text-[24px] md:text-3xl font-black text-slate-900 tracking-tighter whitespace-nowrap">
+                De R$ 9,90 a R$ 19,90
+              </span>
+              {/* Texto de Fidelização adaptado para Mobile/Desktop */}
+              <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">
+                <span className="md:hidden">/mês (Descontos progressivos em planos de 3 a 12 meses por fidelização ao app)</span>
+                <span className="hidden md:inline">/mês (Descontos progressivos em planos de 3 a 12 meses)</span>
+              </span>
             </div>
 
-            <ul className="space-y-4 mb-10">
+            <ul className="space-y-4 mb-10 md:mb-6">
               <li className="flex items-start gap-3 text-slate-600 text-sm font-medium">
                 <CheckCircle2 size={18} className="text-emerald-500 shrink-0 mt-0.5" />
                 <span><strong className="text-gray-900">Essencial:</strong> Ideal para lançamentos manuais precisos, ágeis e multi-dispositivos.</span>
@@ -335,6 +350,11 @@ export default function PaginaDePlanos() {
                 <span><strong className="text-gray-900">Pro:</strong> Sincronização automática, suporte prioritário e conexão online com arquivos D-1.</span>
               </li>
             </ul>
+
+            {/* Novo Parágrafo Exclusivo para Desktop */}
+            <p className="hidden md:block text-slate-500 text-sm font-medium mb-10 leading-relaxed">
+              A digitalização e a inteligência de dados não são mais exclusividades das empresas. Assumir o controle do seu dinheiro com a Nucleobase significa trocar as incertezas pelo planejamento, garantindo tranquilidade financeira e um caminho claro para multiplicar e organizar o patrimônio da sua família.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-auto relative z-10">
@@ -345,21 +365,34 @@ export default function PaginaDePlanos() {
               Avance mais | Plano Pro
             </Link>
           </div>
+
+          {/* Texto exclusivo Desktop abaixo dos botões */}
+          <div className="mt-4 relative z-10">
+            <p className="hidden md:block text-center text-[10px] text-slate-500 font-medium">
+              Cadastre-se para iniciar a degustação gratuita e assinar o seu plano.
+            </p>
+          </div>
+
           <div className="absolute -right-20 -top-20 w-64 h-64 bg-blue-50 rounded-full blur-[80px] pointer-events-none"></div>
         </div>
 
         {/* PILAR 2: NUCLEO CONDO (Slider Dinâmico) */}
         <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-10 shadow-2xl flex flex-col relative overflow-hidden group transition-all border-b-4 border-b-transparent hover:border-b-amber-500">
-          <div className="absolute top-0 right-0 bg-amber-500 text-white px-5 py-1.5 rounded-bl-2xl font-black text-[9px] uppercase tracking-widest shadow-lg">
-            Empresas
+
+          {/* Badge "Empresas" com Ícone no Mobile e Sem Ícone no Desktop */}
+          <div className="absolute top-0 right-0 bg-amber-500 text-white px-5 py-1.5 rounded-bl-2xl font-black text-[9px] uppercase tracking-widest shadow-lg flex items-center gap-1.5 z-20">
+            <Building2 size={12} className="md:hidden" /> Empresas
           </div>
 
-          <div className="flex-grow relative z-10">
-            <div className="flex items-center gap-2 text-amber-500 font-bold text-[10px] uppercase tracking-[0.2em] mb-8">
+          <div className="flex-grow relative z-10 pt-2 md:pt-0">
+
+            {/* Texto Condomínios Removido no Mobile, mantido no Desktop */}
+            <div className="hidden md:flex items-center gap-2 text-amber-500 font-bold text-[10px] uppercase tracking-[0.2em] mb-8">
               <Building2 size={18} /> Condomínios
             </div>
-            {/* Título com tamanho reduzido apenas no mobile */}
-            <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">Nucleo Condo</h3>
+
+            {/* Título com tamanho reduzido apenas no mobile e margem ajustada para padronizar */}
+            <h3 className="text-2xl md:text-3xl font-bold text-white mb-3 mt-4 md:mt-0">Nucleo Condo</h3>
             <p className="text-slate-400 text-sm font-medium mb-8 leading-relaxed">
               <span className="md:hidden">Gestão transparente com valores se adaptam ao tamanho do seu condomínio.</span>
               <span className="hidden md:block">Gestão transparente e tarefas simplificadas. E ainda o custo se adapta ao tamanho do seu condomínio.</span>
@@ -481,8 +514,15 @@ export default function PaginaDePlanos() {
             >
               <Headphones size={16} className="hidden md:block" /> Personalizar Plano <WhatsAppIcon />
             </button>
-            <p className="text-center text-[10px] text-slate-500 font-medium mt-4">
-              Fale com um consultor para fechar negócio e gerar contrato.
+
+            {/* Texto exclusivo Mobile */}
+            <p className="md:hidden text-center text-[10px] text-slate-500 font-medium mt-4">
+              Fale com um consultor para fechar negócio e gerar o seu contrato, conforme sua necessidade.
+            </p>
+
+            {/* Texto exclusivo Desktop */}
+            <p className="hidden md:block text-center text-[10px] text-slate-500 font-medium mt-4">
+              Fale com um consultor para fechar negócio e gerar seu contrato.
             </p>
           </div>
           <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none group-hover:bg-amber-500/20 transition-all duration-700"></div>
