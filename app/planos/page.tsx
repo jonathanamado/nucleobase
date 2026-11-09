@@ -34,8 +34,26 @@ export default function PaginaDePlanos() {
   const WHATSAPP_PHONE = "5531971078832";
   const WHATSAPP_LINK_ONBOARDING = "https://wa.link/qbxg9f"; // Link usado para degustação guiada
 
-  // Lógica de cálculo do condomínio: Piso de R$ 69,90 ou (Unidades * R$ 7,00)
-  const condoPriceNumber = Math.max(69.90, condoUnits * 7);
+  // --- NOVA LÓGICA DE CÁLCULO DE UNIDADES (PERCENTUAL) ---
+  let currentUnitPrice = 7.00;
+
+  // ---> ALTERE O PERCENTUAL AQUI <--- 
+  // 0.10 representa 10%. Para 15%, use 0.15, etc.
+  const discountPercentage = 0.10;
+
+  // A partir de 22 unidades (16 limite + 6 do primeiro bloco), aplica-se o desconto.
+  if (condoUnits >= 22) {
+    const drops = Math.floor((condoUnits - 16) / 6);
+    for (let i = 0; i < drops; i++) {
+      currentUnitPrice = currentUnitPrice * (1 - discountPercentage);
+    }
+  }
+
+  const finalUnitPrice = Math.max(currentUnitPrice, 5.50); // Piso de R$ 5,50
+  const unitPriceFormatted = finalUnitPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
+
+  // Lógica de cálculo do condomínio total: Piso de R$ 69,90 ou (Unidades * Preço da Unidade)
+  const condoPriceNumber = Math.max(69.90, condoUnits * finalUnitPrice);
   const condoPriceFormatted = condoPriceNumber.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   useEffect(() => {
@@ -289,7 +307,6 @@ export default function PaginaDePlanos() {
               <User size={18} className="text-blue-600" /> Uso Pessoal
             </div>
 
-            {/* Título Modificado: Opções Essencial & Pro */}
             <h3 className="text-3xl font-bold text-slate-900 mb-3"><span className="text-gray-300 font-light">Opções</span> Essencial <span className="text-gray-300 font-light">&</span> Pro</h3>
 
             <p className="text-slate-500 text-sm font-medium mb-6 leading-relaxed">Controle financeiro sob medida para pessoas físicas e famílias. Escolha a profundidade que sua gestão exige.</p>
@@ -358,18 +375,39 @@ export default function PaginaDePlanos() {
                 />
               </div>
 
-              <div className="flex items-center justify-between mt-2 pt-4 border-t border-slate-700/50">
-                <div className="flex flex-col">
-                  <span className="text-[9px] text-amber-500 font-bold uppercase tracking-widest mb-1 flex items-center gap-1">
-                    <Calculator size={10} /> Investimento Estimado
-                  </span>
-                  <span className="text-2xl font-black text-white tracking-tighter">
-                    {condoPriceFormatted}
-                  </span>
+              {/* BLOCO DE VALORES COM REAJUSTE DE LAYOUT PARA CONTROLES +/- */}
+              <div className="mt-4 pt-4 border-t border-slate-700/50">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex flex-col">
+                    <span className="text-[9px] text-amber-500 font-bold uppercase tracking-widest mb-1 flex items-center gap-1">
+                      <Calculator size={10} /> Investimento Estimado
+                    </span>
+                    <span className="text-2xl font-black text-white tracking-tighter">
+                      {condoPriceFormatted}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCondoUnits(prev => Math.max(1, prev - 1))}
+                      className="w-8 h-8 flex items-center justify-center bg-slate-700/50 hover:bg-slate-600 rounded text-slate-300 hover:text-white transition-all border border-slate-600/50 cursor-pointer font-bold text-lg"
+                    >
+                      -
+                    </button>
+                    <button
+                      onClick={() => setCondoUnits(prev => Math.min(300, prev + 1))}
+                      className="w-8 h-8 flex items-center justify-center bg-slate-700/50 hover:bg-slate-600 rounded text-slate-300 hover:text-white transition-all border border-slate-600/50 cursor-pointer font-bold text-lg"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
-                <div className="text-right flex flex-col">
+
+                <div className="flex justify-between items-center bg-slate-900/50 rounded-lg p-2.5 px-3">
                   <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Base de cálculo</span>
-                  <span className="text-xs font-medium text-slate-400">R$ 7,00/unidade habitacional</span>
+                  <span className="text-[10px] md:text-xs font-medium text-slate-400">
+                    {unitPriceFormatted} / unidade habitacional
+                  </span>
                 </div>
               </div>
             </div>

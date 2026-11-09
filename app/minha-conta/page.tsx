@@ -41,14 +41,14 @@ export default function MinhaContaPage() {
   const [condoId, setCondoId] = useState<string | null>(null);
   const [condoNome, setCondoNome] = useState("");
   const [condoCnpj, setCondoCnpj] = useState("");
-  const [unidadeSindico, setUnidadeSindico] = useState("");
+  const [nomeSindico, setNomeSindico] = useState("");
   const [telefoneEmpresarial, setTelefoneEmpresarial] = useState("");
   const [quantidadeUnidades, setQuantidadeUnidades] = useState("");
 
   // --- ESTADOS INICIAIS ORIGINAIS (PARA VALIDAÇÃO DE BLOQUEIO) ---
   const [initialCondoNome, setInitialCondoNome] = useState("");
   const [initialCondoCnpj, setInitialCondoCnpj] = useState("");
-  const [initialUnidadeSindico, setInitialUnidadeSindico] = useState("");
+  const [initialNomeSindico, setInitialNomeSindico] = useState("");
 
   // --- ESTADOS DE SISTEMA ---
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -310,10 +310,6 @@ export default function MinhaContaPage() {
           .maybeSingle();
 
         if (membro) {
-          const unidadeVal = membro.unidade || "";
-          setUnidadeSindico(unidadeVal);
-          setInitialUnidadeSindico(unidadeVal);
-
           if (membro.condominio_id || membro.condominio_nome) {
             let condoData = null;
 
@@ -321,7 +317,7 @@ export default function MinhaContaPage() {
             if (membro.condominio_id) {
               const { data: byId } = await supabase
                 .from("condominios")
-                .select("id, nome, cnpj, quantidade_unidades, telefone")
+                .select("id, nome, cnpj, quantidade_unidades, telefone, nome_sindico")
                 .eq("id", membro.condominio_id)
                 .maybeSingle();
               condoData = byId;
@@ -331,7 +327,7 @@ export default function MinhaContaPage() {
             if (!condoData && membro.condominio_nome) {
               const { data: byName } = await supabase
                 .from("condominios")
-                .select("id, nome, cnpj, quantidade_unidades, telefone")
+                .select("id, nome, cnpj, quantidade_unidades, telefone, nome_sindico")
                 .eq("nome", membro.condominio_nome)
                 .maybeSingle();
               condoData = byName;
@@ -349,6 +345,10 @@ export default function MinhaContaPage() {
 
               const qtdUnidadesVal = condoData.quantidade_unidades?.toString() || "";
               setQuantidadeUnidades(qtdUnidadesVal);
+
+              const nomeSindicoVal = condoData.nome_sindico || "";
+              setNomeSindico(nomeSindicoVal);
+              setInitialNomeSindico(nomeSindicoVal);
 
               if (condoData.telefone) {
                 setTelefoneEmpresarial(aplicarMascaraTelefone(condoData.telefone));
@@ -1002,21 +1002,21 @@ export default function MinhaContaPage() {
 
               <div className="space-y-3 md:col-span-1">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
-                  <span>Unidade Adm</span>
+                  <span>Nome Síndico</span>
                 </label>
                 <input
                   type="text"
-                  name="unidade_empresarial"
-                  placeholder="Ex: Apto 302"
-                  value={unidadeSindico}
+                  name="nome_sindico_empresarial"
+                  placeholder="Ex: J. Roberto"
+                  value={nomeSindico}
                   className="w-full h-11 px-4 border border-emerald-200/60 rounded-xl text-xs text-gray-900 dark:text-gray-900 outline-none transition-all bg-white focus:border-emerald-400"
-                  onChange={(e) => handleEmpresarialChange(setUnidadeSindico, e.target.value)}
+                  onChange={(e) => handleEmpresarialChange(setNomeSindico, e.target.value)}
                 />
               </div>
 
               <div className="space-y-3 md:col-span-1">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
-                  <span>Telefone Adm</span>
+                  <span>Tel. Síndico</span>
                 </label>
                 <input
                   type="text"
@@ -1033,7 +1033,7 @@ export default function MinhaContaPage() {
               name="mensagem_empresarial"
               className="hidden"
               readOnly
-              value={`Solicitação de atualização de dados cadastrais empresariais.\n\n--- DADOS DO USUÁRIO LOGADO ---\nNome do Usuário: ${nome || 'Não informado'}\nE-mail de Contato: ${emailContato || 'Não informado'}\nE-mail da Conta (Auth): ${email || 'Não informado'}\n\n--- DADOS EMPRESARIAIS ---\nNome: ${condoNome || 'Não informado'}\nCNPJ: ${condoCnpj || 'Não informado'}\nQtd. Unidades Totais: ${quantidadeUnidades || 'Não informada'}\nUnidade do Síndico/Gestor: ${unidadeSindico || 'Não informada'}\nTelefone de Contato: ${telefoneEmpresarial || 'Não informado'}`}
+              value={`Solicitação de atualização de dados cadastrais empresariais.\n\n--- DADOS DO USUÁRIO LOGADO ---\nNome do Usuário: ${nome || 'Não informado'}\nE-mail de Contato: ${emailContato || 'Não informado'}\nE-mail da Conta (Auth): ${email || 'Não informado'}\n\n--- DADOS EMPRESARIAIS ---\nNome: ${condoNome || 'Não informado'}\nCNPJ: ${condoCnpj || 'Não informado'}\nQtd. Unidades Totais: ${quantidadeUnidades || 'Não informada'}\nNome do Síndico: ${nomeSindico || 'Não informado'}\nTelefone de Contato: ${telefoneEmpresarial || 'Não informado'}`}
             ></textarea>
 
             <div className="flex flex-col md:flex-row items-center justify-between flex-wrap gap-4 mt-6 text-center md:text-left">

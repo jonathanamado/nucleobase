@@ -306,7 +306,7 @@ function AcessoUsuarioContent() {
                         placeholder="ID de Usuário ou E-mail"
                         required
                         value={emailOrSlug}
-                        className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900"
+                        className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900 dark:text-gray-900"
                         onChange={(e) => setEmailOrSlug(e.target.value)}
                       />
                     </div>
@@ -317,7 +317,7 @@ function AcessoUsuarioContent() {
                         placeholder="Senha de acesso ao @pp"
                         required
                         value={password}
-                        className="w-full pl-11 pr-10 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900"
+                        className="w-full pl-11 pr-10 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xs text-gray-900 dark:text-gray-900"
                         onChange={(e) => setPassword(e.target.value)}
                       />
                       <button
@@ -612,7 +612,7 @@ function AcessoUsuarioContent() {
                     placeholder="seu@email.com"
                     value={resetEmail}
                     onChange={(e) => setResetEmail(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-blue-100 outline-none text-sm"
+                    className="w-full pl-11 pr-4 py-3 bg-gray-50 text-gray-900 dark:text-gray-900 border-none rounded-xl focus:ring-2 focus:ring-blue-100 outline-none text-sm"
                   />
                 </div>
                 <button

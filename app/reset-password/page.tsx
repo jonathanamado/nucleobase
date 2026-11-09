@@ -16,6 +16,9 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  // Controle de autorização rigorosa da página
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
   // Estados para controlar a visibilidade das senhas
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -26,6 +29,32 @@ export default function ResetPasswordPage() {
       content_category: "autenticacao",
       content_name: "pagina_reset_password"
     });
+
+    // Trava de segurança: Checa se há uma sessão de usuário ou de recuperação ativa
+    const checkAccess = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        // Se entrar direto pela URL sem o token de recuperação, barra o acesso
+        alert("Acesso inválido ou link expirado. Por favor, solicite a recuperação de senha novamente.");
+        window.location.href = "/acesso-usuario";
+      } else {
+        setIsAuthorized(true);
+      }
+    };
+
+    // Escuta eventos em tempo real (ex: o exato momento em que o Supabase valida o link do email)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" || session) {
+        setIsAuthorized(true);
+      } else if (event === "SIGNED_OUT" || !session) {
+        window.location.href = "/acesso-usuario";
+      }
+    });
+
+    checkAccess();
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const trackClick = (label: string, destination: string) => {
@@ -68,9 +97,20 @@ export default function ResetPasswordPage() {
     setLoading(false);
   };
 
+  // Se não estiver autorizado (acesso sem link ou sem sessão), não renderiza o formulário
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 pb-20">
+        <p className="text-gray-400 font-bold text-sm animate-pulse tracking-widest uppercase">
+          Verificando autorização segura...
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 pb-20">
-      <div className="w-full max-w-md bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-8 md:p-12 mb-20">
+      <div className="w-full max-w-md bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-8 md:p-12 mb-20 animate-in fade-in zoom-in-95 duration-500">
 
         {!success ? (
           <>
