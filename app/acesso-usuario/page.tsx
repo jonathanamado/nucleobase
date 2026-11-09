@@ -509,27 +509,27 @@ function AcessoUsuarioContent() {
                 </div>
               </div>
 
-              {/* Inferior: 4 Tópicos ocupando 100% da largura, distribuídos de ponta a ponta */}
-              <div className="relative z-10 w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 items-start">
-                <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0 w-full">
+              {/* Inferior: 4 Tópicos centralizados no mobile e com espaçamento padronizado nas laterais no desktop */}
+              <div className="relative z-10 w-full flex flex-col md:flex-row md:flex-wrap lg:flex-nowrap items-center md:justify-center lg:justify-between gap-6 lg:gap-4">
+                <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0 w-fit text-left">
                   <ShieldCheck size={28} className="text-blue-400 row-span-2 self-start mt-1" />
                   <span className="text-white font-bold text-xs uppercase tracking-tighter">Criptografia</span>
                   <span className="text-[10px] text-gray-500 font-medium">Proteção total SSL/TLS 1.3</span>
                 </div>
 
-                <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0 w-full">
+                <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0 w-fit text-left">
                   <Key size={28} className="text-blue-400 row-span-2 self-start mt-1" />
                   <span className="text-white font-bold text-xs uppercase tracking-tighter">Acesso Restrito</span>
                   <span className="text-[10px] text-gray-500 font-medium">Políticas RLS ativas</span>
                 </div>
 
-                <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0 w-full">
+                <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0 w-fit text-left">
                   <Globe size={28} className="text-blue-400 row-span-2 self-start mt-1" />
                   <span className="text-white font-bold text-xs uppercase tracking-tighter">Backup em Nuvem</span>
                   <span className="text-[10px] text-gray-500 font-medium">Sincronização realtime</span>
                 </div>
 
-                <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0 w-full">
+                <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0 w-fit text-left">
                   <Users size={28} className="text-blue-400 row-span-2 self-start mt-1" />
                   <span className="text-white font-bold text-xs uppercase tracking-tighter">Multiusuário</span>
                   <span className="text-[10px] text-gray-500 font-medium">Síndico, morador, conselho...</span>

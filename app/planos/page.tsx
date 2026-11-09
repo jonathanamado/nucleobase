@@ -393,10 +393,10 @@ export default function PaginaDePlanos() {
 
               {/* BLOCO DE VALORES COM REAJUSTE DE LAYOUT PARA CONTROLES +/- */}
               <div className="mt-4 pt-4 border-t border-slate-700/50">
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 md:mb-3">
+                <div className="flex flex-col md:flex-row items-center md:items-center justify-between mb-4 md:mb-3">
 
-                  {/* Investimento Estimado - Ocupa 100% no mobile */}
-                  <div className="flex flex-col w-full md:w-auto">
+                  {/* Investimento Estimado - Centralizado no Mobile, Esquerda no Desktop */}
+                  <div className="flex flex-col w-full md:w-auto text-center md:text-left items-center md:items-start">
                     <span className="text-[9px] text-amber-500 font-bold uppercase tracking-widest mb-1 flex items-center gap-1">
                       <Calculator size={10} /> Investimento Estimado
                     </span>
@@ -422,8 +422,8 @@ export default function PaginaDePlanos() {
                   </div>
                 </div>
 
-                {/* Base de Cálculo - Quebra de linha no mobile */}
-                <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between bg-slate-900/50 rounded-lg p-3 md:p-2.5 md:px-3 gap-1 md:gap-0">
+                {/* Base de Cálculo - Centralizado no mobile, Justificado no Desktop */}
+                <div className="flex flex-col md:flex-row items-center md:items-center justify-center md:justify-between bg-slate-900/50 rounded-lg p-3 md:p-2.5 md:px-3 gap-1 md:gap-0 text-center md:text-left">
                   <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Base de cálculo</span>
                   <span className="text-[11px] md:text-xs font-medium text-slate-400">
                     {unitPriceFormatted} / unidade habitacional
@@ -432,8 +432,13 @@ export default function PaginaDePlanos() {
               </div>
             </div>
 
+            {/* Novo título para as funcionalidades */}
+            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">
+              Funcionalidades Inclusas:
+            </h4>
+
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-2 mb-8">
-              {["Painel de Síndico", "App para Moradores", "Módulo Inadimplência", "Rateio Automático"].map((v, i) => (
+              {["Painel de síndico", "App para moradores", "Módulo de inadimplência", "Rateio automático para boletos", "Enquetes e livro de ocorrências", "Comunicação interna e muito mais..."].map((v, i) => (
                 <li key={i} className="flex items-center gap-2 text-slate-300 text-xs font-medium">
                   <CheckCircle2 size={14} className="text-amber-500 shrink-0" /> {v}
                 </li>
