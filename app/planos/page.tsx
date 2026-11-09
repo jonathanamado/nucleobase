@@ -262,13 +262,14 @@ export default function PaginaDePlanos() {
             <ShoppingCart size={32} className="text-blue-600 opacity-35 ml-3" strokeWidth={2} />
           </h1>
           <h2 className="text-gray-500 text-base md:text-lg font-medium max-w-2xl leading-relaxed mt-0">
-            Escolha o nível de controle que sua jornada financeira precisa.
+            <span className="md:hidden">Escolha o seu nível desejado.</span>
+            <span className="hidden md:block">Escolha o nível de controle que sua jornada financeira precisa.</span>
           </h2>
         </div>
       </div>
 
-      {/* BALÃO DE ONBOARDING GUIADO (Minimalista) */}
-      <div className="w-full bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white p-5 rounded-xl shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 mb-10 relative overflow-hidden border border-blue-400/20">
+      {/* BALÃO DE ONBOARDING GUIADO (Minimalista) - Oculto no Mobile */}
+      <div className="hidden md:flex w-full bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white p-5 rounded-xl shadow-lg flex-col md:flex-row items-center justify-between gap-4 mb-10 relative overflow-hidden border border-blue-400/20">
         <div className="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
           <Sparkles size={160} />
         </div>
@@ -307,9 +308,17 @@ export default function PaginaDePlanos() {
               <User size={18} className="text-blue-600" /> Uso Pessoal
             </div>
 
-            <h3 className="text-3xl font-bold text-slate-900 mb-3"><span className="text-gray-300 font-light">Opções</span> Essencial <span className="text-gray-300 font-light">&</span> Pro</h3>
+            {/* Título com tamanho e texto ajustados dinamicamente para Mobile/Desktop */}
+            <h3 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">
+              <span className="md:hidden">Essencial <span className="text-gray-300 font-light">&</span> Pro</span>
+              <span className="hidden md:inline"><span className="text-gray-300 font-light">Opções</span> Essencial <span className="text-gray-300 font-light">&</span> Pro</span>
+            </h3>
 
-            <p className="text-slate-500 text-sm font-medium mb-6 leading-relaxed">Controle financeiro sob medida para pessoas físicas e famílias. Escolha a profundidade que sua gestão exige.</p>
+            {/* Descrição ajustada para Mobile/Desktop */}
+            <p className="text-slate-500 text-sm font-medium mb-6 leading-relaxed">
+              <span className="md:hidden">Controle financeiro sob medida para pessoas físicas e famílias.</span>
+              <span className="hidden md:inline">Controle financeiro sob medida para pessoas físicas e famílias. Escolha a profundidade que sua gestão exige.</span>
+            </p>
 
             <div className="flex flex-col mb-8">
               <span className="text-3xl font-black text-slate-900 tracking-tighter">De R$ 9,90 a R$ 19,90</span>
@@ -349,16 +358,23 @@ export default function PaginaDePlanos() {
             <div className="flex items-center gap-2 text-amber-500 font-bold text-[10px] uppercase tracking-[0.2em] mb-8">
               <Building2 size={18} /> Condomínios
             </div>
-            <h3 className="text-3xl font-bold text-white mb-3">Nucleo Condo</h3>
-            <p className="text-slate-400 text-sm font-medium mb-8 leading-relaxed">Gestão transparente e prestação de contas automatizada. O valor se adapta ao tamanho do seu condomínio.</p>
+            {/* Título com tamanho reduzido apenas no mobile */}
+            <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">Nucleo Condo</h3>
+            <p className="text-slate-400 text-sm font-medium mb-8 leading-relaxed">
+              <span className="md:hidden">Gestão transparente com valores se adaptam ao tamanho do seu condomínio.</span>
+              <span className="hidden md:block">Gestão transparente e tarefas simplificadas. E ainda o custo se adapta ao tamanho do seu condomínio.</span>
+            </p>
 
             {/* CALCULADORA / SLIDER */}
             <div className="bg-slate-800/60 p-6 rounded-2xl border border-slate-700/50 mb-8 backdrop-blur-sm">
-              <div className="flex justify-between items-end mb-4">
+              <div className="flex justify-between items-center mb-4">
                 <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                  <SlidersHorizontal size={14} /> Unidades (Casas/Aptos)
+                  <SlidersHorizontal size={14} />
+                  {/* Texto trocado para mobile */}
+                  <span className="md:hidden">Unidades</span>
+                  <span className="hidden md:inline">Unidades (Casas/Aptos)</span>
                 </span>
-                <span className="text-3xl font-black text-white">{condoUnits}</span>
+                <span className="text-3xl font-black text-white leading-none">{condoUnits}</span>
               </div>
 
               <div className="relative pt-2 pb-2 md:pb-4">
@@ -437,22 +453,33 @@ export default function PaginaDePlanos() {
               Funcionalidades Inclusas:
             </h4>
 
-            <ul className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-2 mb-8">
-              {["Painel de síndico", "App para moradores", "Módulo de inadimplência", "Rateio pronto para boletos", "Enquetes e integrações ativas", "Livro digital e muito mais..."].map((v, i) => (
-                <li key={i} className="flex items-center gap-2 text-slate-300 text-xs font-medium">
+            {/* Lista Exclusiva para Mobile */}
+            <ul className="grid md:hidden grid-cols-1 gap-y-3 mb-8">
+              {["App para Síndico e Moradores", "Módulo de inadimplência", "Rateio pronto para boletos", "Enquetes e integrações ativas", "Livro app digital e muito mais"].map((v, i) => (
+                <li key={`mobile-${i}`} className="flex items-center gap-2 text-slate-300 text-xs font-medium">
                   <CheckCircle2 size={14} className="text-amber-500 shrink-0" /> {v}
                 </li>
               ))}
             </ul>
+
+            {/* Lista Exclusiva para Desktop */}
+            <ul className="hidden md:grid grid-cols-2 gap-y-3 gap-x-2 mb-8">
+              {["Painel de síndico", "App para moradores", "Módulo de inadimplência", "Rateio pronto para boletos", "Enquetes e integrações", "Livro app digital e muito +"].map((v, i) => (
+                <li key={`desktop-${i}`} className="flex items-center gap-2 text-slate-300 text-xs font-medium">
+                  <CheckCircle2 size={14} className="text-amber-500 shrink-0" /> {v}
+                </li>
+              ))}
+            </ul>
+
           </div>
 
           <div className="mt-auto relative z-10">
-            {/* Botão Modificado com Ícone do WhatsApp */}
+            {/* Botão Modificado com Ícone de Fone oculto no Mobile */}
             <button
               onClick={handleCondoContact}
               className="w-full py-4 bg-amber-500 text-white rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer"
             >
-              <Headphones size={16} /> Personalizar Plano <WhatsAppIcon />
+              <Headphones size={16} className="hidden md:block" /> Personalizar Plano <WhatsAppIcon />
             </button>
             <p className="text-center text-[10px] text-slate-500 font-medium mt-4">
               Fale com um consultor para fechar negócio e gerar contrato.
@@ -466,13 +493,16 @@ export default function PaginaDePlanos() {
 
       <div className="mb-12">
         <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 mb-2">Por que somos diferentes?</h4>
-        <p className="text-lg text-gray-500 font-medium leading-relaxed">Conheça os pilares que sustentam a segurança e a transparência da nossa plataforma para transformar sua gestão financeira.</p>
+        <p className="text-base md:text-lg text-gray-500 font-medium leading-relaxed">
+          <span className="md:hidden">Conheça os pilares que sustentam a segurança e a transparência do nosso app.</span>
+          <span className="hidden md:inline">Conheça os pilares que sustentam a segurança e a transparência do nosso app para transformar sua gestão.</span>
+        </p>
       </div>
 
       <div className="hidden md:flex flex-row items-center gap-12">
         <div className="w-1/3">
           <h5 className="text-2xl font-bold text-gray-900 tracking-tight mb-4">Diferenciais Nucleobase</h5>
-          <p className="text-sm text-gray-500 font-medium leading-relaxed mb-6">Desenvolvemos uma infraestrutura focada na sua privacidade e no crescimento do seu patrimônio, garantindo suporte e evolução constante.</p>
+          <p className="text-sm text-gray-500 font-medium leading-relaxed mb-6">Desenvolvemos uma infraestrutura focada na sua privacidade e crescimento, garantindo suporte e evolução constante.</p>
           <div className="flex gap-3">
             <button onClick={prevCardDesktop} className="p-3 bg-white shadow-md rounded-full text-gray-400 hover:text-blue-600 transition-all border border-gray-100 active:scale-90 cursor-pointer"><ChevronLeft size={24} /></button>
             <button onClick={nextCardDesktop} className="p-3 bg-white shadow-md rounded-full text-gray-400 hover:text-blue-600 transition-all border border-gray-100 active:scale-90 cursor-pointer"><ChevronRight size={24} /></button>
