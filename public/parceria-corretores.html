@@ -15,14 +15,14 @@
     padding: 0; 
   }
   
-  /* Animações Sutis (Suportadas em clientes modernos como Apple Mail) */
+  /* Animações Sutis */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
   }
   .animate-up { animation: fadeUp 0.8s ease-out forwards; }
 
-  /* Marcadores com pulso lento (Apple Mail e similares; nos demais ficam fixos) */
+  /* Marcadores com pulso lento */
   @keyframes nucleoPulse { 0%,100% { opacity:0.3; } 50% { opacity:1; } }
   .pulse  { animation: nucleoPulse 2.6s ease-in-out infinite; }
   .pulse2 { animation-delay: 0.9s; }
@@ -35,7 +35,7 @@
     .btn { display: block !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
   }
 
-  /* Forçar Light Mode para manter a identidade visual intacta */
+  /* Forçar Light Mode */
   :root { color-scheme: light only; supported-color-schemes: light only; }
   @media (prefers-color-scheme: dark) {
     .bg-main { background-color: #F8FAFC !important; }
@@ -47,12 +47,12 @@
 </head>
 <body class="bg-main" bgcolor="#F8FAFC" style="margin:0; padding:0; background-color:#F8FAFC; -webkit-font-smoothing: antialiased;">
 
-<!-- Pré-cabeçalho (Texto oculto para caixa de entrada) -->
+<!-- Pré-cabeçalho -->
 <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:#F8FAFC; font-size:1px; line-height:1px;">
   Transforme a sua carteira de imóveis em comissão recorrente indicando gestão moderna de condomínios.
 </div>
 
-<!-- Container Principal (Fundo Cinza Claro) -->
+<!-- Container Principal -->
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F8FAFC" style="background-color:#F8FAFC; padding: 40px 20px;">
   <tr>
     <td align="center">
@@ -77,7 +77,7 @@
 
         <!-- CORPO DO E-MAIL -->
         <tr>
-          <td class="content-padding" style="padding: 40px 32px;">
+          <td class="content-padding" style="padding: 40px 32px 24px 32px;">
             
             <p class="text-dark" style="color:#12324A; font-size:18px; font-weight:600; margin-bottom:16px;">
               Olá!
@@ -85,11 +85,11 @@
             
             <p class="text-gray" style="color:#475569; font-size:15px; line-height:1.6; margin-bottom:32px;">
               Somos a <strong>Nucleobase</strong>, uma plataforma digital para gestão de condomínios que buscam evoluções em seu dia a dia. Queremos apresentar a você o nosso app para que você se torne parte desta digitalização condominial.
-			  <br><br>
-			  Nossos produtos são focados em organização de prestações de contas, rateios, controles de inadimplência e demais rotinas administrativas e operacionais centralizadas em um local único, com acesso individual tanto para <strong>administradores</strong> quanto para <strong>moradores</strong>. Antes de conquistar sua indicação, queremos que você conheça de perto nossa solução: faremos uma apresentação e criaremos sua conta de teste logo após o seu contato.
+              <br><br>
+              Nossos produtos são focados em organização de prestações de contas, rateios, controles de inadimplência e demais rotinas administrativas e operacionais centralizadas em um local único, com acesso individual tanto para <strong>administradores</strong> quanto para <strong>moradores</strong>. Antes de conquistar sua indicação, queremos que você conheça de perto nossa solução: faremos uma apresentação e criaremos sua conta de teste logo após o seu contato.
             </p>
 
-            <!-- POR QUE SER PARCEIRO (Destaque Visual) -->
+            <!-- POR QUE SER PARCEIRO -->
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F0F9FA; border-radius:12px; margin-bottom:32px;">
               <tr>
                 <td style="padding: 24px;">
@@ -134,7 +134,6 @@
                 <td align="center">
                   <p class="text-dark" style="color:#12324A; font-size:14px; font-weight:600; margin-bottom:20px;">Quer entender como funciona?</p>
                   
-                  <!-- Botoes Empilhados -->
                   <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                     <tr>
                       <td align="center" style="padding-bottom:12px;">
@@ -155,7 +154,7 @@
               </tr>
             </table>
             
-			<!-- COMO FUNCIONA -->
+            <!-- COMO FUNCIONA -->
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top: 1px solid #E2E8F0; padding-top: 32px;">
               <tr>
                 <td>
@@ -175,7 +174,7 @@
         
         <!-- ASSINATURA -->
         <tr>
-          <td style="padding: 0 32px 40px 32px;">
+          <td style="padding: 0 32px 24px 32px;">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <td valign="middle">
@@ -183,7 +182,6 @@
                   <p style="color:#475569; font-size:14px; margin:4px 0 0 0;">Equipe Nucleo</p>
                 </td>
                 <td valign="middle" align="right">
-                   <!-- Logo de assinatura transparente e clicável -->
                    <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                      <tr>
                        <td align="center" valign="middle" style="width:36px; height:36px;">
@@ -193,6 +191,57 @@
                        </td>
                      </tr>
                    </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- FORMULÁRIO DE NEWSLETTER SUTIL (ABAIXO DA ASSINATURA) -->
+        <tr>
+          <td style="padding: 0 32px 32px 32px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top: 1px solid #E2E8F0; padding-top: 24px;">
+              <tr>
+                <td>
+                  <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px; text-align: center;">
+                    
+                    <form id="newsletterForm" action="https://api.web3forms.com/submit" method="POST" style="margin:0;">
+                      <input type="hidden" name="access_key" value="9ef5a274-150a-4664-a885-0b052efd06f7">
+                      <input type="hidden" name="subject" value="Nova Inscrição na Newsletter - E-mail Corretores Nucleobase">
+                      <input type="hidden" name="origem" value="email_corretores">
+                      
+                      <div id="formFieldsContainer">
+                        <p style="color:#12324A; font-size:14px; font-weight:700; margin-bottom:4px;">Inscreva-se na nossa Newsletter</p>
+                        <p style="color:#64748B; font-size:12px; margin-bottom:16px;">Receba insights estratégicos diretamente no seu e-mail.</p>
+
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:340px; margin:0 auto;">
+                          <tr>
+                            <td style="padding-bottom:8px;">
+                              <input type="text" id="nomeInput" name="nome" placeholder="Seu nome" style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid #CBD5E1; font-size:13px; font-family:'Inter', sans-serif; box-sizing:border-box; outline:none; background-color:#FFFFFF; color:#12324A;">
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding-bottom:10px;">
+                              <input type="email" id="emailInput" name="email" required placeholder="Seu melhor e-mail" style="width:100%; padding:9px 12px; border-radius:6px; border:1px solid #CBD5E1; font-size:13px; font-family:'Inter', sans-serif; box-sizing:border-box; outline:none; background-color:#FFFFFF; color:#12324A;">
+                            </td>
+                          </tr>
+                          <tr>
+                            <td align="center">
+                              <button type="submit" id="submitBtn" class="btn" style="width:100%; padding:10px 16px; background-color:#12324A; color:#FFFFFF; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; border:none; border-radius:6px; cursor:pointer; box-sizing:border-box;">
+                                Inscrever-se
+                              </button>
+                            </td>
+                          </tr>
+                        </table>
+                      </div>
+                    </form>
+
+                    <!-- MENSAGEM DE CONFIRMAÇÃO EXPOSTA NO MESMO LOCAL -->
+                    <div id="newsletterSuccess" style="display:none; color:#10B981; font-size:14px; font-weight:700; padding:16px; background-color:#ECFDF5; border-radius:8px; border:1px solid #A7F3D0;">
+                      ✓ Cadastro realizado com sucesso!
+                    </div>
+
+                  </div>
                 </td>
               </tr>
             </table>
@@ -260,6 +309,49 @@
     </td>
   </tr>
 </table>
+
+<!-- SCRIPT DE ENVIO VIA FORMULÁRIO (WEB3FORMS ASYNC) -->
+<script>
+  document.getElementById('newsletterForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById('submitBtn');
+    const successMsg = document.getElementById('newsletterSuccess');
+    const formFields = document.getElementById('formFieldsContainer');
+    const form = this;
+
+    submitBtn.disabled = true;
+    submitBtn.innerText = 'Processando...';
+
+    try {
+      // Disparo de submissão do formulário via endpoint sem abrir nova tela
+      const formData = new FormData(form);
+      const response = await fetch(form.action, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha no envio do formulário');
+      }
+
+      // Oculta os campos e exibe a mensagem de confirmação no mesmo local
+      formFields.style.display = 'none';
+      successMsg.style.display = 'block';
+
+      // Aguarda exatamente 2 segundos e reinicia a página
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+
+    } catch (err) {
+      console.error('Erro ao enviar formulário:', err);
+      alert('Erro ao enviar formulário. Tente novamente.');
+      submitBtn.disabled = false;
+      submitBtn.innerText = 'Inscrever-se';
+    }
+  });
+</script>
 
 </body>
 </html>
