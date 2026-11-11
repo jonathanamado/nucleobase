@@ -154,7 +154,7 @@ export default function ParceirosPage() {
         {/* MÉTRICAS RÁPIDAS - DESKTOP APENAS */}
         <div className="hidden md:flex gap-3 mt-4 md:mt-0 justify-end">
           <div className="px-4 py-2 bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col items-center justify-center min-w-[100px]">
-            <h4 className="text-xl font-black text-gray-900 leading-tight">15% +</h4>
+            <h4 className="text-xl font-black text-gray-900 leading-tight">30% +</h4>
             <p className="text-[7px] text-gray-400 font-black uppercase tracking-widest">Comissão</p>
           </div>
           <div className="px-4 py-2 bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col items-center justify-center min-w-[100px]">
@@ -178,7 +178,7 @@ export default function ParceirosPage() {
       {/* MÉTRICAS RÁPIDAS - MOBILE APENAS (LOGO APÓS A LINHA "PARCERIA") */}
       <div className="flex md:hidden gap-3 mb-6 justify-center w-full">
         <div className="px-3 py-2 bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col items-center justify-center flex-1">
-          <h4 className="text-lg font-black text-gray-900 leading-tight">15% +</h4>
+          <h4 className="text-lg font-black text-gray-900 leading-tight">30% +</h4>
           <p className="text-[7px] text-gray-400 font-black uppercase tracking-widest">Comissão</p>
         </div>
         <div className="px-3 py-2 bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col items-center justify-center flex-1">

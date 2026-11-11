@@ -351,7 +351,7 @@ export function MainContent() {
 
               <div className="shrink-0">
                 <span className="bg-emerald-500 hover:bg-emerald-400 text-gray-900 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 w-full transition-all duration-300 group-hover:scale-105 shadow-lg shadow-emerald-500/20">
-                  Acesse aqui <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                  Acesual aqui <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                 </span>
               </div>
             </div>
@@ -485,15 +485,15 @@ export function MainContent() {
           <div className="lg:col-span-6 flex flex-col justify-center">
             <div className="mb-0">
               <p className="text-base text-gray-600 leading-relaxed pr-6">
-                A <strong className="text-gray-900 font-bold">nucleobase.app</strong> é uma plataforma digital criada para simplificar o seu dia a dia. Nossa estrutura atua em três frentes: com o{" "}
-                <span className="inline-flex items-center justify-center bg-orange-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
-                  Controle Financeiro,
-                </span>
-                {" "}você acompanha contas e cartões de crédito de forma consolidada e inteligente; já com o módulo{" "}
+                A <strong className="text-gray-900 font-bold">nucleobase.app</strong> é uma plataforma digital criada para simplificar o seu dia a dia. Nossa estrutura atua em três frentes: com o módulo{" "}
                 <span className="inline-flex items-center justify-center bg-emerald-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                   Gestão Residencial,
                 </span>
-                {" "}você garante organização e transparência ao seu condomínio de forma consciente; enquanto em{" "}
+                {" "}você garante organização e transparência ao seu condomínio de forma consciente; já com o{" "}
+                <span className="inline-flex items-center justify-center bg-orange-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
+                  Controle Financeiro,
+                </span>
+                {" "}você acompanha contas e cartões de crédito de forma consolidada e inteligente; enquanto em{" "}
                 <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                   Resultados & Consultoria,
                 </span>
@@ -521,19 +521,6 @@ export function MainContent() {
           </div>
 
           <div className="lg:col-span-2 flex">
-            <Link href="/controle-financeiro" onClick={() => trackClick("Controle Financeiro (Desktop)", "/controle-financeiro")} className="flex-1 bg-white border border-gray-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
-              <div className="bg-orange-50 p-3 rounded-2xl text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all duration-300 mb-4">
-                <LayoutDashboard size={24} />
-              </div>
-              <h4 className="font-bold text-gray-900 text-base mb-1">Controle Financeiro</h4>
-              <p className="text-[11px] text-gray-500 leading-tight mb-4">Gerencie lançamentos financeiros e projeções de gastos.</p>
-              <div className="w-full mt-auto py-2.5 bg-orange-50/50 border border-orange-100 text-orange-600 rounded-xl font-bold text-[10px] uppercase tracking-widest group-hover:bg-orange-600 group-hover:text-white transition-all flex items-center justify-center gap-2">
-                Acessar <PiggyBank size={14} />
-              </div>
-            </Link>
-          </div>
-
-          <div className="lg:col-span-2 flex">
             <Link href="/condo" onClick={() => trackClick("Nucleo Condo (Desktop)", "/condo")} className="flex-1 bg-emerald-50/50 border border-emerald-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
               <div className="bg-white p-3 rounded-2xl text-emerald-600 shadow-sm group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 mb-4">
                 <Building2 size={24} />
@@ -542,6 +529,19 @@ export function MainContent() {
               <p className="text-[11px] text-gray-600 leading-tight mb-4">Gerencie seu condomínio e o cadastro de moradores.</p>
               <div className="w-full mt-auto py-2.5 bg-white border border-emerald-200 text-emerald-600 rounded-xl font-bold text-[10px] uppercase tracking-widest group-hover:bg-emerald-600 group-hover:text-white transition-all flex items-center justify-center gap-2">
                 Acessar <Lightbulb size={14} />
+              </div>
+            </Link>
+          </div>
+
+          <div className="lg:col-span-2 flex">
+            <Link href="/controle-financeiro" onClick={() => trackClick("Controle Financeiro (Desktop)", "/controle-financeiro")} className="flex-1 bg-white border border-gray-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center w-full">
+              <div className="bg-orange-50 p-3 rounded-2xl text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all duration-300 mb-4">
+                <LayoutDashboard size={24} />
+              </div>
+              <h4 className="font-bold text-gray-900 text-base mb-1">Controle Financeiro</h4>
+              <p className="text-[11px] text-gray-500 leading-tight mb-4">Gerencie lançamentos financeiros e projeções de gastos.</p>
+              <div className="w-full mt-auto py-2.5 bg-orange-50/50 border border-orange-100 text-orange-600 rounded-xl font-bold text-[10px] uppercase tracking-widest group-hover:bg-orange-600 group-hover:text-white transition-all flex items-center justify-center gap-2">
+                Acessar <PiggyBank size={14} />
               </div>
             </Link>
           </div>

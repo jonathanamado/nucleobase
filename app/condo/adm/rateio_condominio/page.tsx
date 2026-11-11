@@ -20,10 +20,11 @@ import {
     KeyRound,
     UserCheck,
     ArrowRight,
-    ArrowLeft, // Adicionado para o botão voltar
+    ArrowLeft,
     Calendar,
     Download,
-    Save
+    Save,
+    Search
 } from "lucide-react";
 
 interface LinhaRelatorioConsolidado {
@@ -61,9 +62,14 @@ export default function PrestacaoContasConsolidadoPage() {
     });
     const [isRateioSalvo, setIsRateioSalvo] = useState(false);
 
-    // Dados Consolidados para a Tabela
+    // Dados Consolidados para a Tabela e Totais
     const [linhasRelatorio, setLinhasRelatorio] = useState<LinhaRelatorioConsolidado[]>([]);
     const [totalGeralCondominio, setTotalGeralCondominio] = useState(0);
+    const [totalReceitasMes, setTotalReceitasMes] = useState(0);
+    const [totalDespesasMes, setTotalDespesasMes] = useState(0);
+
+    // Estado do Filtro de Pesquisa (Lupa)
+    const [filtroPesquisa, setFiltroPesquisa] = useState("");
 
     const isMountedRef = useRef(true);
 
@@ -100,6 +106,28 @@ export default function PrestacaoContasConsolidadoPage() {
         try {
             const dataCompetenciaCompleta = `${competencia}-01`;
 
+            // Buscar Receitas e Despesas do mês para o resumo do topo
+            const { data: contasDataResumo } = await supabase
+                .from("condominio_contas")
+                .select("tipo, valor_realizado, valor_previsto")
+                .eq("condominio_id", condoId)
+                .eq("data_competencia", dataCompetenciaCompleta);
+
+            let totRec = 0;
+            let totDesp = 0;
+            (contasDataResumo || []).forEach((c: any) => {
+                const val = parseFloat(c.valor_realizado ?? c.valor_previsto ?? 0);
+                const tipoNormalizado = String(c.tipo || "").toLowerCase().trim();
+
+                if (tipoNormalizado === 'receita') {
+                    totRec += val;
+                } else if (tipoNormalizado === 'despesa') {
+                    totDesp += val;
+                }
+            });
+            setTotalReceitasMes(totRec);
+            setTotalDespesasMes(totDesp);
+
             // Buscar taxa base salva do banco
             const { data: taxaData } = await supabase
                 .from("condominio_contas_taxa_base")
@@ -116,13 +144,9 @@ export default function PrestacaoContasConsolidadoPage() {
                 .eq("condominio_id", condoId)
                 .eq("data_competencia", dataCompetenciaCompleta);
 
-            // Se existe pelo menos um salvo e seu status não for Pendente (assumindo que seja Concluído ou NULL/antigo)
-            // Se você quiser garantir que verifica especificamente a string "Concluído", você pode adicionar um filter.
-            // Para manter a compatibilidade, se achar registros salvos com status "Concluído", marcamos como salvo.
             const hasRateioConcluido = savedData && savedData.some((s: any) => s.status === 'Concluído');
 
             if (savedData && savedData.length > 0 && hasRateioConcluido) {
-                // Rateio já foi salvo. Carrega os dados fixos do banco para não sumirem da tela.
                 setIsRateioSalvo(true);
                 let somaGeralConsolidada = 0;
 
@@ -130,7 +154,6 @@ export default function PrestacaoContasConsolidadoPage() {
                     const total = Number(s.total_geral) || 0;
                     somaGeralConsolidada += total;
 
-                    // Ordena moradores salvos alfabeticamente para corrigir dados que já foram para o banco fora de ordem
                     let moradorNomeFormatado = s.morador_nome || "Não atribuído";
                     if (moradorNomeFormatado !== "Não atribuído" && moradorNomeFormatado.includes(",")) {
                         moradorNomeFormatado = moradorNomeFormatado
@@ -155,7 +178,6 @@ export default function PrestacaoContasConsolidadoPage() {
                     };
                 });
 
-                // Ordenar por unidade
                 linhas.sort((a, b) => {
                     const numA = parseInt(a.unidade);
                     const numB = parseInt(b.unidade);
@@ -165,13 +187,13 @@ export default function PrestacaoContasConsolidadoPage() {
 
                 setLinhasRelatorio(linhas);
                 setTotalGeralCondominio(somaGeralConsolidada);
-                return; // Encerra aqui para exibir os dados exatos de como foram gravados
+                return;
             }
 
             // SE NÃO FOI SALVO, marca como PENDENTE e realiza o cálculo em tempo real
             setIsRateioSalvo(false);
 
-            // 1. Buscar membros, papéis (role) e fazer o join com profiles para pegar o nome completo
+            // 1. Buscar membros e papéis
             const { data: membrosData } = await supabase
                 .from("condominio_membros")
                 .select("unidade, role, user_id, profiles(nome_completo)")
@@ -209,28 +231,7 @@ export default function PrestacaoContasConsolidadoPage() {
             const unidadesUnicas = Array.from(unidadesSet).filter(u => u.toLowerCase() !== "adm").sort();
             const qtdUnidades = unidadesUnicas.length > 0 ? unidadesUnicas.length : 1;
 
-            // 2. Buscar Contas (Receitas e Despesas)
-            const { data: contasData } = await supabase
-                .from("condominio_contas")
-                .select("tipo, valor_realizado, valor_previsto")
-                .eq("condominio_id", condoId)
-                .eq("data_competencia", dataCompetenciaCompleta);
-
-            let totalReceitasRealizado = 0;
-            let totalDespesasRealizado = 0;
-
-            (contasData || []).forEach((c: any) => {
-                const val = parseFloat(c.valor_realizado ?? c.valor_previsto ?? 0);
-                const tipoNormalizado = String(c.tipo || "").toLowerCase().trim();
-
-                if (tipoNormalizado === 'receita') {
-                    totalReceitasRealizado += val;
-                } else if (tipoNormalizado === 'despesa') {
-                    totalDespesasRealizado += val;
-                }
-            });
-
-            const saldoLiquidoCondominio = totalReceitasRealizado - totalDespesasRealizado;
+            const saldoLiquidoCondominio = totRec - totDesp;
             const rateioBasePorUnidade = qtdUnidades > 0 ? (Math.abs(saldoLiquidoCondominio) / qtdUnidades) : 0;
 
             // 3. Buscar Tarifa de Gás
@@ -298,7 +299,6 @@ export default function PrestacaoContasConsolidadoPage() {
             // 8. Consolidar linhas por unidade
             let somaGeralConsolidada = 0;
             const linhas: LinhaRelatorioConsolidado[] = unidadesUnicas.map((unidade) => {
-                // Clona e ordena a lista de moradores alfabeticamente
                 const listaMoradores = [...(moradoresPorUnidade.get(unidade) || [])].sort((a, b) => a.localeCompare(b, 'pt-BR'));
                 const moradorNome = listaMoradores.length > 0 ? listaMoradores.join(", ") : "Não atribuído";
 
@@ -314,7 +314,6 @@ export default function PrestacaoContasConsolidadoPage() {
                 const totalUnidade = taxaBaseVal + rateioBasePorUnidade + valorGas + fundoReservaVal + salaoVal + rateioSindicoVal;
                 somaGeralConsolidada += totalUnidade;
 
-                // Montagem do Resumo Texto Boleto com as siglas solicitadas e Total a Pagar
                 const txtTX = formatarMoeda(taxaBaseVal);
                 const txtFR = formatarMoeda(fundoReservaVal);
                 const txtSF = formatarMoeda(salaoVal);
@@ -354,7 +353,6 @@ export default function PrestacaoContasConsolidadoPage() {
         try {
             const dataCompetenciaCompleta = `${competenciaSelecionada}-01`;
 
-            // Mapeando os dados forçando a tipagem numérica correta para evitar envios zerados
             const payload = linhasRelatorio.map((linha) => ({
                 condominio_id: condominio.id,
                 data_competencia: dataCompetenciaCompleta,
@@ -369,11 +367,10 @@ export default function PrestacaoContasConsolidadoPage() {
                 consumo_gas_valor: Number(linha.consumoGasValor) || 0,
                 total_geral: Number(linha.totalGeral) || 0,
                 resumo_boleto: linha.resumoBoleto,
-                status: "Concluído", // Gravando status Concluído
+                status: "Concluído",
                 atualizado_em: new Date().toISOString()
             }));
 
-            // Inserção em lote (Upsert para atualizar caso já exista)
             const { error } = await supabase
                 .from("condominio_rateio_boletos")
                 .upsert(payload, { onConflict: 'condominio_id, data_competencia, unidade' });
@@ -383,7 +380,7 @@ export default function PrestacaoContasConsolidadoPage() {
                 throw error;
             }
 
-            setIsRateioSalvo(true); // Atualiza instantaneamente o status em tela
+            setIsRateioSalvo(true);
             alert("Rateio dos boletos salvo e atualizado com sucesso!");
 
         } catch (err) {
@@ -414,7 +411,7 @@ export default function PrestacaoContasConsolidadoPage() {
                 throw error;
             }
 
-            setIsRateioSalvo(false); // Retorna instantaneamente para Pendente em tela
+            setIsRateioSalvo(false);
         } catch (err) {
             console.error("Erro ao reverter status:", err);
             alert("Erro ao reverter status no banco de dados. Verifique o console.");
@@ -471,7 +468,6 @@ export default function PrestacaoContasConsolidadoPage() {
             if (isMountedRef.current) {
                 setIsApenasMorador(false);
                 setCondominio({ id: vinculoAdm.condominio_id, nome: nomeCondominioOficial });
-                // O carregamento do relatório agora é gerido exclusivamente pelo useEffect que observa competenciaSelecionada
             }
         } catch (e) {
             if (isMountedRef.current) setCondominio(null);
@@ -557,6 +553,16 @@ export default function PrestacaoContasConsolidadoPage() {
         document.body.removeChild(link);
     };
 
+    // Lógica para filtrar as linhas da tabela via Lupa de Pesquisa
+    const linhasFiltradas = linhasRelatorio.filter((linha) => {
+        if (!filtroPesquisa.trim()) return true;
+        const termo = filtroPesquisa.toLowerCase().trim();
+        const morador = (linha.moradorNome || "").toLowerCase();
+        const unidadeStr = `apto ${linha.unidade}`.toLowerCase();
+        const numUnidade = linha.unidade.toLowerCase();
+        return morador.includes(termo) || unidadeStr.includes(termo) || numUnidade.includes(termo);
+    });
+
     if (loading) {
         return (
             <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
@@ -621,7 +627,7 @@ export default function PrestacaoContasConsolidadoPage() {
                             <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-0.5">{condominio?.nome}</h1>
                         </div>
                     </div>
-                    {/* Botão voltar incluído apenas na visão desktop (hidden md:flex) e posicionado acima da linha divisória */}
+                    {/* Botão voltar incluído apenas na visão desktop (hidden md:flex) */}
                     <div className="hidden md:flex items-center">
                         <Link href="/condo/adm/prestacao_contas" className="flex items-center gap-1.5 h-10 px-4 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm cursor-pointer">
                             <ArrowLeft size={14} />
@@ -664,7 +670,7 @@ export default function PrestacaoContasConsolidadoPage() {
                             />
                         </div>
 
-                        {/* Status Indicator ajustado para aparecer tanto em mobile quanto em desktop */}
+                        {/* Status Indicator */}
                         {isRateioSalvo ? (
                             <button
                                 onClick={handleReverterStatus}
@@ -708,19 +714,68 @@ export default function PrestacaoContasConsolidadoPage() {
 
                 {/* Tabela de Relatório Consolidado */}
                 <div className="w-full bg-white border border-zinc-200 p-6 md:p-8 rounded-[2.5rem] shadow-sm space-y-6">
-                    <div className="flex justify-between items-center">
+
+                    {/* Cabeçalho do Card + Cards de Métricas (Receita, Despesa, Consolidado Geral) */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <h2 className="text-xl font-black tracking-tight text-zinc-900">
                                 Demonstrativo<span className="hidden md:inline"> por Unidade</span>
                             </h2>
                             <p className="text-xs text-zinc-500 font-medium">Rateio consolidado referente à competência {competenciaSelecionada}.</p>
                         </div>
-                        <div className="text-right">
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
-                                Consolidado<span className="hidden md:inline"> Geral</span>
-                            </span>
-                            <span className="text-lg font-black text-emerald-600">{formatarMoeda(totalGeralCondominio)}</span>
+
+                        {/* Cards de Métricas: Em 1 linha no mobile (grid-cols-3) abaixo do texto, e alinhados à direita no Desktop */}
+                        <div className="grid grid-cols-3 gap-2 md:flex md:items-center md:gap-6 text-center md:text-right">
+                            <div className="bg-zinc-50 md:bg-transparent p-2.5 md:p-0 rounded-2xl border border-zinc-100 md:border-none">
+                                <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+                                    Receita
+                                </span>
+                                <span className="text-xs md:text-base font-black text-emerald-600">
+                                    {formatarMoeda(totalReceitasMes)}
+                                </span>
+                            </div>
+
+                            <div className="bg-zinc-50 md:bg-transparent p-2.5 md:p-0 rounded-2xl border border-zinc-100 md:border-none">
+                                <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+                                    Despesa
+                                </span>
+                                <span className="text-xs md:text-base font-black text-rose-600">
+                                    {formatarMoeda(totalDespesasMes)}
+                                </span>
+                            </div>
+
+                            <div className="bg-zinc-50 md:bg-transparent p-2.5 md:p-0 rounded-2xl border border-zinc-100 md:border-none">
+                                <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+                                    Consolidado<span className="hidden md:inline"> Geral</span>
+                                </span>
+                                <span className="text-xs md:text-lg font-black text-emerald-600">
+                                    {formatarMoeda(totalGeralCondominio)}
+                                </span>
+                            </div>
                         </div>
+                    </div>
+
+                    {/* Lupa de Pesquisa (Filtro por Unidade ou Morador) */}
+                    <div className="relative w-full">
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-400">
+                            <Search size={16} />
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Pesquisar por unidade ou morador..."
+                            value={filtroPesquisa}
+                            onChange={(e) => setFiltroPesquisa(e.target.value)}
+                            className="w-full pl-10 pr-9 py-2.5 bg-zinc-50 border border-zinc-200 rounded-2xl text-xs font-medium text-zinc-800 placeholder-zinc-400 outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                        />
+                        {filtroPesquisa && (
+                            <button
+                                onClick={() => setFiltroPesquisa("")}
+                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 cursor-pointer"
+                                title="Limpar pesquisa"
+                            >
+                                <X size={14} />
+                            </button>
+                        )}
                     </div>
 
                     <div className="overflow-x-auto border border-zinc-100 rounded-2xl">
@@ -740,14 +795,14 @@ export default function PrestacaoContasConsolidadoPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-50">
-                                {linhasRelatorio.length === 0 ? (
+                                {linhasFiltradas.length === 0 ? (
                                     <tr>
                                         <td colSpan={10} className="text-center py-8 text-xs text-zinc-400">
-                                            Nenhum dado consolidado encontrado para este período ou nenhuma unidade cadastrada.
+                                            {filtroPesquisa ? "Nenhuma unidade ou morador encontrado com o termo pesquisado." : "Nenhum dado consolidado encontrado para este período ou nenhuma unidade cadastrada."}
                                         </td>
                                     </tr>
                                 ) : (
-                                    linhasRelatorio.map((linha) => (
+                                    linhasFiltradas.map((linha) => (
                                         <tr key={linha.unidade} className="hover:bg-zinc-50/50 transition-colors">
                                             <td className="p-3.5 pl-5 text-xs font-bold text-zinc-800">Apto {linha.unidade}</td>
                                             <td className="p-3.5 text-xs font-medium text-zinc-600 whitespace-nowrap">{linha.moradorNome}</td>

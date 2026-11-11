@@ -492,7 +492,7 @@ export function Header() {
                 {/* Título Elegante no Topo (Apenas Mobile) */}
                 <div className="flex items-center gap-2 mb-4 px-2 pt-2 pb-3 border-b border-gray-100">
                   <img src="/favicon.ico" alt="Favicon Nucleobase" className="w-5 h-5 rounded-sm object-contain" />
-                  <span className="text-[13px] font-bold tracking-tighter text-gray-900 uppercase">Nucleobase.app</span>
+                  <span className="text-[13px] font-bold tracking-tighter text-gray-900">nucleobase.app</span>
                 </div>
 
                 <nav className="space-y-0.5 bg-white">
@@ -537,7 +537,7 @@ export function Header() {
                           <LayoutDashboard size={15} /> Gestão Financeira
                         </a>
                       )}
-                      <a href="/controle-financeiro/resultados" onClick={() => trackHeaderClick("Resultados & Consultoria (Mobile)", "/controle-financeiro/resultados")} className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-700 text-white rounded-xl font-bold text-xs shadow-lg active:scale-95 transition-all">
+                      <a href="/resultados-consultoria" onClick={() => trackHeaderClick("Resultados & Consultoria (Mobile)", "/resultados-consultoria")} className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-700 text-white rounded-xl font-bold text-xs shadow-lg active:scale-95 transition-all">
                         <BarChart3 size={15} /> Resultados & Consultoria
                       </a>
                     </div>
