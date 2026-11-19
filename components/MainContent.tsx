@@ -20,6 +20,9 @@ export function MainContent() {
   const [inlineLoading, setInlineLoading] = useState(false);
   const [inlineEnviado, setInlineEnviado] = useState(false);
 
+  // Estado interativo para a trilha de demonstração (Desktop)
+  const [activeTourStep, setActiveTourStep] = useState<number>(0);
+
   const handleSubscribe = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -565,10 +568,10 @@ export function MainContent() {
         </h3>
 
         {/* --- SEÇÃO DO VÍDEO DESKTOP --- */}
-        <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-10 items-stretch mb-16">
-          <div className="md:col-span-8 relative group">
+        <div className="w-full grid grid-cols-1 md:grid-cols-12 lg:gap-6 2xl:gap-10 items-stretch mb-16">
+          <div className="md:col-span-8 lg:col-span-7 2xl:col-span-8 relative group">
             <div className="absolute -inset-2 bg-gradient-to-r from-blue-600/20 to-indigo-600/20 rounded-[3.5rem] blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700"></div>
-            <div className="relative aspect-video bg-gray-900 rounded-[3rem] overflow-hidden border-4 border-white shadow-2xl">
+            <div className="relative aspect-video bg-gray-900 rounded-[2.2rem] 2xl:rounded-[3rem] overflow-hidden border-4 border-white shadow-2xl">
               <iframe
                 className="absolute inset-0 w-full h-full"
                 src="https://www.youtube.com/embed/47qCg8123cA"
@@ -579,90 +582,131 @@ export function MainContent() {
             </div>
           </div>
 
-          <div className="md:col-span-4 flex flex-col">
-            <div className="h-full border border-gray-100 bg-gray-50/30 p-6 rounded-[2.5rem] flex flex-col justify-between shadow-sm">
-
-              <div className="space-y-6">
-                <div className="flex items-center justify-center gap-3 px-4 py-2 bg-gray-900/5 backdrop-blur-md border border-gray-200/50 rounded-2xl w-full">
-                  <h4 className="text-sm font-bold tracking-tight text-gray-900 uppercase">
-                    Nucleo em ação.
-                  </h4>
-                  <div className="flex items-center justify-center w-6 h-6 bg-blue-600 rounded-lg shadow-lg shadow-blue-200 animate-pulse">
-                    <Play fill="white" size={12} className="ml-0.5" />
+          <div className="md:col-span-4 lg:col-span-5 2xl:col-span-4 flex flex-col">
+            <div className="h-full bg-slate-50/90 border border-slate-200/80 lg:p-4 xl:p-5 2xl:p-7 rounded-[2.2rem] 2xl:rounded-[3rem] flex flex-col justify-between shadow-sm relative overflow-hidden">
+              <div className="lg:space-y-2.5 2xl:space-y-4">
+                {/* Cabeçalho & Vínculo Oficial YouTube */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 2xl:w-2.5 2xl:h-2.5 rounded-full bg-blue-600 animate-pulse"></span>
+                    <h4 className="text-xs 2xl:text-sm font-black tracking-tight text-gray-900 uppercase">
+                      Nucleo na Prática
+                    </h4>
                   </div>
+
+                  <a
+                    href="https://www.youtube.com/watch?v=47qCg8123cA"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => trackClick("YouTube Canal Oficial (Desktop)", "https://www.youtube.com/watch?v=47qCg8123cA")}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 2xl:px-3 2xl:py-1 rounded-full bg-white border border-gray-200 hover:border-red-200 hover:bg-red-50/60 transition-all shadow-2xs group/yt"
+                    title="Assistir e inscrever-se no YouTube"
+                  >
+                    <span className="w-3.5 h-3.5 2xl:w-4 2xl:h-4 rounded-full bg-[#FF0000] flex items-center justify-center">
+                      <Play fill="white" size={7} className="text-white ml-0.5" />
+                    </span>
+                    <span className="text-[9px] 2xl:text-[10px] font-black uppercase tracking-wider text-gray-700 group-hover/yt:text-red-600 transition-colors">
+                      YouTube
+                    </span>
+                  </a>
                 </div>
 
-                <div className="space-y-4">
-                  <p className="text-gray-500 text-sm leading-relaxed font-medium">
-                    Faça um tour rápido pela interface e descubra como simplificamos o que antes era complexo.
-                  </p>
+                <p className="block 2xl:hidden text-gray-500 text-[11px] leading-snug font-medium">
+                  Explore nossa trilha interativa e veja cada etapa em operação:
+                </p>
+                <p className="hidden 2xl:block text-gray-500 text-xs leading-relaxed font-medium">
+                  Menos teoria, mais controle real. Explore nossa trilha interativa e veja cada etapa em operação:
+                </p>
 
-                  <div className="grid grid-cols-3 gap-2 pt-2">
-                    {/* Item 01 */}
-                    <div className="flex flex-col gap-2">
-                      <Link href="/demonstracao" onClick={() => trackClick("Demonstração - Criar Conta", "/demonstracao")} className="group/thumb relative aspect-video bg-white rounded-xl overflow-hidden border border-gray-200 transition-all hover:border-blue-300 shadow-sm">
-                        <img
-                          src="/imagem-miniatura-criar-conta.png"
-                          alt="Como criar conta"
-                          className="w-full h-full object-cover opacity-80 group-hover/thumb:opacity-100 transition-opacity"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center bg-gray-900/10 group-hover/thumb:bg-gray-900/0 transition-all">
-                          <div className="bg-[#FF0000] p-1 rounded-md shadow-lg">
-                            <Play fill="white" size={8} className="text-white ml-0.5" />
+                {/* Trilha Interativa (Playlist Vertical Curada) */}
+                <div className="space-y-1.5 2xl:space-y-2.5 pt-0.5 2xl:pt-1">
+                  {[
+                    {
+                      step: "01",
+                      title: "Criar Conta",
+                      desc: "Configure seu ambiente em minutos.",
+                      img: "/imagem-miniatura-criar-conta.png",
+                      alt: "Como criar conta",
+                      track: "Demonstração - Criar Conta"
+                    },
+                    {
+                      step: "02",
+                      title: "Realizar Lançamento",
+                      desc: "Registros e rateios sem planilhas.",
+                      img: "/imagem-miniatura-realizar-lancamento.png",
+                      alt: "Como realizar lançamento",
+                      track: "Demonstração - Realizar Lançamento"
+                    },
+                    {
+                      step: "03",
+                      title: "Analisar Resultado",
+                      desc: "Visão clara para decisões imediatas.",
+                      img: "/imagem-miniatura-acompanhar-resultado.png",
+                      alt: "Como acompanhar resultados",
+                      track: "Demonstração - Analisar Resultado"
+                    }
+                  ].map((item, idx) => {
+                    const isActive = activeTourStep === idx;
+                    return (
+                      <Link
+                        key={item.step}
+                        href="/demonstracao"
+                        onMouseEnter={() => setActiveTourStep(idx)}
+                        onClick={() => trackClick(item.track, "/demonstracao")}
+                        className={`group/item flex items-center gap-2.5 2xl:gap-3 p-1.5 2xl:p-2.5 rounded-xl 2xl:rounded-2xl border transition-all duration-300 ${isActive
+                          ? "bg-white border-blue-200 shadow-md shadow-blue-900/5 translate-x-1"
+                          : "bg-white/60 border-gray-200/70 hover:bg-white hover:border-blue-200"
+                          }`}
+                      >
+                        <div className="relative w-14 2xl:w-20 aspect-video rounded-lg 2xl:rounded-xl overflow-hidden bg-gray-900 shrink-0 border border-gray-200">
+                          <img
+                            src={item.img}
+                            alt={item.alt}
+                            className="w-full h-full object-cover opacity-85 group-hover/item:opacity-100 group-hover/item:scale-105 transition-all duration-500"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center bg-gray-900/20 group-hover/item:bg-transparent transition-all">
+                            <div className={`p-0.5 2xl:p-1 rounded-full shadow-md transition-transform duration-300 ${isActive ? "bg-[#FF0000] scale-110" : "bg-gray-900/80 group-hover/item:bg-[#FF0000]"}`}>
+                              <Play fill="white" size={7} className="text-white ml-0.5 2xl:w-2 2xl:h-2" />
+                            </div>
                           </div>
                         </div>
-                      </Link>
-                      <span className="text-[9px] font-bold text-gray-400 uppercase leading-tight text-center">
-                        Criar<br />Conta
-                      </span>
-                    </div>
 
-                    {/* Item 02 */}
-                    <div className="flex flex-col gap-2">
-                      <Link href="/demonstracao" onClick={() => trackClick("Demonstração - Realizar Lançamento", "/demonstracao")} className="group/thumb relative aspect-video bg-white rounded-xl overflow-hidden border border-gray-200 transition-all hover:border-blue-300 shadow-sm">
-                        <img
-                          src="/imagem-miniatura-realizar-lancamento.png"
-                          alt="Como realizar lançamento"
-                          className="w-full h-full object-cover opacity-80 group-hover/thumb:opacity-100 transition-opacity"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center bg-gray-900/10 group-hover/thumb:bg-gray-900/0 transition-all">
-                          <div className="bg-[#FF0000] p-1 rounded-md shadow-lg">
-                            <Play fill="white" size={8} className="text-white ml-0.5" />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`text-[8px] 2xl:text-[9px] font-black tracking-widest uppercase ${isActive ? "text-blue-600" : "text-gray-400"}`}>
+                              {item.step}
+                            </span>
+                            <h5 className="text-[11px] 2xl:text-xs font-bold text-gray-900 truncate group-hover/item:text-blue-600 transition-colors">
+                              {item.title}
+                            </h5>
                           </div>
+                          <p className="text-[10px] 2xl:text-[11px] text-gray-500 leading-tight 2xl:leading-snug line-clamp-1 mt-0.5">
+                            {item.desc}
+                          </p>
                         </div>
-                      </Link>
-                      <span className="text-[9px] font-bold text-gray-400 uppercase leading-tight text-center">
-                        Realizar<br />Lançamento
-                      </span>
-                    </div>
 
-                    {/* Item 03 */}
-                    <div className="flex flex-col gap-2">
-                      <Link href="/demonstracao" onClick={() => trackClick("Demonstração - Analisar Resultado", "/demonstracao")} className="group/thumb relative aspect-video bg-white rounded-xl overflow-hidden border border-gray-200 transition-all hover:border-blue-300 shadow-sm">
-                        <img
-                          src="/imagem-miniatura-acompanhar-resultado.png"
-                          alt="Como acompanhar resultados"
-                          className="w-full h-full object-cover opacity-80 group-hover/thumb:opacity-100 transition-opacity"
+                        <ArrowRight
+                          size={12}
+                          className={`shrink-0 2xl:w-[14px] 2xl:h-[14px] transition-all duration-300 ${isActive ? "text-blue-600 translate-x-0.5" : "text-gray-300 group-hover/item:text-blue-600"
+                            }`}
                         />
-                        <div className="absolute inset-0 flex items-center justify-center bg-gray-900/10 group-hover/thumb:bg-gray-900/0 transition-all">
-                          <div className="bg-[#FF0000] p-1 rounded-md shadow-lg">
-                            <Play fill="white" size={8} className="text-white ml-0.5" />
-                          </div>
-                        </div>
                       </Link>
-                      <span className="text-[9px] font-bold text-gray-400 uppercase leading-tight text-center">
-                        Analisar<br />Resultado
-                      </span>
-                    </div>
-                  </div>
+                    );
+                  })}
                 </div>
               </div>
 
-              <Link href="/demonstracao" onClick={() => trackClick("Demonstração - Link Final", "/demonstracao")} className="group/link block pt-4 border-t border-gray-100">
-                <span className="text-[13px] font-bold text-orange-600 leading-snug group-hover/link:text-orange-700 transition-colors">
-                  Confira dicas sobre a plataforma e suas funcionalidades, <span className="underline underline-offset-4 decoration-2">clique aqui.</span>
-                </span>
-              </Link>
+              {/* CTA Principal de Retenção */}
+              <div className="pt-2.5 mt-2.5 2xl:pt-4 2xl:mt-4 border-t border-slate-200/80">
+                <Link
+                  href="/demonstracao"
+                  onClick={() => trackClick("Demonstração - Link Final", "/demonstracao")}
+                  className="group/link w-full py-2 2xl:py-3 px-4 bg-gray-900 hover:bg-blue-600 text-white rounded-xl 2xl:rounded-2xl font-bold text-[10px] 2xl:text-[11px] uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <span>Explorar vídeos e dicas</span>
+                  <ArrowRight size={14} className="group-hover/link:translate-x-1 transition-transform" />
+                </Link>
+              </div>
             </div>
           </div>
         </div>
