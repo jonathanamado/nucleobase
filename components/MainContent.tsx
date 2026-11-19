@@ -254,7 +254,7 @@ export function MainContent() {
             <div className="relative aspect-video rounded-[2rem] overflow-hidden border-2 border-gray-100 shadow-lg">
               <iframe
                 className="absolute inset-0 w-full h-full"
-                src="https://www.youtube.com/embed/tmQMvox673g"
+                src="https://www.youtube.com/embed/47qCg8123cA"
                 title="Nucleobase Tour"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
@@ -571,7 +571,7 @@ export function MainContent() {
             <div className="relative aspect-video bg-gray-900 rounded-[3rem] overflow-hidden border-4 border-white shadow-2xl">
               <iframe
                 className="absolute inset-0 w-full h-full"
-                src="https://www.youtube.com/embed/47qCg8123cA?si=pfkfekdyU_0_Ec-Q"
+                src="https://www.youtube.com/embed/47qCg8123cA"
                 title="Nucleobase Overview"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
