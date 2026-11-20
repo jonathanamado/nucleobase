@@ -1,5 +1,4 @@
-"use client";
-
+import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { MessageCircle, ShieldCheck } from "lucide-react";
@@ -7,7 +6,6 @@ import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
 import { MobileTabBar } from "@/components/MobileTabBar";
 import CookieNotice from "@/components/CookieNotice";
-import { usePathname } from "next/navigation";
 import Script from "next/script";
 import Link from "next/link";
 
@@ -17,6 +15,12 @@ declare global {
     gtag: (...args: any[]) => void;
   }
 }
+
+export const metadata: Metadata = {
+  title: "Nucleobase | Sua plataforma de controle digital",
+  description:
+    "Controles práticos e decisões inteligentes centralizadas em uma plataforma digital única. Gestão condominial e controle financeiro para o seu dia a dia.",
+};
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -50,8 +54,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const pathname = usePathname();
-
   return (
     <html lang="pt-BR" className="light" style={{ colorScheme: 'light' }}>
       <head>

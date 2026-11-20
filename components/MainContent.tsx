@@ -490,9 +490,9 @@ export function MainContent() {
               <p className="text-base text-gray-600 leading-relaxed pr-6">
                 A <strong className="text-gray-900 font-bold">nucleobase.app</strong> é uma plataforma digital criada para simplificar o seu dia a dia. Nossa estrutura atua em três frentes: com o módulo{" "}
                 <span className="inline-flex items-center justify-center bg-emerald-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
-                  Gestão Residencial,
+                  Gestão em Condomínios,
                 </span>
-                {" "}você garante organização e transparência ao seu condomínio de forma consciente; já com o{" "}
+                {" "}você garante organização e transparência à sua administração de forma consciente; já com o{" "}
                 <span className="inline-flex items-center justify-center bg-orange-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                   Controle Financeiro,
                 </span>
@@ -727,7 +727,7 @@ export function MainContent() {
             <div className="flex-1">
               <p className="text-blue-400 text-xs uppercase tracking-[0.3em] font-black mb-4">A ferramenta certa</p>
               <h4 className="text-2xl md:text-2xl font-bold leading-tight">
-                A Nucleobase é o seu centro de comando. Diferente de planilhas complexas, traduzimos controle financeiro e gestão residencial (Condo) em inteligência prática.
+                A Nucleobase é o seu centro de comando. Diferente de planilhas complexas, traduzimos gestão em condomínios e controle financeiro em inteligência prática.
               </h4>
             </div>
             <a href="/cadastro" onClick={() => trackClick("Criar conta gratuita (Banner Desktop)", "/cadastro")} className="shrink-0 inline-flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-full transition-all font-bold text-sm uppercase tracking-widest shadow-lg shadow-blue-900/20 group-hover:scale-105">

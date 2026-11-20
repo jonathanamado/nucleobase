@@ -31,7 +31,7 @@ export default function SobreNucleobase() {
     {
       title: "Privacidade",
       desc: "Sigilo total dos dados.",
-      fullDesc: "Seus dados financeiros não são produtos. Criptografia e sigilo total são a nossa base.",
+      fullDesc: "Seus dados condominiais e financeiros não são produtos. Criptografia e sigilo total são a nossa base.",
       icon: <LockKeyhole size={28} />,
     },
     {
@@ -43,7 +43,7 @@ export default function SobreNucleobase() {
     {
       title: "Evolução",
       desc: "Melhoria contínua.",
-      fullDesc: "Nascemos do Excel e evoluímos com você. A melhoria contínua está em nosso DNA.",
+      fullDesc: "Nascemos e crescemos com você. A melhoria contínua está em nosso DNA.",
       icon: <Dna size={28} />,
     }
   ];
@@ -145,7 +145,7 @@ export default function SobreNucleobase() {
       {[
         { id: "foco_clareza", icon: <Target size={24} />, title: "Foco em Clareza" },
         { id: "fluxo_eficiente", icon: <Zap size={24} />, title: "Fluxo Eficiente" },
-        { id: "sigilo_bancario", icon: <LockKeyhole size={24} />, title: "Sigilo Bancário" }
+        { id: "sigilo_bancario", icon: <LockKeyhole size={24} />, title: "Sigilo Condominial e Bancário" }
       ].map((item, idx) => (
         <div key={idx} className="bg-white border border-gray-100 p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all group flex items-center gap-6 flex-1">
           <div className="w-14 h-14 shrink-0 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm">
@@ -246,12 +246,12 @@ export default function SobreNucleobase() {
               <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                 Digital
               </span>{" "}
-              no ano de 2025. O que começou antes disso como uma ferramenta de controle pessoal em uma planilha de excel,
-              lapidada pelo tempo e demanda deste nicho, evoluiu para uma plataforma robusta.
+              no ano de 2025. O que começou antes disso como uma ferramenta de gestão condominial (Nucleo Condo) e controle financeiro em uma planilha manual,
+              lapidada pelo tempo e demanda desses nichos, evoluiu para uma plataforma robusta.
             </p>
 
             <p className="mb-6 text-sm leading-relaxed text-gray-600 md:hidden font-medium">
-              A base da Nucleo é uma planilha de Excel, lapidada pelo tempo, evoluindo para uma plataforma robusta, transformando controles financeiros em experiência digital estratégica para usuários de diferentes níveis.
+              A base da Nucleo foi lapidada pelo tempo, evoluindo para uma plataforma robusta, transformando a gestão de condomínios (Nucleo Condo) e controles financeiros em experiência digital estratégica para usuários de diferentes níveis.
             </p>
 
             <div className="bg-blue-50/40 border-l-4 border-blue-600 p-6 md:p-10 my-12 rounded-2xl md:rounded-r-[3rem] relative overflow-hidden group transition-all hover:bg-blue-50/60">
@@ -267,7 +267,7 @@ export default function SobreNucleobase() {
             </div>
 
             <p className="mb-8 text-gray-700 hidden md:block">
-              Sabemos que cada pessoa possui um método único para gerir seu orçamento, mas o controle manual impõe limites ao crescimento. Na <span className="font-bold text-blue-600">nucleobase.app</span>, elevamos esse compromisso.
+              Sabemos que cada condomínio e cada pessoa possui um método único para gerir sua rotina e seu orçamento, mas o controle manual impõe limites ao crescimento. Na <span className="font-bold text-blue-600">nucleobase.app</span>, elevamos esse compromisso.
             </p>
           </div>
           <p className="text-gray-700 text-sm md:text-lg">
@@ -303,7 +303,7 @@ export default function SobreNucleobase() {
         <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
         <div className="relative z-10">
           <h2 className="text-2xl md:text-5xl font-bold text-white mb-4 md:mb-6 tracking-tight">
-            Pronto para dominar seu <br className="hidden md:block" /> fluxo financeiro?
+            Pronto para dominar sua gestão <br className="hidden md:block" /> condominial e financeira?
           </h2>
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
             <a href="/cadastro" onClick={() => trackClick("Começar agora", "/cadastro")} className="bg-white text-blue-600 px-6 py-4 md:px-10 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-[10px] md:text-[12px] uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all w-full md:w-auto text-center">

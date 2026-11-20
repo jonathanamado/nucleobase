@@ -9,21 +9,14 @@ import { Suspense, useState, useEffect } from "react";
 // Mapeamento abrangente limpo e refinado para evitar falsos positivos
 const siteMap = [
   // Core & Acesso
-  { term: "cadastro registro criar conta", title: "Criar Nova Conta", desc: "Comece a gerenciar suas finanças agora.", href: "/cadastro", category: "Acesso" },
+  { term: "cadastro registro criar conta", title: "Criar Nova Conta", desc: "Comece a gerenciar seu condomínio e suas finanças agora.", href: "/cadastro", category: "Acesso" },
   { term: "login entrar acessar", title: "Acessar Plataforma", desc: "Entre na sua conta Nucleobase.", href: "/acesso-usuario", category: "Acesso" },
   { term: "senha esqueci recuperar reset", title: "Recuperar Senha", desc: "Redefina seu acesso com segurança.", href: "/reset-password", category: "Acesso" },
   { term: "minha conta perfil", title: "Minha Conta", desc: "Gerencie as informações do seu perfil.", href: "/minha-conta", category: "Acesso" },
   { term: "configuracoes ajustes", title: "Configurações", desc: "Ajuste as preferências da sua conta.", href: "/configuracoes", category: "Acesso" },
 
-  // Operacional e Dashboard
-  { term: "lançamentos financeiro entradas saídas", title: "Gestão de Lançamentos", desc: "Controle seu fluxo financeiro diário.", href: "/controle-financeiro/lancamentos", category: "Operacional" },
-  { term: "gerenciar lancamentos editar excluir", title: "Gerenciar Lançamentos", desc: "Visualize e edite seus registros financeiros.", href: "/controle-financeiro/lancamentos/gerenciar", category: "Operacional" },
-  { term: "importar csv excel planilha", title: "Importar Dados", desc: "Suba suas planilhas de bancos ou plataformas.", href: "/controle-financeiro/lancamentos/importar", category: "Operacional" },
-  { term: "integrar api webhook hotmart kiwify", title: "Integrações", desc: "Conecte a Nucleobase com suas ferramentas.", href: "/controle-financeiro/lancamentos/integrar", category: "Operacional" },
-  { term: "resultados dashboard bi gráficos lucro", title: "Painel de Resultados", desc: "Visualize a saúde do seu negócio em tempo real.", href: "/controle-financeiro/lancamentos/resultados", category: "Estratégico" },
-
   // Módulo Condomínio (Condo)
-  { term: "condominio morador sindico predio", title: "Módulo Condomínio", desc: "Gestão completa e livro digital para condomínios.", href: "/condo", category: "Condomínio" },
+  { term: "condominio condo nucleo gestao morador sindico predio", title: "Módulo Condomínio (Nucleo Condo)", desc: "Gestão completa e livro digital para condomínios.", href: "/condo", category: "Condomínio" },
   { term: "boletos segunda via cobranca", title: "Segunda Via de Boletos", desc: "Solicite cópias de boletos do condomínio.", href: "/condo/dashboard/boletos-segunda-via", category: "Condomínio" },
   { term: "moradores cadastro condominio", title: "Cadastro de Moradores", desc: "Gerenciamento de unidades e moradores.", href: "/condo/dashboard/cadastro-moradores", category: "Condomínio" },
   { term: "enquetes decisoes votacao", title: "Enquetes e Decisões", desc: "Participe das votações e assembleias virtuais.", href: "/condo/dashboard/enquetes-e-decisoes", category: "Condomínio" },
@@ -31,6 +24,13 @@ const siteMap = [
   { term: "prestacao de contas balanco financeiro", title: "Prestação de Contas", desc: "Transparência financeira do condomínio.", href: "/condo/dashboard/prestacao-de-contas", category: "Condomínio" },
   { term: "reserva espacos salao festas churrasqueira", title: "Reserva de Espaços", desc: "Reserve áreas comuns do condomínio.", href: "/condo/dashboard/reserva-de-espacos", category: "Condomínio" },
   { term: "analise ocorrencias adm sindico", title: "Análise de Ocorrências (Adm)", desc: "Painel administrativo para gestão de chamados.", href: "/condo/adm/analise_ocorrencias", category: "Administração" },
+
+  // Operacional e Dashboard
+  { term: "lançamentos financeiro entradas saídas", title: "Gestão de Lançamentos", desc: "Controle seu fluxo financeiro diário.", href: "/controle-financeiro/lancamentos", category: "Operacional" },
+  { term: "gerenciar lancamentos editar excluir", title: "Gerenciar Lançamentos", desc: "Visualize e edite seus registros financeiros.", href: "/controle-financeiro/lancamentos/gerenciar", category: "Operacional" },
+  { term: "importar csv excel planilha", title: "Importar Dados", desc: "Suba suas planilhas de bancos ou plataformas.", href: "/controle-financeiro/lancamentos/importar", category: "Operacional" },
+  { term: "integrar api webhook hotmart kiwify", title: "Integrações", desc: "Conecte a Nucleobase com suas ferramentas.", href: "/controle-financeiro/lancamentos/integrar", category: "Operacional" },
+  { term: "resultados dashboard bi gráficos lucro", title: "Painel de Resultados", desc: "Visualize a saúde do seu negócio em tempo real.", href: "/controle-financeiro/lancamentos/resultados", category: "Estratégico" },
 
   // Assinatura e Planos
   { term: "planos preços assinatura valores digital", title: "Nossos Planos", desc: "Escolha o plano ideal para sua escala.", href: "/planos", category: "Comercial" },
@@ -40,14 +40,14 @@ const siteMap = [
   { term: "checkout pagar assinar", title: "Finalizar Assinatura", desc: "Conclua sua contratação de forma segura.", href: "/planos", category: "Comercial" },
 
   // Conteúdo, Blog e Depoimentos
-  { term: "blog artigos notícias ciência", title: "Blog Nucleobase", desc: "Conteúdo especializado em finanças e lucro.", href: "/blog", category: "Conteúdo" },
+  { term: "blog artigos notícias ciência", title: "Blog Nucleobase", desc: "Conteúdo especializado em gestão e finanças.", href: "/blog", category: "Conteúdo" },
   { term: "kpis indicadores métricas", title: "KPIs que Importam", desc: "Artigo: Indicadores essenciais para seu financeiro.", href: "/blog/contribuicoes/kpis-que-realmente-importam-para-o-seu-financeiro", category: "Conteúdo" },
   { term: "caixa fôlego financeiro previsão", title: "Fluxo de Caixa", desc: "Artigo: Como prever o fôlego financeiro.", href: "/blog/contribuicoes/fluxo-de-caixa-como-prever-o-folego-financeiro", category: "Conteúdo" },
   { term: "depoimentos historias resultados", title: "Depoimentos", desc: "Veja o que nossos clientes dizem sobre a plataforma.", href: "/depoimentos", category: "Conteúdo" },
   { term: "demonstracao video conhecer", title: "Demonstração", desc: "Assista a uma apresentação prática da plataforma.", href: "/demonstracao", category: "Conteúdo" },
 
   // Parcerias, Indicações e Consultoria
-  { term: "consultoria especialista assessoria", title: "Resultados & Consultoria", desc: "Atendimento consultivo para o seu negócio e resultados por parcerias.", href: "/resultados-consultoria", category: "Serviços" },
+  { term: "consultoria especialista assessoria", title: "Resultados & Consultoria", desc: "Atendimento consultivo para o seu condomínio ou negócio e resultados por parcerias.", href: "/resultados-consultoria", category: "Serviços" },
   { term: "indique amigo programa premios", title: "Indique e Ganhe", desc: "Indique a Nucleobase para parceiros.", href: "/indique", category: "Parcerias" },
   { term: "parceria afiliados", title: "Seja Nosso Parceiro", desc: "Conheça nossas oportunidades de parceria.", href: "/parceria", category: "Parcerias" },
 
@@ -210,7 +210,7 @@ function BuscaContent() {
                   Poxa, não encontramos o que você buscava.
                 </p>
                 <p className="text-gray-400 text-sm mb-8">
-                  Tente palavras mais simples como "planos", "blog" ou "ajuda".
+                  Tente palavras mais simples como "condo", "planos" ou "ajuda".
                 </p>
 
                 <form onSubmit={handleSearch} className="max-w-md mx-auto px-4 relative">
@@ -238,19 +238,6 @@ function BuscaContent() {
           /* ESTADO INICIAL / PRIMEIRO ACESSO */
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Link href="/controle-financeiro" onClick={() => trackClick("Destaque: Controle Financeiro", "/controle-financeiro")} className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-500 flex flex-col justify-between cursor-pointer">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="bg-blue-50 text-blue-600 p-4 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                    <Rocket size={24} />
-                  </div>
-                  <div>
-                    <span className="text-[9px] font-black px-3 py-1 rounded-full bg-gray-50 text-gray-400 uppercase tracking-widest">Operacional</span>
-                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors mt-1">Controle Financeiro</h3>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-500 font-medium">Gerencie entradas, saídas e visualize o painel de resultados do seu negócio.</p>
-              </Link>
-
               <Link href="/condo" onClick={() => trackClick("Destaque: Módulo Condomínio", "/condo")} className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-500 flex flex-col justify-between cursor-pointer">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="bg-orange-50 text-orange-500 p-4 rounded-2xl group-hover:bg-orange-500 group-hover:text-white transition-colors">
@@ -262,6 +249,19 @@ function BuscaContent() {
                   </div>
                 </div>
                 <p className="text-sm text-gray-500 font-medium">Livro digital, boletos, ocorrências e gestão condominial completa.</p>
+              </Link>
+
+              <Link href="/controle-financeiro" onClick={() => trackClick("Destaque: Controle Financeiro", "/controle-financeiro")} className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-500 flex flex-col justify-between cursor-pointer">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="bg-blue-50 text-blue-600 p-4 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                    <Rocket size={24} />
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-black px-3 py-1 rounded-full bg-gray-50 text-gray-400 uppercase tracking-widest">Operacional</span>
+                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors mt-1">Controle Financeiro</h3>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500 font-medium">Gerencie entradas, saídas e visualize o painel de resultados do seu negócio.</p>
               </Link>
 
               <Link href="/planos" onClick={() => trackClick("Destaque: Planos", "/planos")} className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-500 flex flex-col justify-between cursor-pointer">
