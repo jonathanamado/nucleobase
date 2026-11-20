@@ -351,8 +351,8 @@ export function Header() {
 
           <div className="hidden lg:flex flex-col text-[13px] font-bold text-gray-900 leading-tight tracking-tighter -ml-8 select-none">
             <a href="/" rel="external" className="flex flex-col no-underline hover:opacity-80 transition-opacity" onClick={() => trackHeaderClick("Logo Header", "/")}>
-              <span className="pl-0 text-gray-900">Sua plataforma</span>
-              <span className="pl-4 mt-1 text-gray-500">de controle</span>
+              <span className="pl-0 text-gray-900">Sua plataforma</span>{" "}
+              <span className="pl-4 mt-1 text-gray-500">de controle</span>{" "}
               <span className="pl-8 mt-0.5">
                 <span className="bg-blue-600 text-white px-1.5 pt-1 pb-0.5 rounded-md text-[11px] shadow-sm inline-block">
                   DIGITAL

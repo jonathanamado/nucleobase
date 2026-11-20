@@ -41,6 +41,23 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     .container { width: 100% !important; border-radius: 0 !important; }
     .content-padding { padding: 32px 20px !important; }
     .btn { display: block !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
+
+    /* Vídeo no mobile: miniatura menor e inteira (proporção 16:9, sem cortes) */
+    .video-thumb {
+      height: 170px !important;
+      height: calc((100vw - 80px) * 0.5625) !important;
+      max-height: 300px !important;
+      background-size: contain !important;
+      background-repeat: no-repeat !important;
+      background-position: center !important;
+    }
+    .video-play {
+      width: 48px !important;
+      height: 48px !important;
+      border-radius: 24px !important;
+      font-size: 18px !important;
+      line-height: 48px !important;
+    }
   }
 
   /* Forçar Light Mode */
@@ -99,13 +116,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div style="height:12px; line-height:12px; font-size:12px;">&nbsp;</div>
             
             <div class="text-gray" style="color:#475569; font-size:15px; line-height:1.6; margin:0; padding:0;">
-              <b>Somos a Nucleobase</b>, uma plataforma digital para <b>gestão de condomínios</b> que buscam evoluções em suas rotinas. Queremos apresentar nosso projeto para que você se torne parte desta engrenagem, contribuindo com indicações a <b>novos clientes</b> e conquistando <b>receitas por ativações</b> destes contatos.
+              <b>Somos a Nucleobase</b>, uma plataforma digital para <b>gestão de condomínios</b> que buscam evoluções em suas rotinas. Queremos apresentar nosso projeto para que você se torne parte desta engrenagem de Vendas, contribuindo com indicações a <b>novos clientes</b> e conquistando <b>receitas por estas ativações</b>.
             </div>
 
             <div style="height:12px; line-height:12px; font-size:12px;">&nbsp;</div>
 
             <div class="text-gray" style="color:#475569; font-size:15px; line-height:1.6; margin:0 0 32px 0; padding:0;">
-              Nossos produtos são focados em prestações de contas, rateios, controles de inadimplência e demais rotinas administrativas e operacionais. Antes de conquistar sua indicação, queremos que você nos conheça de perto: faremos uma <b>apresentação</b> e criaremos sua <b>conta de teste</b> após o nosso contato.
+              Nossos produtos são focados em prestações de contas, rateios, controles de inadimplência e demais rotinas administrativas e operacionais. Antes de conquistar sua indicação, queremos que você nos conheça de perto: faremos uma <b>apresentação</b> e criaremos sua <b>conta de teste</b> após o nosso contato para que você visualize o nosso App e suas funcionalidades.
             </div>
 
             <!-- VÍDEO DE APRESENTAÇÃO (YOUTUBE) -->
@@ -113,16 +130,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:32px;">
               <tr>
                 <td>
-                  <p class="text-dark" style="color:#12324A; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px;">Saiba mais sobre a Nucleo:</p>
+                  <p class="text-dark" style="color:#12324A; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px;">Conheça a Nucleo em vídeo:</p>
 
-                  <a href="https://www.youtube.com/watch?v=47qCg8123cA" target="_blank" title="Assistir ao vídeo de apresentação da Nucleo no YouTube" style="display:block; text-decoration:none; border-radius:12px; overflow:hidden;">
+                  <a href="https://www.youtube.com/watch?v=47qCg8123cA" target="_blank" title="Assista aos vídeo de apresentação da Nucleo no YouTube" style="display:block; text-decoration:none; border-radius:12px; overflow:hidden;">
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                       <tr>
-                        <td align="center" valign="middle" height="300" bgcolor="#12324A" background="https://img.youtube.com/vi/47qCg8123cA/maxresdefault.jpg" style="height:300px; background-color:#12324A; background-image:url('https://img.youtube.com/vi/47qCg8123cA/maxresdefault.jpg'); background-size:cover; background-position:center; border-radius:12px;">
+                        <td class="video-thumb" align="center" valign="middle" height="300" bgcolor="#12324A" background="https://img.youtube.com/vi/47qCg8123cA/maxresdefault.jpg" style="height:300px; background-color:#12324A; background-image:url('https://img.youtube.com/vi/47qCg8123cA/maxresdefault.jpg'); background-size:cover; background-position:center; border-radius:12px;">
                           <!-- Botão de play -->
                           <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
                             <tr>
-                              <td align="center" valign="middle" width="68" height="68" bgcolor="#FFFFFF" style="width:68px; height:68px; background-color:#FFFFFF; border-radius:34px; box-shadow:0 4px 16px rgba(0,0,0,0.30); color:#12324A; font-size:26px; line-height:68px; text-align:center;">
+                              <td class="video-play" align="center" valign="middle" width="68" height="68" bgcolor="#FFFFFF" style="width:68px; height:68px; background-color:#FFFFFF; border-radius:34px; box-shadow:0 4px 16px rgba(0,0,0,0.30); color:#12324A; font-size:26px; line-height:68px; text-align:center;">
                                 <span style="display:inline-block; padding-left:5px;">&#9654;</span>
                               </td>
                             </tr>
@@ -133,7 +150,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                   </a>
 
                   <p style="color:#64748B; font-size:13px; line-height:1.5; margin-top:10px; text-align:center;">
-                    <a href="https://www.youtube.com/watch?v=47qCg8123cA" target="_blank" style="color:#12324A; font-weight:600; text-decoration:underline;">Assista aos nossos conteúdos</a> e entenda  na prática como funciona nossa plataforma digital.
+                    <a href="https://www.youtube.com/watch?v=47qCg8123cA" target="_blank" style="color:#12324A; font-weight:600; text-decoration:underline;">Assista no YouTube</a> e entenda em poucos minutos como funciona a plataforma.
                   </p>
                 </td>
               </tr>
@@ -151,8 +168,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                         <div class="pulse" style="width:10px; height:10px; border-radius:5px; background-color:#14C8E0; box-shadow:0 0 0 3px rgba(20,200,224,0.20); font-size:0; line-height:0;"></div>
                       </td>
                       <td style="padding-bottom:16px;">
-                        <p style="color:#12324A; font-size:15px; font-weight:600; margin-bottom:4px;">Um produto fácil de indicar</p>
-                        <p style="color:#475569; font-size:14px; line-height:1.5;">Painel para o síndico, app de moradores, controle de inadimplência, rateio automático de boletos e muito mais.</p>
+                        <p style="color:#12324A; font-size:15px; font-weight:600; margin-bottom:4px;">Receitas e comissões</p>
+                        <p style="color:#475569; font-size:14px; line-height:1.5;">Receitas de *30% sobre conversões no mês de implantação (setup). Comissões de 10% sobre clientes indicados ativos.</p>
                       </td>
                     </tr>
                     <tr>
@@ -160,8 +177,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                         <div class="pulse pulse2" style="width:10px; height:10px; border-radius:5px; background-color:#2F7BFF; box-shadow:0 0 0 3px rgba(47,123,255,0.20); font-size:0; line-height:0;"></div>
                       </td>
                       <td style="padding-bottom:16px;">
-                        <p style="color:#12324A; font-size:15px; font-weight:600; margin-bottom:4px;">Comissões recorrentes </p>
-                        <p style="color:#475569; font-size:14px; line-height:1.5;">Receitas a partir de 30% sobre conversões no mês de implantação. Cliente ativo, comissão mantida.</p>
+                        <p style="color:#12324A; font-size:15px; font-weight:600; margin-bottom:4px;">Um produto fácil de indicar</p>
+                        <p style="color:#475569; font-size:14px; line-height:1.5;">Painel para o síndico, app de moradores, controle de inadimplência, rateio automático de boletos e muito mais.</p>
                       </td>
                     </tr>
                     <tr>
@@ -170,7 +187,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                       </td>
                       <td style="padding-bottom:0;">
                         <p style="color:#12324A; font-size:15px; font-weight:600; margin-bottom:4px;">Início rápido e guiado</p>
-                        <p style="color:#475569; font-size:14px; line-height:1.5;">Ativação em 24 horas, atendimento de Key Account e materiais comerciais prontos para usar.</p>
+                        <p style="color:#475569; font-size:14px; line-height:1.5;">Ativação em 24 horas, atendimento de Key Account e materiais comerciais prontos para sua utilização.</p>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <!-- OBSERVAÇÃO (explica o asterisco de Receitas) -->
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px; border-top:1px solid #D5ECEF;">
+                    <tr>
+                      <td style="padding-top:14px;">
+                        <p style="color:#64748B; font-size:12px; line-height:1.5;">
+                          <b style="color:#12324A; font-style:normal;">* Observação:</b> Parceiros de alta performance faturam ainda mais: seu volume de vendas libera <b>percentuais progressivos</b>, elevando suas receitas em vendas. 
+                        </p>
                       </td>
                     </tr>
                   </table>
