@@ -508,19 +508,19 @@ export default function NucleobaseCondo() {
             {/* BLOCO PARALELO: TEXTO ADAPTADO POR LARGURA DE DESKTOP PARA ALINHAR COM A ALTURA DOS CARDS */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-6">
                 <div className="lg:col-span-8 text-gray-700 text-lg leading-[1.7] min-w-0">
-                    {/* Desktop compacto / padrão notebook (md até xl) */}
+                    {/* Desktop compacto (md até xl) */}
                     <p className="text-gray-700 hidden md:block xl:hidden">
                         A Nucleo Condo foi desenvolvida para elevar o padrão da <BadgeAdminCondo />, entregando uma operação mais clara, digital e organizada. Unimos tecnologia intuitiva e dados estruturados para simplificar a rotina de síndicos, conselheiros e moradores, trazendo transparência e agilidade ao dia a dia.
                     </p>
 
-                    {/* Desktop intermediário (xl até 2xl) */}
+                    {/* Telas desktop / menores - padrão notebook (xl até 2xl) */}
                     <p className="text-gray-700 hidden xl:block 2xl:hidden">
-                        A Nucleo Condo foi desenvolvida para elevar o padrão da <BadgeAdminCondo />, entregando uma operação mais clara, digital e organizada. Sabendo que um dos maiores desafios desse segmento é a falta de transparência na prestação de contas e na comunicação diária, unimos tecnologia intuitiva e dados estruturados para simplificar a rotina de síndicos, conselheiros e moradores, centralizando informações e agilizando cada etapa do dia a dia.
+                        A Nucleo Condo foi desenvolvida para elevar o padrão da <BadgeAdminCondo />, entregando uma operação mais clara, digital e organizada. Sabendo que um dos maiores desafios desse segmento é a falta de transparência na prestação de contas e na comunicação diária, unimos tecnologia intuitiva e dados estruturados para simplificar a rotina de síndicos, conselheiros e moradores.
                     </p>
 
-                    {/* Desktop alta resolução / telas amplas (2xl+) */}
+                    {/* Tela maior / segunda tela (2xl+) */}
                     <p className="text-gray-700 hidden 2xl:block">
-                        A Nucleo Condo foi desenvolvida para elevar o padrão da <BadgeAdminCondo />, entregando uma operação mais clara, digital e organizada. Sabendo que um dos maiores desafios desse segmento é a falta de transparência na prestação de contas e na comunicação interna, unimos tecnologia intuitiva e dados estruturados para simplificar a rotina de síndicos, conselheiros e moradores. Assim, centralizamos reservas, enquetes, avisos e documentos em um só ambiente, garantindo segurança e agilidade em cada etapa do dia a dia.
+                        A Nucleo Condo foi desenvolvida para elevar o padrão da <BadgeAdminCondo />, entregando uma operação mais clara, digital e organizada. Sabendo que um dos maiores desafios desse segmento é a falta de transparência na prestação de contas e na comunicação interna, unimos tecnologia intuitiva e dados estruturados para simplificar a rotina de síndicos, conselheiros e moradores. Assim, centralizamos reservas, enquetes, avisos, ocorrências e documentos em um só ambiente, garantindo mais segurança, autonomia e agilidade em cada etapa da gestão diária.
                     </p>
 
                     <div className="md:hidden">
@@ -553,7 +553,22 @@ export default function NucleobaseCondo() {
             <div className="bg-blue-50/40 border-l-4 border-blue-600 p-4 md:p-6 rounded-2xl relative overflow-hidden group transition-all hover:bg-blue-50/60 flex flex-col justify-center mb-6">
                 <ShieldCheck className="absolute -right-6 -bottom-6 text-blue-600 opacity-5 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-700" size={140} />
                 <p className="font-medium text-blue-900 text-base md:text-lg leading-relaxed relative z-10 tracking-tight">
-                    "Nosso objetivo é transformar rotinas vistas anteriormente como complexas em processos visuais e simples, garantindo clareza, harmonia e integração entre administração e moradores."<br /><br />
+                    {/* Mobile */}
+                    <span className="md:hidden">
+                        "Nosso objetivo é transformar rotinas vistas anteriormente como complexas em processos visuais e simples, garantindo clareza, harmonia e integração entre administração e moradores."
+                    </span>
+
+                    {/* Telas desktop / menores (md até 2xl) */}
+                    <span className="hidden md:inline 2xl:hidden">
+                        "Nosso objetivo é transformar rotinas vistas anteriormente como complexas em processos visuais, ágeis e simples, garantindo total clareza, harmonia e integração entre a administração e os moradores."
+                    </span>
+
+                    {/* Tela maior / segunda tela (2xl+) */}
+                    <span className="hidden 2xl:inline">
+                        "Nosso objetivo é transformar rotinas vistas anteriormente como complexas em processos visuais e simples, garantindo clareza, harmonia e integração entre administração e moradores. Assim, reduzimos ruídos na comunicação, fortalecemos a confiança nas decisões coletivas e tornamos a convivência bem mais leve no dia a dia."
+                    </span>
+
+                    <br /><br />
                     <Link href="/cadastro" onClick={() => trackClick("Não possui conta - Clique Aqui", "/cadastro")} className="text-blue-600 font-bold underline hover:text-blue-800 transition-colors text-xs md:text-sm">Não possui uma conta? Clique aqui</Link>
                 </p>
             </div>
