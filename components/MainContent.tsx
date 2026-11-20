@@ -487,7 +487,8 @@ export function MainContent() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch mb-12">
           <div className="lg:col-span-6 flex flex-col justify-center">
             <div className="mb-0">
-              <p className="text-base text-gray-600 leading-relaxed pr-6">
+              {/* Desktop / tela padrão e menor */}
+              <p className="block 2xl:hidden text-base text-gray-600 leading-relaxed pr-6">
                 A <strong className="text-gray-900 font-bold">nucleobase.app</strong> é uma plataforma digital criada para simplificar o seu dia a dia. Nossa estrutura atua em três frentes: com o módulo{" "}
                 <span className="inline-flex items-center justify-center bg-emerald-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                   Gestão em Condomínios,
@@ -501,6 +502,23 @@ export function MainContent() {
                   Resultados & Consultoria,
                 </span>
                 {" "}transformamos dados em insights e aceleramos projetos pessoais e profissionais.
+              </p>
+
+              {/* Telas maiores / segunda tela */}
+              <p className="hidden 2xl:block text-base text-gray-600 leading-relaxed pr-6">
+                A <strong className="text-gray-900 font-bold">nucleobase.app</strong> é uma plataforma digital criada para simplificar o seu dia a dia e centralizar suas decisões em um ambiente único e intuitivo. Nossa estrutura atua em três frentes integradas: com o módulo{" "}
+                <span className="inline-flex items-center justify-center bg-emerald-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
+                  Gestão em Condomínios,
+                </span>
+                {" "}você garante organização, comunicação ágil e transparência à sua administração de forma consciente; já com o{" "}
+                <span className="inline-flex items-center justify-center bg-orange-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
+                  Controle Financeiro,
+                </span>
+                {" "}você acompanha receitas, despesas, orçamentos e cartões de crédito de forma consolidada e inteligente; enquanto em{" "}
+                <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
+                  Resultados & Consultoria,
+                </span>
+                {" "}transformamos dados em insights estratégicos e aceleramos projetos pessoais e profissionais com suporte especializado e visão clara de futuro.
               </p>
 
               <div className="flex items-center gap-3 mt-5 animate-in fade-in duration-1000">
