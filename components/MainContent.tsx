@@ -191,27 +191,72 @@ export function MainContent() {
             </p>
           </div>
 
+          {/* CARTÃO DE VISITA DIGITAL (MOBILE HERO) */}
           <div className="relative">
             <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[2.6rem] blur opacity-10"></div>
-            <div className="relative bg-white border border-gray-100 p-7 rounded-[2.5rem] shadow-xl shadow-blue-900/5">
-              <div className="mb-6">
-                <p className="text-gray-700 text-base leading-snug font-medium text-center">
-                  Você está no APP em que números brutos tornam-se <span className="text-gray-900 font-bold not-italic">decisões inteligentes e práticas</span> em sua rotina. Clique na <span className="text-blue-600 font-bold">Logo</span> <LayoutDashboard size={14} strokeWidth={3} className="inline-block text-blue-600 mb-1" />, acesse sua <span className="text-gray-900 font-bold not-italic">plataforma</span> e profissionalize-se.
+            <div className="relative bg-white border border-gray-100 p-7 rounded-[2.5rem] shadow-xl shadow-blue-900/5 space-y-5">
+              <div className="w-full">
+                <div className="w-full flex items-center justify-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest text-center">
+                  <ShieldCheck size={13} className="text-blue-600 shrink-0" />
+                  <span>Gestão & Inteligência</span>
+                  <span className="text-blue-300 font-normal">|</span>
+                  <span className="text-blue-600">100% Digital</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h2 className="text-xl font-bold text-gray-900 tracking-tight leading-snug">
+                  Transparência para condomínios. <span className="text-blue-600">Clareza para suas finanças.</span>
+                </h2>
+                <p className="text-gray-600 text-sm leading-relaxed font-medium">
+                  Substitua planilhas manuais por processos visuais, prestação de contas auditável e visão estratégica em tempo real.
                 </p>
               </div>
 
-              <Link
-                href="/acesso-usuario"
-                onClick={() => trackClick("Acessar Área do Usuário (Mobile)", "/acesso-usuario")}
-                className="grid grid-cols-[1fr_auto_1fr] items-center w-full p-2 bg-gray-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl active:scale-[0.96] transition-all hover:bg-black"
-              >
-                <div className="w-[36px]" aria-hidden="true" />
-                <span className="text-center">Acessar<br />Área do Usuário</span>
-                <div className="flex justify-end">
-                  <div className="bg-blue-600 p-2 rounded-xl shadow-inner flex items-center justify-center">
-                    <LayoutDashboard size={20} />
+              <div className="grid grid-cols-3 gap-2 pt-1">
+                <Link
+                  href="/condo"
+                  onClick={() => trackClick("Cartão Hero - Condomínios (Mobile)", "/condo")}
+                  className="bg-emerald-50/70 border border-emerald-100 rounded-2xl p-2.5 flex flex-col items-center text-center gap-1.5 active:scale-95 transition-transform"
+                >
+                  <div className="w-7 h-7 rounded-xl bg-white text-emerald-600 flex items-center justify-center shadow-2xs">
+                    <Building2 size={15} />
                   </div>
+                  <span className="text-[10px] font-bold text-gray-800 leading-tight">Condomínios</span>
+                </Link>
+
+                <Link
+                  href="/controle-financeiro"
+                  onClick={() => trackClick("Cartão Hero - Finanças (Mobile)", "/controle-financeiro")}
+                  className="bg-orange-50/70 border border-orange-100 rounded-2xl p-2.5 flex flex-col items-center text-center gap-1.5 active:scale-95 transition-transform"
+                >
+                  <div className="w-7 h-7 rounded-xl bg-white text-orange-600 flex items-center justify-center shadow-2xs">
+                    <PiggyBank size={15} />
+                  </div>
+                  <span className="text-[10px] font-bold text-gray-800 leading-tight">Finanças</span>
+                </Link>
+
+                <Link
+                  href="/resultados-consultoria"
+                  onClick={() => trackClick("Cartão Hero - Consultoria (Mobile)", "/resultados-consultoria")}
+                  className="bg-blue-50/70 border border-blue-100 rounded-2xl p-2.5 flex flex-col items-center text-center gap-1.5 active:scale-95 transition-transform"
+                >
+                  <div className="w-7 h-7 rounded-xl bg-white text-blue-600 flex items-center justify-center shadow-2xs">
+                    <Target size={15} />
+                  </div>
+                  <span className="text-[10px] font-bold text-gray-800 leading-tight">Consultoria</span>
+                </Link>
+              </div>
+
+              <Link
+                href="/cadastro"
+                onClick={() => trackClick("Começar Gratuitamente (Cartão Hero Mobile)", "/cadastro")}
+                className="flex items-center w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.12em] shadow-lg shadow-blue-600/20 active:scale-[0.97] transition-all"
+              >
+                <div className="bg-white/15 p-1.5 rounded-lg flex items-center justify-center shrink-0">
+                  <LayoutDashboard size={16} />
                 </div>
+                <span className="flex-1 text-center whitespace-nowrap pr-2">Começar Gratuitamente</span>
               </Link>
             </div>
           </div>
@@ -263,135 +308,129 @@ export function MainContent() {
                 allowFullScreen
               ></iframe>
             </div>
+
+            <div className="pt-6 px-2 space-y-4">
+              <p className="text-gray-600 text-base leading-relaxed font-medium">
+                A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos controles com inteligência e foco em redução de custos. Conheça nossa missão e história <Link href="/sobre" onClick={() => trackClick("Sobre a história (Mobile)", "/sobre")} className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
+                <br /><br />
+                Nosso app oferece controle de orçamentos financeiros e gestão condominial, e em ambos os módulos consultoria digital especializada. Saiba mais:
+              </p>
+
+              <div className="flex flex-col pt-1">
+                <div className="space-y-1">
+                  <Link href="/condo" onClick={() => trackClick("Nucleo Condo (Mobile)", "/condo")} className="text-base font-medium text-gray-600 leading-relaxed hover:text-emerald-600 transition-colors flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full font-bold bg-emerald-600"></span>
+                    Nucleo Condo
+                  </Link>
+                  <p className="text-xs text-gray-400 font-bold pl-3.5 leading-relaxed">
+                    Tecnologia, transparência e otimização de processos condominiais.
+                  </p>
+                </div>
+
+                <div className="space-y-1 mt-2.5">
+                  <Link href="/controle-financeiro" onClick={() => trackClick("Gestão Financeira (Mobile)", "/controle-financeiro")} className="text-base font-medium text-gray-600 leading-relaxed hover:text-orange-600 transition-colors flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full font-bold bg-orange-600"></span>
+                    Gestão Financeira
+                  </Link>
+                  <p className="text-xs text-gray-400 font-bold pl-3.5 leading-relaxed">
+                    Controle estratégico de cartões, decisões e projeções orçamentárias.
+                  </p>
+                </div>
+
+                <div className="space-y-1 mt-2.5">
+                  <Link href="/resultados-consultoria" onClick={() => trackClick("Resultados e Consultoria (Mobile)", "/resultados-consultoria")} className="text-base font-medium text-gray-600 leading-relaxed hover:text-blue-600 transition-colors flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full font-bold bg-blue-600"></span>
+                    Resultados & Consultoria
+                  </Link>
+                  <p className="text-xs text-gray-400 font-bold pl-3.5 leading-relaxed">
+                    Estrutura consultiva e CRM embutido para otimizar suas negociações.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="space-y-1">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-3 flex items-center gap-4">
-            Informativos e acessos <div className="h-px bg-gray-300 flex-1"></div>
-          </h3>
-          <p className="text-gray-600 text-base leading-relaxed font-medium py-1">
-            A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos controles com inteligência e foco em redução de custos. Conheça nossa missão e história <Link href="/sobre" onClick={() => trackClick("Sobre a história (Mobile)", "/sobre")} className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
-            <br /><br />
-            Nosso app oferece controle de orçamentos financeiros e gestão condominial, e em ambos os módulos consultoria digital especializada. Saiba mais:
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 -mt-4">
-          <div className="col-span-2 py-4 px-2 flex flex-col">
-
-            <div className="space-y-1 -mt-6">
-              <Link href="/condo" onClick={() => trackClick("Nucleo Condo (Mobile)", "/condo")} className="text-base font-medium text-gray-600 leading-relaxed hover:text-emerald-600 transition-colors flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full font-bold bg-emerald-600"></span>
-                Nucleo Condo
-              </Link>
-              <p className="text-xs text-gray-400 font-bold pl-3.5 leading-relaxed">
-                Tecnologia, transparência e otimização de processos condominiais.
-              </p>
+        {/* CANAIS, CONTATO & SEGURANÇA UNIFICADOS (MOBILE) */}
+        <section className="space-y-6">
+          <div>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="h-px bg-gray-300 flex-1"></div>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 whitespace-nowrap">
+                Canais, Contato & Segurança
+              </h3>
+              <div className="h-px bg-gray-300 flex-1"></div>
             </div>
-
-            <div className="space-y-1 mt-2.5">
-              <Link href="/controle-financeiro" onClick={() => trackClick("Gestão Financeira (Mobile)", "/controle-financeiro")} className="text-base font-medium text-gray-600 leading-relaxed hover:text-orange-600 transition-colors flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full font-bold bg-orange-600"></span>
-                Gestão Financeira
+            <p className="text-gray-400 text-xs text-center font-bold tracking-wider mb-3">Atendimento, Oportunidades e Proteção</p>
+            <div className="grid grid-cols-2 gap-3">
+              <Link href="/suporte" onClick={() => trackClick("Suporte (Mobile)", "/suporte")} className="bg-gray-50 p-6 rounded-3xl flex flex-col gap-2 border border-gray-100 active:bg-gray-100 transition-colors">
+                <FileWarning size={20} className="text-amber-500" />
+                <span className="font-bold text-[10px] uppercase text-gray-800">Suporte</span>
               </Link>
-              <p className="text-xs text-gray-400 font-bold pl-3.5 leading-relaxed">
-                Controle estratégico de cartões, decisões e projeções orçamentárias.
-              </p>
-            </div>
-
-            <div className="space-y-1 mt-2.5">
-              <Link href="/resultados-consultoria" onClick={() => trackClick("Resultados e Consultoria (Mobile)", "/resultados-consultoria")} className="text-base font-medium text-gray-600 leading-relaxed hover:text-blue-600 transition-colors flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full font-bold bg-blue-600"></span>
-                Resultados & Consultoria
+              <Link href="/contato" onClick={() => trackClick("Contato (Mobile)", "/contato")} className="bg-emerald-50 p-6 rounded-3xl flex flex-col gap-2 border border-emerald-100 active:bg-emerald-100 transition-colors">
+                <MessageSquare size={20} className="text-emerald-600" />
+                <span className="font-bold text-[10px] uppercase text-gray-800">Contato</span>
               </Link>
-              <p className="text-xs text-gray-400 font-bold pl-3.5 leading-relaxed">
-                Estrutura consultiva e CRM embutido para otimizar suas negociações.
-              </p>
+              <Link href="/indique" onClick={() => trackClick("Indique (Mobile)", "/indique")} className="bg-blue-50 p-6 rounded-3xl flex flex-col gap-2 border border-blue-100 active:bg-blue-100 transition-colors">
+                <Gift size={20} className="text-blue-600" />
+                <span className="font-bold text-[10px] uppercase text-gray-800">Indicar</span>
+              </Link>
+              <Link href="/parceria" onClick={() => trackClick("Parceria (Mobile)", "/parceria")} className="bg-orange-50 p-6 rounded-3xl flex flex-col gap-2 border border-orange-100 active:bg-orange-100 transition-colors">
+                <Users size={20} className="text-orange-600" />
+                <span className="font-bold text-[10px] uppercase text-gray-800">Parceria</span>
+              </Link>
             </div>
           </div>
 
-          <button onClick={() => setIsModalOpen(true)} className="col-span-1 bg-blue-50 p-6 rounded-3xl flex flex-col gap-4 border border-blue-100 text-left relative overflow-hidden active:scale-95 transition-transform cursor-pointer">
-            <Mail className="text-blue-600" size={24} />
-            <span className="font-bold text-[10px] uppercase tracking-widest text-gray-800">Assinar <br /> Newsletter</span>
-          </button>
-          <Link href="/blog" onClick={() => trackClick("Blog (Mobile)", "/blog")} className="col-span-1 bg-gray-50 p-6 rounded-3xl flex flex-col gap-4 border border-gray-100 text-left active:scale-95 transition-transform">
-            <Newspaper className="text-gray-400" size={24} />
-            <span className="font-bold text-[10px] uppercase tracking-widest text-gray-800">Blog da <br /> Nucleobase</span>
-          </Link>
-        </div>
+          <div>
+            <p className="text-gray-400 text-xs text-center font-bold tracking-wider mb-3">Segurança • Proteção e criptografia de ponta</p>
+            <Link href="/seguranca_privacidade" onClick={() => trackClick("Segurança e Privacidade (Mobile)", "/seguranca_privacidade")} className="group block bg-gray-900 border border-gray-800 p-8 rounded-[2.5rem] relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-emerald-500/10 hover:border-emerald-500/30">
+              <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all duration-700 pointer-events-none" />
+              <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all duration-700 pointer-events-none text-emerald-400">
+                <Lock size={140} strokeWidth={1} />
+              </div>
 
-        <section>
-          <div className="flex items-center gap-4 mb-4">
-            <div className="h-px bg-gray-300 flex-1"></div>
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 whitespace-nowrap">
-              Segurança
-            </h3>
-            <div className="h-px bg-gray-300 flex-1"></div>
-          </div>
-          <p className="text-gray-400 text-xs text-center font-bold tracking-wider mb-3">Proteção e criptografia de ponta</p>
-          <Link href="/seguranca_privacidade" onClick={() => trackClick("Segurança e Privacidade (Mobile)", "/seguranca_privacidade")} className="group block bg-gray-900 border border-gray-800 p-8 rounded-[2.5rem] relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-emerald-500/10 hover:border-emerald-500/30">
-            <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all duration-700 pointer-events-none" />
-            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all duration-700 pointer-events-none text-emerald-400">
-              <Lock size={140} strokeWidth={1} />
-            </div>
-
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center border border-emerald-500/20 shadow-inner group-hover:bg-emerald-500 group-hover:text-gray-900 transition-all duration-500">
-                    <Lock size={22} />
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center border border-emerald-500/20 shadow-inner group-hover:bg-emerald-500 group-hover:text-gray-900 transition-all duration-500">
+                      <Lock size={22} />
+                    </div>
+                    <span className="text-[9px] text-center font-black uppercase tracking-[0.25em] text-emerald-400 px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
+                      Criptografia Avançada
+                    </span>
                   </div>
-                  <span className="text-[9px] text-center font-black uppercase tracking-[0.25em] text-emerald-400 px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
-                    Criptografia Avançada
+                  <h4 className="text-xl md:text-2xl font-bold text-white mb-2 tracking-tight">Privacidade e Dados</h4>
+                  <p className="text-gray-400 text-xs md:text-sm font-medium leading-relaxed max-w-xl">
+                    Sua soberania digital protegida por arquitetura de sigilo total. Seus dados financeiros pertencem exclusivamente a você.
+                  </p>
+                </div>
+
+                <div className="shrink-0">
+                  <span className="bg-emerald-500 hover:bg-emerald-400 text-gray-900 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 w-full transition-all duration-300 group-hover:scale-105 shadow-lg shadow-emerald-500/20">
+                    Acesse aqui <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                   </span>
                 </div>
-                <h4 className="text-xl md:text-2xl font-bold text-white mb-2 tracking-tight">Privacidade e Dados</h4>
-                <p className="text-gray-400 text-xs md:text-sm font-medium leading-relaxed max-w-xl">
-                  Sua soberania digital protegida por arquitetura de sigilo total. Seus dados financeiros pertencem exclusivamente a você.
-                </p>
               </div>
+            </Link>
+          </div>
+        </section>
 
-              <div className="shrink-0">
-                <span className="bg-emerald-500 hover:bg-emerald-400 text-gray-900 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 w-full transition-all duration-300 group-hover:scale-105 shadow-lg shadow-emerald-500/20">
-                  Acesual aqui <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                </span>
-              </div>
+        {/* --- CONECTE-SE, NEWSLETTER EM TELA & INSTAGRAM (MOBILE) --- */}
+        <section className="pb-10 pt-4 space-y-10">
+          <div className="space-y-3">
+            <div className="flex items-center gap-4">
+              <div className="h-px bg-gray-200 flex-1"></div>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
+                Conecte-se
+              </h3>
+              <div className="h-px bg-gray-200 flex-1"></div>
             </div>
-          </Link>
-        </section>
-
-        <section>
-          <div className="flex items-center gap-4 mb-4">
-            <div className="h-px bg-gray-300 flex-1"></div>
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 whitespace-nowrap">
-              Canais e Contato
-            </h3>
-            <div className="h-px bg-gray-300 flex-1"></div>
+            <p className="text-gray-500 text-xs text-center font-medium leading-relaxed px-2">
+              Assine nossa <span className="text-gray-900 font-bold">Newsletter</span> para receber novidades por e-mail ou acompanhe nossas atualizações pelas <span className="text-gray-900 font-bold">redes sociais</span>.
+            </p>
           </div>
-          <p className="text-gray-400 text-xs text-center font-bold tracking-wider mb-3">Atendimento e Oportunidades</p>
-          <div className="grid grid-cols-2 gap-3">
-            <Link href="/suporte" onClick={() => trackClick("Suporte (Mobile)", "/suporte")} className="bg-gray-50 p-6 rounded-3xl flex flex-col gap-2 border border-gray-100 active:bg-gray-100 transition-colors">
-              <FileWarning size={20} className="text-amber-500" />
-              <span className="font-bold text-[10px] uppercase text-gray-800">Suporte</span>
-            </Link>
-            <Link href="/contato" onClick={() => trackClick("Contato (Mobile)", "/contato")} className="bg-emerald-50 p-6 rounded-3xl flex flex-col gap-2 border border-emerald-100 active:bg-emerald-100 transition-colors">
-              <MessageSquare size={20} className="text-emerald-600" />
-              <span className="font-bold text-[10px] uppercase text-gray-800">Contato</span>
-            </Link>
-            <Link href="/indique" onClick={() => trackClick("Indique (Mobile)", "/indique")} className="bg-blue-50 p-6 rounded-3xl flex flex-col gap-2 border border-blue-100 active:bg-blue-100 transition-colors">
-              <Gift size={20} className="text-blue-600" />
-              <span className="font-bold text-[10px] uppercase text-gray-800">Indicar</span>
-            </Link>
-            <Link href="/parceria" onClick={() => trackClick("Parceria (Mobile)", "/parceria")} className="bg-orange-50 p-6 rounded-3xl flex flex-col gap-2 border border-orange-100 active:bg-orange-100 transition-colors">
-              <Users size={20} className="text-orange-600" />
-              <span className="font-bold text-[10px] uppercase text-gray-800">Parceria</span>
-            </Link>
-          </div>
-        </section>
 
-        {/* --- SEÇÃO DE NEWSLETTER EM TELA (MOBILE) --- */}
-        <section className="pt-2">
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50/40 border border-blue-100/80 p-8 rounded-[2.5rem] shadow-sm">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center shadow-md">
@@ -425,18 +464,8 @@ export function MainContent() {
               </div>
             )}
           </div>
-        </section>
 
-        <section className="pb-10 pt-4">
-          <div className="flex items-center gap-4 mb-12">
-            <div className="h-px bg-gray-200 flex-1"></div>
-            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 whitespace-nowrap">
-              Conecte-se
-            </h3>
-            <div className="h-px bg-gray-200 flex-1"></div>
-          </div>
-
-          <div className="flex flex-col items-center text-center">
+          <div className="flex flex-col items-center text-center pt-2">
             <div className="mb-8">
               <h4 className="text-2xl font-bold text-gray-900 tracking-tighter mb-2 leading-tight">
                 Fique por dentro <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
@@ -489,36 +518,36 @@ export function MainContent() {
             <div className="mb-0">
               {/* Desktop / tela padrão e menor */}
               <p className="block 2xl:hidden text-base text-gray-600 leading-relaxed pr-6">
-                A <strong className="text-gray-900 font-bold">nucleobase.app</strong> é uma plataforma digital criada para simplificar o seu dia a dia. Nossa estrutura atua em três frentes: com o módulo{" "}
+                A <strong className="text-gray-900 font-bold">nucleobase.app</strong> promove transparência para condomínios e clareza para suas finanças, substituindo planilhas manuais por processos visuais em três frentes: com a{" "}
                 <span className="inline-flex items-center justify-center bg-emerald-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                   Gestão em Condomínios,
                 </span>
-                {" "}você garante organização e transparência à sua administração de forma consciente; já com o{" "}
+                {" "}você garante prestação de contas auditável e organização consciente; já com o{" "}
                 <span className="inline-flex items-center justify-center bg-orange-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                   Controle Financeiro,
                 </span>
-                {" "}você acompanha contas e cartões de crédito de forma consolidada e inteligente; enquanto em{" "}
+                {" "}acompanha contas e cartões de crédito de forma consolidada; enquanto em{" "}
                 <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                   Resultados & Consultoria,
                 </span>
-                {" "}transformamos dados em insights e aceleramos projetos pessoais e profissionais.
+                {" "}oferecemos visão estratégica em tempo real para seus projetos.
               </p>
 
               {/* Telas maiores / segunda tela */}
               <p className="hidden 2xl:block text-base text-gray-600 leading-relaxed pr-6">
-                A <strong className="text-gray-900 font-bold">nucleobase.app</strong> é uma plataforma digital criada para simplificar o seu dia a dia e centralizar suas decisões em um ambiente único e intuitivo. Nossa estrutura atua em três frentes integradas: com o módulo{" "}
+                A <strong className="text-gray-900 font-bold">nucleobase.app</strong> promove transparência para condomínios e clareza para suas finanças, substituindo planilhas manuais por processos visuais em um ambiente único. Nossa estrutura atua em três frentes integradas: com a{" "}
                 <span className="inline-flex items-center justify-center bg-emerald-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                   Gestão em Condomínios,
                 </span>
-                {" "}você garante organização, comunicação ágil e transparência à sua administração de forma consciente; já com o{" "}
+                {" "}você garante prestação de contas auditável, comunicação ágil e organização consciente; já com o{" "}
                 <span className="inline-flex items-center justify-center bg-orange-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                   Controle Financeiro,
                 </span>
-                {" "}você acompanha receitas, despesas, orçamentos e cartões de crédito de forma consolidada e inteligente; enquanto em{" "}
+                {" "}acompanha receitas, despesas, orçamentos e cartões de crédito de forma consolidada; enquanto em{" "}
                 <span className="inline-flex items-center justify-center bg-blue-600 text-white px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-sm uppercase align-middle">
                   Resultados & Consultoria,
                 </span>
-                {" "}transformamos dados em insights estratégicos e aceleramos projetos pessoais e profissionais com suporte especializado e visão clara de futuro.
+                {" "}transformamos dados em visão estratégica em tempo real para acelerar projetos pessoais e profissionais.
               </p>
 
               <div className="flex items-center gap-3 mt-5 animate-in fade-in duration-1000">

@@ -377,7 +377,7 @@ export default function NucleobaseCondo() {
             </div>
 
             <p className="text-gray-600 text-xs font-medium mb-4 text-center leading-relaxed">
-                Assista ao nosso vídeo institucional e veja como a <span className="text-gray-900 font-bold">Nucleobase</span> simplifica a gestão do seu condomínio na prática.
+                Assista ao nosso vídeo institucional e veja como a <span className="text-gray-900 font-bold">Nucleo</span> simplifica sua administração.
             </p>
 
             <div className="relative aspect-video rounded-[2rem] overflow-hidden border-2 border-gray-100 shadow-lg mb-6">
