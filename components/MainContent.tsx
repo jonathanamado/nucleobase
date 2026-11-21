@@ -209,7 +209,7 @@ export function MainContent() {
                   Transparência para condomínios. <span className="text-blue-600">Clareza para suas finanças.</span>
                 </h2>
                 <p className="text-gray-600 text-sm leading-relaxed font-medium">
-                  Substitua planilhas manuais por processos visuais, prestação de contas auditável e visão estratégica em tempo real.
+                  Substitua planilhas manuais por processos visuais, prestação de contas auditável e informações em tempo real.
                 </p>
               </div>
 
@@ -313,7 +313,7 @@ export function MainContent() {
               <p className="text-gray-600 text-base leading-relaxed font-medium">
                 A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos controles com inteligência e foco em redução de custos. Conheça nossa missão e história <Link href="/sobre" onClick={() => trackClick("Sobre a história (Mobile)", "/sobre")} className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
                 <br /><br />
-                Nosso app oferece controle de orçamentos financeiros e gestão condominial, e em ambos os módulos consultoria digital especializada. Saiba mais:
+                Nosso app oferece gestão condominial e controle de financas e e em ambos os módulos de consultoria digital especializada. Saiba mais:
               </p>
 
               <div className="flex flex-col pt-1">
@@ -427,7 +427,7 @@ export function MainContent() {
               <div className="h-px bg-gray-200 flex-1"></div>
             </div>
             <p className="text-gray-500 text-xs text-center font-medium leading-relaxed px-2">
-              Assine nossa <span className="text-gray-900 font-bold">Newsletter</span> para receber novidades por e-mail ou acompanhe nossas atualizações pelas <span className="text-gray-900 font-bold">redes sociais</span>.
+              Assine nossa <span className="text-gray-900 font-bold">Newsletter</span> e receba novidades por e-mail. Acompanhe nossas atualizações pelas <span className="text-gray-900 font-bold">redes sociais</span>.
             </p>
           </div>
 
