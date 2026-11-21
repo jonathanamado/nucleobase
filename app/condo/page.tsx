@@ -370,47 +370,27 @@ export default function NucleobaseCondo() {
 
     const LayoutDestaqueMobile = () => (
         <div className="my-8">
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3 mb-4">
                 <div className="h-px bg-blue-100 flex-1"></div>
-                <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Destaques</span>
+                <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Vídeo Institucional</span>
                 <div className="h-px bg-blue-100 flex-1"></div>
             </div>
 
-            <p className="text-gray-700 text-sm font-medium mb-5 text-center leading-relaxed">
-                Acreditamos que a <span className="text-gray-900 font-bold underline decoration-blue-200 underline-offset-4 decoration-2">gestão democrática</span> é o caminho para valorizar seu patrimônio.
+            <p className="text-gray-600 text-xs font-medium mb-4 text-center leading-relaxed">
+                Assista ao nosso vídeo institucional e veja como a <span className="text-gray-900 font-bold">Nucleobase</span> simplifica a gestão do seu condomínio na prática.
             </p>
 
+            <div className="relative aspect-video rounded-[2rem] overflow-hidden border-2 border-gray-100 shadow-lg mb-6">
+                <iframe
+                    className="absolute inset-0 w-full h-full"
+                    src="https://www.youtube.com/embed/47qCg8123cA"
+                    title="Nucleobase Condo - Vídeo Institucional"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                ></iframe>
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
-                {/* CARD 1 MOBILE: ÁREA DO CONDÔMINO (MINIMALISTA) */}
-                <div className="col-span-2">
-                    <CardAreaCondominoMinimalista />
-                </div>
-
-                {/* CARD 2 MOBILE: CONTABILIDADE */}
-                <Link
-                    href="/condo/contabilidade"
-                    onClick={() => trackClick("Contabilidade (Mobile)", "/condo/contabilidade")}
-                    className="col-span-2 bg-white border border-gray-200 hover:border-emerald-300 p-4 rounded-[1.5rem] shadow-sm transition-all flex items-center justify-between gap-3"
-                >
-                    <div className="flex items-center gap-3.5 min-w-0">
-                        <div className="w-11 h-11 shrink-0 bg-emerald-50/80 text-emerald-600 rounded-xl flex items-center justify-center">
-                            <LockKeyhole size={20} />
-                        </div>
-                        <div className="min-w-0">
-                            <span className="block text-[9px] font-bold uppercase tracking-[0.18em] text-gray-400">
-                                Prestação Fiscal
-                            </span>
-                            <h4 className="font-bold text-gray-900 text-sm tracking-tight truncate">
-                                Acesso Contabilidade
-                            </h4>
-                        </div>
-                    </div>
-                    <div className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 text-gray-600">
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Acessar</span>
-                        <ArrowUpRight size={14} />
-                    </div>
-                </Link>
-
                 {/* Linha divisória com o texto "Funcionalidades" */}
                 <div className="col-span-2 flex items-center gap-3 my-4">
                     <div className="h-px bg-blue-100 flex-1"></div>
