@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, User, Home, X, Rocket, Power, Dna, Settings, Key, UserPlus, PlayCircle, KeyRound, Eye, EyeOff, Info, Fingerprint, Building2 } from "lucide-react";
+import { Search, User, Home, X, PiggyBank, Power, Dna, Settings, Key, UserPlus, PlayCircle, KeyRound, Eye, EyeOff, Info, Fingerprint, Building2 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -240,7 +240,7 @@ export function MobileTabBar() {
         </button>
 
         <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); trackTabClick("Controle Financeiro", "/controle-financeiro"); router.push("/controle-financeiro"); }} className={`p-2 transition-colors cursor-pointer ${isFinanceActive ? "text-orange-500" : "text-gray-400"}`}>
-          <Rocket size={20} className="-rotate-45" strokeWidth={isFinanceActive ? 2.5 : 2} />
+          <PiggyBank size={22} strokeWidth={isFinanceActive ? 2.5 : 2} />
         </button>
 
         <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); trackTabClick("Administração Condo", "/condo"); router.push("/condo"); }} className={`p-2 transition-colors cursor-pointer ${isCondoActive ? "text-blue-600" : "text-gray-400"}`}>

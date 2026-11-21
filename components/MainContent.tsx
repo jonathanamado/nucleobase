@@ -5,72 +5,19 @@ import Link from 'next/link';
 import {
   Zap, ArrowRight, Mail, Newspaper, ShieldCheck,
   BarChart3, MessageSquare, Lock,
-  Users, Gift, X, Loader2, CheckCircle2, FileWarning,
+  Users, Gift, Loader2, CheckCircle2, FileWarning,
   LayoutDashboard, Instagram, Play, Building2,
   PiggyBank, Lightbulb, Target // Ícones adicionados conforme solicitado
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 export function MainContent() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [enviado, setEnviado] = useState(false);
-
   // Estados para a newsletter direta na tela
   const [inlineLoading, setInlineLoading] = useState(false);
   const [inlineEnviado, setInlineEnviado] = useState(false);
 
   // Estado interativo para a trilha de demonstração (Desktop)
   const [activeTourStep, setActiveTourStep] = useState<number>(0);
-
-  const handleSubscribe = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
-    const nome = formData.get("nome") as string;
-
-    formData.append("access_key", "9ef5a274-150a-4664-a885-0b052efd06f7");
-    formData.append("subject", "Nova Inscrição na Newsletter - Home Nucleobase");
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      const { error: dbError } = await supabase
-        .from("newsletter")
-        .insert([{
-          email: email,
-          nome: nome || null,
-          origem: "pagina_inicial",
-          user_id: user?.id || null
-        }]);
-      if (dbError && dbError.code !== '23505') throw dbError;
-
-      const res = await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        body: formData
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        setEnviado(true);
-        // Rastreamento GTM de conversão da newsletter
-        if (typeof window !== "undefined") {
-          window.dataLayer = window.dataLayer || [];
-          window.dataLayer.push({
-            event: "newsletter_subscribed",
-            page_location: "/"
-          });
-        }
-      } else {
-        throw new Error("Erro no serviço de e-mail");
-      }
-    } catch (err) {
-      console.error("Erro no processamento:", err);
-      alert("Erro ao processar assinatura. Tente novamente.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleInlineSubscribe = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -134,48 +81,10 @@ export function MainContent() {
   return (
     <div className="w-full bg-white text-gray-900 min-h-screen">
 
-      {/* --- MODAL DE NEWSLETTER --- */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-[3rem] p-10 max-w-md w-full relative shadow-2xl scale-in-center">
-            <button
-              onClick={() => { setIsModalOpen(false); setEnviado(false); }}
-              className="absolute top-6 right-6 text-gray-400 hover:text-gray-900 transition-colors cursor-pointer"
-            >
-              <X size={24} />
-            </button>
-            {!enviado ? (
-              <>
-                <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
-                  <span className="text-blue-600"><Mail size={24} /></span>
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Assinar Newsletter</h3>
-                <p className="text-gray-500 mb-8 font-medium">Insights financeiros e estratégicos toda semana.</p>
-                <form onSubmit={handleSubscribe} className="space-y-4">
-                  <input type="text" name="nome" placeholder="Nome" className="w-full bg-gray-50 border-transparent rounded-2xl py-4 px-6 text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all" />
-                  <input required type="email" name="email" placeholder="E-mail" className="w-full bg-gray-50 border-transparent rounded-2xl py-4 px-6 text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all" />
-                  <button type="submit" disabled={loading} className="w-full py-4 bg-gray-900 text-white rounded-full font-bold text-sm uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50">
-                    {loading ? <Loader2 className="animate-spin" size={18} /> : "Inscrever-se agora"}
-                  </button>
-                </form>
-              </>
-            ) : (
-              <div className="py-6 text-center">
-                <div className="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle2 size={32} />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Bem-vindo à lista!</h3>
-                <p className="text-gray-500 font-medium text-sm">Inscrição confirmada com sucesso.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* ============================================================
           LAYOUT MOBILE MODERNIZADO
           ============================================================ */}
-      <div className="block lg:hidden px-4 pb-20 space-y-10 animate-in fade-in duration-700">
+      <div className="block lg:hidden px-4 pb-0 space-y-10 animate-in fade-in duration-700">
 
         {/* HERO SECTION MOBILE */}
         <div className="mt-0 pt-2 space-y-8 text-left">
@@ -197,7 +106,6 @@ export function MainContent() {
             <div className="relative bg-white border border-gray-100 p-7 rounded-[2.5rem] shadow-xl shadow-blue-900/5 space-y-5">
               <div className="w-full">
                 <div className="w-full flex items-center justify-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest text-center">
-                  <ShieldCheck size={13} className="text-blue-600 shrink-0" />
                   <span>Gestão & Inteligência</span>
                   <span className="text-blue-300 font-normal">|</span>
                   <span className="text-blue-600">100% Digital</span>
@@ -383,25 +291,21 @@ export function MainContent() {
           </div>
 
           <div>
-            <p className="text-gray-400 text-xs text-center font-bold tracking-wider mb-3">Segurança • Proteção e criptografia de ponta</p>
-            <Link href="/seguranca_privacidade" onClick={() => trackClick("Segurança e Privacidade (Mobile)", "/seguranca_privacidade")} className="group block bg-gray-900 border border-gray-800 p-8 rounded-[2.5rem] relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-emerald-500/10 hover:border-emerald-500/30">
+            <Link href="/seguranca_privacidade" onClick={() => trackClick("Segurança e Privacidade (Mobile)", "/seguranca_privacidade")} className="group block bg-gray-900 border border-gray-800 p-7 rounded-[2.5rem] relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-emerald-500/10 hover:border-emerald-500/30">
               <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all duration-700 pointer-events-none" />
               <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all duration-700 pointer-events-none text-emerald-400">
                 <Lock size={140} strokeWidth={1} />
               </div>
 
-              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="relative z-10 flex flex-col justify-between gap-5">
                 <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center border border-emerald-500/20 shadow-inner group-hover:bg-emerald-500 group-hover:text-gray-900 transition-all duration-500">
-                      <Lock size={22} />
+                  <div className="flex items-center gap-3.5 mb-3">
+                    <div className="w-11 h-11 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center border border-emerald-500/20 shadow-inner shrink-0 group-hover:bg-emerald-500 group-hover:text-gray-900 transition-all duration-500">
+                      <Lock size={20} />
                     </div>
-                    <span className="text-[9px] text-center font-black uppercase tracking-[0.25em] text-emerald-400 px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
-                      Criptografia Avançada
-                    </span>
+                    <h4 className="text-xl font-bold text-white tracking-tight">Privacidade e Dados</h4>
                   </div>
-                  <h4 className="text-xl md:text-2xl font-bold text-white mb-2 tracking-tight">Privacidade e Dados</h4>
-                  <p className="text-gray-400 text-xs md:text-sm font-medium leading-relaxed max-w-xl">
+                  <p className="text-gray-400 text-xs font-medium leading-relaxed">
                     Sua soberania digital protegida por arquitetura de sigilo total. Seus dados financeiros pertencem exclusivamente a você.
                   </p>
                 </div>
@@ -417,7 +321,7 @@ export function MainContent() {
         </section>
 
         {/* --- CONECTE-SE, NEWSLETTER EM TELA & INSTAGRAM (MOBILE) --- */}
-        <section className="pb-10 pt-4 space-y-10">
+        <section className="pb-0 pt-4 space-y-6">
           <div className="space-y-3">
             <div className="flex items-center gap-4">
               <div className="h-px bg-gray-200 flex-1"></div>
@@ -465,8 +369,11 @@ export function MainContent() {
             )}
           </div>
 
-          <div className="flex flex-col items-center text-center pt-2">
-            <div className="mb-8">
+          <div className="flex flex-col items-center text-center">
+            <div className="mb-6">
+              <p className="text-gray-500 font-medium text-xs mx-auto max-w-[280px] mt-5 mb-3">
+                Siga conectado além da newsletter e acompanhe nossas atualizações também no Instagram.
+              </p>
               <h4 className="text-2xl font-bold text-gray-900 tracking-tighter mb-2 leading-tight">
                 Fique por dentro <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
               </h4>
@@ -921,6 +828,9 @@ export function MainContent() {
             {/* BLOCO INSTAGRAM */}
             <div className="flex flex-col items-center text-center">
               <div className="max-w-3xl mb-12">
+                <p className="text-gray-500 font-medium text-sm md:text-base mb-3">
+                  Siga conectado além da newsletter e acompanhe nossas atualizações também no Instagram.
+                </p>
                 <h4 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tighter mb-2">
                   Fique por dentro <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
                 </h4>
