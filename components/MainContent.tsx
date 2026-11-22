@@ -104,14 +104,6 @@ export function MainContent() {
           <div className="relative">
             <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[2.6rem] blur opacity-10"></div>
             <div className="relative bg-white border border-gray-100 p-7 rounded-[2.5rem] shadow-xl shadow-blue-900/5 space-y-5">
-              <div className="w-full">
-                <div className="w-full flex items-center justify-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest text-center">
-                  <span>Gestão & Inteligência</span>
-                  <span className="text-blue-300 font-normal">|</span>
-                  <span className="text-blue-600">100% Digital</span>
-                </div>
-              </div>
-
               <div className="space-y-2">
                 <h2 className="text-xl font-bold text-gray-900 tracking-tight leading-snug">
                   Transparência para condomínios. <span className="text-blue-600">Clareza para suas finanças.</span>
@@ -219,7 +211,7 @@ export function MainContent() {
 
             <div className="pt-6 px-2 space-y-4">
               <p className="text-gray-600 text-base leading-relaxed font-medium">
-                A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos controles com inteligência e foco em redução de custos. Conheça nossa missão e história <Link href="/sobre" onClick={() => trackClick("Sobre a história (Mobile)", "/sobre")} className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
+                A <span className="text-gray-900 font-bold">Nucleobase</span> é o seu centro de comando. Diferente de planilhas complexas, traduzimos processos com inteligência e praticidade. Conheça nossa missão e história <Link href="/sobre" onClick={() => trackClick("Sobre a história (Mobile)", "/sobre")} className="font-bold underline hover:text-blue-600 transition-colors"><u>clicando aqui</u></Link>.
                 <br /><br />
                 Nosso app oferece gestão condominial e controle de financas e e em ambos os módulos de consultoria digital especializada. Saiba mais:
               </p>
@@ -305,7 +297,7 @@ export function MainContent() {
                     </div>
                     <h4 className="text-xl font-bold text-white tracking-tight">Privacidade e Dados</h4>
                   </div>
-                  <p className="text-gray-400 text-xs font-medium leading-relaxed">
+                  <p className="text-gray-400 text-xs text-center font-medium leading-relaxed">
                     Sua soberania digital protegida por arquitetura de sigilo total. Seus dados financeiros pertencem exclusivamente a você.
                   </p>
                 </div>
@@ -331,7 +323,7 @@ export function MainContent() {
               <div className="h-px bg-gray-200 flex-1"></div>
             </div>
             <p className="text-gray-500 text-xs text-center font-medium leading-relaxed px-2">
-              Assine nossa <span className="text-gray-900 font-bold">Newsletter</span> e receba novidades por e-mail. Acompanhe nossas atualizações pelas <span className="text-gray-900 font-bold">redes sociais</span>.
+              Assine nossa <span className="text-gray-900 font-bold">Newsletter</span> e receba novidades. Acompanhe nossas atualizações pelas <span className="text-gray-900 font-bold">redes sociais</span>.
             </p>
           </div>
 
@@ -370,10 +362,8 @@ export function MainContent() {
           </div>
 
           <div className="flex flex-col items-center text-center">
+            <div className="w-full h-px bg-gray-200 mb-6"></div>
             <div className="mb-6">
-              <p className="text-gray-500 font-medium text-xs mx-auto max-w-[280px] mt-5 mb-3">
-                Siga conectado além da newsletter e acompanhe nossas atualizações também no Instagram.
-              </p>
               <h4 className="text-2xl font-bold text-gray-900 tracking-tighter mb-2 leading-tight">
                 Fique por dentro <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">do nosso universo.</span>
               </h4>
