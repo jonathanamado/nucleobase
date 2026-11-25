@@ -87,7 +87,7 @@ export function MainContent() {
       <div className="block lg:hidden px-4 pb-0 space-y-10 animate-in fade-in duration-700">
 
         {/* HERO SECTION MOBILE */}
-        <div className="mt-0 pt-2 space-y-8 text-left">
+        <div className="-mt-4 pt-0 space-y-8 text-left">
           <div className="relative space-y-2">
             <h1 className="text-3xl font-bold text-gray-900 tracking-tighter flex items-center gap-1">
               <span>Nucleobase<span className="text-blue-600">.</span></span>

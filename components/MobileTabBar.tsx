@@ -239,12 +239,12 @@ export function MobileTabBar() {
           <Home size={22} strokeWidth={!isSearchOpen && !isMenuOpen && pathname === "/" ? 2.5 : 2} />
         </button>
 
-        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); trackTabClick("Controle Financeiro", "/controle-financeiro"); router.push("/controle-financeiro"); }} className={`p-2 transition-colors cursor-pointer ${isFinanceActive ? "text-orange-500" : "text-gray-400"}`}>
-          <PiggyBank size={22} strokeWidth={isFinanceActive ? 2.5 : 2} />
-        </button>
-
         <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); trackTabClick("Administração Condo", "/condo"); router.push("/condo"); }} className={`p-2 transition-colors cursor-pointer ${isCondoActive ? "text-blue-600" : "text-gray-400"}`}>
           <Building2 size={22} strokeWidth={isCondoActive ? 2.5 : 2} />
+        </button>
+
+        <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); trackTabClick("Controle Financeiro", "/controle-financeiro"); router.push("/controle-financeiro"); }} className={`p-2 transition-colors cursor-pointer ${isFinanceActive ? "text-orange-500" : "text-gray-400"}`}>
+          <PiggyBank size={22} strokeWidth={isFinanceActive ? 2.5 : 2} />
         </button>
 
         <button onClick={() => { setIsMenuOpen(false); setIsSearchOpen(true); trackTabClick("Abrir Busca", "open_search"); }} className={`p-2 transition-colors cursor-pointer ${(isSearchOpen || pathname === "/busca") && !isMenuOpen ? "text-blue-600" : "text-gray-400 active:text-blue-600"}`}>
